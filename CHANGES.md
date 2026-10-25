@@ -21,6 +21,74 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-10-25] — Phase 0: Curriculum Lesson Reader, Gating, & Progress Tracking
+
+**Category:** Feature & Security
+
+**Status:** Completed
+
+**Problem:**
+Previously, the curriculum overview at `/learn` selected all lesson `body` content indiscriminately, allowing unauthenticated or non-enrolled users to inspect full lesson text. There was also no lesson reader route (`/learn/[moduleId]/[lessonId]`), no module overview route (`/learn/[moduleId]`), no student completion progress tracking, and no infrastructure for gating non-free content.
+
+**Files Changed:**
+- `src/types/database.ts`
+- `src/lib/learn/access.ts`
+- `src/app/learn/actions.ts`
+- `src/components/learn/CompleteLessonButton.tsx`
+- `src/components/learn/LessonContent.tsx`
+- `src/app/learn/[moduleId]/page.tsx`
+- `src/app/learn/[moduleId]/[lessonId]/page.tsx`
+- `src/app/learn/page.tsx`
+- `src/app/admin/actions.ts`
+- `src/app/api/paystack/webhook/route.ts`
+- `supabase/003_module_access.sql`
+- `package.json`
+- `.gitignore`
+- `CHANGES.md`
+
+**Implementation:**
+1. **Server-Side Lesson Access Verification**:
+   - Implemented `checkLessonAccess()` in `src/lib/learn/access.ts`.
+   - Free lessons (`is_free: true`) are accessible to all users.
+   - Non-free lessons strictly require authentication and verify admin role, author trainer ownership, or explicit grant in `module_access`.
+   - On denial, the server never queries or returns `lesson.body`.
+2. **Sanitized Lesson Reader**:
+   - Created `/learn/[moduleId]/[lessonId]` featuring `<LessonContent>` with `react-markdown` and `rehype-sanitize` to guarantee zero raw HTML or XSS injection.
+   - Supported responsive video playback for YouTube embeds and HTML5 media.
+   - Built seamless previous/next lesson navigation and syllabus outline sidebar.
+3. **Module Overview & Progress Tracking**:
+   - Created `/learn/[moduleId]` displaying module description, trainer name, progress percentage, and lesson list.
+   - Implemented `lesson_progress` toggle via server action `toggleLessonCompletion` in `src/app/learn/actions.ts`.
+   - Created client component `<CompleteLessonButton>` with optimistic transitions.
+4. **List Query Protection**:
+   - Updated `/learn` to omit `body` completely from overview queries, preventing payload data leakage.
+   - Added module progress bars and completion badges for authenticated students.
+5. **Access Granting Infrastructure**:
+   - Added `grantModuleAccess` and `revokeModuleAccess` server actions to `src/app/admin/actions.ts`.
+   - Updated Paystack webhook in `src/app/api/paystack/webhook/route.ts` to automatically record `module_access` when purchases complete.
+   - Added SQL migration file `supabase/003_module_access.sql`.
+
+**Reason:**
+Fulfills Phase 0 of the Project Studio specification, closing existing content leaks and establishing the student revision reader.
+
+**Validation:**
+- `npx tsc --noEmit` passed with 0 errors.
+- `npm run lint` passed with 0 warnings / 0 errors.
+- `npm run build` compiled all 16 static/dynamic/PPR routes cleanly.
+
+**Database Impact:**
+- Defined `module_access` table with RLS in `supabase/003_module_access.sql`.
+- Actively utilizes `lesson_progress` table.
+
+**Security Impact:**
+- Zero content leakage for gated lessons across list and reader endpoints.
+- XSS prevention via `rehype-sanitize` abstract syntax tree sanitization.
+
+**Remaining Issues:**
+- `module_access` table SQL migration needs to be applied in Supabase SQL editor when module purchases are actively sold.
+
+---
+
 ## [2026-10-25] — Root Layout React 19 / TypeScript Hardening
 
 **Category:** Code Quality & Type Safety

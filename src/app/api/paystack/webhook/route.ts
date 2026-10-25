@@ -29,13 +29,27 @@ export async function POST(request: NextRequest) {
     const reference = event.data?.reference;
     if (reference) {
       const adminClient = createAdminClient();
-      await adminClient
+      const { data: updatedOrder } = await adminClient
         .from("orders")
         .update({
           status: "paid",
           paid_at: new Date().toISOString(),
         })
-        .eq("paystack_reference", reference);
+        .eq("paystack_reference", reference)
+        .select("student_id, project_id")
+        .maybeSingle();
+
+      const eventData = event.data as Record<string, unknown> | undefined;
+      const metadata = eventData?.metadata as Record<string, unknown> | undefined;
+      const metadataModuleId = metadata?.module_id as string | undefined;
+
+      if (updatedOrder?.student_id && metadataModuleId) {
+        await adminClient.from("module_access").upsert({
+          user_id: updatedOrder.student_id,
+          module_id: metadataModuleId,
+          granted_by: "purchase",
+        });
+      }
     }
   }
 

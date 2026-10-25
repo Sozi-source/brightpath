@@ -102,3 +102,39 @@ export async function updateUserRole(formData: FormData) {
   if (error) throw error;
   revalidatePath("/admin");
 }
+
+export async function grantModuleAccess(formData: FormData) {
+  const { supabase } = await verifyAdmin();
+  const userId = formData.get("userId")?.toString();
+  const moduleId = formData.get("moduleId")?.toString();
+
+  if (!userId || !moduleId) throw new Error("Missing userId or moduleId");
+
+  const { error } = await supabase.from("module_access").upsert({
+    user_id: userId,
+    module_id: moduleId,
+    granted_by: "admin",
+  });
+
+  if (error) throw error;
+  revalidatePath("/admin");
+  revalidatePath("/learn");
+}
+
+export async function revokeModuleAccess(formData: FormData) {
+  const { supabase } = await verifyAdmin();
+  const userId = formData.get("userId")?.toString();
+  const moduleId = formData.get("moduleId")?.toString();
+
+  if (!userId || !moduleId) throw new Error("Missing userId or moduleId");
+
+  const { error } = await supabase
+    .from("module_access")
+    .delete()
+    .eq("user_id", userId)
+    .eq("module_id", moduleId);
+
+  if (error) throw error;
+  revalidatePath("/admin");
+  revalidatePath("/learn");
+}

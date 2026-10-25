@@ -92,3 +92,16 @@ export interface PlatformSettings {
   id: number;
   commission_percent: number;
 }
+
+export interface LessonProgress {
+  user_id: string;
+  lesson_id: string;
+  completed_at: string;
+}
+
+export interface ModuleAccess {
+  user_id: string;
+  module_id: string;
+  granted_by: "purchase" | "institution" | "admin";
+  created_at: string;
+}
