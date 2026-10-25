@@ -17,7 +17,11 @@ export const metadata: Metadata = {
   description: "Projects, business plans and revision, guided.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html
       lang="en"

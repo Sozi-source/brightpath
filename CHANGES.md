@@ -21,6 +21,28 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-10-25] — Root Layout React 19 / TypeScript Hardening
+
+**Category:** Code Quality & Type Safety
+
+**Status:** Completed
+
+**Problem:**
+`src/app/layout.tsx` was relying on undeclared `LayoutProps<"/">` which triggered `TS2304: Cannot find name 'LayoutProps'` when running TypeScript checking on fresh environments prior to Next.js route type generation.
+
+**Files Changed:**
+- `src/app/layout.tsx`
+- `CHANGES.md`
+
+**Implementation:**
+- Explicitly typed `RootLayout` with `Readonly<{ children: React.ReactNode }>`.
+- Confirmed `npx tsc --noEmit` and `npm run lint` execute cleanly with 0 errors.
+
+**Reason:**
+Ensures headless CI/CD and developer type-checking passes consistently without pre-existing `.next/types`.
+
+---
+
 ## [2026-10-25] — Git Repository Initialization & Secret Scanning Remediation
 
 **Category:** DevOps & Security
