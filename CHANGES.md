@@ -21,6 +21,53 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-10-26] — UI Architecture: Kenya Education Cloud (KEC) Institutional Design System
+
+**Category:** UI / UX & Design System
+
+**Status:** Completed
+
+**Problem:**
+Generic AI-generated UI patterns (dark-mode `zinc-950`, oversized bubble-pill `rounded-3xl` corners, centered floating single cards, and low-contrast text) are undesirable for an accredited Kenyan academic LMS and KNEC examination studio. The platform required a standardized, authoritative institutional design system modeled on national portals such as the Kenya Education Cloud (`https://lms.kec.ac.ke/`).
+
+**Files Changed:**
+- `docs/UI_DESIGN_SYSTEM.md`
+- `AGENTS.md`
+- `src/components/layout/AppShell.tsx`
+- `src/components/layout/PageHeaderCard.tsx`
+- `src/components/layout/ContentCard.tsx`
+- `src/app/studio/page.tsx`
+- `src/app/studio/new/page.tsx`
+- `src/app/studio/[id]/page.tsx`
+- `CHANGES.md`
+
+**Implementation:**
+1. **Design System Specification (`docs/UI_DESIGN_SYSTEM.md`)**:
+   - Detailed anti-patterns vs institutional standards matrix, color tokens (institutional navy `#0f3554`, royal blue `#1d4ed8`, Kenyan gold `#f59e0b`, soft blue-gray canvas `#f4f7fb`), and typography hierarchy.
+   - Enforced rules against `rounded-3xl` bubbles, establishing disciplined `rounded-lg` (8px) and `rounded-xl` (12px) geometry with clean `shadow-xs`.
+   - Updated `AGENTS.md` to establish strict prompt adherence to this specification across all future work.
+2. **Institutional Layout Shell (`src/components/layout/AppShell.tsx`)**:
+   - Implemented fixed white top application bar (`h-16`) featuring the 9-dot matrix app launcher (`LayoutGrid`), BrightPath TVET emblem, examination series indicator, and user profile chip.
+   - Built persistent deep navy navigation sidebar (`w-64`) with active course/project anchor, categorized navigation groups (Main Portal, KNEC Academic Levels, Examination Moderation), and mobile slide-out drawer support.
+3. **KEC Signature Hallmarks (`src/components/layout/PageHeaderCard.tsx`)**:
+   - Implemented the dual-color institutional accent stripe (60% Royal Blue + 40% Kenyan Gold) across the top card border.
+   - Implemented the interlocking breadcrumb ribbon with styled pill tabs and chevron dividers.
+   - Integrated structured metadata strip (Candidate, Admission No, Course, Level, Supervisor).
+4. **Institutional Card Container (`src/components/layout/ContentCard.tsx`)**:
+   - Standardized `rounded-xl`, `border-slate-200`, and subtle `shadow-xs` card surfaces with clean header strips.
+5. **Applied to Core Studio Routes**:
+   - Upgraded `/studio` (portfolio list), `/studio/new` (onboarding wizard), and `/studio/[id]` (workspace command center).
+
+**Reason:**
+Addresses user requirement to align platform aesthetics with top Kenyan educational portals (KEC) and eliminate undesirable generic AI default styling.
+
+**Validation:**
+- `npx tsc --noEmit` passed with 0 errors.
+- `npm run lint` passed with 0 errors and 0 warnings.
+- `npm run build` compiled all 23 routes cleanly with Partial Prerendering (`◐`).
+
+---
+
 ## [2026-10-26] — Phase 2: Project Studio Templates, Onboarding Wizard, Topic Bank, & Proposal Approval Workflow
 
 **Category:** Feature & Security
