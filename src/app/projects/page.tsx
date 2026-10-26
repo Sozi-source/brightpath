@@ -1,13 +1,25 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { ArrowLeft, Layers } from "lucide-react";
-import type { Project } from "@/types/database";
+import { AppShell } from "@/components/layout/AppShell";
+import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
+import { Layers, Briefcase, Download, ShieldCheck } from "lucide-react";
+import type { Project, UserProfile } from "@/types/database";
 import { BuyButton } from "@/components/BuyButton";
 
 export const instant = false;
 
 export default async function ProjectsPage() {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let profile: UserProfile | null = null;
+  if (user) {
+    const { data: p } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+    profile = p as UserProfile | null;
+  }
+
   const { data: projectsData } = await supabase
     .from("projects")
     .select("*, profiles:trainer_id(full_name)")
@@ -16,86 +28,99 @@ export default async function ProjectsPage() {
 
   const projects: Project[] = (projectsData as unknown as Project[]) || [];
 
-  return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
-      <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 py-4">
-        <div className="max-w-6xl mx-auto px-4 flex items-center justify-between">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Home
-          </Link>
-          <span className="font-bold text-base tracking-tight flex items-center gap-2">
-            <Layers className="h-4 w-4 text-emerald-600" />
-            Projects Marketplace
-          </span>
-          <Link
-            href="/trainer"
-            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900"
-          >
-            Sell Project
-          </Link>
-        </div>
-      </header>
+  const isTrainerOrAdmin = profile?.role === "trainer" || profile?.role === "admin";
 
-      <main className="max-w-6xl mx-auto px-4 py-10 space-y-8">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Ready-Made Projects</h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Browse and download verified academic projects, source code packages, and business plans.
+  return (
+    <AppShell
+      user={user}
+      profile={profile}
+      activeContextTitle="TVET Projects Marketplace"
+    >
+      <PageHeaderCard
+        title="Ready-Made TVET Technical Projects & Business Plans"
+        subtitle="Download complete verified technical project packages, working schematics, source code repositories, and comprehensive KNEC-format business plans."
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Projects Marketplace", active: true },
+        ]}
+        metadata={[
+          { label: "Published Packages", value: `${projects.length} Verified Projects` },
+          { label: "Technical Trades", value: "Electrical, CS, Agriculture, Business" },
+          { label: "Delivery", value: "Instant Paystack / M-PESA Download" },
+          { label: "Integrity", value: "Faculty Reviewed & Screened" },
+        ]}
+        actions={
+          isTrainerOrAdmin ? (
+            <Link
+              href="/trainer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-white text-blue-900 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
+            >
+              <Briefcase className="h-4 w-4 text-blue-700" />
+              <span>Trainer Studio</span>
+            </Link>
+          ) : (
+            <Link
+              href="/library"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-white text-slate-700 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
+            >
+              <Download className="h-4 w-4 text-blue-700" />
+              <span>My Digital Library</span>
+            </Link>
+          )
+        }
+      />
+
+      {projects.length === 0 ? (
+        <div className="text-center py-16 border border-dashed border-slate-200 rounded-xl bg-white shadow-xs">
+          <Layers className="h-10 w-10 mx-auto text-slate-400 mb-3" />
+          <h2 className="text-base font-bold text-slate-900">No projects published in the marketplace yet</h2>
+          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+            Accredited faculty trainers can author and publish ready-made capstones and business plans in the{" "}
+            <Link href="/trainer" className="text-blue-700 font-bold hover:underline">
+              Trainer Studio
+            </Link>
+            .
           </p>
         </div>
-
-        {projects.length === 0 ? (
-          <div className="text-center py-16 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl bg-white dark:bg-zinc-900">
-            <Layers className="h-10 w-10 mx-auto text-zinc-400 mb-3" />
-            <h2 className="text-base font-bold">No projects published yet</h2>
-            <p className="text-xs text-zinc-500 mt-1 max-w-sm mx-auto">
-              As an administrator or trainer, you can upload and publish your first project package in the{" "}
-              <Link href="/trainer" className="text-emerald-600 underline">
-                Trainer Studio
-              </Link>
-              .
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((p) => (
-              <div
-                key={p.id}
-                className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 flex flex-col justify-between shadow-xs"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded">
-                      {p.category || "Project"}
-                    </span>
-                  </div>
-                  <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100">{p.title}</h3>
-                  <p className="text-xs text-zinc-500 mt-1">
-                    By {p.profiles?.full_name || "Verified Trainer"}
-                  </p>
-                  <p className="mt-3 text-xs text-zinc-600 dark:text-zinc-400 line-clamp-3 leading-relaxed">
-                    {p.description || "Complete project files and comprehensive documentation."}
-                  </p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {projects.map((p) => (
+            <div
+              key={p.id}
+              className="bg-white rounded-xl border border-slate-200 p-6 flex flex-col justify-between shadow-xs hover:border-slate-300 transition-colors"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-blue-800 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded">
+                    {p.category || "General Project"}
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    Verified
+                  </span>
                 </div>
-
-                <div className="mt-6 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] uppercase text-zinc-400 font-semibold block">Price</span>
-                    <span className="font-mono font-extrabold text-base text-zinc-900 dark:text-zinc-50">
-                      KES {Number(p.price_kes).toLocaleString()}
-                    </span>
-                  </div>
-                  <BuyButton projectId={p.id} priceKes={p.price_kes} />
-                </div>
+                <h3 className="font-bold text-base text-slate-900 leading-snug">{p.title}</h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  By <strong className="text-slate-700">{p.profiles?.full_name || "Verified Faculty"}</strong>
+                </p>
+                <p className="mt-3 text-xs text-slate-600 line-clamp-3 leading-relaxed">
+                  {p.description || "Complete project implementation files and comprehensive documentation."}
+                </p>
               </div>
-            ))}
-          </div>
-        )}
-      </main>
-    </div>
+
+              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] uppercase text-slate-400 font-bold block">Official Price</span>
+                  <span className="font-mono font-black text-lg text-slate-900">
+                    KES {Number(p.price_kes).toLocaleString()}
+                  </span>
+                </div>
+                <BuyButton projectId={p.id} priceKes={p.price_kes} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </AppShell>
   );
 }

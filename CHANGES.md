@@ -21,6 +21,61 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-10-26] — Global UI Migration: Kenya Education Cloud (KEC) Standard Across All Routes
+
+**Category:** UI / UX & Institutional Design System Rollout
+
+**Status:** Completed & Verified
+
+**Problem:**
+While core Studio routes were previously updated to the KEC layout shell, outer pages across the application (`/trainer`, `/admin`, `/learn/*`, `/supervisor/*`, `/projects`, `/library`, `/studio/[id]/problem`, `/studio/[id]/write/*`, `/`, `/login`, and `/signup`) still rendered the generic "AI default UI" (dark-mode `zinc-950`, oversized floating cards, `rounded-3xl` bubble-pill containers, low-contrast text, and simple centered topbars). This broke visual continuity and compromised the institutional credibility required for an accredited TVET examination platform.
+
+**Files Changed:**
+- `src/app/trainer/page.tsx`
+- `src/app/admin/page.tsx`
+- `src/app/learn/page.tsx`
+- `src/app/learn/[moduleId]/page.tsx`
+- `src/app/learn/[moduleId]/[lessonId]/page.tsx`
+- `src/app/supervisor/page.tsx`
+- `src/app/supervisor/[workspaceId]/page.tsx`
+- `src/app/projects/page.tsx`
+- `src/app/library/page.tsx`
+- `src/app/studio/[id]/problem/page.tsx`
+- `src/app/studio/[id]/problem/TopicSelector.tsx`
+- `src/app/studio/[id]/write/[sectionKey]/page.tsx`
+- `src/app/studio/[id]/write/[sectionKey]/SectionEditor.tsx`
+- `src/app/page.tsx`
+- `src/app/login/page.tsx`
+- `src/app/signup/page.tsx`
+- `CHANGES.md`
+
+**Implementation:**
+1. **Trainer Authoring & Content Studio (`/trainer`)**:
+   - Replaced floating dark-mode hero banner and standalone navbar with `<AppShell>`, `<PageHeaderCard>` (with Dual-Tone Blue/Gold accent stripe and metadata for trainer accreditation and published counts), and `<ContentCard>` sections for the Bulk Upload Hub (CSV/JSON), Project Marketplace Publisher, and Curriculum Module Builder.
+2. **Institutional Administration & Governance (`/admin`)**:
+   - Integrated `<AppShell>` and `<PageHeaderCard>`. Replaced all dark `zinc-900`/`zinc-800` cards with clean `bg-white rounded-xl border border-slate-200 shadow-xs`. Converted all tabular datasets (KPI grid, Paystack commission settings, pending moderation queue, projects catalog, user profile role assignment, accredited TVET centers, and content reports) to high-contrast institutional tables.
+3. **Curriculum Revision & Video Lessons (`/learn/*`)**:
+   - `/learn`: Modernized with `<AppShell>`, `<PageHeaderCard>`, and `<ContentCard>` per module with progress tracking, instructor labels, and syllabus breakdowns.
+   - `/learn/[moduleId]`: Implemented overview shell with lesson progression indicators, syllabus card, and continue learning action.
+   - `/learn/[moduleId]/[lessonId]`: Built institutional reader frame with video player support, gated access shield, syllabus sidebar outline, and previous/next navigation controls.
+4. **Institutional Supervisor Moderation Portal (`/supervisor/*`)**:
+   - `/supervisor`: Wrapped in `<AppShell>` with candidate KPI summary strip (assigned candidates, pending proposals, approved candidates) and supervised candidate roster table.
+   - `/supervisor/[workspaceId]`: Replaced `rounded-3xl` cards with `<AppShell>` candidate review interface, proposal moderation scorecard, supervisor decision controls (approve / request revisions / refine official title), chapter progress & AI originality audit grid, and chronological moderation log.
+5. **Projects Marketplace & Digital Library (`/projects`, `/library`)**:
+   - `/projects`: Modernized catalogue with `<AppShell>`, `<PageHeaderCard>`, and clean KEC cards with bold KES pricing, trade category badges, and Paystack checkout integration.
+   - `/library`: Built student resource vault with verified purchase records, permanent access entitlements, and direct download links.
+6. **Project Formulation & Section Editor (`/studio/[id]/problem`, `/studio/[id]/write/[sectionKey]`)**:
+   - Wrapped problem formulation and chapter authoring in `<AppShell>` with contextual breadcrumbs, disciplined geometry (`rounded-lg`/`rounded-xl`), and crisp guidance frames.
+7. **Public Showcase & Authentication (`/`, `/login`, `/signup`)**:
+   - Modernized landing page into an authoritative national TVET examination showcase with fixed 9-dot launcher topbar, dual-tone hero card, and structured pillar overview.
+   - Redesigned `/login` and `/signup` with soft blue-gray canvas (`#f4f7fb`), dual-tone accent stripes, high-contrast inputs, and institutional verification badges.
+8. **Verification**:
+   - `npx tsc --noEmit`: 0 errors.
+   - `npm run lint`: 0 errors, 0 warnings.
+   - `npm run build`: 23/23 routes compiled successfully with Turbopack and Partial Prerendering (`◐`).
+
+---
+
 ## [2026-10-26] — UI Architecture: Kenya Education Cloud (KEC) Institutional Design System
 
 **Category:** UI / UX & Design System

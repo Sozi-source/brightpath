@@ -3,12 +3,14 @@ import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/(auth)/actions";
 import {
   BookOpen,
-  Briefcase,
   GraduationCap,
   ArrowRight,
   ShieldCheck,
   Layers,
-  Sparkles,
+  LayoutGrid,
+  FileText,
+  Building,
+  CheckCircle2,
 } from "lucide-react";
 
 export const instant = false;
@@ -38,48 +40,73 @@ export default async function HomePage() {
       ? "/admin"
       : userRole === "trainer"
       ? "/trainer"
-      : "/learn";
+      : userRole === "supervisor"
+      ? "/supervisor"
+      : "/studio";
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
-      {/* Navigation */}
-      <header className="sticky top-0 z-50 w-full border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur">
-        <div className="max-w-6xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-2 font-bold text-lg tracking-tight">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
-              <Sparkles className="h-4 w-4" />
-            </span>
-            <span>BrightPath</span>
-          </Link>
+    <div className="min-h-screen flex flex-col bg-[#f4f7fb] text-slate-900">
+      {/* 1. Global Institutional Topbar */}
+      <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white shadow-xs">
+        <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              aria-label="Application Switcher"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
 
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-            <Link href="/projects" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-              Projects
+            <Link href="/" className="flex items-center gap-2.5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0f3554] text-white shadow-xs">
+                <GraduationCap className="h-5 w-5 text-[#f59e0b]" />
+              </span>
+              <div>
+                <span className="font-black text-sm tracking-tight text-slate-900 block leading-tight">
+                  BrightPath TVET
+                </span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                  Kenya Education Cloud Standard
+                </span>
+              </div>
             </Link>
-            <Link href="/learn" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
+          </div>
+
+          <nav className="hidden md:flex items-center gap-6 text-xs font-bold text-slate-600">
+            <Link href="/studio" className="hover:text-blue-700 transition-colors">
+              Project Studio
+            </Link>
+            <Link href="/projects" className="hover:text-blue-700 transition-colors">
+              Projects Marketplace
+            </Link>
+            <Link href="/learn" className="hover:text-blue-700 transition-colors">
               Revision & Lessons
             </Link>
-            <Link href="/trainer" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-              For Trainers
+            <Link href="/supervisor" className="hover:text-blue-700 transition-colors">
+              Supervisor Portal
+            </Link>
+            <Link href="/trainer" className="hover:text-blue-700 transition-colors">
+              Trainer Studio
             </Link>
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             {user ? (
-              <div className="flex items-center gap-3">
-                <span className="hidden lg:inline-block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+              <div className="flex items-center gap-2.5">
+                <span className="hidden lg:inline-block text-xs font-bold text-slate-700">
                   {fullName}
                 </span>
                 <Link
                   href={dashboardHref}
-                  className="rounded-lg bg-zinc-900 px-3.5 py-2 text-xs sm:text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors"
+                  className="rounded-lg bg-blue-700 hover:bg-blue-800 px-3.5 py-2 text-xs font-bold text-white transition-colors shadow-xs"
                 >
                   Dashboard ({userRole})
                 </Link>
                 <form action={logout}>
                   <button
                     type="submit"
-                    className="rounded-lg border border-zinc-300 dark:border-zinc-700 px-3 py-1.5 text-xs sm:text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                    className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                   >
                     Sign out
                   </button>
@@ -89,15 +116,15 @@ export default async function HomePage() {
               <>
                 <Link
                   href="/login"
-                  className="rounded-lg px-3.5 py-2 text-sm font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100 transition-colors"
+                  className="rounded-lg px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
                 >
-                  Sign in
+                  Sign In
                 </Link>
                 <Link
                   href="/signup"
-                  className="rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors"
+                  className="rounded-lg bg-blue-700 hover:bg-blue-800 px-3.5 py-2 text-xs font-bold text-white transition-colors shadow-xs"
                 >
-                  Get Started
+                  Register Candidate
                 </Link>
               </>
             )}
@@ -105,81 +132,144 @@ export default async function HomePage() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="flex-1 flex flex-col justify-center px-4 sm:px-6 py-20 lg:py-28 max-w-5xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-medium text-zinc-700 dark:text-zinc-300 mx-auto mb-6 shadow-sm">
-          <GraduationCap className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-          <span>Student & Trainer Project Platform</span>
-        </div>
-
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-zinc-950 dark:text-zinc-50 max-w-3xl mx-auto leading-[1.15]">
-          Projects, business plans, and revision, <span className="text-emerald-600 dark:text-emerald-400">guided.</span>
-        </h1>
-
-        <p className="mt-6 text-lg sm:text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-          Access high-quality ready-made student projects, comprehensive business plans, and structured revision modules verified by top trainers.
-        </p>
-
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link
-            href="/projects"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-900 px-6 py-3.5 text-base font-semibold text-white shadow-sm hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors"
-          >
-            Explore Projects
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link
-            href="/learn"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-6 py-3.5 text-base font-semibold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-          >
-            <BookOpen className="h-4 w-4" />
-            Revision Modules
-          </Link>
-        </div>
-
-        {/* Value Pillars */}
-        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-6 shadow-xs">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mb-4">
-              <Briefcase className="h-5 w-5" />
-            </div>
-            <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Ready-Made Projects</h2>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 leading-normal">
-              Download complete, tested project source code and comprehensive business plans with immediate access.
-            </p>
+      {/* 2. Institutional Hero Section */}
+      <section className="px-4 sm:px-6 py-12 lg:py-16 max-w-7xl mx-auto w-full">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+          {/* Two-Tone KEC Accent Stripe */}
+          <div className="h-1.5 w-full flex">
+            <div className="h-full w-3/5 bg-blue-700" />
+            <div className="h-full w-2/5 bg-amber-500" />
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-6 shadow-xs">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 mb-4">
+          <div className="p-8 sm:p-12 lg:p-16 text-center max-w-4xl mx-auto space-y-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-blue-200 bg-blue-50 text-xs font-bold text-blue-900 mx-auto shadow-xs">
+              <ShieldCheck className="h-4 w-4 text-blue-700" />
+              <span>National TVET Capstone Projects & Examination System</span>
+            </div>
+
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 leading-[1.15]">
+              National TVET Capstone Projects, Business Plans & Curriculum Revision
+            </h1>
+
+            <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
+              Empowering Artisan, Craft, and Diploma candidates across East Africa with accredited project templates, KNEC Annex 12 supervision records, interactive AI coaching, and ready-made technical implementations.
+            </p>
+
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link
+                href="/studio"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-blue-700 hover:bg-blue-800 px-6 py-3 text-xs sm:text-sm font-bold text-white shadow-xs transition-colors"
+              >
+                <span>Launch Project Studio (Annex 12)</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/projects"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 px-6 py-3 text-xs sm:text-sm font-bold text-slate-800 transition-colors shadow-xs"
+              >
+                <Layers className="h-4 w-4 text-blue-700" />
+                <span>Browse Projects Marketplace</span>
+              </Link>
+              <Link
+                href="/learn"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 px-6 py-3 text-xs sm:text-sm font-bold text-slate-800 transition-colors shadow-xs"
+              >
+                <BookOpen className="h-4 w-4 text-emerald-700" />
+                <span>Revision Syllabus</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Academic Metadata Strip */}
+          <div className="bg-slate-50 border-t border-slate-200 px-6 py-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-left">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">TVET Levels</span>
+              <span className="text-xs font-bold text-slate-900">Artisan, Craft, Diploma</span>
+            </div>
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">KNEC Compliance</span>
+              <span className="text-xs font-bold text-slate-900">Scorecard 1B & Annex 12</span>
+            </div>
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Institutional Supervison</span>
+              <span className="text-xs font-bold text-slate-900">Direct Faculty Sign-off</span>
+            </div>
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Instant Payment</span>
+              <span className="text-xs font-bold text-slate-900">Paystack / M-PESA KES</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 3. Core Institutional Pillars */}
+        <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
+              <FileText className="h-5 w-5" />
+            </div>
+            <h2 className="text-base font-bold text-slate-900">TVET Project Studio & Log</h2>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Step-by-step authoring environment with accredited KNEC rubrics, Annex 12 candidate-supervisor meeting logs, and AI coaching with policy enforcement.
+            </p>
+            <Link
+              href="/studio"
+              className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:underline pt-2"
+            >
+              <span>Explore Studio</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
+          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
               <Layers className="h-5 w-5" />
             </div>
-            <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Guided Lessons</h2>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 leading-normal">
-              Follow step-by-step revision modules, video guides, and attached resources designed for academic success.
+            <h2 className="text-base font-bold text-slate-900">Accredited Projects Marketplace</h2>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Download complete, tested technical source code packages, CAD blueprints, and comprehensive business plans with immediate access via Paystack.
             </p>
+            <Link
+              href="/projects"
+              className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:underline pt-2"
+            >
+              <span>Explore Marketplace</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-6 shadow-xs">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 mb-4">
-              <ShieldCheck className="h-5 w-5" />
+          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 text-indigo-700">
+              <Building className="h-5 w-5" />
             </div>
-            <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Verified Trainers</h2>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 leading-normal">
-              Learn from vetted institution instructors and trainers who publish curriculum-aligned content.
+            <h2 className="text-base font-bold text-slate-900">Institutional Faculty Moderation</h2>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Supervisors and TVET institutions can review candidate proposal submissions, grade chapters against standardized rubrics, and inspect AI originality logs.
             </p>
+            <Link
+              href="/supervisor"
+              className="inline-flex items-center gap-1 text-xs font-bold text-indigo-700 hover:underline pt-2"
+            >
+              <span>Supervisor Portal</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 py-8 text-center text-xs text-zinc-500 dark:text-zinc-400">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© {new Date().getFullYear()} BrightPath. All rights reserved.</p>
-          <div className="flex items-center gap-4">
-            <Link href="/projects" className="hover:underline">Projects</Link>
-            <Link href="/learn" className="hover:underline">Lessons</Link>
-            <Link href="/login" className="hover:underline">Sign In</Link>
-            <Link href="/signup" className="hover:underline">Sign Up</Link>
+      {/* 4. Global Institutional Footer */}
+      <footer className="mt-auto border-t border-slate-200 bg-white py-8 text-xs text-slate-500">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-700" />
+            <span>BrightPath TVET Examination & Learning Management Cloud Standard</span>
+          </div>
+          <div className="flex items-center gap-5 font-medium text-slate-600">
+            <Link href="/studio" className="hover:text-blue-700">Project Studio</Link>
+            <Link href="/projects" className="hover:text-blue-700">Projects</Link>
+            <Link href="/learn" className="hover:text-blue-700">Lessons</Link>
+            <Link href="/supervisor" className="hover:text-blue-700">Supervisor</Link>
+            <Link href="/trainer" className="hover:text-blue-700">Trainer</Link>
+            <Link href="/login" className="hover:text-blue-700">Sign In</Link>
           </div>
         </div>
       </footer>

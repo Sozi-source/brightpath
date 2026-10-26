@@ -73,50 +73,50 @@ export function SectionEditor({
   return (
     <div className="space-y-6">
       {/* Guidance Card */}
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 space-y-3">
+      <div className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 space-y-3 shadow-xs">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200">
               {phase === "proposal" ? "Proposal Section" : "Project Chapter"}
             </span>
             {rubricMarks !== undefined && (
-              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
                 {rubricMarks} Rubric Marks
               </span>
             )}
           </div>
 
-          <div className="text-xs font-mono text-zinc-500 flex items-center gap-3">
+          <div className="text-xs font-mono text-slate-500 flex items-center gap-3">
             <span>
-              Words: <strong>{wordsCount}</strong> {minWords > 0 && `(min: ${minWords})`}
+              Words: <strong className="text-slate-800">{wordsCount}</strong> {minWords > 0 && `(min: ${minWords})`}
               {isMinMet && wordsCount > 0 && (
-                <span className="ml-1 text-emerald-600 dark:text-emerald-400 font-semibold">✓</span>
+                <span className="ml-1 text-emerald-700 font-bold">✓</span>
               )}
             </span>
             <span>•</span>
-            <span>Chars: {charsCount}</span>
+            <span>Chars: <strong className="text-slate-800">{charsCount}</strong></span>
           </div>
         </div>
 
-        <div className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed border-t border-zinc-100 dark:border-zinc-800/80 pt-3 flex items-start gap-2.5">
-          <Info className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+        <div className="text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3 flex items-start gap-2.5">
+          <Info className="h-4 w-4 text-blue-700 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <span className="font-semibold text-zinc-800 dark:text-zinc-200 block">
+            <span className="font-bold text-slate-900 block">
               KNEC Section Guidance:
             </span>
-            <p className="whitespace-pre-line">{guidance}</p>
+            <p className="whitespace-pre-line text-slate-700">{guidance}</p>
           </div>
         </div>
       </div>
 
       {/* Locked Warning if Project phase not approved */}
       {isLocked ? (
-        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-6 sm:p-8 text-center space-y-3">
-          <Lock className="h-8 w-8 mx-auto text-amber-600 dark:text-amber-400 mb-1" />
-          <h3 className="text-base font-bold text-amber-900 dark:text-amber-200">
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 sm:p-8 text-center space-y-3 shadow-xs">
+          <Lock className="h-8 w-8 mx-auto text-amber-700 mb-1" />
+          <h3 className="text-base font-bold text-amber-900">
             Chapter Section Locked
           </h3>
-          <p className="text-xs text-amber-800/80 dark:text-amber-300/80 max-w-lg mx-auto leading-relaxed">
+          <p className="text-xs text-amber-900/80 max-w-lg mx-auto leading-relaxed">
             In accordance with KNEC Business and Technical Examinations regulations, project chapter
             work (Chapters 1–4) unlocks immediately once your project proposal is reviewed and approved
             by your supervisor.
@@ -124,7 +124,7 @@ export function SectionEditor({
           <div className="pt-2">
             <Link
               href={`/studio/${workspaceId}`}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white shadow-xs"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-amber-700 hover:bg-amber-800 text-white shadow-xs transition-colors"
             >
               <span>Return to Proposal Overview</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -133,25 +133,25 @@ export function SectionEditor({
         </div>
       ) : (
         /* Active Writing Area */
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 space-y-4">
+        <div className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 space-y-4 shadow-xs">
           <div className="flex items-center justify-between">
             <label
               htmlFor="editorTextarea"
-              className="text-xs font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-2"
+              className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2"
             >
-              <FileText className="h-4 w-4 text-indigo-600" />
+              <FileText className="h-4 w-4 text-blue-700" />
               <span>Candidate Draft</span>
             </label>
 
             {saveStatus === "saved" && (
-              <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 animate-fade-in">
+              <span className="text-xs font-bold text-emerald-700 flex items-center gap-1">
                 <CheckCircle className="h-3.5 w-3.5" />
                 Draft saved & version recorded
               </span>
             )}
 
             {saveStatus === "error" && (
-              <span className="text-xs font-semibold text-rose-600 dark:text-rose-400 flex items-center gap-1">
+              <span className="text-xs font-bold text-rose-700 flex items-center gap-1">
                 <AlertCircle className="h-3.5 w-3.5" />
                 {errorMessage || "Error saving draft"}
               </span>
@@ -164,16 +164,16 @@ export function SectionEditor({
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Type your candidate section draft here in clear, concise academic English..."
-            className="w-full text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 leading-relaxed font-sans placeholder:text-zinc-400"
+            className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg p-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 leading-relaxed font-sans placeholder:text-slate-400"
           />
 
           {/* Action Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-slate-100">
             <div className="flex items-center gap-3">
               {prevSectionKey ? (
                 <Link
                   href={`/studio/${workspaceId}/write/${prevSectionKey}`}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-blue-700 transition-colors"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
                   <span>Previous Section</span>
@@ -185,7 +185,7 @@ export function SectionEditor({
               {nextSectionKey && (
                 <Link
                   href={`/studio/${workspaceId}/write/${nextSectionKey}`}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-blue-700 transition-colors"
                 >
                   <span>Next Section</span>
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -196,7 +196,7 @@ export function SectionEditor({
             <div className="flex items-center gap-3">
               <Link
                 href={`/studio/${workspaceId}`}
-                className="text-xs font-semibold text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+                className="text-xs font-bold text-slate-600 hover:text-slate-900"
               >
                 Back to Workspace
               </Link>
@@ -205,7 +205,7 @@ export function SectionEditor({
                 type="button"
                 onClick={handleSave}
                 disabled={isPending}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold bg-blue-700 hover:bg-blue-800 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
               >
                 <Save className="h-4 w-4" />
                 <span>{isPending ? "Saving..." : "Save Draft"}</span>

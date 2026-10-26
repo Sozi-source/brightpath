@@ -46,22 +46,22 @@ export function TopicSelector({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Topic Bank Ideas Grid */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Lightbulb className="h-5 w-5 text-amber-500" />
-            <h2 className="text-base sm:text-lg font-bold tracking-tight">
+            <Lightbulb className="h-4 w-4 text-amber-600" />
+            <h2 className="text-sm font-bold tracking-tight text-slate-900">
               Curated TVET Topic Bank Ideas
             </h2>
           </div>
-          <span className="text-xs font-mono text-zinc-500">
-            {matchingTopics.length} ideas for this track
+          <span className="text-[11px] font-mono text-slate-500">
+            {matchingTopics.length} ideas available
           </span>
         </div>
 
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="text-xs text-slate-600">
           Browse verified curriculum topics adapted from KNEC project kits. Click any idea to prefill
           your formulation fields, or type your custom angle below.
         </p>
@@ -72,34 +72,34 @@ export function TopicSelector({
             return (
               <div
                 key={topic.id}
-                className={`p-5 rounded-2xl border transition-all text-left flex flex-col justify-between space-y-4 ${
+                className={`p-5 rounded-xl border transition-all text-left flex flex-col justify-between space-y-4 ${
                   isSelected
-                    ? "border-indigo-600 bg-indigo-50/40 dark:bg-indigo-950/30 ring-1 ring-indigo-500"
-                    : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700"
+                    ? "border-blue-600 bg-blue-50/50 shadow-xs"
+                    : "border-slate-200 bg-white hover:border-slate-300 shadow-xs"
                 }`}
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
                       {topic.area}
                     </span>
                     {isSelected && (
-                      <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                      <span className="text-xs font-bold text-blue-700 flex items-center gap-1">
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         Selected
                       </span>
                     )}
                   </div>
-                  <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug">
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
                     {topic.title}
                   </h3>
 
                   {topic.suggested_indicators && (
                     <div className="pt-1">
-                      <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 block">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
                         Suggested Indicators:
                       </span>
-                      <p className="text-xs text-zinc-700 dark:text-zinc-300 line-clamp-2">
+                      <p className="text-xs text-slate-700 line-clamp-2">
                         {topic.suggested_indicators}
                       </p>
                     </div>
@@ -107,10 +107,10 @@ export function TopicSelector({
 
                   {topic.suggested_sources && (
                     <div>
-                      <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 block">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
                         Verified Sources:
                       </span>
-                      <p className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2">
+                      <p className="text-xs text-slate-600 line-clamp-2">
                         {topic.suggested_sources}
                       </p>
                     </div>
@@ -120,10 +120,10 @@ export function TopicSelector({
                 <button
                   type="button"
                   onClick={() => handleSelectTopic(topic)}
-                  className={`w-full py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                  className={`w-full py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
                     isSelected
-                      ? "bg-indigo-600 text-white"
-                      : "bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                      ? "bg-blue-700 text-white"
+                      : "bg-slate-100 text-slate-800 hover:bg-slate-200"
                   }`}
                 >
                   <span>{isSelected ? "Topic Selected" : "Use This Topic Idea"}</span>
@@ -136,8 +136,8 @@ export function TopicSelector({
       </div>
 
       {/* KNEC Level Guidance Note */}
-      <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-3">
-        <Info className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+      <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-3">
+        <Info className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
         <div className="space-y-1">
           <span className="font-bold">KNEC Guidelines on Project Titles ({level.toUpperCase()}):</span>
           <p className="leading-relaxed">
@@ -158,25 +158,25 @@ export function TopicSelector({
       </div>
 
       {/* Title & Problem Statement Formulation Form */}
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8 space-y-6">
-        <div className="space-y-1">
-          <h3 className="text-base font-bold text-zinc-950 dark:text-zinc-50">
+      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-5">
+        <div className="space-y-1 border-b border-slate-100 pb-3">
+          <h3 className="text-sm font-bold text-slate-900">
             Confirm Proposal Title & Problem Focus
           </h3>
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-slate-500">
             Save your title and problem area. This updates your workspace and informs your proposal sections.
           </p>
         </div>
 
-        <form action={action} className="space-y-5">
+        <form action={action} className="space-y-4">
           <input type="hidden" name="workspaceId" value={workspaceId} />
 
           <div>
             <label
               htmlFor="title"
-              className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5"
+              className="block text-xs font-bold text-slate-700 mb-1"
             >
-              Working Project Title <span className="text-rose-500">*</span>
+              Working Project Title <span className="text-rose-600">*</span>
             </label>
             <textarea
               id="title"
@@ -186,14 +186,14 @@ export function TopicSelector({
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Assessment of Nutritional Status and Infant Feeding Practices among Pastoralist Communities in Turkana County"
               required
-              className="w-full text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-300 dark:border-zinc-700 rounded-xl p-3 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg p-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
             />
           </div>
 
           <div>
             <label
               htmlFor="problemArea"
-              className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5"
+              className="block text-xs font-bold text-slate-700 mb-1"
             >
               Problem Area & Demographic / Location Focus
             </label>
@@ -204,14 +204,14 @@ export function TopicSelector({
               value={problemArea}
               onChange={(e) => setProblemArea(e.target.value)}
               placeholder="e.g. Food insecurity, stunting prevalence, KDHS secondary data 2014-2022"
-              className="w-full text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-300 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
             />
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-2">
             <button
               type="submit"
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold bg-blue-700 hover:bg-blue-800 text-white shadow-xs transition-colors cursor-pointer"
             >
               <span>Save & Proceed to Proposal &rarr;</span>
             </button>

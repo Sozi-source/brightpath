@@ -8,14 +8,19 @@ import {
   requestProposalChanges,
   updateProposalTitle,
 } from "@/app/supervisor/actions";
+import { AppShell } from "@/components/layout/AppShell";
+import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
+import { ContentCard } from "@/components/layout/ContentCard";
 import {
-  ArrowLeft,
   CheckCircle2,
   AlertCircle,
   FileText,
   ShieldCheck,
+  ChevronLeft,
+  Activity,
+  History,
 } from "lucide-react";
-import type { ProjectWorkspace, WorkspaceSection, SupervisorReview } from "@/types/database";
+import type { ProjectWorkspace, WorkspaceSection, SupervisorReview, UserProfile } from "@/types/database";
 
 export const instant = false;
 
@@ -36,11 +41,13 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
   }
 
   // Verify supervisor or admin role
-  const { data: profile } = await supabase
+  const { data: profileData } = await supabase
     .from("profiles")
-    .select("role, full_name")
+    .select("*, institutions:institution_id(name, code, ai_mode)")
     .eq("id", user.id)
     .single();
+
+  const profile = profileData as unknown as UserProfile | null;
 
   if (profile?.role !== "supervisor" && profile?.role !== "admin") {
     redirect("/learn");
@@ -116,101 +123,73 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
   const isApproved = workspace.status === "approved" || workspace.status === "submitted";
   const isPending = workspace.status === "proposal_pending";
 
+  const typeLabel =
+    workspace.workspace_type === "trade_fabrication"
+      ? "Trade Fabrication"
+      : workspace.workspace_type === "research_secondary"
+      ? "Secondary Research"
+      : "Business Plan";
+
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 flex flex-col">
-      {/* Top Header */}
-      <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 py-4 px-4 sticky top-0 z-30">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
+    <AppShell
+      user={user}
+      profile={profile}
+      activeContextTitle={`Review: ${workspace.student?.full_name || "Candidate"}`}
+    >
+      <PageHeaderCard
+        title={workspace.title || "Untitled Project Formulation"}
+        subtitle={`Academic supervision for ${workspace.student?.full_name || "Enrolled Student"} (${workspace.course} • ${workspace.level} Level)`}
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Supervisor Portal", href: "/supervisor" },
+          { label: workspace.student?.full_name || "Candidate Review", active: true },
+        ]}
+        metadata={[
+          { label: "Candidate", value: `${workspace.student?.full_name || "Student"} (${workspace.student?.admission_number || "No Adm"})` },
+          { label: "Curriculum Track", value: `${workspace.level} • ${typeLabel}` },
+          { label: "Institution", value: workspace.institution?.name || "Accredited TVET Center" },
+          {
+            label: "Moderation Status",
+            value: isApproved ? "Proposal Approved" : isPending ? "Pending Moderation" : "Drafting / Ideation",
+          },
+        ]}
+        actions={
+          <div className="flex items-center gap-2">
             <Link
               href="/supervisor"
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-white text-slate-700 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4" />
               <span>Back to Candidates</span>
             </Link>
-            <span className="text-zinc-300 dark:text-zinc-700">/</span>
-            <span className="font-bold text-xs sm:text-sm flex items-center gap-1 text-indigo-600 dark:text-indigo-400">
-              <ShieldCheck className="h-4 w-4" />
-              Candidate Review
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
             <span
-              className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+              className={`text-xs font-bold px-3 py-2 rounded-lg ${
                 isApproved
-                  ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-500/20"
+                  ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
                   : isPending
-                  ? "bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-500/20"
-                  : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                  ? "bg-amber-50 text-amber-800 border border-amber-300"
+                  : "bg-slate-100 text-slate-700 border border-slate-300"
               }`}
             >
-              {isApproved
-                ? "Approved"
-                : isPending
-                ? "Review Required"
-                : "Ideation"}
+              {isApproved ? "Approved" : isPending ? "Review Required" : "Ideation"}
             </span>
           </div>
-        </div>
-      </header>
+        }
+      />
 
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8 w-full flex-1 space-y-8">
-        {/* Candidate Summary Banner */}
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8 shadow-xs space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-                Candidate: {workspace.student?.full_name || "Enrolled Student"}
-              </span>
-              {workspace.student?.admission_number && (
-                <span className="text-xs font-mono bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-zinc-600 dark:text-zinc-300">
-                  Adm: {workspace.student.admission_number}
-                </span>
-              )}
-              <span className="text-zinc-300 dark:text-zinc-700">•</span>
-              <span className="text-[11px] font-mono uppercase bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/20">
-                {workspace.level} Level
-              </span>
-              <span className="text-[11px] font-mono uppercase bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-2 py-0.5 rounded">
-                {workspace.workspace_type.replace("_", " ")}
-              </span>
-            </div>
-
-            <div className="text-xs text-zinc-500">
-              Institution: {workspace.institution?.name || "Independent"}
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-zinc-950 dark:text-zinc-50">
-              {workspace.title || "Untitled Project Formulation"}
-            </h1>
-            <p className="text-xs text-zinc-500">
-              Course: <strong className="text-zinc-800 dark:text-zinc-200">{workspace.course}</strong>
-              {workspace.problem_area ? ` • Area: ${workspace.problem_area}` : ""}
-            </p>
-          </div>
-        </div>
-
+      <div className="space-y-6">
         {/* Proposal Moderation Section */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                Proposal Moderation
-              </span>
-              <h2 className="text-xl font-bold tracking-tight">Candidate Proposal Draft</h2>
-            </div>
-            <span className="text-xs font-mono text-zinc-500">
-              Scorecard: {rubric.scorecardName}
+        <ContentCard
+          title="Candidate Research Proposal Submission"
+          subtitle={`Evaluated under ${rubric.scorecardName}`}
+          icon={FileText}
+          headerRight={
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200">
+              {proposalDefs.length} Required Proposal Sections
             </span>
-          </div>
-
-          {/* Proposal Section Details */}
-          <div className="grid grid-cols-1 gap-4">
+          }
+        >
+          <div className="space-y-4">
             {proposalDefs.map((def) => {
               const s = proposalSectionsMap.get(def.key);
               const wordCount = s?.current_text ? s.current_text.trim().split(/\s+/).length : 0;
@@ -218,220 +197,215 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
               return (
                 <div
                   key={def.key}
-                  className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 space-y-3"
+                  className="rounded-lg border border-slate-200 bg-slate-50/50 p-4 sm:p-5 space-y-2.5"
                 >
-                  <div className="flex items-center justify-between gap-2 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                  <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
                     <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-indigo-600" />
-                      <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                      <FileText className="h-4 w-4 text-blue-700" />
+                      <h4 className="text-xs font-bold text-slate-900">
                         {def.title}
-                      </h3>
+                      </h4>
                       {def.rubricMarks !== undefined && (
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
                           {def.rubricMarks} Rubric Marks
                         </span>
                       )}
                     </div>
 
-                    <span className="text-xs font-mono text-zinc-500">
+                    <span className="text-[11px] font-mono font-medium text-slate-500">
                       {wordCount} words
                     </span>
                   </div>
 
-                  <div className="text-xs text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap leading-relaxed font-sans min-h-[4rem]">
+                  <div className="text-xs text-slate-800 whitespace-pre-wrap leading-relaxed min-h-[3rem]">
                     {s?.current_text && s.current_text.trim().length > 0 ? (
                       s.current_text
                     ) : (
-                      <span className="text-zinc-400 italic">No candidate text entered yet.</span>
+                      <span className="text-slate-400 italic">No candidate text entered yet.</span>
                     )}
                   </div>
                 </div>
               );
             })}
           </div>
+        </ContentCard>
 
-          {/* Supervisor Decision Card */}
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8 shadow-xs space-y-6">
-            <div className="space-y-1">
-              <h3 className="text-base font-bold text-zinc-950 dark:text-zinc-50">
-                Supervisor Moderation Decision
-              </h3>
-              <p className="text-xs text-zinc-500">
-                Review candidate proposal against KNEC regulations. Approving the proposal officially unlocks
-                Chapters 1–4/5 for candidate authoring and records the decision in the candidate Annex 12 project log.
+        {/* Supervisor Moderation Decision Card */}
+        <ContentCard
+          title="Supervisor Moderation Decision"
+          subtitle="Review candidate proposal against KNEC regulations. Approving unlocks Chapters 1–5 for drafting and records decision in Annex 12 log."
+          icon={ShieldCheck}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Form 1: Approve Proposal */}
+            <div className="p-4 sm:p-5 rounded-lg border border-emerald-200 bg-emerald-50/40 space-y-3">
+              <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs">
+                <CheckCircle2 className="h-4 w-4 text-emerald-700" />
+                <span>Approve Proposal</span>
+              </div>
+              <p className="text-[11px] text-emerald-900/80 leading-relaxed">
+                Confirms the title, statement of problem, objectives, and methodology meet institutional standards.
               </p>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-              {/* Form 1: Approve Proposal */}
-              <div className="p-5 rounded-2xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/30 dark:bg-emerald-950/20 space-y-4">
-                <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-bold text-sm">
-                  <CheckCircle2 className="h-5 w-5" />
-                  <span>Approve Proposal</span>
-                </div>
-                <p className="text-xs text-emerald-900/80 dark:text-emerald-300/80 leading-relaxed">
-                  Confirms the title, statement of problem, objectives, and rationale meet academic standards.
-                </p>
-
-                <form action={approveProposal} className="space-y-3">
-                  <input type="hidden" name="workspaceId" value={workspaceId} />
-                  <textarea
-                    name="comment"
-                    rows={2}
-                    placeholder="Optional approval remarks (e.g. Approved for field data collection / fabrication)..."
-                    className="w-full text-xs bg-white dark:bg-zinc-900 border border-emerald-300 dark:border-emerald-800/80 rounded-xl p-2.5 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                  <button
-                    type="submit"
-                    className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs transition-colors cursor-pointer"
-                  >
-                    Approve Proposal & Unlock Chapters
-                  </button>
-                </form>
-              </div>
-
-              {/* Form 2: Request Changes */}
-              <div className="p-5 rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/30 dark:bg-rose-950/20 space-y-4">
-                <div className="flex items-center gap-2 text-rose-700 dark:text-rose-400 font-bold text-sm">
-                  <AlertCircle className="h-5 w-5" />
-                  <span>Request Revisions</span>
-                </div>
-                <p className="text-xs text-rose-900/80 dark:text-rose-300/80 leading-relaxed">
-                  Reverts status to candidate ideation and supplies specific moderation feedback.
-                </p>
-
-                <form action={requestProposalChanges} className="space-y-3">
-                  <input type="hidden" name="workspaceId" value={workspaceId} />
-                  <textarea
-                    name="comment"
-                    rows={2}
-                    required
-                    placeholder="Specify exact revisions required (e.g. Narrow specific objectives, update study period)..."
-                    className="w-full text-xs bg-white dark:bg-zinc-900 border border-rose-300 dark:border-rose-800/80 rounded-xl p-2.5 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
-                  />
-                  <button
-                    type="submit"
-                    className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-xs transition-colors cursor-pointer"
-                  >
-                    Send Feedback & Request Revisions
-                  </button>
-                </form>
-              </div>
-            </div>
-
-            {/* Title Refinement Form (Supervisor authority, especially for Craft) */}
-            <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
-              <form action={updateProposalTitle} className="space-y-2">
+              <form action={approveProposal} className="space-y-2.5">
                 <input type="hidden" name="workspaceId" value={workspaceId} />
-                <label
-                  htmlFor="supTitle"
-                  className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300"
+                <textarea
+                  name="comment"
+                  rows={2}
+                  placeholder="Optional approval remarks (e.g. Approved for field data collection / fabrication)..."
+                  className="w-full text-xs bg-white border border-emerald-300 rounded-md p-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                />
+                <button
+                  type="submit"
+                  className="w-full py-2 px-3 rounded-md text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white transition-colors cursor-pointer"
                 >
-                  Supervisor Project Title Refinement (KNEC Craft / Moderation Standard)
-                </label>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <input
-                    type="text"
-                    id="supTitle"
-                    name="title"
-                    defaultValue={workspace.title || ""}
-                    placeholder="Refined official project title..."
-                    required
-                    className="flex-1 text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl px-3.5 py-2 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                  <button
-                    type="submit"
-                    className="py-2 px-4 rounded-xl text-xs font-bold bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:opacity-90 transition-opacity cursor-pointer shrink-0"
-                  >
-                    Update Title
-                  </button>
-                </div>
+                  Approve Proposal & Unlock Chapters
+                </button>
+              </form>
+            </div>
+
+            {/* Form 2: Request Changes */}
+            <div className="p-4 sm:p-5 rounded-lg border border-rose-200 bg-rose-50/40 space-y-3">
+              <div className="flex items-center gap-2 text-rose-800 font-bold text-xs">
+                <AlertCircle className="h-4 w-4 text-rose-700" />
+                <span>Request Revisions</span>
+              </div>
+              <p className="text-[11px] text-rose-900/80 leading-relaxed">
+                Reverts status to candidate ideation and supplies mandatory moderation feedback.
+              </p>
+
+              <form action={requestProposalChanges} className="space-y-2.5">
+                <input type="hidden" name="workspaceId" value={workspaceId} />
+                <textarea
+                  name="comment"
+                  rows={2}
+                  required
+                  placeholder="Specify exact revisions required (e.g. Narrow specific objectives, update study period)..."
+                  className="w-full text-xs bg-white border border-rose-300 rounded-md p-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-600"
+                />
+                <button
+                  type="submit"
+                  className="w-full py-2 px-3 rounded-md text-xs font-bold bg-rose-700 hover:bg-rose-800 text-white transition-colors cursor-pointer"
+                >
+                  Send Feedback & Request Revisions
+                </button>
               </form>
             </div>
           </div>
 
-          {/* Chapters Progress & AI Influence Metric */}
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-zinc-950 dark:text-zinc-50">
-                Project Chapters Status & AI Influence Audit
-              </h3>
-              <span className="text-xs font-mono text-zinc-400">
-                {projectDefs.length} Chapters Sections
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {projectDefs.map((def) => {
-                const s = projectSectionsMap.get(def.key);
-                const wordCount = s?.current_text ? s.current_text.trim().split(/\s+/).length : 0;
-                const aiInfluence = s?.current_text
-                  ? Math.round(
-                      ((s.ai_accepted_chars || 0) / Math.max(s.current_text.length, 1)) * 100
-                    )
-                  : 0;
-
-                return (
-                  <div
-                    key={def.key}
-                    className="p-3.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/40 space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold truncate max-w-[180px] text-zinc-900 dark:text-zinc-100">
-                        {def.title}
-                      </span>
-                      {def.rubricMarks !== undefined && (
-                        <span className="text-[10px] font-mono text-zinc-500">
-                          {def.rubricMarks}m
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between text-[11px] text-zinc-500">
-                      <span>{wordCount} words</span>
-                      <span className="font-mono">AI: {aiInfluence}%</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Supervisor Review History Log */}
-          {reviews.length > 0 && (
-            <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8 shadow-xs space-y-4">
-              <h3 className="text-base font-bold text-zinc-950 dark:text-zinc-50">
-                Prior Moderation Log
-              </h3>
-              <div className="space-y-3">
-                {reviews.map((rev) => (
-                  <div
-                    key={rev.id}
-                    className="p-3.5 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/40 text-xs space-y-1"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span
-                        className={`font-bold capitalize ${
-                          rev.status === "approved"
-                            ? "text-emerald-600 dark:text-emerald-400"
-                            : "text-rose-600 dark:text-rose-400"
-                        }`}
-                      >
-                        {rev.status.replace("_", " ")}
-                      </span>
-                      <span className="text-[10px] font-mono text-zinc-400">
-                        {new Date(rev.created_at).toLocaleString()}
-                      </span>
-                    </div>
-                    <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed">
-                      &ldquo;{rev.comment}&rdquo;
-                    </p>
-                  </div>
-                ))}
+          {/* Title Refinement Form */}
+          <div className="mt-5 pt-4 border-t border-slate-200">
+            <form action={updateProposalTitle} className="space-y-2">
+              <input type="hidden" name="workspaceId" value={workspaceId} />
+              <label
+                htmlFor="supTitle"
+                className="block text-xs font-bold text-slate-800"
+              >
+                Supervisor Official Project Title Refinement (KNEC Moderation Standard)
+              </label>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="text"
+                  id="supTitle"
+                  name="title"
+                  defaultValue={workspace.title || ""}
+                  placeholder="Refined official project title..."
+                  required
+                  className="flex-1 text-xs bg-white border border-slate-300 rounded-md px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                />
+                <button
+                  type="submit"
+                  className="py-2 px-4 rounded-md text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white transition-colors cursor-pointer shrink-0"
+                >
+                  Update Title
+                </button>
               </div>
+            </form>
+          </div>
+        </ContentCard>
+
+        {/* Chapters Progress & AI Influence Metric */}
+        <ContentCard
+          title="Project Chapters Status & AI Influence Audit"
+          subtitle="Integrity audit verifying candidate originality and compliance with institutional AI policies"
+          icon={Activity}
+          headerRight={
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+              {projectDefs.length} Chapter Sections
+            </span>
+          }
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {projectDefs.map((def) => {
+              const s = projectSectionsMap.get(def.key);
+              const wordCount = s?.current_text ? s.current_text.trim().split(/\s+/).length : 0;
+              const aiInfluence = s?.current_text
+                ? Math.round(
+                    ((s.ai_accepted_chars || 0) / Math.max(s.current_text.length, 1)) * 100
+                  )
+                : 0;
+
+              return (
+                <div
+                  key={def.key}
+                  className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/50 space-y-1.5"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold truncate max-w-[180px] text-slate-900">
+                      {def.title}
+                    </span>
+                    {def.rubricMarks !== undefined && (
+                      <span className="text-[10px] font-mono font-bold text-slate-600">
+                        {def.rubricMarks}m
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-500">
+                    <span>{wordCount} words</span>
+                    <span className="font-mono font-bold text-slate-700">AI: {aiInfluence}%</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </ContentCard>
+
+        {/* Supervisor Review History Log */}
+        {reviews.length > 0 && (
+          <ContentCard
+            title="Prior Moderation Audit Log"
+            subtitle="Chronological log of supervisor remarks, approvals, and revision demands"
+            icon={History}
+          >
+            <div className="space-y-3">
+              {reviews.map((rev) => (
+                <div
+                  key={rev.id}
+                  className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/50 text-xs space-y-1"
+                >
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={`font-bold capitalize ${
+                        rev.status === "approved"
+                          ? "text-emerald-800 font-bold"
+                          : "text-rose-800 font-bold"
+                      }`}
+                    >
+                      {rev.status.replace("_", " ")}
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-500">
+                      {new Date(rev.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                  <p className="text-slate-800 leading-relaxed">
+                    &ldquo;{rev.comment}&rdquo;
+                  </p>
+                </div>
+              ))}
             </div>
-          )}
-        </div>
-      </main>
-    </div>
+          </ContentCard>
+        )}
+      </div>
+    </AppShell>
   );
 }

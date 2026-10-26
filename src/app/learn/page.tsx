@@ -1,8 +1,18 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { logout } from "@/app/(auth)/actions";
-import { ArrowLeft, BookOpen, Video, Lock, CheckCircle2, ChevronRight } from "lucide-react";
-import type { Module, Lesson } from "@/types/database";
+import { AppShell } from "@/components/layout/AppShell";
+import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
+import { ContentCard } from "@/components/layout/ContentCard";
+import {
+  BookOpen,
+  Video,
+  Lock,
+  CheckCircle2,
+  ChevronRight,
+  Layers,
+  GraduationCap,
+} from "lucide-react";
+import type { Module, Lesson, UserProfile } from "@/types/database";
 
 export const instant = false;
 
@@ -12,8 +22,13 @@ export default async function LearnPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Query modules and their lesson metadata. Notice: we explicitly DO NOT select `body` here
-  // to avoid leaking gated content in list payloads, per Phase 0 specifications.
+  let profile: UserProfile | null = null;
+  if (user) {
+    const { data: p } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+    profile = p as UserProfile | null;
+  }
+
+  // Query modules and their lesson metadata (explicitly omit body)
   const { data: modulesData } = await supabase
     .from("modules")
     .select(`
@@ -45,139 +60,127 @@ export default async function LearnPage() {
     }
   }
 
-  return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
-      <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 py-4">
-        <div className="max-w-6xl mx-auto px-4 flex items-center justify-between">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Home
-          </Link>
-          <span className="font-bold text-base tracking-tight flex items-center gap-2">
-            <BookOpen className="h-4 w-4 text-indigo-600" />
-            Revision & Lessons
-          </span>
-          {user ? (
-            <form action={logout}>
-              <button
-                type="submit"
-                className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 cursor-pointer"
-              >
-                Sign out
-              </button>
-            </form>
-          ) : (
-            <Link
-              href="/login"
-              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900"
-            >
-              Sign In
-            </Link>
-          )}
-        </div>
-      </header>
+  const allLessons = modules.flatMap((m) => m.lessons || []);
+  const totalLessonsCount = allLessons.length;
+  const completedLessonsCount = allLessons.filter((l) => completedLessonIds.has(l.id)).length;
 
-      <main className="max-w-4xl mx-auto px-4 py-10 space-y-8">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Curriculum & Revision Modules</h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Step-by-step revision topics, practice guides, and video walk-throughs.
+  return (
+    <AppShell
+      user={user}
+      profile={profile}
+      activeContextTitle="Curriculum Revision & Lessons"
+    >
+      <PageHeaderCard
+        title="Curriculum & Technical Revision Modules"
+        subtitle="Structured TVET exam revision, practical technical walk-throughs, and step-by-step video lessons accredited for East African polytechnics."
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Revision & Lessons", active: true },
+        ]}
+        metadata={[
+          {
+            label: "Candidate",
+            value: profile?.full_name || (user ? user.email?.split("@")[0] : "Guest Learner") || "Learner",
+          },
+          { label: "Available Modules", value: `${modules.length} Modules` },
+          { label: "Total Lessons", value: `${totalLessonsCount} Practical Lessons` },
+          {
+            label: "Progress",
+            value: user ? `${completedLessonsCount} / ${totalLessonsCount} Completed` : "Sign in to track",
+          },
+        ]}
+        actions={
+          <Link
+            href="/projects"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-white text-blue-900 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
+          >
+            <Layers className="h-4 w-4 text-blue-700" />
+            <span>Browse Projects</span>
+          </Link>
+        }
+      />
+
+      {modules.length === 0 ? (
+        <div className="text-center py-16 border border-dashed border-slate-200 rounded-xl bg-white shadow-xs">
+          <BookOpen className="h-10 w-10 mx-auto text-slate-400 mb-3" />
+          <h2 className="text-base font-bold text-slate-900">No revision modules published yet</h2>
+          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+            Accredited trainers and faculty can author syllabus modules and lessons from the{" "}
+            <Link href="/trainer" className="text-blue-700 font-bold hover:underline">
+              Trainer Studio
+            </Link>
+            .
           </p>
         </div>
+      ) : (
+        <div className="space-y-6">
+          {modules.map((m: Module) => {
+            const moduleLessons = (m.lessons || []).slice().sort((a, b) => a.position - b.position);
+            const completedCount = moduleLessons.filter((l) => completedLessonIds.has(l.id)).length;
+            const progressPercent =
+              moduleLessons.length > 0
+                ? Math.round((completedCount / moduleLessons.length) * 100)
+                : 0;
 
-        {modules.length === 0 ? (
-          <div className="text-center py-16 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl bg-white dark:bg-zinc-900">
-            <BookOpen className="h-10 w-10 mx-auto text-zinc-400 mb-3" />
-            <h2 className="text-base font-bold">No revision modules published yet</h2>
-            <p className="text-xs text-zinc-500 mt-1 max-w-sm mx-auto">
-              Trainers and admins can publish revision modules and lessons from the{" "}
-              <Link href="/trainer" className="text-indigo-600 underline">
-                Trainer Studio
-              </Link>
-              .
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {modules.map((m: Module) => {
-              const moduleLessons = (m.lessons || []).slice().sort((a, b) => a.position - b.position);
-              const completedCount = moduleLessons.filter((l) => completedLessonIds.has(l.id)).length;
-              const progressPercent =
-                moduleLessons.length > 0
-                  ? Math.round((completedCount / moduleLessons.length) * 100)
-                  : 0;
-
-              return (
-                <div
-                  key={m.id}
-                  className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-xs space-y-4"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <span className="text-[11px] font-mono text-zinc-400">Module #{m.position}</span>
-                      <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                        <Link
-                          href={`/learn/${m.id}`}
-                          className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                        >
-                          {m.title}
-                        </Link>
-                      </h3>
-                      {m.description && (
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400">{m.description}</p>
-                      )}
-                      <p className="text-[11px] text-zinc-400 pt-1">
-                        Instructor: {m.profiles?.full_name || "Verified Trainer"}
-                      </p>
-                    </div>
-
+            return (
+              <ContentCard
+                key={m.id}
+                title={m.title}
+                subtitle={m.description || "Comprehensive syllabus breakdown and practical demonstrations."}
+                icon={GraduationCap}
+                headerRight={
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                      Module #{m.position}
+                    </span>
                     <Link
                       href={`/learn/${m.id}`}
-                      className="inline-flex items-center gap-1.5 self-start px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-zinc-800 dark:text-zinc-200 shrink-0"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-700 hover:bg-blue-800 text-white transition-colors"
                     >
                       <span>Open Module</span>
                       <ChevronRight className="h-3.5 w-3.5" />
                     </Link>
                   </div>
+                }
+              >
+                <div className="space-y-4">
+                  {/* Instructor line & Progress indicator */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500 border-b border-slate-100 pb-3">
+                    <div>
+                      <span className="font-medium text-slate-700">Faculty Instructor:</span>{" "}
+                      <span className="font-bold text-slate-900">{m.profiles?.full_name || "Verified Faculty"}</span>
+                    </div>
 
-                  {/* Progress Indicator for logged in users */}
-                  {user && moduleLessons.length > 0 && (
-                    <div className="border-t border-zinc-100 dark:border-zinc-800 pt-3">
-                      <div className="flex items-center justify-between text-[11px] text-zinc-500 mb-1.5">
-                        <span>
+                    {user && moduleLessons.length > 0 && (
+                      <div className="flex items-center gap-3">
+                        <span className="font-medium text-slate-600">
                           {completedCount} of {moduleLessons.length} completed
                         </span>
-                        <span className="font-mono font-semibold text-indigo-600 dark:text-indigo-400">
+                        <div className="w-28 h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                          <div
+                            className="h-full bg-blue-700 rounded-full transition-all duration-300"
+                            style={{ width: `${progressPercent}%` }}
+                          />
+                        </div>
+                        <span className="font-mono font-bold text-blue-700 text-xs">
                           {progressPercent}%
                         </span>
                       </div>
-                      <div className="h-1.5 w-full bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-indigo-600 rounded-full transition-all duration-300"
-                          style={{ width: `${progressPercent}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   {/* Lessons Listing */}
-                  <div className="border-t border-zinc-100 dark:border-zinc-800 pt-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                        Lessons Syllabus
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-600">
+                        Lesson Syllabus ({moduleLessons.length})
                       </h4>
-                      <span className="text-[11px] text-zinc-400">
-                        {moduleLessons.length} {moduleLessons.length === 1 ? "lesson" : "lessons"}
-                      </span>
                     </div>
 
                     {moduleLessons.length === 0 ? (
-                      <p className="text-xs text-zinc-400 italic">No lessons in this module yet.</p>
+                      <p className="text-xs text-slate-400 italic">No lessons in this module yet.</p>
                     ) : (
-                      <div className="divide-y divide-zinc-100 dark:divide-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
+                      <div className="divide-y divide-slate-100 border border-slate-200 rounded-lg overflow-hidden bg-white">
                         {moduleLessons.map((l: Lesson) => {
                           const isDone = completedLessonIds.has(l.id);
 
@@ -185,36 +188,40 @@ export default async function LearnPage() {
                             <Link
                               key={l.id}
                               href={`/learn/${m.id}/${l.id}`}
-                              className="group p-3.5 flex items-center justify-between text-sm hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
+                              className="group p-3 flex items-center justify-between text-xs hover:bg-blue-50/50 transition-colors"
                             >
                               <div className="flex items-center gap-3 min-w-0">
-                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-semibold shrink-0">
+                                <span className={`flex h-6 w-6 items-center justify-center rounded-md text-xs font-bold shrink-0 ${
+                                  isDone
+                                    ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                    : "bg-slate-100 text-slate-700 border border-slate-200"
+                                }`}>
                                   {isDone ? (
-                                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-700" />
                                   ) : (
                                     l.position
                                   )}
                                 </span>
-                                <span className="font-medium text-zinc-900 dark:text-zinc-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
+                                <span className="font-bold text-slate-900 group-hover:text-blue-700 transition-colors truncate">
                                   {l.title}
                                 </span>
                               </div>
 
                               <div className="flex items-center gap-2 shrink-0 ml-3">
                                 {l.video_url && (
-                                  <span className="inline-flex items-center gap-1 text-[11px] text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded">
-                                    <Video className="h-3 w-3" />
-                                    <span className="hidden sm:inline">Video</span>
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
+                                    <Video className="h-3 w-3 text-blue-700" />
+                                    <span>Video</span>
                                   </span>
                                 )}
                                 {l.is_free ? (
-                                  <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/20">
-                                    Free
+                                  <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                    Free Preview
                                   </span>
                                 ) : (
-                                  <span className="text-[11px] font-semibold text-zinc-400 inline-flex items-center gap-0.5">
+                                  <span className="text-[10px] font-bold text-slate-500 inline-flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
                                     <Lock className="h-3 w-3" />
-                                    <span className="hidden sm:inline">Enrolled</span>
+                                    <span>Enrolled</span>
                                   </span>
                                 )}
                               </div>
@@ -225,11 +232,11 @@ export default async function LearnPage() {
                     )}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </main>
-    </div>
+              </ContentCard>
+            );
+          })}
+        </div>
+      )}
+    </AppShell>
   );
 }

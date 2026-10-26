@@ -4,7 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 import { getWorkspaceSections } from "@/lib/studio/templates";
 import { saveSectionText } from "@/app/studio/actions";
 import { SectionEditor } from "./SectionEditor";
-import { ArrowLeft, Lock } from "lucide-react";
+import { AppShell } from "@/components/layout/AppShell";
+import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
+import { ChevronLeft, Lock } from "lucide-react";
+import type { UserProfile } from "@/types/database";
 
 export const instant = false;
 
@@ -25,6 +28,14 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
     redirect(`/login?redirect=/studio/${workspaceId}/write/${sectionKey}`);
   }
 
+  const { data: profileData } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  const profile = profileData as UserProfile | null;
+
   // Load workspace
   const { data: workspace } = await supabase
     .from("project_workspaces")
@@ -43,16 +54,8 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
   if (!workspace) notFound();
 
   // Authorize student (or supervisor/admin)
-  if (workspace.student_id !== user.id) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    if (profile?.role !== "admin" && profile?.role !== "supervisor") {
-      redirect("/studio");
-    }
+  if (workspace.student_id !== user.id && profile?.role !== "admin" && profile?.role !== "supervisor") {
+    redirect("/studio");
   }
 
   // Find section definition from template
@@ -81,76 +84,66 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
     workspace.status !== "approved" &&
     workspace.status !== "submitted";
 
+  const typeLabel =
+    workspace.workspace_type === "trade_fabrication"
+      ? "Trade Fabrication"
+      : workspace.workspace_type === "research_secondary"
+      ? "Secondary Research"
+      : "Business Plan";
+
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
-      {/* Top Header */}
-      <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 py-4 px-4 sticky top-0 z-30">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
+    <AppShell
+      user={user}
+      profile={profile}
+      activeContextTitle={`Drafting: ${sectionDef.title}`}
+    >
+      <PageHeaderCard
+        title={sectionDef.title}
+        subtitle={`${workspace.title || "Project Formulation"} • ${workspace.course} (${workspace.level.toUpperCase()} • ${typeLabel})`}
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Project Studio", href: "/studio" },
+          { label: workspace.title || "Workspace Overview", href: `/studio/${workspaceId}` },
+          { label: sectionDef.title, active: true },
+        ]}
+        metadata={[
+          { label: "Phase", value: sectionDef.phase === "proposal" ? "Proposal Section" : "Project Chapter" },
+          { label: "Rubric Marks", value: sectionDef.rubricMarks !== undefined ? `${sectionDef.rubricMarks} Marks` : "Institutional Criteria" },
+          { label: "Target Length", value: `Min ${sectionDef.minWords || 50} Words` },
+          { label: "Status", value: isLocked ? "Locked (Awaiting Approval)" : "Drafting Active" },
+        ]}
+        actions={
+          <div className="flex items-center gap-2">
             <Link
               href={`/studio/${workspaceId}`}
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-white text-slate-700 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
             >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Overview</span>
+              <ChevronLeft className="h-4 w-4" />
+              <span>Workspace Overview</span>
             </Link>
-            <span className="text-zinc-300 dark:text-zinc-700">/</span>
-            <span className="font-bold text-xs sm:text-sm truncate max-w-xs sm:max-w-md text-zinc-900 dark:text-zinc-100">
-              {sectionDef.title}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {isLocked ? (
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-500/20">
-                <Lock className="h-3 w-3" />
+            {isLocked && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-300">
+                <Lock className="h-3.5 w-3.5" />
                 Locked
-              </span>
-            ) : (
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-500/20">
-                Active Section
               </span>
             )}
           </div>
-        </div>
-      </header>
+        }
+      />
 
-      {/* Main Container */}
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-              {workspace.course}
-            </span>
-            <span className="text-zinc-300 dark:text-zinc-700">•</span>
-            <span className="text-[10px] font-mono uppercase text-zinc-500">
-              {workspace.level} Level
-            </span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">
-            {sectionDef.title}
-          </h1>
-          {workspace.title && (
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 italic">
-              Project: &ldquo;{workspace.title}&rdquo;
-            </p>
-          )}
-        </div>
-
-        <SectionEditor
-          workspaceId={workspace.id}
-          sectionKey={sectionDef.key}
-          guidance={sectionDef.guidance}
-          rubricMarks={sectionDef.rubricMarks}
-          minWords={sectionDef.minWords}
-          phase={sectionDef.phase}
-          isLocked={isLocked}
-          currentText={sectionRecord?.current_text || ""}
-          prevSectionKey={prevSectionKey}
-          nextSectionKey={nextSectionKey}
-          saveAction={saveSectionText}
-        />
-      </main>
-    </div>
+      <SectionEditor
+        workspaceId={workspace.id}
+        sectionKey={sectionDef.key}
+        guidance={sectionDef.guidance}
+        rubricMarks={sectionDef.rubricMarks}
+        minWords={sectionDef.minWords}
+        phase={sectionDef.phase}
+        isLocked={isLocked}
+        currentText={sectionRecord?.current_text || ""}
+        prevSectionKey={prevSectionKey}
+        nextSectionKey={nextSectionKey}
+        saveAction={saveSectionText}
+      />
+    </AppShell>
   );
 }
