@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getServerDbClient } from "@/lib/supabase/admin";
 import { getWorkspaceSections } from "@/lib/studio/templates";
 import { getRubricForWorkspace } from "@/lib/studio/rubrics";
 import { submitProposalForApproval } from "@/app/studio/actions";
@@ -42,15 +43,17 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
     redirect(`/login?redirect=/studio/${workspaceId}`);
   }
 
+  const db = getServerDbClient(supabase);
+
   // Fetch student's profile
-  const { data: profile } = await supabase
+  const { data: profile } = await db
     .from("profiles")
     .select("full_name, role, admission_number, course, level, institution_id")
     .eq("id", user.id)
     .single();
 
   // Fetch workspace details
-  const { data: workspaceData } = await supabase
+  const { data: workspaceData } = await db
     .from("project_workspaces")
     .select(`
       id,
@@ -88,7 +91,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
   }
 
   // Fetch all sections
-  const { data: sectionsData } = await supabase
+  const { data: sectionsData } = await db
     .from("workspace_sections")
     .select("id, workspace_id, section_key, phase, position, current_text, status, ai_accepted_chars, updated_at")
     .eq("workspace_id", workspaceId)
@@ -97,7 +100,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
   const sections: WorkspaceSection[] = (sectionsData as WorkspaceSection[]) || [];
 
   // Fetch recent supervisor reviews
-  const { data: reviewsData } = await supabase
+  const { data: reviewsData } = await db
     .from("supervisor_reviews")
     .select("id, status, comment, created_at")
     .eq("workspace_id", workspaceId)

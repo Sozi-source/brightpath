@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getServerDbClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -12,7 +13,9 @@ async function verifySupervisorOrAdmin(workspaceId: string) {
 
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
+  const db = getServerDbClient(supabase);
+
+  const { data: profile } = await db
     .from("profiles")
     .select("role")
     .eq("id", user.id)
@@ -20,7 +23,7 @@ async function verifySupervisorOrAdmin(workspaceId: string) {
 
   const isAdmin = profile?.role === "admin";
 
-  const { data: workspace } = await supabase
+  const { data: workspace } = await db
     .from("project_workspaces")
     .select("id, supervisor_id, status")
     .eq("id", workspaceId)
@@ -32,7 +35,7 @@ async function verifySupervisorOrAdmin(workspaceId: string) {
     throw new Error("Unauthorized: Only the assigned supervisor or admin can perform this review.");
   }
 
-  return { supabase, user, workspace, isAdmin };
+  return { supabase: db, user, workspace, isAdmin };
 }
 
 export async function approveProposal(formData: FormData) {
@@ -51,19 +54,18 @@ export async function approveProposal(formData: FormData) {
     comment,
   });
 
-  if (revErr) throw revErr;
+  if (revErr) throw new Error(revErr.message);
 
   // 2. Update workspace status to 'approved'.
-  // This automatically sets approved_at = now() via trigger guard_workspace_update
-  // and unlocks project chapters Ch1-Ch4 in both UI and RLS!
   const { error: wsErr } = await supabase
     .from("project_workspaces")
     .update({
       status: "approved",
+      approved_at: new Date().toISOString(),
     })
     .eq("id", workspaceId);
 
-  if (wsErr) throw wsErr;
+  if (wsErr) throw new Error(wsErr.message);
 
   // 3. Auto-generate Annex 12 log entry
   await supabase.from("project_log_entries").insert({
@@ -97,7 +99,7 @@ export async function requestProposalChanges(formData: FormData) {
     comment,
   });
 
-  if (revErr) throw revErr;
+  if (revErr) throw new Error(revErr.message);
 
   // 2. Revert workspace status back to 'ideation' for the student to edit
   const { error: wsErr } = await supabase
@@ -107,7 +109,7 @@ export async function requestProposalChanges(formData: FormData) {
     })
     .eq("id", workspaceId);
 
-  if (wsErr) throw wsErr;
+  if (wsErr) throw new Error(wsErr.message);
 
   // 3. Auto-generate log entry
   await supabase.from("project_log_entries").insert({
@@ -136,8 +138,9 @@ export async function updateProposalTitle(formData: FormData) {
     .update({ title })
     .eq("id", workspaceId);
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 
   revalidatePath(`/supervisor/${workspaceId}`);
   revalidatePath(`/studio/${workspaceId}`);
 }
+

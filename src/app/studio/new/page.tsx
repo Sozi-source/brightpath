@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getServerDbClient } from "@/lib/supabase/admin";
 import { createWorkspace } from "@/app/studio/actions";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
@@ -27,15 +28,17 @@ export default async function NewWorkspacePage() {
     redirect("/login?redirect=/studio/new");
   }
 
-  const { data: profile } = await supabase
+  const db = getServerDbClient(supabase);
+
+  const { data: profile } = await db
     .from("profiles")
     .select("full_name, role, admission_number, course, level, institution_id")
     .eq("id", user.id)
     .single();
 
   const [{ data: institutionsData }, { data: supervisorsData }] = await Promise.all([
-    supabase.from("institutions").select("id, name, code").order("name"),
-    supabase.from("profiles").select("id, full_name, institution_id").eq("role", "supervisor").order("full_name"),
+    db.from("institutions").select("id, name, code").order("name"),
+    db.from("profiles").select("id, full_name, institution_id").eq("role", "supervisor").order("full_name"),
   ]);
 
   const institutions = institutionsData || [];

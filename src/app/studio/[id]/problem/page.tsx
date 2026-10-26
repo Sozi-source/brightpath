@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getServerDbClient } from "@/lib/supabase/admin";
 import { updateWorkspaceTopic, aiNarrowTopicAction } from "@/app/studio/actions";
 import { TopicCoach } from "./TopicCoach";
 import { AppShell } from "@/components/layout/AppShell";
@@ -28,7 +29,9 @@ export default async function ProblemFinderPage({ params }: ProblemFinderPagePro
     redirect(`/login?redirect=/studio/${workspaceId}/problem`);
   }
 
-  const { data: profileData } = await supabase
+  const db = getServerDbClient(supabase);
+
+  const { data: profileData } = await db
     .from("profiles")
     .select("*")
     .eq("id", user.id)
@@ -37,7 +40,7 @@ export default async function ProblemFinderPage({ params }: ProblemFinderPagePro
   const profile = profileData as UserProfile | null;
 
   // Load workspace
-  const { data: workspace } = await supabase
+  const { data: workspace } = await db
     .from("project_workspaces")
     .select(`
       id,
@@ -62,7 +65,7 @@ export default async function ProblemFinderPage({ params }: ProblemFinderPagePro
   }
 
   // Fetch topics from topic_bank
-  const { data: topicsData } = await supabase
+  const { data: topicsData } = await db
     .from("topic_bank")
     .select("id, area, title, workspace_type, suggested_indicators, suggested_sources, course_tags, active")
     .eq("active", true)

@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { getServerDbClient } from "@/lib/supabase/admin";
 import {
   getWorkspaceSections,
   getSectionStarterContent,
@@ -29,6 +29,8 @@ export async function createWorkspace(formData: FormData) {
     redirect("/login");
   }
 
+  const db = getServerDbClient(supabase);
+
   const workspaceType = formData.get("workspaceType")?.toString() as WorkspaceType;
   const level = formData.get("level")?.toString() as WorkspaceLevel;
   const course = formData.get("course")?.toString().trim();
@@ -51,7 +53,7 @@ export async function createWorkspace(formData: FormData) {
   }
 
   // 1. Update student profile with academic registration info
-  const { error: profileErr } = await supabase
+  const { error: profileErr } = await db
     .from("profiles")
     .update({
       admission_number: admissionNumber,
@@ -61,7 +63,7 @@ export async function createWorkspace(formData: FormData) {
     })
     .eq("id", user.id);
 
-  if (profileErr) throw profileErr;
+  if (profileErr) throw new Error(profileErr.message);
 
   // Determine initial title/problem area from selected template if available
   const selectedKit =
@@ -73,7 +75,7 @@ export async function createWorkspace(formData: FormData) {
   const initialProblemArea = selectedKit?.sampleProblemArea || null;
 
   // 2. Insert new project workspace (initial status: ideation)
-  const { data: workspace, error: wsErr } = await supabase
+  const { data: workspace, error: wsErr } = await db
     .from("project_workspaces")
     .insert({
       student_id: user.id,
@@ -111,8 +113,7 @@ export async function createWorkspace(formData: FormData) {
     };
   });
 
-  const dbClient = process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : supabase;
-  const { error: sectionsErr } = await dbClient
+  const { error: sectionsErr } = await db
     .from("workspace_sections")
     .insert(sectionsPayload);
 
@@ -132,13 +133,25 @@ export async function updateWorkspaceTopic(formData: FormData) {
 
   if (!user) redirect("/login");
 
+  const db = getServerDbClient(supabase);
+
   const workspaceId = formData.get("workspaceId")?.toString();
   const title = formData.get("title")?.toString().trim();
   const problemArea = formData.get("problemArea")?.toString().trim();
 
   if (!workspaceId) throw new Error("Missing workspace ID.");
 
-  const { error } = await supabase
+  const { data: existingWs } = await db
+    .from("project_workspaces")
+    .select("id, student_id")
+    .eq("id", workspaceId)
+    .single();
+
+  if (!existingWs || existingWs.student_id !== user.id) {
+    throw new Error("Unauthorized.");
+  }
+
+  const { error } = await db
     .from("project_workspaces")
     .update({
       title: title || null,
@@ -147,7 +160,24 @@ export async function updateWorkspaceTopic(formData: FormData) {
     .eq("id", workspaceId)
     .eq("student_id", user.id);
 
-  if (error) throw error;
+  if (error) {
+    throw new Error(error.message || "Failed to save project topic.");
+  }
+
+  // Sync proposal.title with the selected topic so Step 1 of the proposal is ready
+  if (title) {
+    const summaryText = problemArea
+      ? `### Research Title\n${title}\n\n${problemArea}`
+      : `### Research Title\n${title}`;
+    await db
+      .from("workspace_sections")
+      .update({
+        current_text: summaryText,
+        status: "draft",
+      })
+      .eq("workspace_id", workspaceId)
+      .eq("section_key", "proposal.title");
+  }
 
   revalidatePath(`/studio/${workspaceId}`);
   revalidatePath(`/studio/${workspaceId}/problem`);
@@ -162,11 +192,23 @@ export async function submitProposalForApproval(formData: FormData) {
 
   if (!user) redirect("/login");
 
+  const db = getServerDbClient(supabase);
+
   const workspaceId = formData.get("workspaceId")?.toString();
   if (!workspaceId) throw new Error("Missing workspace ID.");
 
+  const { data: ws } = await db
+    .from("project_workspaces")
+    .select("id, student_id")
+    .eq("id", workspaceId)
+    .single();
+
+  if (!ws || ws.student_id !== user.id) {
+    throw new Error("Unauthorized.");
+  }
+
   // Fetch proposal sections to ensure candidate has entered substantive text
-  const { data: proposalSections } = await supabase
+  const { data: proposalSections } = await db
     .from("workspace_sections")
     .select("section_key, current_text")
     .eq("workspace_id", workspaceId)
@@ -184,16 +226,16 @@ export async function submitProposalForApproval(formData: FormData) {
   }
 
   // Update workspace status to proposal_pending
-  const { error } = await supabase
+  const { error } = await db
     .from("project_workspaces")
     .update({ status: "proposal_pending" })
     .eq("id", workspaceId)
     .eq("student_id", user.id);
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 
   // Add auto-generated project log entry (Annex 12 draft)
-  await supabase.from("project_log_entries").insert({
+  await db.from("project_log_entries").insert({
     workspace_id: workspaceId,
     activity: "Submitted project proposal for supervisor moderation review.",
     auto_generated: true,
@@ -212,6 +254,8 @@ export async function saveSectionText(formData: FormData) {
 
   if (!user) redirect("/login");
 
+  const db = getServerDbClient(supabase);
+
   const workspaceId = formData.get("workspaceId")?.toString();
   const sectionKey = formData.get("sectionKey")?.toString();
   const text = formData.get("text")?.toString() ?? "";
@@ -219,7 +263,7 @@ export async function saveSectionText(formData: FormData) {
   if (!workspaceId || !sectionKey) throw new Error("Missing workspace or section key.");
 
   // Fetch section and workspace
-  const { data: section } = await supabase
+  const { data: section } = await db
     .from("workspace_sections")
     .select("id, phase, current_text, status")
     .eq("workspace_id", workspaceId)
@@ -228,7 +272,7 @@ export async function saveSectionText(formData: FormData) {
 
   if (!section) throw new Error("Section not found.");
 
-  const { data: workspace } = await supabase
+  const { data: workspace } = await db
     .from("project_workspaces")
     .select("status, student_id")
     .eq("id", workspaceId)
@@ -256,7 +300,7 @@ export async function saveSectionText(formData: FormData) {
         : section.status
       : "empty";
 
-  const { error: updErr } = await supabase
+  const { error: updErr } = await db
     .from("workspace_sections")
     .update({
       current_text: text,
@@ -264,10 +308,10 @@ export async function saveSectionText(formData: FormData) {
     })
     .eq("id", section.id);
 
-  if (updErr) throw updErr;
+  if (updErr) throw new Error(updErr.message);
 
   // Insert immutable section_version audit record
-  await supabase.from("section_versions").insert({
+  await db.from("section_versions").insert({
     section_id: section.id,
     text,
     source: "student_typed",
@@ -287,13 +331,15 @@ export async function aiNarrowTopicAction(formData: FormData): Promise<TopicNarr
 
   if (!user) redirect("/login");
 
+  const db = getServerDbClient(supabase);
+
   const workspaceId = formData.get("workspaceId")?.toString();
   const studentInput = formData.get("studentInput")?.toString()?.trim() || "";
 
   if (!workspaceId) throw new Error("Missing workspace ID.");
   if (!studentInput) throw new Error("Please enter your problem idea or nutritional topic.");
 
-  const { data: workspace } = await supabase
+  const { data: workspace } = await db
     .from("project_workspaces")
     .select("workspace_type, level, course, title, problem_area")
     .eq("id", workspaceId)
@@ -312,14 +358,14 @@ export async function aiNarrowTopicAction(formData: FormData): Promise<TopicNarr
   const result = await narrowDownTopic(studentInput, context);
 
   // Log to ai_events audit trail
-  await supabase.from("ai_events").insert({
+  await db.from("ai_events").insert({
     workspace_id: workspaceId,
     user_id: user.id,
     kind: "topic_suggestions",
     student_input: studentInput,
     response: result as unknown as Record<string, unknown>,
     suggestions_total: result.options.length,
-    model: process.env.GEMINI_API_KEY ? "gemini-1.5-flash" : "knec-academic-engine-v1",
+    model: process.env.GEMINI_API_KEY ? "gemini-2.0-flash" : "knec-academic-engine-v1",
   });
 
   return result;
@@ -333,13 +379,15 @@ export async function aiPolishSectionAction(formData: FormData): Promise<Section
 
   if (!user) redirect("/login");
 
+  const db = getServerDbClient(supabase);
+
   const workspaceId = formData.get("workspaceId")?.toString();
   const sectionKey = formData.get("sectionKey")?.toString();
   const draftText = formData.get("draftText")?.toString() || "";
 
   if (!workspaceId || !sectionKey) throw new Error("Missing parameters.");
 
-  const { data: workspace } = await supabase
+  const { data: workspace } = await db
     .from("project_workspaces")
     .select("workspace_type, level, course, title, problem_area, student_id")
     .eq("id", workspaceId)
@@ -351,7 +399,7 @@ export async function aiPolishSectionAction(formData: FormData): Promise<Section
 
   // References section: compile an APA 7th list from sources cited in the other sections.
   if (sectionKey === "references") {
-    const { data: allSections } = await supabase
+    const { data: allSections } = await db
       .from("workspace_sections")
       .select("section_key, current_text")
       .eq("workspace_id", workspaceId);
@@ -412,7 +460,7 @@ export async function aiPolishSectionAction(formData: FormData): Promise<Section
   });
 
   // Log to ai_events audit trail
-  const { data: section } = await supabase
+  const { data: section } = await db
     .from("workspace_sections")
     .select("id")
     .eq("workspace_id", workspaceId)
@@ -420,7 +468,7 @@ export async function aiPolishSectionAction(formData: FormData): Promise<Section
     .single();
 
   if (section) {
-    await supabase.from("ai_events").insert({
+    await db.from("ai_events").insert({
       workspace_id: workspaceId,
       section_id: section.id,
       user_id: user.id,
@@ -432,7 +480,7 @@ export async function aiPolishSectionAction(formData: FormData): Promise<Section
         targetMet: result.targetMet,
       },
       suggestions_total: 1,
-      model: process.env.GEMINI_API_KEY ? "gemini-1.5-flash" : "knec-academic-engine-v1",
+      model: process.env.GEMINI_API_KEY ? "gemini-2.0-flash" : "knec-academic-engine-v1",
     });
   }
 
@@ -447,6 +495,8 @@ export async function acceptAiPolishedSection(formData: FormData) {
 
   if (!user) redirect("/login");
 
+  const db = getServerDbClient(supabase);
+
   const workspaceId = formData.get("workspaceId")?.toString();
   const sectionKey = formData.get("sectionKey")?.toString();
   const polishedText = formData.get("text")?.toString() ?? "";
@@ -454,7 +504,17 @@ export async function acceptAiPolishedSection(formData: FormData) {
 
   if (!workspaceId || !sectionKey) throw new Error("Missing parameters.");
 
-  const { data: section } = await supabase
+  const { data: ws } = await db
+    .from("project_workspaces")
+    .select("student_id")
+    .eq("id", workspaceId)
+    .single();
+
+  if (!ws || ws.student_id !== user.id) {
+    throw new Error("Unauthorized.");
+  }
+
+  const { data: section } = await db
     .from("workspace_sections")
     .select("id, ai_accepted_chars")
     .eq("workspace_id", workspaceId)
@@ -466,7 +526,7 @@ export async function acceptAiPolishedSection(formData: FormData) {
   const currentAiChars = section.ai_accepted_chars || 0;
 
   // 1. Update section with polished text
-  const { error: updErr } = await supabase
+  const { error: updErr } = await db
     .from("workspace_sections")
     .update({
       current_text: polishedText,
@@ -475,10 +535,10 @@ export async function acceptAiPolishedSection(formData: FormData) {
     })
     .eq("id", section.id);
 
-  if (updErr) throw updErr;
+  if (updErr) throw new Error(updErr.message);
 
   // 2. Insert into section_versions with source student_accepted_suggestion
-  await supabase.from("section_versions").insert({
+  await db.from("section_versions").insert({
     section_id: section.id,
     text: polishedText,
     source: "student_accepted_suggestion",
@@ -489,4 +549,5 @@ export async function acceptAiPolishedSection(formData: FormData) {
   revalidatePath(`/studio/${workspaceId}/write/${sectionKey}`);
   revalidatePath(`/supervisor/${workspaceId}`);
 }
+
 

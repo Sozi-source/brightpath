@@ -47,9 +47,11 @@ export function TopicCoach({
   // Form submission state
   const [isSaving, startSaveTransition] = useTransition();
   const [showCuratedBank, setShowCuratedBank] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const handleAskAi = () => {
     if (!studentInput.trim() || isAiLoading) return;
+    setActionError(null);
 
     startAiTransition(async () => {
       try {
@@ -60,6 +62,9 @@ export function TopicCoach({
         setAiResult(res);
       } catch (err) {
         console.error("AI Narrowing failed:", err);
+        setActionError(
+          err instanceof Error ? err.message : "Could not generate AI topic options. Please try again."
+        );
       }
     });
   };
@@ -274,10 +279,30 @@ export function TopicCoach({
           )}
         </div>
 
+        {actionError && (
+          <div className="rounded-lg bg-rose-50 border border-rose-200 px-3.5 py-2.5 text-xs font-medium text-rose-800">
+            {actionError}
+          </div>
+        )}
+
         <form
           action={(formData) => {
+            setActionError(null);
             startSaveTransition(async () => {
-              await saveAction(formData);
+              try {
+                await saveAction(formData);
+              } catch (err) {
+                if (
+                  err instanceof Error &&
+                  (err.message.includes("NEXT_REDIRECT") ||
+                    (err as { digest?: string }).digest?.startsWith("NEXT_REDIRECT"))
+                ) {
+                  throw err;
+                }
+                setActionError(
+                  err instanceof Error ? err.message : "Could not save topic. Please try again."
+                );
+              }
             });
           }}
           className="space-y-4"

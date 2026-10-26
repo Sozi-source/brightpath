@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getServerDbClient } from "@/lib/supabase/admin";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
@@ -31,14 +32,16 @@ export default async function StudioDashboardPage() {
     redirect("/login?redirect=/studio");
   }
 
+  const db = getServerDbClient(supabase);
+
   // Fetch student's profile and active workspaces
-  const { data: profile } = await supabase
+  const { data: profile } = await db
     .from("profiles")
     .select("full_name, role, admission_number, course, level, institution_id, institutions(name)")
     .eq("id", user.id)
     .single();
 
-  const { data: workspacesData } = await supabase
+  const { data: workspacesData } = await db
     .from("project_workspaces")
     .select(`
       id,

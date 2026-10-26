@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getServerDbClient } from "@/lib/supabase/admin";
 import { getWorkspaceSections } from "@/lib/studio/templates";
 import { saveSectionText, aiPolishSectionAction, acceptAiPolishedSection } from "@/app/studio/actions";
 import { getSectionQuestionGuide, type WorkspaceContext } from "@/lib/studio/aiEngine";
@@ -28,7 +29,9 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
     redirect(`/login?redirect=/studio/${workspaceId}/write/${sectionKey}`);
   }
 
-  const { data: profileData } = await supabase
+  const db = getServerDbClient(supabase);
+
+  const { data: profileData } = await db
     .from("profiles")
     .select("*")
     .eq("id", user.id)
@@ -37,7 +40,7 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
   const profile = profileData as UserProfile | null;
 
   // Load workspace
-  const { data: workspace } = await supabase
+  const { data: workspace } = await db
     .from("project_workspaces")
     .select(`
       id,
@@ -70,7 +73,7 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
   const sectionDef = sectionDefs[sectionDefIndex];
 
   // Load all existing sections to build the live step tracker
-  const { data: allSectionsData } = await supabase
+  const { data: allSectionsData } = await db
     .from("workspace_sections")
     .select("id, section_key, phase, position, current_text, status")
     .eq("workspace_id", workspaceId)

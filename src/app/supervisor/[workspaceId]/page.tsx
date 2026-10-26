@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getServerDbClient } from "@/lib/supabase/admin";
 import { getWorkspaceSections } from "@/lib/studio/templates";
 import { getRubricForWorkspace } from "@/lib/studio/rubrics";
 import {
@@ -40,8 +41,10 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
     redirect(`/login?redirect=/supervisor/${workspaceId}`);
   }
 
+  const db = getServerDbClient(supabase);
+
   // Verify supervisor or admin role
-  const { data: profileData } = await supabase
+  const { data: profileData } = await db
     .from("profiles")
     .select("*, institutions:institution_id(name, code, ai_mode)")
     .eq("id", user.id)
@@ -54,7 +57,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
   }
 
   // Load candidate workspace
-  const { data: workspaceData } = await supabase
+  const { data: workspaceData } = await db
     .from("project_workspaces")
     .select(`
       id,
@@ -89,7 +92,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
   }
 
   // Load sections
-  const { data: sectionsData } = await supabase
+  const { data: sectionsData } = await db
     .from("workspace_sections")
     .select("id, workspace_id, section_key, phase, position, current_text, status, ai_accepted_chars, updated_at")
     .eq("workspace_id", workspaceId)
@@ -98,7 +101,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
   const sections: WorkspaceSection[] = (sectionsData as WorkspaceSection[]) || [];
 
   // Load supervisor review history
-  const { data: reviewsData } = await supabase
+  const { data: reviewsData } = await db
     .from("supervisor_reviews")
     .select("id, status, comment, created_at")
     .eq("workspace_id", workspaceId)

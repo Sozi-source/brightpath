@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getServerDbClient } from "@/lib/supabase/admin";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
@@ -27,7 +28,9 @@ export default async function SupervisorPage() {
     redirect("/login?portal=faculty&redirect=/supervisor");
   }
 
-  const { data: profileData } = await supabase
+  const db = getServerDbClient(supabase);
+
+  const { data: profileData } = await db
     .from("profiles")
     .select("*, institutions:institution_id(name, code, ai_mode)")
     .eq("id", user.id)
@@ -40,7 +43,7 @@ export default async function SupervisorPage() {
   }
 
   // Fetch candidates supervised by this user (or all if admin)
-  let query = supabase
+  let query = db
     .from("project_workspaces")
     .select(`
       id,
