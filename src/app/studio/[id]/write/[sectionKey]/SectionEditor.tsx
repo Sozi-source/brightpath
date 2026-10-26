@@ -11,6 +11,7 @@ import {
   ArrowRight,
   ArrowLeft,
   Lock,
+  Sparkles,
 } from "lucide-react";
 
 interface SectionEditorProps {
@@ -22,6 +23,7 @@ interface SectionEditorProps {
   phase: "proposal" | "project";
   isLocked: boolean;
   currentText: string;
+  starterTemplate?: string;
   prevSectionKey: string | null;
   nextSectionKey: string | null;
   saveAction: (formData: FormData) => Promise<void>;
@@ -36,6 +38,7 @@ export function SectionEditor({
   phase,
   isLocked,
   currentText: initialText,
+  starterTemplate,
   prevSectionKey,
   nextSectionKey,
   saveAction,
@@ -48,6 +51,17 @@ export function SectionEditor({
   const wordsCount = text.trim() ? text.trim().split(/\s+/).length : 0;
   const charsCount = text.length;
   const isMinMet = wordsCount >= minWords;
+
+  const handleInsertTemplate = () => {
+    if (isLocked || !starterTemplate) return;
+    if (text.trim() && text.trim() !== starterTemplate.trim()) {
+      const confirmed = window.confirm(
+        "Insert official KNEC chapter outline & starter template? This will replace your current text in this section with the structured KNEC outline."
+      );
+      if (!confirmed) return;
+    }
+    setText(starterTemplate);
+  };
 
   const handleSave = () => {
     if (isLocked) return;
@@ -134,7 +148,7 @@ export function SectionEditor({
       ) : (
         /* Active Writing Area */
         <div className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 space-y-4 shadow-xs">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <label
               htmlFor="editorTextarea"
               className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2"
@@ -143,20 +157,53 @@ export function SectionEditor({
               <span>Candidate Draft</span>
             </label>
 
-            {saveStatus === "saved" && (
-              <span className="text-xs font-bold text-emerald-700 flex items-center gap-1">
-                <CheckCircle className="h-3.5 w-3.5" />
-                Draft saved & version recorded
-              </span>
-            )}
+            <div className="flex items-center gap-3">
+              {starterTemplate && (
+                <button
+                  type="button"
+                  onClick={handleInsertTemplate}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
+                  title="Insert official KNEC chapter outline & structured starter text"
+                >
+                  <Sparkles className="h-3.5 w-3.5 text-blue-700" />
+                  <span>Insert KNEC Chapter Outline</span>
+                </button>
+              )}
 
-            {saveStatus === "error" && (
-              <span className="text-xs font-bold text-rose-700 flex items-center gap-1">
-                <AlertCircle className="h-3.5 w-3.5" />
-                {errorMessage || "Error saving draft"}
-              </span>
-            )}
+              {saveStatus === "saved" && (
+                <span className="text-xs font-bold text-emerald-700 flex items-center gap-1">
+                  <CheckCircle className="h-3.5 w-3.5" />
+                  Draft saved & version recorded
+                </span>
+              )}
+
+              {saveStatus === "error" && (
+                <span className="text-xs font-bold text-rose-700 flex items-center gap-1">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  {errorMessage || "Error saving draft"}
+                </span>
+              )}
+            </div>
           </div>
+
+          {/* Quick empty-state helper banner */}
+          {text.trim().length === 0 && starterTemplate && (
+            <div className="p-3.5 rounded-lg bg-blue-50/70 border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2 text-blue-900">
+                <Sparkles className="h-4 w-4 text-blue-700 shrink-0" />
+                <span>
+                  <strong>Avoid starting from a blank page!</strong> Load the official KNEC chapter outline with structured headings, sub-points, and guided starters.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleInsertTemplate}
+                className="px-3 py-1.5 rounded-md text-xs font-bold bg-blue-700 text-white hover:bg-blue-800 shrink-0 shadow-xs transition-colors cursor-pointer"
+              >
+                Pre-fill Outline Now
+              </button>
+            </div>
+          )}
 
           <textarea
             id="editorTextarea"

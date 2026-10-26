@@ -1,7 +1,11 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { getWorkspaceSections } from "@/lib/studio/templates";
+import {
+  getWorkspaceSections,
+  getSectionStarterContent,
+  getStarterKitById,
+} from "@/lib/studio/templates";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { WorkspaceType, WorkspaceLevel } from "@/types/database";
@@ -22,6 +26,7 @@ export async function createWorkspace(formData: FormData) {
   const admissionNumber = formData.get("admissionNumber")?.toString().trim();
   const institutionId = formData.get("institutionId")?.toString().trim() || null;
   const supervisorId = formData.get("supervisorId")?.toString().trim() || null;
+  const templateKitId = formData.get("templateKit")?.toString().trim() || "knec_standard";
   const privacyConsent = formData.get("privacyConsent")?.toString();
 
   if (!workspaceType || !level || !course) {
@@ -49,6 +54,15 @@ export async function createWorkspace(formData: FormData) {
 
   if (profileErr) throw profileErr;
 
+  // Determine initial title/problem area from selected template if available
+  const selectedKit =
+    templateKitId !== "clean_slate" && templateKitId !== "knec_standard"
+      ? getStarterKitById(templateKitId)
+      : null;
+
+  const initialTitle = selectedKit?.sampleTitle || null;
+  const initialProblemArea = selectedKit?.sampleProblemArea || null;
+
   // 2. Insert new project workspace (initial status: ideation)
   const { data: workspace, error: wsErr } = await supabase
     .from("project_workspaces")
@@ -59,6 +73,8 @@ export async function createWorkspace(formData: FormData) {
       workspace_type: workspaceType,
       level,
       course,
+      title: initialTitle,
+      problem_area: initialProblemArea,
       status: "ideation",
     })
     .select("id")
@@ -68,16 +84,23 @@ export async function createWorkspace(formData: FormData) {
     throw new Error(wsErr?.message || "Failed to initialize project workspace.");
   }
 
-  // 3. Populate workspace sections in code-defined order
+  // 3. Populate workspace sections pre-filled with KNEC starter outlines
   const sectionDefs = getWorkspaceSections(workspaceType, level);
-  const sectionsPayload = sectionDefs.map((def, idx) => ({
-    workspace_id: workspace.id,
-    section_key: def.key,
-    phase: def.phase,
-    position: idx + 1,
-    current_text: "",
-    status: "empty" as const,
-  }));
+  const sectionsPayload = sectionDefs.map((def, idx) => {
+    const starterText =
+      templateKitId === "clean_slate"
+        ? ""
+        : getSectionStarterContent(workspaceType, level, def.key, templateKitId);
+
+    return {
+      workspace_id: workspace.id,
+      section_key: def.key,
+      phase: def.phase,
+      position: idx + 1,
+      current_text: starterText,
+      status: starterText ? ("draft" as const) : ("empty" as const),
+    };
+  });
 
   const { error: sectionsErr } = await supabase
     .from("workspace_sections")
@@ -140,7 +163,8 @@ export async function submitProposalForApproval(formData: FormData) {
     .eq("phase", "proposal");
 
   const emptyRequired = (proposalSections || []).filter(
-    (s) => !s.current_text || s.current_text.trim().length < 20
+    (s: { section_key: string; current_text: string | null }) =>
+      !s.current_text || s.current_text.trim().length < 20
   );
 
   if (emptyRequired.length > 0) {

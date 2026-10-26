@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getWorkspaceSections } from "@/lib/studio/templates";
+import { getWorkspaceSections, getSectionStarterContent } from "@/lib/studio/templates";
 import { saveSectionText } from "@/app/studio/actions";
 import { SectionEditor } from "./SectionEditor";
 import { AppShell } from "@/components/layout/AppShell";
@@ -91,6 +91,13 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
       ? "Secondary Research"
       : "Business Plan";
 
+  // Compute built-in KNEC starter template for this specific chapter
+  const starterTemplate = getSectionStarterContent(
+    workspace.workspace_type,
+    workspace.level,
+    sectionDef.key
+  );
+
   return (
     <AppShell
       user={user}
@@ -140,6 +147,7 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
         phase={sectionDef.phase}
         isLocked={isLocked}
         currentText={sectionRecord?.current_text || ""}
+        starterTemplate={starterTemplate}
         prevSectionKey={prevSectionKey}
         nextSectionKey={nextSectionKey}
         saveAction={saveSectionText}

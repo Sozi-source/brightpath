@@ -5,6 +5,7 @@ import { createWorkspace } from "@/app/studio/actions";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
+import { STARTER_KITS } from "@/lib/studio/templates";
 import {
   ShieldCheck,
   Hammer,
@@ -12,6 +13,7 @@ import {
   Briefcase,
   GraduationCap,
   Building,
+  Sparkles,
 } from "lucide-react";
 
 export const instant = false;
@@ -205,9 +207,97 @@ export default async function NewWorkspacePage() {
           </div>
         </ContentCard>
 
+        {/* Starting Template & KNEC Outline Selection */}
+        <ContentCard
+          title="3. Select Starting Template & KNEC Chapter Outline"
+          subtitle="Pre-fill your workspace with structured KNEC chapter outlines so you never start from a blank page"
+          icon={Sparkles}
+        >
+          <div className="space-y-4">
+            <p className="text-xs text-slate-600">
+              Choose how your project chapters are initialized. Templates populate each chapter section with official KNEC headings, sub-points, required subsections, and guided sentence starters.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Default KNEC Standard Outline */}
+              <label className="relative flex flex-col p-4 rounded-xl border-2 border-slate-200 hover:border-blue-600 cursor-pointer has-checked:border-blue-700 has-checked:bg-blue-50/40 transition-all md:col-span-2">
+                <input
+                  type="radio"
+                  name="templateKit"
+                  value="knec_standard"
+                  defaultChecked
+                  className="absolute top-4 right-4 text-blue-700 focus:ring-blue-600"
+                />
+                <div className="flex items-center gap-2 mb-1.5 text-blue-800">
+                  <Sparkles className="h-4 w-4 text-blue-700" />
+                  <span className="font-bold text-sm text-slate-900">
+                    Official KNEC Chapter Outline (Recommended)
+                  </span>
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200 ml-auto mr-7">
+                    All Tracks
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Pre-fills every chapter section with official KNEC subheadings, required analytical sub-points, and guided prompts. Keeps your layout compliant with KNEC examination rubrics while letting you formulate your own topic.
+                </p>
+              </label>
+
+              {/* Domain Specific Starter Kits */}
+              {STARTER_KITS.filter((kit) => kit.id !== "knec_std_research" && kit.id !== "knec_std_business" && kit.id !== "knec_std_trade").map((kit) => (
+                <label
+                  key={kit.id}
+                  className="relative flex flex-col p-4 rounded-xl border-2 border-slate-200 hover:border-blue-600 cursor-pointer has-checked:border-blue-700 has-checked:bg-blue-50/40 transition-all"
+                >
+                  <input
+                    type="radio"
+                    name="templateKit"
+                    value={kit.id}
+                    className="absolute top-4 right-4 text-blue-700 focus:ring-blue-600"
+                  />
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                      {kit.badge}
+                    </span>
+                  </div>
+                  <h4 className="font-bold text-xs sm:text-sm text-slate-900 mb-1 pr-6">
+                    {kit.title}
+                  </h4>
+                  <p className="text-xs text-slate-600 leading-relaxed mb-2">
+                    {kit.description}
+                  </p>
+                  <div className="mt-auto pt-2 border-t border-slate-100 text-[11px] text-slate-500 font-mono">
+                    Includes sample: <em className="text-slate-700 not-italic font-sans">{kit.sampleTitle.slice(0, 50)}...</em>
+                  </div>
+                </label>
+              ))}
+
+              {/* Clean Slate */}
+              <label className="relative flex flex-col p-4 rounded-xl border-2 border-slate-200 hover:border-blue-600 cursor-pointer has-checked:border-blue-700 has-checked:bg-blue-50/40 transition-all md:col-span-2">
+                <input
+                  type="radio"
+                  name="templateKit"
+                  value="clean_slate"
+                  className="absolute top-4 right-4 text-blue-700 focus:ring-blue-600"
+                />
+                <div className="flex items-center gap-2 mb-1.5 text-slate-700">
+                  <span className="font-bold text-sm text-slate-900">
+                    Clean Slate (Headings Only)
+                  </span>
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 ml-auto mr-7">
+                    Minimal
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Only sets chapter titles with empty textareas. Recommended only if you already have completed drafts and prefer to paste everything manually.
+                </p>
+              </label>
+            </div>
+          </div>
+        </ContentCard>
+
         {/* Institution & Assigned Supervisor */}
         <ContentCard
-          title="3. Institution & Assigned Project Supervisor"
+          title="4. Institution & Assigned Project Supervisor"
           subtitle="Connect with your department supervisor for proposal review and Annex 12 sign-offs"
           icon={Building}
         >

@@ -148,7 +148,7 @@ export function TopicSelector({
               </>
             ) : (
               <>
-                For <strong>Diploma / Higher Diploma</strong>, candidates must formulate their title and rationale
+                For <strong>Diploma</strong>, candidates must formulate their title and rationale
                 personally with supervisor guidance. The title and rationale carry <strong>5 marks</strong> on the KNEC
                 Scorecard 1B.
               </>

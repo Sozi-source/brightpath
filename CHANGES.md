@@ -21,6 +21,49 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-10-26] — Feature: Student Studio Project Starter Kits & Built-in KNEC Chapter Outlines
+
+**Category:** Studio Architecture, Student UX & KNEC Academic Outlines
+
+**Status:** Completed & Verified
+
+**Problem:**
+Previously, when candidates initialized a new project workspace, all sections in `workspace_sections` were created with blank text (`current_text: ""`). Facing an empty editor without structured section prompts, subheadings, or guiding sentences caused friction and writer's block, leaving students unsure how to format compliant chapters for KNEC evaluation. The client requested that candidates be able to pick ready starter templates to pre-fill their studio workspace with built-in KNEC chapter outlines so they never start from a blank page.
+
+**Files Changed:**
+- `src/lib/studio/templates/starterKits.ts` (New)
+- `src/lib/studio/templates/trade.ts`
+- `src/lib/studio/templates/index.ts`
+- `src/app/studio/new/page.tsx`
+- `src/app/studio/actions.ts`
+- `src/app/studio/[id]/write/[sectionKey]/page.tsx`
+- `src/app/studio/[id]/write/[sectionKey]/SectionEditor.tsx`
+- `src/app/studio/[id]/problem/TopicSelector.tsx`
+- `CHANGES.md`
+
+**Implementation:**
+1. **Accredited Starter Kits Library (`src/lib/studio/templates/starterKits.ts`)**:
+   - Built comprehensive starter templates with full chapter outlines, subheadings, sample tables, and fill-in prompt brackets `[ ... ]` across all curriculum tracks:
+     - **Research Track**: *KNEC Standard Academic Research Outline*, *Public Health & Child Nutrition Trend Study (KDHS)*.
+     - **Business Plan Track**: *KNEC Standard Enterprise Business Plan*, *Commercial Bakery & Confectionery Enterprise*, *Solar Energy & Electrical Contracting Services*.
+     - **Trade Fabrication Track**: *KNEC Standard Technical Fabrication Project*, *Domestic Solar Inverter & Battery Storage System*.
+2. **Template Selection Card in Workspace Onboarding (`src/app/studio/new/page.tsx`)**:
+   - Added interactive Card 3 ("3. Select Starting Template & KNEC Chapter Outline").
+   - Lets candidates choose between the **Official KNEC Chapter Outline (Recommended)**, specific domain-focused starter kits, or a **Clean Slate (Headings Only)**.
+3. **Workspace Pre-fill Engine (`src/app/studio/actions.ts`)**:
+   - Updated `createWorkspace` to receive `templateKitId`.
+   - Pre-populates all proposal sections and project chapters with the chosen template's structured text, immediately setting section status to `draft` instead of `empty`.
+   - Pre-fills realistic sample title and problem statement into `project_workspaces`.
+4. **Interactive Chapter Outline Inserter (`SectionEditor.tsx` & `page.tsx`)**:
+   - Added `starterTemplate` prop to `SectionEditor`.
+   - Embedded a one-click **"Insert KNEC Chapter Outline"** toolbar button and an empty-state quick-fill banner inside the editor. Candidates can insert or restore the official KNEC outline and guided questions at any point with one click.
+5. **Quality Assurance & Verification**:
+   - `npx tsc --noEmit`: Exited with 0 errors.
+   - `npm run lint`: Exited with 0 errors/warnings.
+   - Turbopack production build: 21/21 routes compiled successfully.
+
+---
+
 ## [2026-10-26] — Architecture & Scope Streamlining: Purge of Revision Components and Higher Diploma
 
 **Category:** Architecture, Scope Simplification & Two-Pillar Optimization

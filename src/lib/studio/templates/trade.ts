@@ -6,6 +6,7 @@ export interface SectionDef {
   rubricMarks?: number;
   levels?: Array<"craft" | "diploma">;
   minWords?: number;
+  starterTemplate?: string;
 }
 
 export const TRADE_FABRICATION_SECTIONS: SectionDef[] = [
