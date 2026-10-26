@@ -122,13 +122,13 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
           <div className="flex items-center gap-2">
             <Link
               href={`/studio/${workspaceId}`}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-white text-slate-700 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
               <span>Overview</span>
             </Link>
             {isLocked && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-300">
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-300">
                 <Lock className="h-3.5 w-3.5" />
                 Locked
               </span>

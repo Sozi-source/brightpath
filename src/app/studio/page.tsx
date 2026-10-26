@@ -133,7 +133,7 @@ export default async function StudioDashboardPage() {
           label="Drafted Chapters"
           value={totalCompletedSections}
           icon={FileText}
-          color="blue"
+          color="amber"
           subtext="Sections completed"
         />
       </div>
@@ -142,8 +142,8 @@ export default async function StudioDashboardPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Layers className="h-5 w-5 text-blue-900" />
-            <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+            <Layers className="h-5 w-5 text-indigo-600" />
+            <h2 className="text-base sm:text-lg font-semibold text-slate-900 tracking-tight">
               Active Portfolios
             </h2>
           </div>
@@ -155,10 +155,10 @@ export default async function StudioDashboardPage() {
         {workspaces.length === 0 ? (
           <ContentCard>
             <div className="text-center py-12 space-y-3 max-w-sm mx-auto">
-              <div className="h-12 w-12 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center mx-auto">
+              <div className="h-12 w-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto">
                 <Layers className="h-6 w-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-base font-semibold text-slate-900">
                 No active projects
               </h3>
               <p className="text-xs text-slate-500 leading-normal">
@@ -167,7 +167,7 @@ export default async function StudioDashboardPage() {
               <div className="pt-2">
                 <Link
                   href="/studio/new"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold bg-blue-700 hover:bg-blue-800 text-white shadow-xs"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs"
                 >
                   <Plus className="h-4 w-4" />
                   <span>New Workspace</span>
@@ -180,10 +180,10 @@ export default async function StudioDashboardPage() {
             {workspaces.map((ws) => {
               const typeLabel =
                 ws.workspace_type === "trade_fabrication"
-                  ? "Trade Fabrication (1A/1B)"
+                  ? "Trade Fabrication"
                   : ws.workspace_type === "research_secondary"
-                  ? "Secondary Research & Stats"
-                  : "Entrepreneurship Plan";
+                  ? "Secondary Research"
+                  : "Business Plan";
 
               const TypeIcon =
                 ws.workspace_type === "trade_fabrication"
@@ -211,17 +211,17 @@ export default async function StudioDashboardPage() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider bg-[#e8f1f8] text-blue-900 border border-blue-200 px-2 py-0.5 rounded">
+                        <span className="text-[10px] font-mono font-semibold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded">
                           {ws.level} Level
                         </span>
-                        <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
-                          <TypeIcon className="h-3.5 w-3.5 text-blue-700" />
+                        <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
+                          <TypeIcon className="h-3.5 w-3.5 text-indigo-600" />
                           <span>{typeLabel}</span>
                         </span>
                       </div>
 
                       <span
-                        className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
+                        className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
                           isApproved
                             ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                             : isPending
@@ -230,26 +230,26 @@ export default async function StudioDashboardPage() {
                         }`}
                       >
                         {isApproved
-                          ? "Chapters Unlocked"
+                          ? "Approved"
                           : isPending
-                          ? "Moderation Pending"
-                          : "Proposal Ideation"}
+                          ? "Pending Review"
+                          : "Drafting"}
                       </span>
                     </div>
 
                     <div className="space-y-1">
-                      <h3 className="text-base font-bold text-slate-900 line-clamp-2 leading-snug">
-                        {ws.title || "Project Title Formulation in Progress"}
+                      <h3 className="text-base font-semibold text-slate-900 line-clamp-2 leading-snug">
+                        {ws.title || "Topic Formulation"}
                       </h3>
                       <p className="text-xs text-slate-500 line-clamp-1">
-                        Course: <strong className="text-slate-800">{ws.course}</strong>
+                        Course: <span className="font-medium text-slate-800">{ws.course}</span>
                       </p>
                     </div>
 
                     {ws.supervisor?.full_name && (
                       <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-200">
-                        <UserCheck className="h-3.5 w-3.5 text-blue-700 shrink-0" />
-                        <span className="font-semibold text-slate-900 truncate">
+                        <UserCheck className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+                        <span className="font-medium text-slate-900 truncate">
                           Supervisor: {ws.supervisor.full_name}
                         </span>
                       </div>
@@ -258,14 +258,14 @@ export default async function StudioDashboardPage() {
                     {/* Progress Bar */}
                     <div className="space-y-1 pt-1">
                       <div className="flex items-center justify-between text-xs text-slate-600">
-                        <span>Report Sections Drafted</span>
-                        <span className="font-mono font-bold text-blue-900">
+                        <span>Chapters Completed</span>
+                        <span className="font-mono font-semibold text-indigo-600">
                           {completedSections} / {totalSections} ({progressPct}%)
                         </span>
                       </div>
                       <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
                         <div
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                          className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
                           style={{ width: `${progressPct}%` }}
                         />
                       </div>
@@ -279,7 +279,7 @@ export default async function StudioDashboardPage() {
 
                     <Link
                       href={`/studio/${ws.id}`}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#0f3554] hover:bg-[#18476f] text-white transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
                     >
                       <span>Open Studio</span>
                       <ArrowRight className="h-3.5 w-3.5" />

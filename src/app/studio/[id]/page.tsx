@@ -152,9 +152,9 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
           {
             label: "Status",
             value: isApproved
-              ? "Approved (Chapters Unlocked)"
+              ? "Approved"
               : isPending
-              ? "Awaiting Supervisor Approval"
+              ? "Pending Review"
               : hasChangesRequested
               ? "Revisions Requested"
               : "Drafting",
@@ -163,7 +163,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
         actions={
           <Link
             href={`/studio/${workspaceId}/problem`}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-white hover:bg-slate-50 text-blue-900 border border-slate-300 shadow-xs transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white hover:bg-slate-50 text-indigo-700 border border-slate-300 shadow-xs transition-colors"
           >
             <Lightbulb className="h-4 w-4 text-amber-500" />
             <span>Topic Formulation</span>
@@ -174,26 +174,26 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
       {/* 2. 4-Stage Stepper Progression Bar */}
       <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
-          <div className="p-2.5 rounded-lg border border-blue-200 bg-blue-50 text-blue-900 font-bold flex items-center justify-center gap-1.5">
-            <CheckCircle2 className="h-4 w-4 text-blue-700" />
+          <div className="p-2.5 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 font-semibold flex items-center justify-center gap-1.5">
+            <CheckCircle2 className="h-4 w-4 text-indigo-600" />
             <span>1. Ideation</span>
           </div>
           <div
-            className={`p-2.5 rounded-lg border font-bold flex items-center justify-center gap-1.5 ${
+            className={`p-2.5 rounded-lg border font-semibold flex items-center justify-center gap-1.5 ${
               isApproved || isPending
-                ? "border-blue-200 bg-blue-50 text-blue-900"
+                ? "border-indigo-200 bg-indigo-50 text-indigo-700"
                 : "border-slate-200 text-slate-500 bg-slate-50/50"
             }`}
           >
             {isApproved || isPending ? (
-              <CheckCircle2 className="h-4 w-4 text-blue-700" />
+              <CheckCircle2 className="h-4 w-4 text-indigo-600" />
             ) : (
               <Clock className="h-4 w-4" />
             )}
             <span>2. Moderation</span>
           </div>
           <div
-            className={`p-2.5 rounded-lg border font-bold flex items-center justify-center gap-1.5 ${
+            className={`p-2.5 rounded-lg border font-semibold flex items-center justify-center gap-1.5 ${
               isApproved
                 ? "border-emerald-200 bg-emerald-50 text-emerald-800"
                 : "border-slate-200 text-slate-500 bg-slate-50/50"
@@ -207,9 +207,9 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
             <span>3. Chapters</span>
           </div>
           <div
-            className={`p-2.5 rounded-lg border font-bold flex items-center justify-center gap-1.5 ${
+            className={`p-2.5 rounded-lg border font-semibold flex items-center justify-center gap-1.5 ${
               workspace.status === "submitted"
-                ? "border-blue-200 bg-blue-50 text-blue-900"
+                ? "border-indigo-200 bg-indigo-50 text-indigo-700"
                 : "border-slate-200 text-slate-500 bg-slate-50/50"
             }`}
           >
@@ -222,7 +222,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
       {/* Changes Requested Notification Banner */}
       {hasChangesRequested && latestReview && (
         <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 space-y-2">
-          <div className="flex items-center gap-2 text-rose-800 font-bold text-xs sm:text-sm">
+          <div className="flex items-center gap-2 text-rose-800 font-semibold text-xs sm:text-sm">
             <ShieldAlert className="h-4 w-4 text-rose-600" />
             <span>Supervisor Feedback</span>
           </div>
@@ -239,18 +239,18 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
           {/* Phase 1: Proposal Sections Checklist */}
           <ContentCard
             title="Proposal Sections"
-            subtitle="4 sections required before supervisor submission"
+            subtitle="Required for supervisor review"
             icon={Layers}
             headerRight={
               isApproved ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                  <span>Approved by Supervisor</span>
+                  <span>Approved</span>
                 </span>
               ) : isPending ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
                   <Clock className="h-3.5 w-3.5 text-amber-600" />
-                  <span>Awaiting Moderation</span>
+                  <span>Pending Review</span>
                 </span>
               ) : (
                 <form action={submitProposalForApproval}>
@@ -258,7 +258,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                   <button
                     type="submit"
                     disabled={!proposalSectionsComplete}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-700 hover:bg-blue-800 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Send className="h-3.5 w-3.5" />
                     <span>Submit for Approval</span>
@@ -285,11 +285,11 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                         ) : (
                           <Clock className="h-4 w-4 text-slate-400 shrink-0" />
                         )}
-                        <span className="text-xs font-bold text-slate-900 truncate">
+                        <span className="text-xs font-semibold text-slate-900 truncate">
                           {def.title}
                         </span>
                         {def.rubricMarks !== undefined && (
-                          <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-900">
+                          <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-100">
                             {def.rubricMarks}m
                           </span>
                         )}
@@ -305,7 +305,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                       </span>
                       <Link
                         href={`/studio/${workspaceId}/write/${def.key}`}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 shadow-xs transition-colors"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 shadow-xs transition-colors"
                       >
                         <span>{s?.current_text ? "Edit Draft" : "Start Writing"}</span>
                         <ChevronRight className="h-3 w-3 text-slate-400" />
@@ -320,7 +320,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
           {/* Phase 2: Project Chapters */}
           <ContentCard
             title="Project Chapters"
-            subtitle="Unlocked once proposal is approved"
+            subtitle="Unlocked upon proposal approval"
             icon={Award}
             headerRight={
               !isApproved && (
@@ -334,11 +334,11 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
             {!isApproved ? (
               <div className="p-6 rounded-lg bg-slate-50 border border-slate-200 text-center space-y-1.5">
                 <Lock className="h-6 w-6 mx-auto text-slate-400 mb-1" />
-                <h4 className="text-xs font-bold text-slate-800">
+                <h4 className="text-xs font-semibold text-slate-800">
                   Chapters Locked
                 </h4>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  Chapters unlock once your proposal is approved by your supervisor.
+                  Chapters unlock after proposal approval.
                 </p>
               </div>
             ) : (
@@ -354,7 +354,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                     >
                       <div className="space-y-0.5 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-slate-900 truncate">
+                          <span className="text-xs font-semibold text-slate-900 truncate">
                             {def.title}
                           </span>
                           {def.rubricMarks !== undefined && (
@@ -374,7 +374,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                         </span>
                         <Link
                           href={`/studio/${workspaceId}/write/${def.key}`}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition-colors"
                         >
                           <span>Write</span>
                           <ChevronRight className="h-3 w-3" />
@@ -390,9 +390,9 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
 
         {/* Right Column (1 Col): Scorecard & Supervisor */}
         <div className="space-y-6">
-          {/* Official KNEC Scorecard Card */}
+          {/* KNEC Scorecard Card */}
           <ContentCard
-            title="Official KNEC Scorecard"
+            title="KNEC Scorecard"
             subtitle={`${rubric.scorecardName} (100 Marks)`}
             icon={Award}
           >
@@ -405,7 +405,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                   <span className="text-slate-800 font-medium">
                     {item.category}
                   </span>
-                  <span className="font-mono font-bold text-blue-900 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                  <span className="font-mono font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
                     {item.marks}m
                   </span>
                 </div>
@@ -422,10 +422,10 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
             {workspace.supervisor?.full_name ? (
               <div className="space-y-2 text-xs">
                 <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
-                  <span className="font-bold text-slate-900 block text-sm">
+                  <span className="font-semibold text-slate-900 block text-sm">
                     {workspace.supervisor.full_name}
                   </span>
-                  <span className="text-xs text-blue-800 font-semibold block">
+                  <span className="text-xs text-indigo-600 font-medium block">
                     Faculty Project Supervisor
                   </span>
                   {workspace.institution?.name && (
@@ -434,15 +434,15 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Your supervisor conducts your proposal defence, provides feedback, and signs your Annex 12 project interaction log.
-                </p>
+                <span className="inline-block text-[11px] text-slate-500">
+                  Proposal defence and log sign-off
+                </span>
               </div>
             ) : (
               <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
-                <span className="font-bold block">No Supervisor Assigned Yet</span>
-                <p className="text-[11px] leading-relaxed">
-                  Connect with your department supervisor so they can moderate your proposal.
+                <span className="font-semibold block">No Supervisor Assigned</span>
+                <p className="text-[11px] text-amber-800">
+                  Assign a supervisor to submit your proposal for approval.
                 </p>
               </div>
             )}

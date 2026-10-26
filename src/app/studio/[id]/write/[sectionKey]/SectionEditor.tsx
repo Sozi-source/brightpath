@@ -54,7 +54,7 @@ export function SectionEditor({
     if (isLocked || !starterTemplate) return;
     if (text.trim() && text.trim() !== starterTemplate.trim()) {
       const confirmed = window.confirm(
-        "Insert official KNEC chapter outline & starter template? This will replace your current text in this section with the structured KNEC outline."
+        "Replace current draft with official KNEC chapter outline?"
       );
       if (!confirmed) return;
     }
@@ -88,24 +88,24 @@ export function SectionEditor({
       <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-2.5 shadow-xs">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200">
+            <span className="text-[10px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">
               {phase === "proposal" ? "Proposal" : "Chapter"}
             </span>
             {rubricMarks !== undefined && (
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
                 {rubricMarks}m
               </span>
             )}
           </div>
 
           <div className="text-xs font-mono text-slate-500 flex items-center gap-2">
-            <span>Words: <strong className="text-slate-800">{wordsCount}</strong> {minWords > 0 && `(min: ${minWords})`}</span>
-            {isMinMet && wordsCount > 0 && <span className="text-emerald-700 font-bold">✓</span>}
+            <span>Words: <span className="font-semibold text-slate-800">{wordsCount}</span> {minWords > 0 && `(min: ${minWords})`}</span>
+            {isMinMet && wordsCount > 0 && <span className="text-emerald-700 font-semibold">✓</span>}
           </div>
         </div>
 
         <p className="text-xs text-slate-600 leading-snug border-t border-slate-100 pt-2">
-          <strong className="text-slate-800">Prompt:</strong> {guidance}
+          <span className="font-semibold text-slate-800">Prompt:</span> {guidance}
         </p>
       </div>
 
@@ -113,7 +113,7 @@ export function SectionEditor({
       {isLocked ? (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center space-y-2 shadow-xs">
           <Lock className="h-6 w-6 mx-auto text-amber-700" />
-          <h3 className="text-sm font-bold text-amber-900">
+          <h3 className="text-sm font-semibold text-amber-900">
             Section Locked
           </h3>
           <p className="text-xs text-amber-800 max-w-sm mx-auto">
@@ -122,7 +122,7 @@ export function SectionEditor({
           <div className="pt-1">
             <Link
               href={`/studio/${workspaceId}`}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-amber-700 hover:bg-amber-800 text-white shadow-xs transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-700 hover:bg-amber-800 text-white shadow-xs transition-colors"
             >
               <span>Return to Overview</span>
               <ArrowRight className="h-3 w-3" />
@@ -135,9 +135,9 @@ export function SectionEditor({
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <label
               htmlFor="editorTextarea"
-              className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2"
+              className="text-xs font-semibold uppercase tracking-wider text-slate-700 flex items-center gap-2"
             >
-              <FileText className="h-4 w-4 text-blue-700" />
+              <FileText className="h-4 w-4 text-indigo-600" />
               <span>Draft</span>
             </label>
 
@@ -146,23 +146,23 @@ export function SectionEditor({
                 <button
                   type="button"
                   onClick={handleInsertTemplate}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition-colors cursor-pointer"
                   title="Insert official KNEC chapter starter outline"
                 >
-                  <Sparkles className="h-3.5 w-3.5 text-blue-700" />
+                  <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
                   <span>Insert KNEC Outline</span>
                 </button>
               )}
 
               {saveStatus === "saved" && (
-                <span className="text-xs font-bold text-emerald-700 flex items-center gap-1">
+                <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
                   <CheckCircle className="h-3.5 w-3.5" />
                   Saved
                 </span>
               )}
 
               {saveStatus === "error" && (
-                <span className="text-xs font-bold text-rose-700 flex items-center gap-1">
+                <span className="text-xs font-semibold text-rose-700 flex items-center gap-1">
                   <AlertCircle className="h-3.5 w-3.5" />
                   {errorMessage || "Error saving draft"}
                 </span>
@@ -172,14 +172,14 @@ export function SectionEditor({
 
           {/* Quick empty-state helper banner */}
           {text.trim().length === 0 && starterTemplate && (
-            <div className="p-3 rounded-lg bg-blue-50/70 border border-blue-200 flex items-center justify-between gap-3 text-xs">
-              <span className="text-blue-900 font-medium">
-                Load official KNEC outline & prompts:
+            <div className="p-3 rounded-lg bg-indigo-50/70 border border-indigo-200 flex items-center justify-between gap-3 text-xs">
+              <span className="text-indigo-900 font-medium">
+                Load official KNEC outline and prompts:
               </span>
               <button
                 type="button"
                 onClick={handleInsertTemplate}
-                className="px-3 py-1 rounded-md text-xs font-bold bg-blue-700 text-white hover:bg-blue-800 shrink-0 shadow-xs transition-colors cursor-pointer"
+                className="px-3 py-1 rounded-md text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shrink-0 shadow-xs transition-colors cursor-pointer"
               >
                 Insert Outline
               </button>
@@ -191,8 +191,8 @@ export function SectionEditor({
             rows={14}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Type your candidate section draft here in clear, concise academic English..."
-            className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg p-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 leading-relaxed font-sans placeholder:text-slate-400"
+            placeholder="Write your section draft here..."
+            className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg p-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 leading-relaxed font-sans placeholder:text-slate-400"
           />
 
           {/* Action Bar */}
@@ -201,7 +201,7 @@ export function SectionEditor({
               {prevSectionKey ? (
                 <Link
                   href={`/studio/${workspaceId}/write/${prevSectionKey}`}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-blue-700 transition-colors"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-indigo-600 transition-colors"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
                   <span>Previous Section</span>
@@ -213,7 +213,7 @@ export function SectionEditor({
               {nextSectionKey && (
                 <Link
                   href={`/studio/${workspaceId}/write/${nextSectionKey}`}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-blue-700 transition-colors"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-indigo-600 transition-colors"
                 >
                   <span>Next Section</span>
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -224,7 +224,7 @@ export function SectionEditor({
             <div className="flex items-center gap-3">
               <Link
                 href={`/studio/${workspaceId}`}
-                className="text-xs font-bold text-slate-600 hover:text-slate-900"
+                className="text-xs font-semibold text-slate-600 hover:text-slate-900"
               >
                 Back to Workspace
               </Link>
@@ -233,7 +233,7 @@ export function SectionEditor({
                 type="button"
                 onClick={handleSave}
                 disabled={isPending}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold bg-blue-700 hover:bg-blue-800 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
               >
                 <Save className="h-4 w-4" />
                 <span>{isPending ? "Saving..." : "Save Draft"}</span>

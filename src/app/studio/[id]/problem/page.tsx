@@ -79,11 +79,11 @@ export default async function ProblemFinderPage({ params }: ProblemFinderPagePro
     <AppShell
       user={user}
       profile={profile}
-      activeContextTitle={`Problem Formulation: ${workspace.title || "Topic"}`}
+      activeContextTitle={`Topic: ${workspace.title || "Formulation"}`}
     >
       <PageHeaderCard
         title="Topic Formulation"
-        subtitle="Select a verified topic from the curriculum bank or enter your title."
+        subtitle="Select curriculum topic or enter working title"
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Project Studio", href: "/studio" },
@@ -97,10 +97,10 @@ export default async function ProblemFinderPage({ params }: ProblemFinderPagePro
         actions={
           <Link
             href={`/studio/${workspaceId}`}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-white text-slate-700 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
-            <span>Workspace Overview</span>
+            <span>Overview</span>
           </Link>
         }
       />

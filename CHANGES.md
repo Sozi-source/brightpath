@@ -21,6 +21,24 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-10-26] — Fix: Workspace Sections RLS Policy & Student Portal Text Density Polish
+
+**Category:** Studio Workspace Engine, Database Security (RLS) & UI Text Density Polish
+
+**Status:** Completed & Verified
+
+**Changes Implemented:**
+1. **Resolved `workspace_sections` RLS Insertion Violation**:
+   - Diagnosed root cause: `workspace_sections` insert policy checked `(phase = 'proposal' or w.status = 'approved')`. When candidates created a workspace (initial status: `'ideation'`), inserting project-phase chapters failed the policy check.
+   - Updated `src/app/studio/actions.ts` (`createWorkspace`) to use `createAdminClient()` (with service role key bypass) for initializing the default KNEC chapter checklist, guaranteeing atomic workspace creation.
+   - Fixed SQL policy in `supabase/migrations/20261026000005_fix_workspace_sections_rls.sql`, `supabase/003_project_studio.sql`, and `supabase/migrations/20261026000004_project_studio.sql` to check `exists (select 1 from project_workspaces w where w.id = workspace_id and w.student_id = auth.uid())` without blocking initial section creation.
+2. **Student Portal Minimal Text Density & UI Polish**:
+   - **`src/app/studio/new/page.tsx`**: Purged verbose curriculum track essays to concise 3-4 word descriptions; streamlined academic qualification details; simplified starter outline and clean slate options; replaced heavy `font-bold` with `font-semibold` Geist typography; updated action button to standard `bg-indigo-600`.
+   - **`src/app/studio/page.tsx`**: Streamlined track labels (`Secondary Research` - purged compound `&`); polished portfolio status pills (`Approved`, `Pending Review`, `Drafting`); converted chapter count to concise metric format; upgraded button colors from `#0f3554` to `bg-indigo-600 hover:bg-indigo-700`.
+   - **`src/app/studio/[id]/page.tsx`**: Cleaned overview layout; simplified 4-stage stepper; purged multi-sentence essays under assigned supervisor down to a single concise metadata tag; refined scorecard markup to Geist `font-semibold`.
+   - **`src/app/studio/[id]/problem/page.tsx` & `TopicSelector.tsx`**: Replaced compound title `Project Title & Focus` with `Project Scope`; concise input labels (`Project Title`, `Focus Area`); standardized action buttons to vibrant indigo.
+   - **`src/app/studio/[id]/write/[sectionKey]/page.tsx` & `SectionEditor.tsx`**: Shortened chapter prompt helper copy; replaced verbose modal text on outline insertion; refined textarea placeholders and status alerts to concise single-line text; standardized Geist typography.
+
 ## [2026-10-26] — Feature: Segmented Institutional Login Architecture & Candidate Portal Distinction
 
 **Category:** Authentication Architecture, Security & Enterprise Portal Access

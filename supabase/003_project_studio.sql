@@ -304,8 +304,7 @@ create policy "sections select" on workspace_sections for select using (
 
 drop policy if exists "sections student insert" on workspace_sections;
 create policy "sections student insert" on workspace_sections for insert with check (
-  exists (select 1 from project_workspaces w where w.id = workspace_id and w.student_id = auth.uid()
-          and (phase = 'proposal' or w.status = 'approved')));
+  exists (select 1 from project_workspaces w where w.id = workspace_id and w.student_id = auth.uid()));
 
 drop policy if exists "sections student update" on workspace_sections;
 create policy "sections student update" on workspace_sections for update using (

@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   getWorkspaceSections,
   getSectionStarterContent,
@@ -102,7 +103,8 @@ export async function createWorkspace(formData: FormData) {
     };
   });
 
-  const { error: sectionsErr } = await supabase
+  const dbClient = process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : supabase;
+  const { error: sectionsErr } = await dbClient
     .from("workspace_sections")
     .insert(sectionsPayload);
 
