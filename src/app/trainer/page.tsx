@@ -30,7 +30,7 @@ export default async function TrainerPortalPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/login?portal=faculty&redirect=/trainer");
   }
 
   const { data: profileData } = await supabase

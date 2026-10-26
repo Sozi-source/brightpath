@@ -24,7 +24,7 @@ export default async function SupervisorPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/login?portal=faculty&redirect=/supervisor");
   }
 
   const { data: profileData } = await supabase

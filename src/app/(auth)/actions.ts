@@ -10,9 +10,13 @@ function fail(path: string, message: string): never {
 export async function login(formData: FormData) {
   const email = formData.get("email")?.toString().trim();
   const password = formData.get("password")?.toString();
+  const portal = formData.get("portal")?.toString() === "faculty" ? "faculty" : "student";
+  const redirectUrl = formData.get("redirect")?.toString();
+
+  const failPath = portal === "faculty" ? "/login?portal=faculty" : "/login";
 
   if (!email || !password) {
-    fail("/login", "Please enter both email and password.");
+    fail(failPath, "Please enter both email and password.");
   }
 
   const supabase = await createClient();
@@ -23,25 +27,32 @@ export async function login(formData: FormData) {
 
   if (error) {
     fail(
-      "/login",
+      failPath,
       error.message.toLowerCase().includes("confirm")
         ? "Confirm your email first."
         : "Wrong email or password."
     );
   }
 
-  // Redirect based on role
+  // Redirect based on role and redirect parameter
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", data.user.id)
     .single();
 
-  if (profile?.role === "admin") {
+  const role = profile?.role || "student";
+
+  // If safe redirect provided and role matches or student
+  if (redirectUrl && redirectUrl.startsWith("/") && !redirectUrl.startsWith("//")) {
+    redirect(redirectUrl);
+  }
+
+  if (role === "admin") {
     redirect("/admin");
-  } else if (profile?.role === "trainer") {
+  } else if (role === "trainer") {
     redirect("/trainer");
-  } else if (profile?.role === "supervisor") {
+  } else if (role === "supervisor") {
     redirect("/supervisor");
   } else {
     redirect("/studio");

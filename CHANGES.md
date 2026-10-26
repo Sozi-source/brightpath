@@ -21,6 +21,26 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-10-26] — Feature: Segmented Institutional Login Architecture & Candidate Portal Distinction
+
+**Category:** Authentication Architecture, Security & Enterprise Portal Access
+
+**Status:** Completed & Verified
+
+**Changes Implemented:**
+1. **Distinguished Student & Faculty Portals**:
+   - Built `src/app/login/LoginForm.tsx` with a dual-portal segmented controller: **Student Portal** (for TVET candidates) and **Faculty & Staff** (for faculty trainers, supervisors, and institutional administrators).
+   - Dynamic UI state adaptation: updates headings, contextual badges (`TVET Candidate` vs `Faculty Trainer or Supervisor`), field labels (`Student Email` vs `Institutional Email`), placeholders (`candidate@polytechnic.ac.ke` vs `faculty@institution.ac.ke`), and guidance actions.
+   - Preserves dedicated URL query navigation (`/login?portal=student` vs `/login?portal=faculty`) allowing direct links from faculty vs candidate entry points.
+2. **Upgraded Brand & Visual Discipline**:
+   - Replaced old navy blocks and all-caps headings with modern Geist typography and vibrant indigo branding (`[BP] BrightPath TVET`).
+   - Clean Two-Tone KEC accent stripe (60% Blue + 40% Kenyan Gold) across the top of the card.
+   - Upgraded `src/app/signup/page.tsx` with identical typography, focus states, and brand marks.
+3. **Smart Auth Routing**:
+   - `src/app/(auth)/actions.ts` updated to accept `portal` and `redirect` parameters, preserving portal context on failure and routing authenticated users directly to their designated workspaces (`/studio`, `/trainer`, `/supervisor`, `/admin`).
+
+---
+
 ## [2026-10-26] — Refactor: Appealing Accent-Striped Stat Cards, Crisp White Sidebar Overhaul & Complete Text Purge
 
 **Category:** UI/UX Component Architecture, Dashboard Redesign & Text De-Congestion

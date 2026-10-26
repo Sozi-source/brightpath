@@ -43,7 +43,7 @@ export default async function AdminPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/login?portal=faculty&redirect=/admin");
   }
 
   const { data: profile } = await supabase
