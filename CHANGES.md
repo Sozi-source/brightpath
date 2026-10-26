@@ -21,6 +21,72 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-10-26] — Phase 1: Supabase Direct Migrations, Supervisor Role, & Institutions
+
+**Category:** Database & Architecture
+
+**Status:** Completed
+
+**Problem:**
+Project Studio required the new `supervisor` user role, TVET institutions infrastructure with configurable AI coaching modes (`ai_mode`), and 10 new database tables with RLS and automated transition triggers. Furthermore, database migrations needed to be structured so they can be pushed directly to remote Supabase via Supabase CLI (`supabase db push`) without manual dashboard steps.
+
+**Files Changed:**
+- `supabase/config.toml`
+- `supabase/migrations/20261024000001_initial_schema.sql`
+- `supabase/migrations/20261025000002_auth_and_security.sql`
+- `supabase/migrations/20261026000003_supervisor_role.sql`
+- `supabase/migrations/20261026000004_project_studio.sql`
+- `supabase/003a_supervisor_role.sql`
+- `supabase/003_project_studio.sql`
+- `KNEC PROJECTS/003_project_studio.sql`
+- `src/types/database.ts`
+- `src/proxy.ts`
+- `src/app/(auth)/actions.ts`
+- `src/app/admin/actions.ts`
+- `src/app/admin/page.tsx`
+- `src/app/supervisor/page.tsx`
+- `CHANGES.md`
+
+**Implementation:**
+1. **Supabase Direct Push Configuration**:
+   - Initialized standard Supabase configuration (`supabase/config.toml`).
+   - Created four sequential, idempotent migration files in `supabase/migrations/`:
+     - `20261024000001_initial_schema.sql`: Baseline marketplace schema.
+     - `20261025000002_auth_and_security.sql`: Auth signup triggers and role escalation prevention.
+     - `20261026000003_supervisor_role.sql`: Extends `user_role` enum with `'supervisor'`.
+     - `20261026000004_project_studio.sql`: Full Project Studio schema (`institutions`, `topic_bank`, `project_workspaces`, `workspace_sections`, `section_versions`, `ai_events`, `data_points`, `project_log_entries`, `supervisor_reviews`, `module_access`).
+   - Executed `npx supabase db push --project-ref txntmeinwhwiavfcluja` directly pushing all 4 migrations to the live remote database.
+2. **Type Safety & Schema Alignment**:
+   - Extended `src/types/database.ts` with `UserRole = "student" | "trainer" | "admin" | "supervisor"`, `Institution`, `ProjectWorkspace`, `WorkspaceSection`, `SectionVersion`, `AiEvent`, `DataPoint`, `ProjectLogEntry`, `SupervisorReview`.
+3. **Supervisor Role Routing**:
+   - Updated `src/app/(auth)/actions.ts` so users with `role: "supervisor"` automatically land on `/supervisor`.
+   - Updated `src/proxy.ts` to protect `/supervisor` and `/studio` routes.
+4. **Supervisor Portal Base**:
+   - Created `/supervisor` displaying candidate workspaces, proposal review queue, and institution details.
+5. **Admin Institutions Management**:
+   - Added server actions `createInstitution`, `updateInstitutionAiMode`, and `assignUserInstitution` in `src/app/admin/actions.ts`.
+   - Added Institutions section to `/admin` dashboard allowing administrators to register institutions and toggle `ai_mode` (`feedback_and_polish`, `feedback_only`, `off`).
+   - Added `supervisor` option to Admin role management select.
+
+**Reason:**
+Establishes the foundational database schema, institutional governance, and supervisor workflows for Project Studio per the master brief.
+
+**Validation:**
+- `npx supabase db push` successfully applied all 4 migrations to remote database.
+- Database query check confirmed tables `institutions`, `project_workspaces`, `module_access` return live data with 0 errors.
+- `npx tsc --noEmit` passed with 0 errors.
+- `npm run lint` passed with 0 warnings / 0 errors.
+- `npm run build` compiled all 17 routes cleanly.
+
+**Database Impact:**
+- Applied `20261026000003_supervisor_role.sql` and `20261026000004_project_studio.sql` to production Supabase database.
+
+**Security Impact:**
+- Row Level Security (RLS) active on all Project Studio tables.
+- Server-side guard triggers (`guard_workspace_update`, `guard_log_update`) prevent students from approving their own proposals or forging supervisor signatures.
+
+---
+
 ## [2026-10-25] — Phase 0: Curriculum Lesson Reader, Gating, & Progress Tracking
 
 **Category:** Feature & Security

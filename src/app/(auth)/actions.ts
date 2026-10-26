@@ -41,6 +41,8 @@ export async function login(formData: FormData) {
     redirect("/admin");
   } else if (profile?.role === "trainer") {
     redirect("/trainer");
+  } else if (profile?.role === "supervisor") {
+    redirect("/supervisor");
   } else {
     redirect("/learn");
   }

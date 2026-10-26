@@ -138,3 +138,62 @@ export async function revokeModuleAccess(formData: FormData) {
   revalidatePath("/admin");
   revalidatePath("/learn");
 }
+
+export async function createInstitution(formData: FormData) {
+  const { supabase } = await verifyAdmin();
+  const name = formData.get("name")?.toString().trim();
+  const code = formData.get("code")?.toString().trim() || null;
+  const aiMode = formData.get("aiMode")?.toString() || "feedback_and_polish";
+
+  if (!name) throw new Error("Institution name is required.");
+
+  const { error } = await supabase.from("institutions").insert({
+    name,
+    code,
+    ai_mode: aiMode,
+  });
+
+  if (error) throw error;
+  revalidatePath("/admin");
+}
+
+export async function updateInstitutionAiMode(formData: FormData) {
+  const { supabase } = await verifyAdmin();
+  const institutionId = formData.get("institutionId")?.toString();
+  const aiMode = formData.get("aiMode")?.toString();
+
+  if (!institutionId || !aiMode) throw new Error("Missing institutionId or aiMode");
+
+  const { error } = await supabase
+    .from("institutions")
+    .update({ ai_mode: aiMode })
+    .eq("id", institutionId);
+
+  if (error) throw error;
+  revalidatePath("/admin");
+}
+
+export async function assignUserInstitution(formData: FormData) {
+  const { supabase } = await verifyAdmin();
+  const userId = formData.get("userId")?.toString();
+  const institutionId = formData.get("institutionId")?.toString() || null;
+  const admissionNumber = formData.get("admissionNumber")?.toString().trim() || null;
+
+  if (!userId) throw new Error("Missing userId");
+
+  const updateData: { institution_id: string | null; admission_number?: string | null } = {
+    institution_id: institutionId,
+  };
+  if (admissionNumber !== null) {
+    updateData.admission_number = admissionNumber;
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update(updateData)
+    .eq("id", userId);
+
+  if (error) throw error;
+  revalidatePath("/admin");
+}
+

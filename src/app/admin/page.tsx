@@ -6,6 +6,8 @@ import {
   updateTrainerStatus,
   updateProjectStatus,
   updateUserRole,
+  createInstitution,
+  updateInstitutionAiMode,
 } from "./actions";
 import { redirect } from "next/navigation";
 import {
@@ -19,6 +21,7 @@ import {
   Coins,
   ShieldCheck,
   ArrowLeft,
+  Building,
 } from "lucide-react";
 import type {
   UserProfile,
@@ -26,6 +29,7 @@ import type {
   Project,
   Order,
   ContentReport,
+  Institution,
 } from "@/types/database";
 
 export const instant = false;
@@ -58,6 +62,7 @@ export default async function AdminPage() {
     { data: allOrders },
     { data: allReports },
     { data: settingsData },
+    { data: institutionsData },
   ] = await Promise.all([
     supabase.from("profiles").select("*").order("created_at", { ascending: false }),
     supabase.from("trainer_profiles").select("*, profiles(*)"),
@@ -65,6 +70,7 @@ export default async function AdminPage() {
     supabase.from("orders").select("*").order("created_at", { ascending: false }),
     supabase.from("reports").select("*").order("created_at", { ascending: false }),
     supabase.from("platform_settings").select("*").eq("id", 1).single(),
+    supabase.from("institutions").select("*").order("name"),
   ]);
 
   const profilesList: UserProfile[] = (allProfiles as unknown as UserProfile[]) || [];
@@ -72,6 +78,7 @@ export default async function AdminPage() {
   const projectsList: Project[] = (allProjects as unknown as Project[]) || [];
   const ordersList: Order[] = (allOrders as unknown as Order[]) || [];
   const reportsList: ContentReport[] = (allReports as unknown as ContentReport[]) || [];
+  const institutionsList: Institution[] = (institutionsData as unknown as Institution[]) || [];
   const commissionPercent = settingsData?.commission_percent ?? 20;
 
   // Compute stats
@@ -472,6 +479,8 @@ export default async function AdminPage() {
                             ? "bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300"
                             : p.role === "trainer"
                             ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300"
+                            : p.role === "supervisor"
+                            ? "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
                             : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
                         }`}
                       >
@@ -495,6 +504,7 @@ export default async function AdminPage() {
                           >
                             <option value="student">Student</option>
                             <option value="trainer">Trainer</option>
+                            <option value="supervisor">Supervisor</option>
                             <option value="admin">Admin</option>
                           </select>
                           <button
@@ -511,6 +521,122 @@ export default async function AdminPage() {
               </tbody>
             </table>
           </div>
+        </section>
+
+        {/* Institutions Section */}
+        <section className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-xs space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold flex items-center gap-2">
+                <Building className="h-4 w-4 text-indigo-600" />
+                Institutions & TVET Centers
+              </h2>
+              <p className="text-xs text-zinc-500">
+                Manage partner colleges, polytechnics, and institutional AI coaching policies.
+              </p>
+            </div>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+              {institutionsList.length} Registered
+            </span>
+          </div>
+
+          {/* New Institution Form */}
+          <form action={createInstitution} className="bg-zinc-50 dark:bg-zinc-800/40 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700/60 grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div>
+              <label className="block text-[11px] font-medium text-zinc-500 mb-1">Institution Name</label>
+              <input
+                type="text"
+                name="name"
+                required
+                placeholder="e.g. ICMHS Kenya"
+                className="w-full text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-1.5"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-zinc-500 mb-1">Code / Abbr.</label>
+              <input
+                type="text"
+                name="code"
+                placeholder="e.g. ICMHS"
+                className="w-full text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-1.5"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-zinc-500 mb-1">AI Coaching Mode</label>
+              <select
+                name="aiMode"
+                defaultValue="feedback_and_polish"
+                className="w-full text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-1.5"
+              >
+                <option value="feedback_and_polish">Feedback & Polish (Full)</option>
+                <option value="feedback_only">Feedback Only (No text edit)</option>
+                <option value="off">Off (AI disabled)</option>
+              </select>
+            </div>
+            <div className="flex items-end">
+              <button
+                type="submit"
+                className="w-full text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 transition-colors cursor-pointer"
+              >
+                + Add Institution
+              </button>
+            </div>
+          </form>
+
+          {/* Institutions Table */}
+          {institutionsList.length === 0 ? (
+            <p className="text-xs text-zinc-400 italic text-center py-4">No institutions registered yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-zinc-200 dark:border-zinc-800 text-xs font-semibold text-zinc-500">
+                  <tr>
+                    <th className="pb-3">Institution Name</th>
+                    <th className="pb-3">Code</th>
+                    <th className="pb-3">Current AI Mode</th>
+                    <th className="pb-3 text-right">Update AI Policy</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                  {institutionsList.map((inst) => (
+                    <tr key={inst.id}>
+                      <td className="py-3 font-medium text-zinc-900 dark:text-zinc-100">
+                        {inst.name}
+                      </td>
+                      <td className="py-3 font-mono text-xs text-zinc-500">
+                        {inst.code || "-"}
+                      </td>
+                      <td className="py-3">
+                        <span className="text-xs px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-mono">
+                          {inst.ai_mode}
+                        </span>
+                      </td>
+                      <td className="py-3 text-right">
+                        <form action={updateInstitutionAiMode} className="inline-flex gap-1">
+                          <input type="hidden" name="institutionId" value={inst.id} />
+                          <select
+                            name="aiMode"
+                            defaultValue={inst.ai_mode}
+                            className="rounded border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs px-2 py-1"
+                          >
+                            <option value="feedback_and_polish">Feedback & Polish</option>
+                            <option value="feedback_only">Feedback Only</option>
+                            <option value="off">Off</option>
+                          </select>
+                          <button
+                            type="submit"
+                            className="rounded bg-zinc-800 text-white text-xs px-2 py-1 cursor-pointer"
+                          >
+                            Save
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
 
         {/* Orders Section */}
