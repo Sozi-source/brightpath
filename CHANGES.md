@@ -21,6 +21,83 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-10-26] — Phase 2: Project Studio Templates, Onboarding Wizard, Topic Bank, & Proposal Approval Workflow
+
+**Category:** Feature & Security
+
+**Status:** Completed
+
+**Problem:**
+TVET candidates (Craft, Diploma, and Higher Diploma) needed a dedicated Project Studio environment to initialize KNEC project workspaces, explore curriculum topics, draft project proposals, and submit them for formal supervisor moderation review. Per KNEC regulations and BrightPath product rules, project chapters (Chapters 1 to 4/5) must remain locked until the supervisor formally approves the proposal.
+
+**Files Changed:**
+- `scripts/seed-topic-bank.mjs`
+- `src/lib/studio/rubrics.ts`
+- `src/lib/studio/templates/trade.ts`
+- `src/lib/studio/templates/research.ts`
+- `src/lib/studio/templates/business.ts`
+- `src/lib/studio/templates/index.ts`
+- `src/app/studio/actions.ts`
+- `src/app/supervisor/actions.ts`
+- `src/app/studio/page.tsx`
+- `src/app/studio/new/page.tsx`
+- `src/app/studio/[id]/page.tsx`
+- `src/app/studio/[id]/problem/page.tsx`
+- `src/app/studio/[id]/problem/TopicSelector.tsx`
+- `src/app/studio/[id]/write/[sectionKey]/page.tsx`
+- `src/app/studio/[id]/write/[sectionKey]/SectionEditor.tsx`
+- `src/app/supervisor/[workspaceId]/page.tsx`
+- `src/types/database.ts`
+- `CHANGES.md`
+
+**Implementation:**
+1. **Topic Bank Seeding**:
+   - Created and executed idempotent script `scripts/seed-topic-bank.mjs` seeding 7 foundational TVET topics across research, trade fabrication, and entrepreneurship with suggested indicators and verified data sources.
+2. **KNEC Scorecards & Template Definitions**:
+   - `src/lib/studio/rubrics.ts`: Implemented official scorecards (Craft 1A: 100 marks, Diploma 1B: 100 marks, Entrepreneurship: 100 marks) with helper `getRubricForWorkspace`.
+   - `src/lib/studio/templates/`: Created code-defined section specifications for `trade_fabrication`, `research_secondary`, and `business_plan` with phases (`proposal` vs `project`), guidance notes, and rubric marks.
+3. **Student Onboarding Wizard (`/studio/new`)**:
+   - Built a comprehensive setup wizard collecting workspace track, qualification level, academic course, mandatory student admission number, institution, assigned supervisor, and Kenya Data Protection Act consent checkbox (`privacyConsent`).
+   - Automatically populates `workspace_sections` in code-defined order upon workspace creation.
+4. **Problem Finder & Topic Bank Explorer (`/studio/[id]/problem`)**:
+   - Created client-driven topic explorer (`TopicSelector.tsx`) matching candidate track.
+   - Provides KNEC rule callouts for Craft (supervisor refined) and Diploma (candidate formulated).
+   - Updates workspace title and problem area via `updateWorkspaceTopic`.
+5. **Section Drafting & Locking (`/studio/[id]/write/[sectionKey]`)**:
+   - Built section editor (`SectionEditor.tsx`) with live word and character counters, min words target indicator, and draft saving (`saveSectionText`).
+   - Appends audit trail records to `section_versions` (`source: 'student_typed'`).
+   - Strictly enforces proposal phase locking: project chapter sections remain locked in UI and database RLS until proposal approval.
+6. **Workspace Overview Command Center (`/studio/[id]`)**:
+   - Stepper progression bar (`ideation` -> `proposal_pending` -> `approved` -> `submitted`).
+   - Proposal checklist card with word counts and completion status.
+   - Proposal submission action (`submitProposalForApproval`) transitioning status to `proposal_pending` and logging to Annex 12 draft.
+   - Locked / Unlocked chapter cards with KNEC rubric breakdown preview.
+7. **Supervisor Proposal Moderation Portal (`/supervisor/[workspaceId]`)**:
+   - Displays all 4 candidate proposal sections (`proposal.title`, `proposal.problem`, `proposal.objectives`, `proposal.rationale`) with live word counts.
+   - "Approve Proposal" action (`approveProposal`): transitions status to `approved`, automatically unlocks project chapters, sets `approved_at = now()`, and logs to candidate Annex 12 log.
+   - "Request Revisions" action (`requestProposalChanges`): reverts workspace status to `ideation` with clear moderation feedback banner for the student.
+   - "Refine Project Title" action (`updateProposalTitle`) enabling supervisor title adjustments per KNEC Craft standards.
+   - Real-time project chapter inspection with AI influence audit metric (0% baseline).
+
+**Reason:**
+Fulfills Phase 2 of the Project Studio implementation brief (`AGENT_CONTEXT.md`). Ensures an enterprise-grade academic moderation workflow that strictly models KNEC guidelines.
+
+**Validation:**
+- `npx tsc --noEmit` passed with 0 errors.
+- `npm run lint` passed with 0 warnings and 0 errors.
+- `npm run build` compiled all 23 routes cleanly with Partial Prerendering (`◐`).
+
+**Database Impact:**
+- Seeded remote `topic_bank` with 7 TVET topic records.
+- Verified trigger `guard_workspace_update()` enforces supervisor-only approval and timestamping.
+
+**Security Impact:**
+- Zero permission escalation: student accounts cannot set `status = 'approved'` or forge supervisor review records.
+- RLS blocks student updates to project chapters before proposal approval.
+- Full compliance with Kenya Data Protection Act (2019).
+
+---
+
 ## [2026-10-26] — Phase 1: Supabase Direct Migrations, Supervisor Role, & Institutions
 
 **Category:** Database & Architecture

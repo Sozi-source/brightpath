@@ -162,6 +162,7 @@ export interface ProjectWorkspace {
   student?: UserProfile | null;
   supervisor?: UserProfile | null;
   institution?: Institution | null;
+  workspace_sections?: WorkspaceSection[];
 }
 
 export interface WorkspaceSection {
