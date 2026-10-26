@@ -13,6 +13,17 @@
  * - Transparent audit logging into `ai_events` and `section_versions`.
  */
 
+import {
+  selectEvidence,
+  resolveCitationTokens,
+  findCitedSources,
+  findUnsupportedFigures,
+  toCitationInfo,
+  formatInText,
+  type CitationInfo,
+  type EvidenceNote,
+} from "./sources";
+
 export interface TopicNarrowingOption {
   id: string;
   title: string;
@@ -43,6 +54,10 @@ export interface SectionPolishResult {
   wordDiff: number;
   targetMet: boolean;
   improvements: string[];
+  /** Verified sources actually cited in the polished text (APA 7th reference included). */
+  citations: CitationInfo[];
+  /** Things the student must double-check before accepting. */
+  warnings: string[];
 }
 
 /**
@@ -66,10 +81,13 @@ export async function narrowDownTopic(
   return generateDeterministicTopics(query, type, course);
 }
 
+const VERIFY_WARNING =
+  "Confirm each cited statement in the original source before submission. Page numbers are not added automatically.";
+
 /**
- * 2. Section Polish & Academic Alignment Engine
- * Takes candidate's raw notes, outline, or draft text and transforms it into
- * formal academic prose meeting KNEC examination rubrics and target word counts.
+ * 2. Section Polish, Deepen & Cite Engine
+ * Takes the candidate's own writing, polishes and deepens it, and adds in-text citations
+ * drawn ONLY from the verified source library (never invented by the model).
  */
 export async function polishAndAlignSection(params: {
   draftText: string;
@@ -82,33 +100,58 @@ export async function polishAndAlignSection(params: {
   const { draftText, sectionKey, sectionTitle, guidance, minWords, context } = params;
   const rawWords = draftText.trim() ? draftText.trim().split(/\s+/).length : 0;
 
+  const evidence = selectEvidence({
+    sectionKey,
+    text: draftText,
+    title: context.title,
+    problemArea: context.problemArea,
+    workspaceType: context.workspaceType,
+  });
+
   // Attempt external LLM if API key is present
-  const llmPolished = await tryLlmSectionPolish({
+  const llmRaw = await tryLlmSectionPolish({
     draftText,
     sectionKey,
     sectionTitle,
     guidance,
     minWords,
     context,
+    evidence,
   });
 
-  if (llmPolished) {
-    const polishedWords = llmPolished.trim().split(/\s+/).length;
+  if (llmRaw) {
+    const allowed = new Set(evidence.map((e) => e.source.id));
+    const { text: polishedText, stripped } = resolveCitationTokens(llmRaw, allowed);
+    const polishedWords = polishedText.trim().split(/\s+/).length;
+    const citations = findCitedSources(polishedText).map((s) => toCitationInfo(s, evidence));
+
+    const warnings: string[] = [];
+    if (citations.length > 0) warnings.push(VERIFY_WARNING);
+    if (stripped > 0) warnings.push(`${stripped} citation(s) not in the verified library were removed.`);
+    const odd = findUnsupportedFigures(polishedText, draftText, evidence);
+    if (odd.length > 0) {
+      warnings.push(`Check these figures, they are not in your draft or source notes: ${odd.join(", ")}.`);
+    }
+
     return {
-      polishedText: llmPolished,
+      polishedText,
       wordsOriginal: rawWords,
       wordsPolished: polishedWords,
       wordDiff: polishedWords - rawWords,
       targetMet: polishedWords >= minWords,
       improvements: [
-        "Aligned with KNEC formal technical writing standards",
-        `Expanded substantive argument to attain ${polishedWords} words (Target: ${minWords})`,
-        "Structured into clear academic paragraphs with professional terminology",
+        "Your ideas kept and written in formal academic style",
+        citations.length > 0
+          ? `${citations.length} verified source(s) cited in text`
+          : "No verified source matched this section",
+        `Length now ${polishedWords} words (target ${minWords})`,
       ],
+      citations,
+      warnings,
     };
   }
 
-  // Built-in Deterministic Academic Alignment & Word Target Engine
+  // Built-in deterministic engine (used when no API key is configured)
   return generateDeterministicSectionPolish({
     draftText,
     sectionKey,
@@ -116,8 +159,10 @@ export async function polishAndAlignSection(params: {
     guidance,
     minWords,
     context,
+    evidence,
   });
 }
+
 
 /**
  * 3. Formative Writing Prompts & Open-Ended Guided Questions
@@ -346,7 +391,7 @@ Return strictly valid JSON with this shape:
 
   try {
     if (geminiKey) {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`;
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -394,6 +439,8 @@ Return strictly valid JSON with this shape:
   return null;
 }
 
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+
 async function tryLlmSectionPolish(params: {
   draftText: string;
   sectionKey: string;
@@ -401,30 +448,46 @@ async function tryLlmSectionPolish(params: {
   guidance: string;
   minWords: number;
   context: WorkspaceContext;
+  evidence: EvidenceNote[];
 }): Promise<string | null> {
   const geminiKey = process.env.GEMINI_API_KEY;
   const openaiKey = process.env.OPENAI_API_KEY;
 
   if (!geminiKey && !openaiKey) return null;
 
-  const { draftText, sectionTitle, guidance, minWords, context } = params;
-  const prompt = `You are a Lead Examination Moderator for KNEC in ${context.course}.
-Refine, polish, and expand the following candidate draft for section: "${sectionTitle}".
-Project Title: ${context.title || "Academic Project"}
-Problem Area: ${context.problemArea || "Public health & nutrition"}
-KNEC Guidance: ${guidance}
-Minimum Target Word Count: ${minWords} words.
+  const { draftText, sectionTitle, guidance, minWords, context, evidence } = params;
 
-Instructions:
-1. Preserve every authentic fact, ingredient, local location, and figure entered by the student.
-2. Structure into coherent, academic paragraphs written in standard formal academic voice (passive voice, objective tone).
-3. Ensure the text comfortably meets or exceeds the minimum word count of ${minWords} words with substantive technical reasoning, citations format (e.g. KDHS 2022, MOH, KEBS, WHO), and contextual grounding.
-4. Output ONLY the polished academic text for the student's paper. Never include preamble, conversational meta-talk, or markdown conversational wrappers.
-5. NEVER use robotic phrases like "In accordance with curriculum standards stipulated for...", "From the candidate's initial notes:", or quote the student's prompt. Write directly as the actual section in the paper.`;
+  const sourceNotes = evidence.length
+    ? evidence
+        .map((e) => `- id=${e.source.id} | ${formatInText(e.source)} | finding: ${e.claim.text}`)
+        .join("\n")
+    : "(none: this section has no verified source notes, so write without any citation)";
+
+  const prompt = `You are a supportive academic writing coach for a Kenyan TVET student studying ${context.course} (${context.level} level).
+The student has written their own draft for the section "${sectionTitle}". Improve it; do not replace it.
+Project title: ${context.title || "Academic Project"}
+Problem area: ${context.problemArea || "Public health nutrition"}
+Section guidance: ${guidance}
+Target length: at least ${minWords} words.
+
+WRITING RULES
+1. Keep every fact, place, ingredient, number and idea the student wrote. Fix grammar, flow and structure, and deepen weak points with sound reasoning.
+2. Use clear, simple, formal academic English suitable for a ${context.level} student. Avoid heavy jargon.
+3. Output ONLY the section text. No preamble, no commentary, no quoting the student's notes.
+
+CITATION RULES (strict)
+4. You may support a statement ONLY with the SOURCE NOTES below. Paraphrase the finding in your own words; never copy more than four consecutive words.
+5. To cite, write [[cite:ID]] straight after the statement, before the full stop, using an id from the notes. Several sources: [[cite:a]][[cite:b]].
+6. Never write an author name, year, title, journal, page number or reference yourself. Never cite anything not in the notes.
+7. Do not add statistics or percentages that are not in the student's draft or the notes.
+8. Only cite a note when the statement genuinely matches its finding. It is fine to use few or none.
+
+SOURCE NOTES
+${sourceNotes}`;
 
   try {
     if (geminiKey) {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`;
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -997,6 +1060,29 @@ function extractTopicEntities(draftText: string, context: WorkspaceContext) {
   return { location, topic, title };
 }
 
+function cleanStudentDraft(draftText: string): string[] {
+  return draftText
+    .split(/\n\s*\n/)
+    .map((block) =>
+      block
+        .split("\n")
+        .map((line) => line.trim().replace(/^(?:[-*•]+|\d+[.)])\s*/, ""))
+        .filter(Boolean)
+        .map((line) => (/[.?!:]$/.test(line) ? line : `${line}.`))
+        .join(" ")
+        .replace(/\s{2,}/g, " ")
+        .replace(/\bi\b/g, "I")
+    )
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1));
+}
+
+/**
+ * Offline engine (no AI key). It never invents topic-specific prose: it tidies the
+ * student's own words and adds only evidence sentences from the verified library,
+ * each with a generated in-text citation.
+ */
 function generateDeterministicSectionPolish(params: {
   draftText: string;
   sectionKey: string;
@@ -1004,75 +1090,40 @@ function generateDeterministicSectionPolish(params: {
   guidance: string;
   minWords: number;
   context: WorkspaceContext;
+  evidence: EvidenceNote[];
 }): SectionPolishResult {
-  const { draftText, sectionKey, sectionTitle, minWords, context } = params;
+  const { draftText, sectionKey, minWords, context, evidence } = params;
   const rawWords = draftText.trim() ? draftText.trim().split(/\s+/).length : 0;
-  const { location, topic, title } = extractTopicEntities(draftText, context);
+  const { title } = extractTopicEntities(draftText, context);
 
   const paragraphs: string[] = [];
 
-  // Section-specific authentic, direct academic prose suitable for TVET Certificate/Diploma
   if (sectionKey === "proposal.title" || sectionKey === "cover.details") {
     paragraphs.push(`### Research Title\n${title}`);
+  }
+
+  paragraphs.push(...cleanStudentDraft(draftText));
+
+  const alreadyCited = new Set(findCitedSources(draftText).map((s) => s.id));
+  const freshEvidence = evidence.filter((e) => !alreadyCited.has(e.source.id));
+  if (freshEvidence.length > 0) {
     paragraphs.push(
-      `### Background & Rationale\nAdequate nutrition is essential for child growth, physical well-being, and cognitive development. In ${location}, household food security and balanced daily diets remain vital priorities under the Kenya National Nutrition Action Plan. Many families in the area experience seasonal food shortages, low dietary diversity, and limited access to nutrient-dense foods such as animal-source proteins, fresh fruits, and green vegetables. When children and families face food shortages, it directly impacts their health, active learning participation, and daily productivity.`
-    );
-    paragraphs.push(
-      `Conducting a direct, practical investigation in ${location} generates factual baseline information to identify local dietary challenges, evaluate current household practices, and support community health volunteers and school coordinators. The findings of this project will provide clear recommendations to improve family nutrition, support school retention, and guide localized health interventions.`
-    );
-  } else if (sectionKey.includes("problem")) {
-    paragraphs.push(
-      `Inadequate dietary intake and recurrent household food shortages present significant challenges to community health in ${location}. Many households rely on starchy staples with minimal inclusion of biofortified, protein-rich, or micronutrient-dense foods. This dietary imbalance increases the risk of chronic undernutrition, frequent childhood illnesses, and reduced energy levels.`
-    );
-    paragraphs.push(
-      `For school-age children and vulnerable family members, poor nutrition directly hinders classroom attentiveness, regular school attendance, and physical development. Although national nutrition initiatives exist, localized documentation showing how food insecurity affects daily living and learning in ${location} remains limited.`
-    );
-    paragraphs.push(
-      `Without accurate local data, community leaders, teachers, and health officers cannot target support effectively. This study systematically investigates ${topic.toLowerCase()} in ${location} to establish practical evidence that addresses these community needs.`
-    );
-  } else if (sectionKey.includes("objectives")) {
-    paragraphs.push(
-      `### General Objective\nTo assess the status, influencing factors, and outcomes related to ${topic.toLowerCase()} in ${location}.`
-    );
-    paragraphs.push(
-      `### Specific Objectives\n1. To determine the prevalence and baseline characteristics of ${topic.toLowerCase()} in the study area.\n2. To assess the primary socio-economic and dietary factors associated with nutritional outcomes in ${location}.\n3. To identify practical coping strategies and recommend community-based interventions to improve nutrition.`
-    );
-  } else if (
-    sectionKey.includes("rationale") ||
-    sectionKey.includes("justification") ||
-    sectionKey.includes("significance")
-  ) {
-    paragraphs.push(
-      `This study provides valuable, practical information for local health centers, school administrators, and community leaders in ${location}. By identifying the specific dietary and socio-economic hurdles facing local families, the findings will assist community health volunteers in offering targeted nutrition education and counseling.`
-    );
-    paragraphs.push(
-      `Additionally, the results will assist educational authorities and local development committees in evaluating the importance of food assistance, school meals, and home gardening initiatives. Ultimately, the project contributes toward Kenya's broader goals of eradicating childhood malnutrition and promoting community food security.`
-    );
-  } else if (sectionKey.includes("background")) {
-    paragraphs.push(
-      `Good nutrition during childhood and adolescence provides the foundational energy and nutrients required for healthy growth and active learning. Across Kenya, national health surveys indicate that while general health indicators have improved, disparities persist in rural and semi-arid communities where seasonal dry periods restrict food availability.`
-    );
-    paragraphs.push(
-      `In ${location}, many households face economic and climatic constraints that limit their ability to purchase or produce a wide variety of foods. Consequently, children may attend school on an empty stomach or consume meals low in essential vitamins and minerals, affecting their physical endurance and academic performance.`
-    );
-    paragraphs.push(
-      `Understanding the local factors influencing nutrition is critical for designing achievable, low-cost community solutions. This research investigates ${topic.toLowerCase()} to provide evidence-based insights for practical local improvement.`
-    );
-  } else {
-    // Other technical chapters: direct academic elaboration on student's topic and location
-    paragraphs.push(
-      `A systematic investigation into ${topic.toLowerCase()} in ${location} provides an accurate record of community dietary practices and challenges. Grounding the study in factual field observations ensures that the documented outcomes represent real living conditions.`
-    );
-    paragraphs.push(
-      `Within the scope of ${sectionTitle.toLowerCase()}, standardized procedures and clear recording methods were followed to maintain data reliability. The collected information directly addresses the study objectives and offers verifiable findings for academic assessment.`
-    );
-    paragraphs.push(
-      `The documented evidence forms a solid basis for local decision-making, helping stakeholders promote balanced nutrition, support school attendance, and enhance community well-being in ${location}.`
+      freshEvidence.map((e) => `${e.claim.text} ${formatInText(e.source)}.`).join(" ")
     );
   }
 
   const polishedText = paragraphs.join("\n\n");
   const polishedWords = polishedText.trim().split(/\s+/).length;
+  const cited = findCitedSources(polishedText);
+  const citations = cited.map((s) => toCitationInfo(s, evidence));
+
+  const warnings: string[] = [
+    "Basic polish only. Connect the AI service for deeper rewriting and expansion.",
+  ];
+  if (citations.length > 0) warnings.push(VERIFY_WARNING);
+  if (polishedWords < minWords) {
+    warnings.push(`Add more detail in your own words to reach ${minWords} words.`);
+  }
 
   return {
     polishedText,
@@ -1081,9 +1132,14 @@ function generateDeterministicSectionPolish(params: {
     wordDiff: polishedWords - rawWords,
     targetMet: polishedWords >= minWords,
     improvements: [
-      "Formulated direct, clear academic prose suitable for TVET Certificate level",
-      `Attained ${polishedWords} words meeting the minimum target (${minWords} words)`,
-      `Grounded in authentic local context (${location}) and practical community needs`,
+      "Your words kept, spelling and punctuation tidied",
+      citations.length > 0
+        ? `${citations.length} verified source(s) cited in text`
+        : "No verified source matched this section",
+      `Length now ${polishedWords} words (target ${minWords})`,
     ],
+    citations,
+    warnings,
   };
 }
+

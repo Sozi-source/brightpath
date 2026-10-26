@@ -297,11 +297,46 @@ export function SectionEditor({
 
           <div className="p-4 sm:p-5 bg-white space-y-3">
             <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-              Polished Academic Draft
+              {sectionKey === "references" ? "Compiled References" : "Polished Draft"}
             </span>
             <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-800 whitespace-pre-line leading-relaxed max-h-[300px] overflow-y-auto font-sans">
-              {polishResult.polishedText}
+              {polishResult.polishedText || "Nothing to compile yet."}
             </div>
+
+            {polishResult.warnings.length > 0 && (
+              <ul className="space-y-1">
+                {polishResult.warnings.map((w, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900"
+                  >
+                    <AlertCircle className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
+                    <span>{w}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {polishResult.citations.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
+                  Sources cited
+                </span>
+                <ul className="space-y-2">
+                  {polishResult.citations.map((c) => (
+                    <li key={c.id} className="rounded-lg border border-slate-200 p-3 space-y-1">
+                      <span className="text-[11px] font-mono font-semibold text-indigo-700">{c.inText}</span>
+                      <p className="text-xs text-slate-800">{c.reference}</p>
+                      {c.supports.map((s, i) => (
+                        <p key={i} className="text-[11px] text-slate-500">
+                          Supports: {s}.
+                        </p>
+                      ))}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -361,10 +396,20 @@ export function SectionEditor({
                     onClick={handleAiPolish}
                     disabled={isPolishing || isPending}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-colors cursor-pointer disabled:opacity-50"
-                    title="Polish draft with AI to meet KNEC academic standards and target word count"
+                    title={
+                      sectionKey === "references"
+                        ? "Build the reference list from sources cited in your chapters"
+                        : "Polish and deepen your writing, with verified in-text citations"
+                    }
                   >
                     <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
-                    <span>{isPolishing ? "Aligning with AI..." : "Polish with AI"}</span>
+                    <span>
+                      {isPolishing
+                        ? "Working..."
+                        : sectionKey === "references"
+                        ? "Build References"
+                        : "Polish with AI"}
+                    </span>
                   </button>
                 )}
 

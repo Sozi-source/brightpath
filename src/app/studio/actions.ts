@@ -14,6 +14,7 @@ import {
   type TopicNarrowingResult,
   type SectionPolishResult,
 } from "@/lib/studio/aiEngine";
+import { compileReferenceList } from "@/lib/studio/sources";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { WorkspaceType, WorkspaceLevel } from "@/types/database";
@@ -346,6 +347,47 @@ export async function aiPolishSectionAction(formData: FormData): Promise<Section
 
   if (!workspace || workspace.student_id !== user.id) {
     throw new Error("Unauthorized.");
+  }
+
+  // References section: compile an APA 7th list from sources cited in the other sections.
+  if (sectionKey === "references") {
+    const { data: allSections } = await supabase
+      .from("workspace_sections")
+      .select("section_key, current_text")
+      .eq("workspace_id", workspaceId);
+
+    const { references, unverified } = compileReferenceList(
+      (allSections ?? [])
+        .filter((s) => s.section_key !== "references")
+        .map((s) => s.current_text ?? "")
+    );
+
+    const polishedText = references.join("\n\n");
+    const words = polishedText.trim() ? polishedText.trim().split(/\s+/).length : 0;
+    const currentWords = draftText.trim() ? draftText.trim().split(/\s+/).length : 0;
+    const warnings: string[] = [];
+    if (references.length === 0) {
+      warnings.push("No verified citations found yet. Polish your chapters first, then build references.");
+    }
+    if (unverified.length > 0) {
+      warnings.push(
+        `Citations not in the verified library (add these references yourself): ${unverified.join("; ")}.`
+      );
+    }
+
+    return {
+      polishedText,
+      wordsOriginal: currentWords,
+      wordsPolished: words,
+      wordDiff: words - currentWords,
+      targetMet: references.length > 0,
+      improvements: [
+        `${references.length} reference(s) compiled in APA 7th order`,
+        "Only sources cited in your chapters are listed",
+      ],
+      citations: [],
+      warnings,
+    };
   }
 
   // Find section definition for guidance and minWords
