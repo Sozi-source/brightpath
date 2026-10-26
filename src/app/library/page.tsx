@@ -48,8 +48,8 @@ export default async function LibraryPage() {
       activeContextTitle="Candidate Digital Library"
     >
       <PageHeaderCard
-        title="My Library"
-        subtitle="Purchased projects and downloadable assets."
+        title="Library"
+        subtitle="Purchased digital assets"
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Digital Library", active: true },
@@ -61,9 +61,9 @@ export default async function LibraryPage() {
         actions={
           <Link
             href="/projects"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-white text-blue-900 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white text-indigo-900 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
           >
-            <Layers className="h-4 w-4 text-blue-700" />
+            <Layers className="h-4 w-4 text-indigo-600" />
             <span>Marketplace</span>
           </Link>
         }
@@ -72,13 +72,13 @@ export default async function LibraryPage() {
       {purchasedOrders.length === 0 ? (
         <div className="text-center py-16 border border-dashed border-slate-200 rounded-xl bg-white shadow-xs">
           <Layers className="h-10 w-10 mx-auto text-slate-400 mb-3" />
-          <h2 className="text-base font-bold text-slate-900">Your digital library is currently empty</h2>
+          <h2 className="text-base font-semibold text-slate-900">No purchased projects yet</h2>
           <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            You haven&apos;t purchased any projects yet. Browse our marketplace to find ready-made systems and business plans.
+            Acquired projects will appear here for download.
           </p>
           <Link
             href="/projects"
-            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-blue-700 hover:bg-blue-800 px-5 py-2.5 text-xs font-bold text-white shadow-xs transition-colors"
+            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-5 py-2 text-xs font-semibold text-white shadow-xs transition-colors"
           >
             Explore Projects
           </Link>

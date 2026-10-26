@@ -21,6 +21,31 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-10-26] — Refactor: Appealing Accent-Striped Stat Cards, Crisp White Sidebar Overhaul & Complete Text Purge
+
+**Category:** UI/UX Component Architecture, Dashboard Redesign & Text De-Congestion
+
+**Status:** Completed & Verified
+
+**Changes Implemented:**
+1. **Appealing Accent-Striped StatCard Component**:
+   - Built `src/components/ui/StatCard.tsx` with top colored accent lines (`h-1`), big matching-color numeric values (`text-3xl font-semibold tracking-tight`), uppercase tracking-wider labels (`text-[11px] font-semibold uppercase text-slate-500`), and rounded-xl tinted icon containers (`p-3.5 rounded-xl`).
+   - Integrated across all core portal dashboards:
+     - **Admin Dashboard** (`src/app/admin/page.tsx`): 4-color strip for Students (indigo), Trainers (emerald), Projects (rose), and Commission Revenue (amber).
+     - **Supervisor Portal** (`src/app/supervisor/page.tsx`): 3-card strip for Candidates (indigo), Pending Proposals (amber), and Approved Workspaces (emerald).
+     - **Project Studio** (`src/app/studio/page.tsx`): 3-card strip for Active Portfolios (indigo), Approved Proposals (emerald), and Drafted Chapters (blue).
+     - **Trainer Publisher** (`src/app/trainer/page.tsx`): 3-card strip for Total Uploads (indigo), Live in Marketplace (emerald), and Pending Review (amber).
+2. **Crisp White Sidebar & Brand Identity Overhaul**:
+   - Replaced dark navy sidebar with a crisp white sidebar (`bg-white border-r border-slate-200/80`) featuring vibrant indigo rounded active navigation pills (`bg-indigo-600 text-white shadow-xs font-semibold`) and subtle right chevrons on inactive links.
+   - Updated brand mark to a rounded-xl indigo badge (`bg-indigo-600 text-white font-bold`) across `AppShell.tsx` and `page.tsx`.
+   - Permanent prohibition against legacy dark navy sidebars added to `AGENTS.md` and `docs/UI_DESIGN_SYSTEM.md`.
+3. **Comprehensive Text De-Congestion**:
+   - Purged all multi-sentence explanatory paragraphs, long advisory disclaimers, and verbose card subtitles across `admin/page.tsx`, `supervisor/page.tsx`, `studio/page.tsx`, `trainer/page.tsx`, `projects/page.tsx`, and `library/page.tsx`.
+   - Replaced bloated titles and subtitles with punchy 1–3 word titles and 1 short phrase subtitles (e.g. `Projects Catalog`, `User Directory`, `Transactions`, `Bulk Import`).
+   - Standardized button accents and form controls to sleek indigo/slate.
+
+---
+
 ## [2026-10-26] — Refactor: World-Class Typography, Fixed Persistent Sidebar & Global Enterprise Minimal Text Standard
 
 **Category:** UI/UX Design System, Typography Architecture & Layout Shell

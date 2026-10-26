@@ -13,7 +13,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 **Strict Rule:** Never generate generic "AI Default UI" (dark-mode zinc-950, gigantic bubble-pill `rounded-3xl` corners, centered floating single cards, or washed-out gray text).
 
 All pages across the application must strictly adhere to the **Kenya Education Cloud (KEC)** institutional standard detailed in [`docs/UI_DESIGN_SYSTEM.md`](docs/UI_DESIGN_SYSTEM.md):
-1. **Institutional Shell**: Fixed global top bar (`h-16`, white) with 9-dot app launcher (`:::`) + persistent deep navy sidebar (`#0f3554`) with academic tracks and tool dividers.
+1. **Institutional Shell**: Fixed global top bar (`h-16`, white) with 9-dot app launcher (`:::`) + persistent clean white sidebar (`bg-white border-r border-slate-200/80`) with vibrant indigo active pills (`bg-indigo-600 text-white font-semibold`), right chevrons, and fixed desktop positioning. FORBID dark navy sidebars.
 2. **Two-Tone Accent Stripe**: Signature Blue (60%) + Kenyan Gold (40%) horizontal stripe across primary header cards.
 3. **Interlocking Breadcrumb Ribbon**: Integrated pill/chevron tabs (`Home > Studio > Craft > Chapter 1`).
 4. **Disciplined Geometry**: `rounded-lg` (8px) to `rounded-xl` (12px), crisp 1px borders (`border-slate-200`), clean `shadow-xs`, and soft blue-gray canvas (`#f4f7fb`).
@@ -27,4 +27,8 @@ All pages across the application must strictly adhere to the **Kenya Education C
    - **Font Stack**: Primary UI uses **Geist Sans** (`var(--font-sans)` with `font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum"`). Code and numerical values use **Geist Mono** (`var(--font-mono)`). Never fall back to generic Arial.
    - **FORBID HEAVY/THICK WEIGHTS**: Never use `font-black` (900) or `font-extrabold` (800) anywhere in the application. Heavy bold headings create visual clutter and look unrefined.
    - **Headings & Titles**: Use `font-semibold` (600) with subtle negative letter-spacing (`tracking-tight`).
-   - **Stats & Metric Numbers**: Stats numbers must be sleek and disciplined: use `text-2xl font-semibold text-slate-900 tracking-tight` or `font-mono font-semibold`. Forbid bloated, thick bold numbers.
+   - **Stats & Metric Numbers**: Stats numbers must be sleek and disciplined: use `text-3xl font-semibold tracking-tight` with matching accent color. Forbid bloated, thick bold black numbers.
+8. **Appealing Accent-Striped Stat Cards (Strict Rule)**:
+   - Use `StatCard` (`src/components/ui/StatCard.tsx`) across all dashboards (Admin, Supervisor, Studio, Trainer).
+   - Features top colored accent stripe (`h-1 bg-indigo-500`, `bg-emerald-500`, `bg-rose-500`, `bg-amber-500`), colored numbers matching the accent stripe, uppercase tracking-wider labels (`text-[11px] font-semibold uppercase text-slate-500`), and rounded-xl tinted icon containers (`p-3.5 rounded-xl`).
+

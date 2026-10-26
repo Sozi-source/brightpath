@@ -257,9 +257,9 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
                 />
                 <button
                   type="submit"
-                  className="w-full py-2 px-3 rounded-md text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white transition-colors cursor-pointer"
+                  className="w-full py-2 px-3 rounded-md text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white transition-colors cursor-pointer"
                 >
-                  Approve Proposal & Unlock Chapters
+                  Approve Proposal
                 </button>
               </form>
             </div>
@@ -270,8 +270,8 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
                 <AlertCircle className="h-4 w-4 text-rose-700" />
                 <span>Request Revisions</span>
               </div>
-              <p className="text-[11px] text-rose-900/80 leading-relaxed">
-                Returns proposal to candidate ideation with required revision notes.
+              <p className="text-[11px] text-rose-800 font-medium">
+                Returns proposal to candidate with feedback.
               </p>
 
               <form action={requestProposalChanges} className="space-y-2">
@@ -285,9 +285,9 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
                 />
                 <button
                   type="submit"
-                  className="w-full py-2 px-3 rounded-md text-xs font-bold bg-rose-700 hover:bg-rose-800 text-white transition-colors cursor-pointer"
+                  className="w-full py-2 px-3 rounded-md text-xs font-semibold bg-rose-700 hover:bg-rose-800 text-white transition-colors cursor-pointer"
                 >
-                  Send Feedback & Request Revisions
+                  Request Revisions
                 </button>
               </form>
             </div>
@@ -299,7 +299,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
               <input type="hidden" name="workspaceId" value={workspaceId} />
               <label
                 htmlFor="supTitle"
-                className="block text-xs font-bold text-slate-800"
+                className="block text-xs font-semibold text-slate-800"
               >
                 Refine Official Project Title
               </label>
@@ -311,11 +311,11 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
                   defaultValue={workspace.title || ""}
                   placeholder="Refined official project title..."
                   required
-                  className="flex-1 text-xs bg-white border border-slate-300 rounded-md px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="flex-1 text-xs bg-white border border-slate-300 rounded-md px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600"
                 />
                 <button
                   type="submit"
-                  className="py-2 px-4 rounded-md text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white transition-colors cursor-pointer shrink-0"
+                  className="py-2 px-4 rounded-md text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white transition-colors cursor-pointer shrink-0"
                 >
                   Update Title
                 </button>
@@ -326,8 +326,8 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
 
         {/* Chapters Progress & AI Influence Metric */}
         <ContentCard
-          title="Project Chapters & AI Integrity"
-          subtitle="Candidate drafting progress and originality metrics."
+          title="Project Chapters"
+          subtitle="Candidate drafting progress and originality metrics"
           icon={Activity}
           headerRight={
             <span className="text-[11px] font-bold px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">

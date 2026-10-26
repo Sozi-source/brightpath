@@ -166,7 +166,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-white hover:bg-slate-50 text-blue-900 border border-slate-300 shadow-xs transition-colors"
           >
             <Lightbulb className="h-4 w-4 text-amber-500" />
-            <span>Topic & Title</span>
+            <span>Topic Formulation</span>
           </Link>
         }
       />
@@ -415,8 +415,8 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
 
           {/* Assigned Supervisor Card */}
           <ContentCard
-            title="Assigned Department Supervisor"
-            subtitle="Proposal moderation & Annex 12 review"
+            title="Department Supervisor"
+            subtitle="Proposal moderation and review"
             icon={UserCheck}
           >
             {workspace.supervisor?.full_name ? (

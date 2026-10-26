@@ -57,17 +57,30 @@ BrightPath must look, feel, and function like an **authoritative, enterprise-gra
 
 ---
 
+## 1.3 Mandatory Rule: Appealing Accent-Striped Stat Cards
+
+**Strict Rule:** Dashboards must use the standardized `StatCard` (`src/components/ui/StatCard.tsx`) component. Bloated, thick black numbers and plain gray metric boxes are strictly prohibited.
+
+1. **Card Architecture**: White background (`bg-white`), `rounded-xl`, subtle border (`border-slate-200/80`), `p-5`, and clean `shadow-xs`.
+2. **Top Accent Stripe**: `h-1` colored line across top edge (`bg-indigo-500`, `bg-emerald-500`, `bg-rose-500`, `bg-amber-500`, `bg-blue-600`, or `bg-purple-600`).
+3. **Colored Metric Number**: `text-3xl font-semibold tracking-tight` colored in the matching hue (`text-indigo-600`, `text-emerald-600`, `text-rose-600`, `text-amber-500`).
+4. **Uppercase Label**: `text-[11px] font-semibold uppercase tracking-wider text-slate-500`.
+5. **Icon Container**: Placed on right side in a tinted rounded-xl container (`p-3.5 rounded-xl bg-indigo-50 text-indigo-600`).
+
+---
+
 ## 2. Color Palette & Design Tokens
 
-The BrightPath palette derives from Kenya's official educational institution standards, blending professional academic navy with national accent colors and clean neutral paper surfaces.
+The BrightPath palette derives from modern institutional portal standards, featuring a clean white sidebar with vibrant indigo active accents, multi-color stat card indicators, and soft blue-gray canvas.
 
 ### 2.1 Primary Institutional Tokens
 
 ```css
-/* Primary Institutional Brand */
---brand-navy-deep: #0c2e4e;       /* Left sidebar background, footer anchor */
---brand-navy: #0f3554;            /* Primary sidebar and institutional cards */
---brand-navy-light: #18476f;      /* Sidebar hover state, active section */
+/* Sidebar & Active Navigation */
+--sidebar-bg: #ffffff;            /* Crisp white sidebar */
+--sidebar-active-pill: #4f46e5;   /* Vibrant indigo active rounded pill (bg-indigo-600) */
+--sidebar-active-text: #ffffff;   /* Pure white text on active pill */
+--sidebar-border: #e2e8f0;        /* Crisp 1px border */
 
 /* National Academic Accent Line (The KEC Signature) */
 --accent-blue: #1d4ed8;           /* Primary action blue (60% of top stripe) */
@@ -92,15 +105,14 @@ The BrightPath palette derives from Kenya's official educational institution sta
 --text-heading: #0f172a;          /* Charcoal-navy: high-authority headings */
 --text-body: #334155;             /* Readable slate body text */
 --text-muted: #64748b;            /* Subtitles, secondary metadata */
---text-sidebar: #f8fafc;          /* High contrast sidebar typography */
 ```
 
 ### 2.2 Tailwind Utility Equivalents
 * **Canvas Background:** `bg-[#f4f7fb]` (or `bg-slate-50`)
-* **Sidebar Navy:** `bg-[#0f3554]` (dark institutional blue)
-* **Card Surface:** `bg-white` with `border border-slate-200`
-* **Card Shadow:** `shadow-xs` or `shadow-sm`
-* **Headings:** `text-slate-900 font-extrabold tracking-tight`
+* **Sidebar:** `bg-white border-r border-slate-200/80` (FORBID deep navy sidebars)
+* **Active Sidebar Pill:** `bg-indigo-600 text-white shadow-xs font-semibold rounded-xl`
+* **Card Surface:** `bg-white` with `border border-slate-200 rounded-xl shadow-xs`
+* **Headings:** `text-slate-900 font-semibold tracking-tight` (FORBID `font-extrabold`/`font-black`)
 * **Body:** `text-slate-700 text-xs sm:text-sm leading-relaxed`
 
 ---

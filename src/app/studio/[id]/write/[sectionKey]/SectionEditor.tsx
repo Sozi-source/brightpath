@@ -147,7 +147,7 @@ export function SectionEditor({
                   type="button"
                   onClick={handleInsertTemplate}
                   className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
-                  title="Insert official KNEC chapter outline & structured starter text"
+                  title="Insert official KNEC chapter starter outline"
                 >
                   <Sparkles className="h-3.5 w-3.5 text-blue-700" />
                   <span>Insert KNEC Outline</span>

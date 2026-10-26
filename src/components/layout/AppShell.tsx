@@ -8,7 +8,6 @@ import {
   LayoutGrid,
   Home,
   Layers,
-  Lightbulb,
   Library,
   GraduationCap,
   ShieldCheck,
@@ -53,7 +52,6 @@ export function AppShell({
     { label: "Home", href: "/", icon: Home },
     { label: "Project Studio", href: "/studio", icon: Layers },
     { label: "Projects Marketplace", href: "/projects", icon: ShoppingBag },
-    { label: "Topic Bank", href: "/studio", icon: Lightbulb },
     { label: "Digital Library", href: "/library", icon: Library },
   ];
 
@@ -142,15 +140,15 @@ export function AppShell({
 
           {/* Official Portal Branding */}
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-lg bg-[#0f3554] flex items-center justify-center text-white font-bold text-sm shadow-xs">
-              <span className="text-amber-400">B</span>P
+            <div className="h-9 w-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
+              <span className="text-amber-300">B</span>P
             </div>
             <div className="flex flex-col">
-              <span className="font-semibold text-base sm:text-lg text-[#0f3554] tracking-tight leading-none">
+              <span className="font-semibold text-base sm:text-lg text-slate-900 tracking-tight leading-none">
                 BrightPath
               </span>
-              <span className="text-[10px] font-medium text-blue-700 uppercase tracking-wider">
-                TVET LMS & Project Studio
+              <span className="text-[10px] font-medium text-indigo-600 uppercase tracking-wider">
+                TVET Project Studio
               </span>
             </div>
           </Link>
@@ -199,19 +197,19 @@ export function AppShell({
       <div className="flex-1 flex w-full">
         {/* Left Persistent Navigation Sidebar */}
         <aside
-          className={`fixed inset-y-0 left-0 top-16 z-30 w-64 bg-[#0f3554] text-white flex flex-col justify-between transition-transform duration-200 ease-in-out md:sticky md:top-16 md:h-[calc(100vh-4rem)] md:shrink-0 md:self-start md:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 top-16 z-30 w-64 bg-white border-r border-slate-200/80 text-slate-800 flex flex-col justify-between transition-transform duration-200 ease-in-out md:sticky md:top-16 md:h-[calc(100vh-4rem)] md:shrink-0 md:self-start md:translate-x-0 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           } shadow-md md:shadow-none`}
         >
-          <div className="flex-1 overflow-y-auto py-4 space-y-6">
+          <div className="flex-1 overflow-y-auto py-4 space-y-5">
             {/* Top Active Course/Workspace Context Anchor */}
-            <div className="px-4">
-              <div className="bg-[#18476f] border border-blue-400/30 rounded-lg p-3 text-white space-y-1">
-                <div className="flex items-center gap-2 text-amber-400 text-xs font-bold">
+            <div className="px-3">
+              <div className="bg-indigo-50/70 border border-indigo-100 rounded-xl p-3 space-y-1">
+                <div className="flex items-center gap-2 text-indigo-700 text-xs font-semibold">
                   <GraduationCap className="h-4 w-4" />
                   <span className="uppercase tracking-wider text-[10px]">Active Track</span>
                 </div>
-                <div className="text-xs font-bold truncate text-white">
+                <div className="text-xs font-semibold truncate text-slate-900">
                   {activeContextTitle || profile?.course || "KNEC Project Studio"}
                 </div>
               </div>
@@ -219,7 +217,7 @@ export function AppShell({
 
             {/* Primary Portal Navigation */}
             <div className="space-y-1 px-3">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 pb-1">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-3 pb-1">
                 Main Portal
               </div>
               {navItems.map((item) => {
@@ -230,22 +228,23 @@ export function AppShell({
                     key={item.label}
                     href={item.href}
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold transition-colors ${
+                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all ${
                       isActive
-                        ? "bg-[#18476f] text-white border-l-4 border-amber-400 shadow-xs"
-                        : "text-slate-200 hover:bg-white/10 hover:text-white"
+                        ? "bg-indigo-600 text-white shadow-xs font-semibold"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     }`}
                   >
-                    <Icon className="h-4 w-4 shrink-0 text-slate-300" />
+                    <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-white" : "text-slate-400"}`} />
                     <span>{item.label}</span>
+                    {!isActive && <ChevronRight className="h-3.5 w-3.5 text-slate-300 ml-auto shrink-0" />}
                   </Link>
                 );
               })}
             </div>
 
             {/* Academic Level Groups */}
-            <div className="space-y-1 px-3 border-t border-white/10 pt-4">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 pb-1">
+            <div className="space-y-1 px-3 border-t border-slate-100 pt-4">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-3 pb-1">
                 KNEC Academic Levels
               </div>
               {academicTracks.map((track) => (
@@ -253,29 +252,36 @@ export function AppShell({
                   key={track.label}
                   href={track.href}
                   onClick={() => setSidebarOpen(false)}
-                  className="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
+                  className="flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
                 >
                   <span className="truncate">{track.label}</span>
-                  <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+                  <ChevronRight className="h-3.5 w-3.5 text-slate-300 shrink-0" />
                 </Link>
               ))}
             </div>
 
             {/* Faculty / Supervisor / Governance Portals */}
             {(isRoleSupervisor || isRoleTrainer) && (
-              <div className="space-y-1 px-3 border-t border-white/10 pt-4">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-amber-400 px-3 pb-1">
-                  Faculty & Examination
+              <div className="space-y-1 px-3 border-t border-slate-100 pt-4">
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-3 pb-1">
+                  Faculty Portals
                 </div>
 
                 {isRoleTrainer && (
                   <Link
                     href="/trainer"
                     onClick={() => setSidebarOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-blue-200 hover:bg-white/10 transition-colors"
+                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-colors ${
+                      pathname.startsWith("/trainer")
+                        ? "bg-indigo-600 text-white shadow-xs font-semibold"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    }`}
                   >
-                    <Briefcase className="h-4 w-4 shrink-0 text-blue-400" />
-                    <span>Trainer Publisher</span>
+                    <div className="flex items-center gap-3">
+                      <Briefcase className={`h-4 w-4 shrink-0 ${pathname.startsWith("/trainer") ? "text-white" : "text-slate-400"}`} />
+                      <span>Trainer Publisher</span>
+                    </div>
+                    {!pathname.startsWith("/trainer") && <ChevronRight className="h-3.5 w-3.5 text-slate-300 shrink-0" />}
                   </Link>
                 )}
 
@@ -283,10 +289,17 @@ export function AppShell({
                   <Link
                     href="/supervisor"
                     onClick={() => setSidebarOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-amber-200 hover:bg-white/10 transition-colors"
+                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-colors ${
+                      pathname.startsWith("/supervisor")
+                        ? "bg-indigo-600 text-white shadow-xs font-semibold"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    }`}
                   >
-                    <ShieldCheck className="h-4 w-4 shrink-0 text-amber-400" />
-                    <span>Supervisor Portal</span>
+                    <div className="flex items-center gap-3">
+                      <ShieldCheck className={`h-4 w-4 shrink-0 ${pathname.startsWith("/supervisor") ? "text-white" : "text-slate-400"}`} />
+                      <span>Supervisor Portal</span>
+                    </div>
+                    {!pathname.startsWith("/supervisor") && <ChevronRight className="h-3.5 w-3.5 text-slate-300 shrink-0" />}
                   </Link>
                 )}
 
@@ -294,10 +307,17 @@ export function AppShell({
                   <Link
                     href="/admin"
                     onClick={() => setSidebarOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-purple-200 hover:bg-white/10 transition-colors"
+                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-colors ${
+                      pathname === "/admin"
+                        ? "bg-indigo-600 text-white shadow-xs font-semibold"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    }`}
                   >
-                    <Settings className="h-4 w-4 shrink-0 text-purple-300" />
-                    <span>Admin Governance</span>
+                    <div className="flex items-center gap-3">
+                      <Settings className={`h-4 w-4 shrink-0 ${pathname === "/admin" ? "text-white" : "text-slate-400"}`} />
+                      <span>Administration</span>
+                    </div>
+                    {pathname !== "/admin" && <ChevronRight className="h-3.5 w-3.5 text-slate-300 shrink-0" />}
                   </Link>
                 )}
               </div>
@@ -305,8 +325,8 @@ export function AppShell({
 
             {/* Admin Modules Quick Jump Navigation */}
             {pathname.startsWith("/admin") && (
-              <div className="space-y-1 px-3 border-t border-white/10 pt-4">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-amber-400 px-3 pb-1">
+              <div className="space-y-1 px-3 border-t border-slate-100 pt-4">
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-3 pb-1">
                   Admin Modules
                 </div>
                 {[
@@ -322,10 +342,10 @@ export function AppShell({
                     key={item.href}
                     href={item.href}
                     onClick={() => setSidebarOpen(false)}
-                    className="flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
+                    className="flex items-center justify-between px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
                   >
                     <span className="truncate">{item.label}</span>
-                    <ChevronRight className="h-3 w-3 text-slate-400" />
+                    <ChevronRight className="h-3 w-3 text-slate-300" />
                   </a>
                 ))}
               </div>
@@ -333,10 +353,10 @@ export function AppShell({
           </div>
 
           {/* Sidebar Footer with National Accreditation Info */}
-          <div className="p-4 border-t border-white/10 text-[11px] text-slate-400 space-y-1">
-            <div className="font-bold text-slate-300">Republic of Kenya</div>
+          <div className="p-4 border-t border-slate-100 text-[11px] text-slate-400 space-y-0.5">
+            <div className="font-semibold text-slate-700">BrightPath TVET</div>
             <div className="text-[10px] text-slate-400 leading-tight">
-              TVET & KNEC Examinations Project Studio Standard
+              KNEC Project Studio Standard
             </div>
           </div>
         </aside>

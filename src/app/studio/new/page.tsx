@@ -192,7 +192,7 @@ export default async function NewWorkspacePage() {
 
         {/* Starting Template Selection */}
         <ContentCard
-          title="Starting Template & Chapter Outline"
+          title="Starter Template"
           icon={Sparkles}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -270,7 +270,7 @@ export default async function NewWorkspacePage() {
 
         {/* Institution & Assigned Supervisor */}
         <ContentCard
-          title="Institution & Supervisor"
+          title="Supervision"
           icon={Building}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

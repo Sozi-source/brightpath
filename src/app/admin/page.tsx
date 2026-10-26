@@ -12,6 +12,7 @@ import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
+import { StatCard } from "@/components/ui/StatCard";
 import {
   GraduationCap,
   Briefcase,
@@ -96,11 +97,11 @@ export default async function AdminPage() {
     <AppShell
       user={user}
       profile={profile}
-      activeContextTitle="System Governance & Moderation"
+      activeContextTitle="System Administration"
     >
       <PageHeaderCard
         title="Administration"
-        subtitle="Platform settings, user moderation, and TVET institutions."
+        subtitle="Institutional administration controls"
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Administration", active: true },
@@ -113,9 +114,9 @@ export default async function AdminPage() {
         actions={
           <Link
             href="/trainer"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-white text-blue-900 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white text-indigo-900 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
           >
-            <Briefcase className="h-4 w-4 text-blue-700" />
+            <Briefcase className="h-4 w-4 text-indigo-600" />
             <span>Trainer Studio</span>
           </Link>
         }
@@ -123,89 +124,44 @@ export default async function AdminPage() {
 
       {/* KPI Metric Summary Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
-              Students
-            </span>
-            <span className="p-2 rounded-lg bg-blue-50 text-blue-700">
-              <GraduationCap className="h-4 w-4" />
-            </span>
-          </div>
-          <p className="mt-2 text-2xl font-semibold text-slate-900 tracking-tight">{studentCount}</p>
-        </div>
-
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
-              Trainers
-            </span>
-            <span className="p-2 rounded-lg bg-indigo-50 text-indigo-700">
-              <Briefcase className="h-4 w-4" />
-            </span>
-          </div>
-          <p className="mt-3 text-2xl font-semibold text-slate-900 tracking-tight">{trainerCount}</p>
-          <p className="mt-1 text-xs text-slate-500">
-            {pendingTrainers.length > 0 ? (
-              <span className="text-amber-700 font-semibold">
-                {pendingTrainers.length} awaiting review
-              </span>
-            ) : (
-              "All trainer profiles up to date"
-            )}
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
-              Projects
-            </span>
-            <span className="p-2 rounded-lg bg-emerald-50 text-emerald-700">
-              <Layers className="h-4 w-4" />
-            </span>
-          </div>
-          <p className="mt-3 text-2xl font-semibold text-slate-900 tracking-tight">{projectsList.length}</p>
-          <p className="mt-1 text-xs text-slate-500">
-            {pendingProjects.length > 0 ? (
-              <span className="text-amber-700 font-semibold">
-                {pendingProjects.length} pending approval
-              </span>
-            ) : (
-              "Marketplace active"
-            )}
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
-              Commission Revenue
-            </span>
-            <span className="p-2 rounded-lg bg-amber-50 text-amber-700">
-              <Coins className="h-4 w-4" />
-            </span>
-          </div>
-          <p className="mt-3 text-2xl font-semibold text-slate-900 tracking-tight font-mono">
-            KES {totalCommissionKES.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            From KES {totalVolumeKES.toLocaleString()} total sales volume
-          </p>
-        </div>
+        <StatCard
+          label="Students"
+          value={studentCount}
+          icon={GraduationCap}
+          color="indigo"
+        />
+        <StatCard
+          label="Trainers"
+          value={trainerCount}
+          icon={Briefcase}
+          color="emerald"
+          subtext={pendingTrainers.length > 0 ? `${pendingTrainers.length} pending review` : undefined}
+        />
+        <StatCard
+          label="Projects"
+          value={projectsList.length}
+          icon={Layers}
+          color="rose"
+          subtext={pendingProjects.length > 0 ? `${pendingProjects.length} pending approval` : undefined}
+        />
+        <StatCard
+          label="Commission"
+          value={`KES ${totalCommissionKES.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+          icon={Coins}
+          color="amber"
+          subtext={`Vol: KES ${totalVolumeKES.toLocaleString()}`}
+        />
       </div>
 
       {/* Platform Settings Bar */}
       <div id="settings" className="scroll-mt-20">
         <ContentCard
-          title="Platform Commission Configuration"
-          subtitle="Current platform fee percentage deducted on each technical project purchased via Paystack"
+          title="Platform Commission"
+          subtitle="Fee percentage on technical project sales"
           icon={Settings}
         >
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <p className="text-xs text-slate-600 max-w-xl">
-              When a TVET candidate acquires a project package, the configured commission percentage is retained by the institution while the remainder is automatically apportioned to the faculty trainer.
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <span className="text-xs text-slate-500 font-medium">Standard deduction rate per checkout</span>
 
             <form action={updateCommission} className="flex items-center gap-3">
               <div className="relative">
@@ -217,15 +173,15 @@ export default async function AdminPage() {
                   name="commissionPercent"
                   defaultValue={commissionPercent}
                   required
-                  className="w-28 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-28 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-500">
                   %
                 </span>
               </div>
               <button
                 type="submit"
-                className="rounded-lg bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 text-xs font-bold transition-colors cursor-pointer"
+                className="rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-xs font-semibold transition-colors cursor-pointer"
               >
                 Update Commission
               </button>
@@ -238,8 +194,8 @@ export default async function AdminPage() {
       {(pendingTrainers.length > 0 || pendingProjects.length > 0) && (
         <div id="pending" className="scroll-mt-20">
           <ContentCard
-            title={`Pending Moderation Queue (${pendingTrainers.length + pendingProjects.length})`}
-            subtitle="Trainer verification requests and project packages requiring administrative approval"
+            title={`Pending Moderation (${pendingTrainers.length + pendingProjects.length})`}
+            subtitle="Items awaiting review"
             icon={AlertCircle}
           >
           <div className="space-y-6">
@@ -343,8 +299,8 @@ export default async function AdminPage() {
       {/* Projects Section */}
       <div id="projects" className="scroll-mt-20">
         <ContentCard
-          title="Technical Projects Catalog"
-          subtitle="Manage and moderate all ready-made TVET capstone project packages submitted by trainers"
+          title="Projects Catalog"
+          subtitle="All trainer project packages"
           icon={Layers}
           headerRight={
             <span className="text-[11px] font-bold px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
@@ -435,8 +391,8 @@ export default async function AdminPage() {
       {/* Users Section */}
       <div id="users" className="scroll-mt-20">
         <ContentCard
-          title="User Profiles & Role Directory"
-          subtitle="Manage authorization privileges across students, trainers, institutional supervisors, and administrators"
+          title="User Directory"
+          subtitle="User roles and access permissions"
           icon={Users}
           headerRight={
             <span className="text-[11px] font-bold px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
@@ -516,8 +472,8 @@ export default async function AdminPage() {
       {/* Institutions Section */}
       <div id="institutions" className="scroll-mt-20">
         <ContentCard
-          title="Accredited TVET Institutions & AI Governance"
-          subtitle="Manage registered polytechnics, national colleges, and institutional AI coaching policies"
+          title="Accredited Institutions"
+          subtitle="Registered TVET training centers"
           icon={Building}
         headerRight={
           <span className="text-[11px] font-bold px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
@@ -554,7 +510,7 @@ export default async function AdminPage() {
                 defaultValue="feedback_and_polish"
                 className="w-full text-xs rounded-md border border-slate-300 bg-white px-3 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
               >
-                <option value="feedback_and_polish">Feedback & Polish (Full)</option>
+                <option value="feedback_and_polish">Feedback with Polish (Full)</option>
                 <option value="feedback_only">Feedback Only (No text edit)</option>
                 <option value="off">Off (AI disabled)</option>
               </select>
@@ -605,7 +561,7 @@ export default async function AdminPage() {
                             defaultValue={inst.ai_mode}
                             className="rounded-md border border-slate-300 bg-white text-xs px-2 py-1 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
                           >
-                            <option value="feedback_and_polish">Feedback & Polish</option>
+                            <option value="feedback_and_polish">Feedback with Polish</option>
                             <option value="feedback_only">Feedback Only</option>
                             <option value="off">Off</option>
                           </select>
@@ -630,8 +586,8 @@ export default async function AdminPage() {
       {/* Orders Section */}
       <div id="orders" className="scroll-mt-20">
         <ContentCard
-          title="Paystack Transactions & Revenue Distribution"
-          subtitle="Audited record of project acquisitions and automated trainer disbursements"
+          title="Transactions"
+          subtitle="Paystack settlement ledger"
           icon={Coins}
         headerRight={
           <span className="text-[11px] font-bold px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
@@ -692,8 +648,8 @@ export default async function AdminPage() {
       {reportsList.length > 0 && (
         <div id="reports" className="scroll-mt-20">
           <ContentCard
-            title={`Student Content Reports (${reportsList.length})`}
-            subtitle="Flagged educational content requiring administrative review"
+            title={`Flagged Content (${reportsList.length})`}
+            subtitle="Reported items"
             icon={AlertCircle}
           >
             <div className="divide-y divide-slate-200 border border-slate-200 rounded-lg overflow-hidden bg-slate-50/50">

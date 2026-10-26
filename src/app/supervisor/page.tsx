@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
+import { StatCard } from "@/components/ui/StatCard";
 import {
   Users,
   Clock,
@@ -88,7 +89,7 @@ export default async function SupervisorPage() {
     >
       <PageHeaderCard
         title="Candidate Supervision"
-        subtitle="Review candidate proposals, evaluate draft chapters, and track progress."
+        subtitle="Candidate proposal oversight"
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Supervisor", active: true },
@@ -101,7 +102,7 @@ export default async function SupervisorPage() {
         ]}
         actions={
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold px-2.5 py-1 rounded bg-blue-50 text-blue-800 border border-blue-200">
+            <span className="text-[11px] font-semibold px-2.5 py-1 rounded bg-indigo-50 text-indigo-800 border border-indigo-200">
               {profile?.role === "admin" ? "Admin Oversight" : "Faculty Supervisor"}
             </span>
           </div>
@@ -110,50 +111,33 @@ export default async function SupervisorPage() {
 
       {/* KPI Metric Summary Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
-              Assigned Candidates
-            </span>
-            <span className="p-2 rounded-lg bg-blue-50 text-blue-700">
-              <Users className="h-4 w-4" />
-            </span>
-          </div>
-          <p className="text-2xl font-semibold text-slate-900 tracking-tight">{workspaces.length}</p>
-          <p className="text-xs text-slate-500 mt-1">Active workspaces</p>
-        </div>
-
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
-              Pending Proposals
-            </span>
-            <span className="p-2 rounded-lg bg-amber-50 text-amber-700">
-              <Clock className="h-4 w-4" />
-            </span>
-          </div>
-          <p className="text-2xl font-semibold text-amber-700 tracking-tight">{pendingCount}</p>
-          <p className="text-xs text-slate-500 mt-1">Awaiting review</p>
-        </div>
-
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
-              Approved / Active
-            </span>
-            <span className="p-2 rounded-lg bg-emerald-50 text-emerald-700">
-              <CheckCircle className="h-4 w-4" />
-            </span>
-          </div>
-          <p className="text-2xl font-semibold text-emerald-700 tracking-tight">{approvedCount}</p>
-          <p className="text-xs text-slate-500 mt-1">Cleared for drafting</p>
-        </div>
+        <StatCard
+          label="Candidates"
+          value={workspaces.length}
+          icon={Users}
+          color="indigo"
+          subtext="Active workspaces"
+        />
+        <StatCard
+          label="Pending Proposals"
+          value={pendingCount}
+          icon={Clock}
+          color="amber"
+          subtext="Awaiting review"
+        />
+        <StatCard
+          label="Approved Portfolios"
+          value={approvedCount}
+          icon={CheckCircle}
+          color="emerald"
+          subtext="Cleared for drafting"
+        />
       </div>
 
       {/* Candidate Workspaces Card */}
       <ContentCard
         title="Candidate Roster"
-        subtitle="Assigned candidates and project proposal status."
+        subtitle="Workspace review queue"
         icon={ShieldCheck}
         headerRight={
           <span className="text-[11px] font-bold px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">

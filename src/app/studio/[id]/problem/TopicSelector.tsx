@@ -160,9 +160,9 @@ export function TopicSelector({
           <div className="flex items-center justify-end gap-3 pt-2">
             <button
               type="submit"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold bg-blue-700 hover:bg-blue-800 text-white shadow-xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer"
             >
-              <span>Save & Proceed to Proposal &rarr;</span>
+              <span>Proceed to Proposal</span>
             </button>
           </div>
         </form>

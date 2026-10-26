@@ -2,7 +2,6 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/(auth)/actions";
 import {
-  GraduationCap,
   ArrowRight,
   ShieldCheck,
   Layers,
@@ -60,14 +59,14 @@ export default async function HomePage() {
             </button>
 
             <Link href="/" className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0f3554] text-white shadow-xs">
-                <GraduationCap className="h-5 w-5 text-[#f59e0b]" />
-              </span>
+              <div className="h-9 w-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
+                <span className="text-amber-300">B</span>P
+              </div>
               <div>
                 <span className="font-semibold text-sm tracking-tight text-slate-900 block leading-tight">
                   BrightPath TVET
                 </span>
-                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
+                <span className="text-[10px] font-medium text-indigo-600 uppercase tracking-wider block">
                   Kenya Education Cloud Standard
                 </span>
               </div>

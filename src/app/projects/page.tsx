@@ -38,7 +38,7 @@ export default async function ProjectsPage() {
     >
       <PageHeaderCard
         title="Projects Marketplace"
-        subtitle="Ready-made capstone packages, schematics, and business plans."
+        subtitle="Verified technical capstone packages"
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Projects Marketplace", active: true },
@@ -51,17 +51,17 @@ export default async function ProjectsPage() {
           isTrainerOrAdmin ? (
             <Link
               href="/trainer"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-white text-blue-900 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white text-indigo-900 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
             >
-              <Briefcase className="h-4 w-4 text-blue-700" />
+              <Briefcase className="h-4 w-4 text-indigo-600" />
               <span>Publisher</span>
             </Link>
           ) : (
             <Link
               href="/library"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-white text-slate-700 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
             >
-              <Download className="h-4 w-4 text-blue-700" />
+              <Download className="h-4 w-4 text-indigo-600" />
               <span>My Library</span>
             </Link>
           )
@@ -71,13 +71,9 @@ export default async function ProjectsPage() {
       {projects.length === 0 ? (
         <div className="text-center py-16 border border-dashed border-slate-200 rounded-xl bg-white shadow-xs">
           <Layers className="h-10 w-10 mx-auto text-slate-400 mb-3" />
-          <h2 className="text-base font-bold text-slate-900">No projects published in the marketplace yet</h2>
+          <h2 className="text-base font-semibold text-slate-900">No projects available yet</h2>
           <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            Accredited faculty trainers can author and publish ready-made capstones and business plans in the{" "}
-            <Link href="/trainer" className="text-blue-700 font-bold hover:underline">
-              Trainer Studio
-            </Link>
-            .
+            Published capstones and business plans will appear here.
           </p>
         </div>
       ) : (

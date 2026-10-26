@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
+import { StatCard } from "@/components/ui/StatCard";
 import {
   Plus,
   ArrowRight,
@@ -12,6 +13,9 @@ import {
   LineChart,
   Briefcase,
   UserCheck,
+  CheckCircle,
+  FileText,
+  FolderKanban,
 } from "lucide-react";
 import type { ProjectWorkspace } from "@/types/database";
 
@@ -60,6 +64,18 @@ export default async function StudioDashboardPage() {
 
   const workspaces: ProjectWorkspace[] = (workspacesData as unknown as ProjectWorkspace[]) || [];
 
+  const totalCompletedSections = workspaces.reduce((acc, ws) => {
+    return (
+      acc +
+      (ws.workspace_sections || []).filter(
+        (s) => s.current_text && s.current_text.trim().length > 30
+      ).length
+    );
+  }, 0);
+  const approvedCount = workspaces.filter(
+    (w) => w.status === "approved" || w.status === "submitted"
+  ).length;
+
   const rawInst = profile?.institutions as unknown;
   const institutionName =
     (Array.isArray(rawInst)
@@ -75,7 +91,7 @@ export default async function StudioDashboardPage() {
       {/* 1. Header Card */}
       <PageHeaderCard
         title="Project Studio"
-        subtitle="Author, manage, and submit your project portfolios."
+        subtitle="Project portfolio management"
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Project Studio", active: true },
@@ -89,13 +105,38 @@ export default async function StudioDashboardPage() {
         actions={
           <Link
             href="/studio/new"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs sm:text-sm font-bold bg-blue-700 hover:bg-blue-800 text-white shadow-xs transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs sm:text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors"
           >
             <Plus className="h-4 w-4" />
             <span>New Workspace</span>
           </Link>
         }
       />
+
+      {/* KPI Metric Summary Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StatCard
+          label="Portfolios"
+          value={workspaces.length}
+          icon={FolderKanban}
+          color="indigo"
+          subtext="Active workspaces"
+        />
+        <StatCard
+          label="Approved Proposals"
+          value={approvedCount}
+          icon={CheckCircle}
+          color="emerald"
+          subtext="Cleared for drafting"
+        />
+        <StatCard
+          label="Drafted Chapters"
+          value={totalCompletedSections}
+          icon={FileText}
+          color="blue"
+          subtext="Sections completed"
+        />
+      </div>
 
       {/* 2. Active Workspaces Section */}
       <div className="space-y-4">

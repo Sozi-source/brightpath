@@ -9,12 +9,15 @@ import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
+import { StatCard } from "@/components/ui/StatCard";
 import {
   Layers,
   PlusCircle,
   Trash2,
   ShieldCheck,
   UploadCloud,
+  CheckCircle,
+  Clock,
 } from "lucide-react";
 import type { Project, UserProfile } from "@/types/database";
 
@@ -52,6 +55,8 @@ export default async function TrainerPortalPage() {
     .order("created_at", { ascending: false });
 
   const projects: Project[] = (projectsData as unknown as Project[]) || [];
+  const publishedCount = projects.filter((p) => p.status === "published").length;
+  const pendingCount = projects.filter((p) => p.status === "pending_review").length;
 
   return (
     <AppShell
@@ -62,7 +67,7 @@ export default async function TrainerPortalPage() {
       {/* 1. Header Card */}
       <PageHeaderCard
         title="Project Publisher"
-        subtitle="Upload and manage technical capstone projects and business plans for sale."
+        subtitle="Technical packages catalog management"
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Publisher", active: true },
@@ -78,7 +83,7 @@ export default async function TrainerPortalPage() {
           isAdmin ? (
             <Link
               href="/admin"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-white text-emerald-800 border border-emerald-300 shadow-xs hover:bg-emerald-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white text-emerald-800 border border-emerald-300 shadow-xs hover:bg-emerald-50 transition-colors"
             >
               <ShieldCheck className="h-4 w-4 text-emerald-600" />
               <span>Admin</span>
@@ -87,10 +92,35 @@ export default async function TrainerPortalPage() {
         }
       />
 
+      {/* KPI Metric Summary Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StatCard
+          label="Total Uploads"
+          value={projects.length}
+          icon={Layers}
+          color="indigo"
+          subtext="Catalog items"
+        />
+        <StatCard
+          label="Live in Marketplace"
+          value={publishedCount}
+          icon={CheckCircle}
+          color="emerald"
+          subtext="Available for purchase"
+        />
+        <StatCard
+          label="Pending Review"
+          value={pendingCount}
+          icon={Clock}
+          color="amber"
+          subtext="Under admin review"
+        />
+      </div>
+
       {/* 2. Bulk Upload Hub Card */}
       <ContentCard
         title="Bulk Import"
-        subtitle="Import multiple projects from CSV or JSON file"
+        subtitle="Batch upload CSV or JSON"
         icon={UploadCloud}
       >
         <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-4 space-y-3 max-w-3xl">
@@ -145,8 +175,8 @@ export default async function TrainerPortalPage() {
 
       {/* 3. Publish Single Project for Sale */}
       <ContentCard
-        title="Publish Single Project Package for Sale"
-        subtitle="Add a single ready-made technical capstone or business plan with automated Paystack payment"
+        title="Publish Listing"
+        subtitle="New project package"
         icon={Layers}
       >
         <form action={createProject} className="space-y-4 max-w-3xl">
