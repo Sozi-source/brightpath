@@ -2,7 +2,6 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/(auth)/actions";
 import {
-  BookOpen,
   GraduationCap,
   ArrowRight,
   ShieldCheck,
@@ -11,6 +10,8 @@ import {
   FileText,
   Building,
   CheckCircle2,
+  ShoppingBag,
+  Briefcase,
 } from "lucide-react";
 
 export const instant = false;
@@ -80,14 +81,11 @@ export default async function HomePage() {
             <Link href="/projects" className="hover:text-blue-700 transition-colors">
               Projects Marketplace
             </Link>
-            <Link href="/learn" className="hover:text-blue-700 transition-colors">
-              Revision & Lessons
+            <Link href="/trainer" className="hover:text-blue-700 transition-colors">
+              Trainer Publisher
             </Link>
             <Link href="/supervisor" className="hover:text-blue-700 transition-colors">
               Supervisor Portal
-            </Link>
-            <Link href="/trainer" className="hover:text-blue-700 transition-colors">
-              Trainer Studio
             </Link>
           </nav>
 
@@ -144,15 +142,15 @@ export default async function HomePage() {
           <div className="p-8 sm:p-12 lg:p-16 text-center max-w-4xl mx-auto space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-blue-200 bg-blue-50 text-xs font-bold text-blue-900 mx-auto shadow-xs">
               <ShieldCheck className="h-4 w-4 text-blue-700" />
-              <span>National TVET Capstone Projects & Examination System</span>
+              <span>National TVET Capstone Projects & Marketplace System</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 leading-[1.15]">
-              National TVET Capstone Projects, Business Plans & Curriculum Revision
+              Progressive Project Building & Ready-Made Technical Marketplace
             </h1>
 
             <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
-              Empowering Artisan, Craft, and Diploma candidates across East Africa with accredited project templates, KNEC Annex 12 supervision records, interactive AI coaching, and ready-made technical implementations.
+              A simplified, high-efficiency platform for TVET candidates to progressively build accredited Research Projects and Business Plans, and for trainers to publish ready-made capstones for sale with zero friction.
             </p>
 
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -160,22 +158,22 @@ export default async function HomePage() {
                 href="/studio"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-blue-700 hover:bg-blue-800 px-6 py-3 text-xs sm:text-sm font-bold text-white shadow-xs transition-colors"
               >
-                <span>Launch Project Studio (Annex 12)</span>
+                <span>Progressive Project Studio</span>
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/projects"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 px-6 py-3 text-xs sm:text-sm font-bold text-slate-800 transition-colors shadow-xs"
               >
-                <Layers className="h-4 w-4 text-blue-700" />
+                <ShoppingBag className="h-4 w-4 text-emerald-700" />
                 <span>Browse Projects Marketplace</span>
               </Link>
               <Link
-                href="/learn"
+                href="/trainer"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 px-6 py-3 text-xs sm:text-sm font-bold text-slate-800 transition-colors shadow-xs"
               >
-                <BookOpen className="h-4 w-4 text-emerald-700" />
-                <span>Revision Syllabus</span>
+                <Briefcase className="h-4 w-4 text-blue-700" />
+                <span>Publish Projects (Trainers)</span>
               </Link>
             </div>
           </div>
@@ -184,15 +182,15 @@ export default async function HomePage() {
           <div className="bg-slate-50 border-t border-slate-200 px-6 py-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-left">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">TVET Levels</span>
-              <span className="text-xs font-bold text-slate-900">Artisan, Craft, Diploma</span>
+              <span className="text-xs font-bold text-slate-900">Diploma & Craft Certificate</span>
             </div>
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">KNEC Compliance</span>
-              <span className="text-xs font-bold text-slate-900">Scorecard 1B & Annex 12</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Project Formats</span>
+              <span className="text-xs font-bold text-slate-900">Research & Business Plan</span>
             </div>
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Institutional Supervison</span>
-              <span className="text-xs font-bold text-slate-900">Direct Faculty Sign-off</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Trainer Publishing</span>
+              <span className="text-xs font-bold text-slate-900">Single & Fast CSV Bulk Upload</span>
             </div>
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Instant Payment</span>
@@ -207,15 +205,15 @@ export default async function HomePage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
               <FileText className="h-5 w-5" />
             </div>
-            <h2 className="text-base font-bold text-slate-900">TVET Project Studio & Log</h2>
+            <h2 className="text-base font-bold text-slate-900">Progressive Project Studio</h2>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Step-by-step authoring environment with accredited KNEC rubrics, Annex 12 candidate-supervisor meeting logs, and AI coaching with policy enforcement.
+              Step-by-step drafting for candidates: formulate research topics or business plans, draft section-by-section, track word counts, and submit to supervisors.
             </p>
             <Link
               href="/studio"
               className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:underline pt-2"
             >
-              <span>Explore Studio</span>
+              <span>Open Studio</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
@@ -224,9 +222,9 @@ export default async function HomePage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
               <Layers className="h-5 w-5" />
             </div>
-            <h2 className="text-base font-bold text-slate-900">Accredited Projects Marketplace</h2>
+            <h2 className="text-base font-bold text-slate-900">Ready-Made Projects Marketplace</h2>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Download complete, tested technical source code packages, CAD blueprints, and comprehensive business plans with immediate access via Paystack.
+              Download complete, tested technical source code packages and full business plans with instant delivery powered by Paystack.
             </p>
             <Link
               href="/projects"
@@ -241,9 +239,9 @@ export default async function HomePage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 text-indigo-700">
               <Building className="h-5 w-5" />
             </div>
-            <h2 className="text-base font-bold text-slate-900">Institutional Faculty Moderation</h2>
+            <h2 className="text-base font-bold text-slate-900">Supervisor Moderation</h2>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Supervisors and TVET institutions can review candidate proposal submissions, grade chapters against standardized rubrics, and inspect AI originality logs.
+              Supervisors can review candidate proposal drafts, request specific revisions, approve titles, and sign off on chapters with minimal friction.
             </p>
             <Link
               href="/supervisor"
@@ -261,14 +259,13 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-emerald-700" />
-            <span>BrightPath TVET Examination & Learning Management Cloud Standard</span>
+            <span>BrightPath TVET Examination & Projects Standard</span>
           </div>
           <div className="flex items-center gap-5 font-medium text-slate-600">
             <Link href="/studio" className="hover:text-blue-700">Project Studio</Link>
             <Link href="/projects" className="hover:text-blue-700">Projects</Link>
-            <Link href="/learn" className="hover:text-blue-700">Lessons</Link>
+            <Link href="/trainer" className="hover:text-blue-700">Trainer Publisher</Link>
             <Link href="/supervisor" className="hover:text-blue-700">Supervisor</Link>
-            <Link href="/trainer" className="hover:text-blue-700">Trainer</Link>
             <Link href="/login" className="hover:text-blue-700">Sign In</Link>
           </div>
         </div>

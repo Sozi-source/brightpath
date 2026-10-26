@@ -8,7 +8,6 @@ import {
   LayoutGrid,
   Home,
   Layers,
-  BookOpen,
   Lightbulb,
   Library,
   GraduationCap,
@@ -19,6 +18,8 @@ import {
   X,
   LogOut,
   ChevronRight,
+  ShoppingBag,
+  Briefcase,
 } from "lucide-react";
 
 interface AppShellProps {
@@ -45,21 +46,21 @@ export function AppShell({
   const pathname = usePathname();
 
   const isRoleAdmin = profile?.role === "admin";
+  const isRoleTrainer = profile?.role === "trainer" || isRoleAdmin;
   const isRoleSupervisor = profile?.role === "supervisor" || isRoleAdmin;
 
   const navItems = [
     { label: "Home", href: "/", icon: Home },
     { label: "Project Studio", href: "/studio", icon: Layers },
-    { label: "Curriculum Lessons", href: "/learn", icon: BookOpen },
+    { label: "Projects Marketplace", href: "/projects", icon: ShoppingBag },
     { label: "Topic Bank", href: "/studio", icon: Lightbulb },
     { label: "Digital Library", href: "/library", icon: Library },
   ];
 
   const academicTracks = [
-    { label: "Craft Certificate (1A)", href: "/studio", level: "craft" },
     { label: "Diploma Projects (1B)", href: "/studio", level: "diploma" },
-    { label: "Higher Diploma", href: "/studio", level: "higher_diploma" },
-    { label: "Entrepreneurship Plan", href: "/studio", level: "business" },
+    { label: "Craft Certificate (1A)", href: "/studio", level: "craft" },
+    { label: "Business Plan (Entrepreneurship)", href: "/studio", level: "business" },
   ];
 
   return (
@@ -108,22 +109,22 @@ export function AppShell({
                     <span className="text-xs font-bold text-slate-800">Project Studio</span>
                   </Link>
                   <Link
-                    href="/learn"
+                    href="/projects"
                     className="p-2.5 rounded-lg hover:bg-emerald-50 border border-transparent hover:border-emerald-100 flex flex-col items-center text-center gap-1.5 transition-colors"
                   >
                     <div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg">
-                      <BookOpen className="h-4 w-4" />
+                      <ShoppingBag className="h-4 w-4" />
                     </div>
-                    <span className="text-xs font-bold text-slate-800">Curriculum</span>
+                    <span className="text-xs font-bold text-slate-800">Marketplace</span>
                   </Link>
                   <Link
-                    href="/library"
-                    className="p-2.5 rounded-lg hover:bg-purple-50 border border-transparent hover:border-purple-100 flex flex-col items-center text-center gap-1.5 transition-colors"
+                    href="/trainer"
+                    className="p-2.5 rounded-lg hover:bg-indigo-50 border border-transparent hover:border-indigo-100 flex flex-col items-center text-center gap-1.5 transition-colors"
                   >
-                    <div className="p-2 bg-purple-100 text-purple-700 rounded-lg">
-                      <Library className="h-4 w-4" />
+                    <div className="p-2 bg-indigo-100 text-indigo-700 rounded-lg">
+                      <Briefcase className="h-4 w-4" />
                     </div>
-                    <span className="text-xs font-bold text-slate-800">Projects Store</span>
+                    <span className="text-xs font-bold text-slate-800">Trainer Publisher</span>
                   </Link>
                   <Link
                     href="/supervisor"
@@ -139,7 +140,7 @@ export function AppShell({
             )}
           </div>
 
-          {/* Official Portal Branding (Matching KEC Crest Layout) */}
+          {/* Official Portal Branding */}
           <Link href="/" className="flex items-center gap-2.5">
             <div className="h-9 w-9 rounded-lg bg-[#0f3554] flex items-center justify-center text-white font-extrabold text-lg shadow-xs">
               <span className="text-amber-400">B</span>P
@@ -196,14 +197,14 @@ export function AppShell({
 
       {/* 2. Main Portal Shell: Persistent Left Sidebar + Main Content Stage */}
       <div className="flex-1 flex w-full">
-        {/* Left Persistent Navigation Sidebar (The KEC Deep Navy Anchor) */}
+        {/* Left Persistent Navigation Sidebar */}
         <aside
           className={`fixed inset-y-0 left-0 top-16 z-30 w-64 bg-[#0f3554] text-white flex flex-col justify-between transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           } shadow-md md:shadow-none`}
         >
           <div className="flex-1 overflow-y-auto py-4 space-y-6">
-            {/* Top Active Course/Workspace Context Anchor (KEC "Amazing Daisy" Style) */}
+            {/* Top Active Course/Workspace Context Anchor */}
             <div className="px-4">
               <div className="bg-[#18476f] border border-blue-400/30 rounded-lg p-3 text-white space-y-1">
                 <div className="flex items-center gap-2 text-amber-400 text-xs font-bold">
@@ -242,7 +243,7 @@ export function AppShell({
               })}
             </div>
 
-            {/* Academic Level Groups (Matching KEC Pre-primary, Primary, Secondary) */}
+            {/* Academic Level Groups */}
             <div className="space-y-1 px-3 border-t border-white/10 pt-4">
               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 pb-1">
                 KNEC Academic Levels
@@ -260,20 +261,34 @@ export function AppShell({
               ))}
             </div>
 
-            {/* Supervisor / Governance Portals */}
-            {isRoleSupervisor && (
+            {/* Faculty / Supervisor / Governance Portals */}
+            {(isRoleSupervisor || isRoleTrainer) && (
               <div className="space-y-1 px-3 border-t border-white/10 pt-4">
                 <div className="text-[10px] font-bold uppercase tracking-wider text-amber-400 px-3 pb-1">
-                  Examination Moderation
+                  Faculty & Examination
                 </div>
-                <Link
-                  href="/supervisor"
-                  onClick={() => setSidebarOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-amber-200 hover:bg-white/10 transition-colors"
-                >
-                  <ShieldCheck className="h-4 w-4 shrink-0 text-amber-400" />
-                  <span>Supervisor Portal</span>
-                </Link>
+
+                {isRoleTrainer && (
+                  <Link
+                    href="/trainer"
+                    onClick={() => setSidebarOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-blue-200 hover:bg-white/10 transition-colors"
+                  >
+                    <Briefcase className="h-4 w-4 shrink-0 text-blue-400" />
+                    <span>Trainer Publisher</span>
+                  </Link>
+                )}
+
+                {isRoleSupervisor && (
+                  <Link
+                    href="/supervisor"
+                    onClick={() => setSidebarOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-amber-200 hover:bg-white/10 transition-colors"
+                  >
+                    <ShieldCheck className="h-4 w-4 shrink-0 text-amber-400" />
+                    <span>Supervisor Portal</span>
+                  </Link>
+                )}
 
                 {isRoleAdmin && (
                   <Link

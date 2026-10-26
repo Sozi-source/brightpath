@@ -44,7 +44,7 @@ export async function login(formData: FormData) {
   } else if (profile?.role === "supervisor") {
     redirect("/supervisor");
   } else {
-    redirect("/learn");
+    redirect("/studio");
   }
 }
 
@@ -86,7 +86,7 @@ export async function signup(formData: FormData) {
   }
 
   // If email confirmation is disabled and session is active
-  redirect("/learn");
+  redirect("/studio");
 }
 
 export async function logout() {

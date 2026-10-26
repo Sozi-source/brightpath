@@ -5,7 +5,7 @@ export type OrderStatus = "pending" | "paid" | "failed";
 
 export type AiMode = "off" | "feedback_only" | "feedback_and_polish";
 export type WorkspaceType = "trade_fabrication" | "research_secondary" | "business_plan";
-export type WorkspaceLevel = "craft" | "diploma" | "higher_diploma";
+export type WorkspaceLevel = "craft" | "diploma";
 export type WorkspaceStatus = "ideation" | "proposal_pending" | "approved" | "submitted" | "closed";
 export type SectionPhase = "proposal" | "project";
 export type SectionStatus = "empty" | "draft" | "reviewed" | "final";

@@ -57,7 +57,7 @@ export default async function NewWorkspacePage() {
       {/* 1. KEC-Standard Page Header with Two-Tone Accent Stripe & Breadcrumb Ribbon */}
       <PageHeaderCard
         title="Initialize KNEC Project Workspace"
-        subtitle="Step 1 of 2: Candidate Academic Registration. Configure your examination level (Craft 1A, Diploma 1B, Higher Diploma), practical curriculum track, and assigned department supervisor."
+        subtitle="Step 1 of 2: Candidate Academic Registration. Configure your examination level (Diploma or Craft Certificate), practical project track (Research or Business Plan), and assigned supervisor."
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Project Studio", href: "/studio" },
@@ -158,9 +158,8 @@ export default async function NewWorkspacePage() {
                   required
                   className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
                 >
-                  <option value="craft">Craft Certificate (Scorecard 1A - 75m Practical / 20m Theory)</option>
                   <option value="diploma">Diploma (Scorecard 1B - 40m Chapters / 25m Practical / 15m Defence)</option>
-                  <option value="higher_diploma">Higher Diploma (Scorecard 1B - Advanced)</option>
+                  <option value="craft">Craft Certificate (Scorecard 1A - 75m Practical / 20m Theory)</option>
                 </select>
               </div>
 

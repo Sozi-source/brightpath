@@ -40,52 +40,6 @@ async function verifyTrainerOrAdmin() {
   return { supabase, user, isAdmin: profile?.role === "admin" };
 }
 
-export async function createModule(formData: FormData) {
-  const { supabase, user } = await verifyTrainerOrAdmin();
-  const title = formData.get("title")?.toString().trim();
-  const description = formData.get("description")?.toString().trim() || "";
-  const position = parseInt(formData.get("position")?.toString() || "0", 10);
-
-  if (!title) throw new Error("Module title is required.");
-
-  const { error } = await supabase.from("modules").insert({
-    trainer_id: user.id,
-    title,
-    description,
-    position: isNaN(position) ? 0 : position,
-    status: "published", // auto-publish for ease of use
-  });
-
-  if (error) throw error;
-  revalidatePath("/trainer");
-  revalidatePath("/learn");
-}
-
-export async function createLesson(formData: FormData) {
-  const { supabase } = await verifyTrainerOrAdmin();
-  const moduleId = formData.get("moduleId")?.toString();
-  const title = formData.get("title")?.toString().trim();
-  const body = formData.get("body")?.toString().trim() || "";
-  const videoUrl = formData.get("videoUrl")?.toString().trim() || null;
-  const isFree = formData.get("isFree") === "true" || formData.get("isFree") === "on";
-  const position = parseInt(formData.get("position")?.toString() || "0", 10);
-
-  if (!moduleId || !title) throw new Error("Module ID and Lesson title are required.");
-
-  const { error } = await supabase.from("lessons").insert({
-    module_id: moduleId,
-    title,
-    body,
-    video_url: videoUrl,
-    is_free: isFree,
-    position: isNaN(position) ? 0 : position,
-  });
-
-  if (error) throw error;
-  revalidatePath("/trainer");
-  revalidatePath("/learn");
-}
-
 export async function createProject(formData: FormData) {
   const { supabase, user, isAdmin } = await verifyTrainerOrAdmin();
   const title = formData.get("title")?.toString().trim();
@@ -115,22 +69,6 @@ export async function createProject(formData: FormData) {
   revalidatePath("/trainer");
   revalidatePath("/projects");
   revalidatePath("/admin");
-}
-
-export async function deleteModule(formData: FormData) {
-  const { supabase, user, isAdmin } = await verifyTrainerOrAdmin();
-  const moduleId = formData.get("moduleId")?.toString();
-  if (!moduleId) return;
-
-  const query = supabase.from("modules").delete().eq("id", moduleId);
-  if (!isAdmin) {
-    query.eq("trainer_id", user.id);
-  }
-  const { error } = await query;
-  if (error) throw error;
-
-  revalidatePath("/trainer");
-  revalidatePath("/learn");
 }
 
 export async function deleteProject(formData: FormData) {
@@ -212,24 +150,6 @@ interface RawProjectImport {
   preview?: string;
 }
 
-interface RawLessonImport {
-  title: string;
-  body?: string;
-  video_url?: string;
-  video?: string;
-  position?: number;
-  is_free?: boolean;
-  free?: boolean;
-}
-
-interface RawModuleImport {
-  title?: string;
-  module?: string;
-  description?: string;
-  position?: number;
-  lessons?: RawLessonImport[];
-}
-
 export async function bulkImportProjects(formData: FormData) {
   const { supabase, user, isAdmin } = await verifyTrainerOrAdmin();
   const file = formData.get("file") as File | null;
@@ -292,70 +212,4 @@ export async function bulkImportProjects(formData: FormData) {
   revalidatePath("/trainer");
   revalidatePath("/projects");
   revalidatePath("/admin");
-}
-
-export async function bulkImportModules(formData: FormData) {
-  const { supabase, user } = await verifyTrainerOrAdmin();
-  const file = formData.get("file") as File | null;
-  const rawText = formData.get("rawText")?.toString().trim();
-
-  let content = "";
-  if (file && file.size > 0) {
-    content = await file.text();
-  } else if (rawText) {
-    content = rawText;
-  }
-
-  if (!content) {
-    throw new Error("Please upload a JSON file or paste curriculum data.");
-  }
-
-  let modulesData: RawModuleImport[] = [];
-  try {
-    const parsed = JSON.parse(content.trim());
-    modulesData = (Array.isArray(parsed) ? parsed : [parsed]) as RawModuleImport[];
-  } catch {
-    throw new Error("Modules bulk import expects valid JSON format.");
-  }
-
-  for (let i = 0; i < modulesData.length; i++) {
-    const mod = modulesData[i];
-    if (!mod.title && !mod.module) continue;
-
-    const moduleTitle = String(mod.title || mod.module).trim();
-    const { data: newMod, error: modErr } = await supabase
-      .from("modules")
-      .insert({
-        trainer_id: user.id,
-        title: moduleTitle,
-        description: mod.description ? String(mod.description).trim() : "",
-        position: mod.position ?? (i + 1),
-        status: "published",
-      })
-      .select("id")
-      .single();
-
-    if (modErr || !newMod) continue;
-
-    const lessons: RawLessonImport[] = Array.isArray(mod.lessons) ? mod.lessons : [];
-    if (lessons.length > 0) {
-      const lessonsToInsert = lessons
-        .filter((l: RawLessonImport) => l.title)
-        .map((l: RawLessonImport, lIdx: number) => ({
-          module_id: newMod.id,
-          title: String(l.title).trim(),
-          body: l.body ? String(l.body).trim() : "",
-          video_url: l.video_url || l.video || null,
-          position: l.position ?? (lIdx + 1),
-          is_free: Boolean(l.is_free ?? l.free ?? false),
-        }));
-
-      if (lessonsToInsert.length > 0) {
-        await supabase.from("lessons").insert(lessonsToInsert);
-      }
-    }
-  }
-
-  revalidatePath("/trainer");
-  revalidatePath("/learn");
 }

@@ -35,7 +35,7 @@ export default async function SupervisorPage() {
   const profile = profileData as unknown as UserProfile | null;
 
   if (profile?.role !== "supervisor" && profile?.role !== "admin") {
-    redirect("/learn");
+    redirect("/studio");
   }
 
   // Fetch candidates supervised by this user (or all if admin)

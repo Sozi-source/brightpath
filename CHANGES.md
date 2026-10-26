@@ -21,6 +21,67 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-10-26] — Architecture & Scope Streamlining: Purge of Revision Components and Higher Diploma
+
+**Category:** Architecture, Scope Simplification & Two-Pillar Optimization
+
+**Status:** Completed & Verified
+
+**Problem:**
+The application had accumulated labor-intensive curriculum revision modules (video lessons, lesson progression trackers, multi-chapter curriculum builders) and a complex academic scope including Higher Diploma qualifications. Managing video content and multi-tiered lessons required prohibitive labor and administrative overhead. The platform required radical simplification into two high-yield, low-maintenance operational pillars:
+1. **Pillar 1: Frictionless Project Marketplace**: Rapid single and bulk CSV/JSON technical project publishing for trainers, instant Paystack KES checkout, and permanent student digital library delivery.
+2. **Pillar 2: Progressive Student Project Studio**: Focused, step-by-step progressive building for student **Research Projects** and **Business Plans** (topic formulation &rarr; chapter-by-chapter drafting &rarr; supervisor review and sign-off), restricted strictly to **Craft Certificate** and **Diploma** levels.
+
+**Files Changed:**
+- `src/types/database.ts`
+- `src/lib/studio/templates/trade.ts`
+- `src/lib/studio/templates/research.ts`
+- `src/lib/studio/rubrics.ts`
+- `src/app/studio/new/page.tsx`
+- `src/app/trainer/actions.ts`
+- `src/app/trainer/page.tsx`
+- `src/app/learn/page.tsx`
+- `src/app/learn/[moduleId]/page.tsx` (Deleted)
+- `src/app/learn/[moduleId]/[lessonId]/page.tsx` (Deleted)
+- `src/components/learn/CompleteLessonButton.tsx` (Deleted)
+- `src/components/learn/LessonContent.tsx` (Deleted)
+- `src/lib/learn/access.ts` (Deleted)
+- `src/components/layout/AppShell.tsx`
+- `src/app/(auth)/actions.ts`
+- `src/app/admin/page.tsx`
+- `src/app/supervisor/page.tsx`
+- `src/app/supervisor/[workspaceId]/page.tsx`
+- `src/app/page.tsx`
+- `CHANGES.md`
+
+**Implementation:**
+1. **Purge of Labor-Intensive Curriculum Revision Modules**:
+   - Recursively removed `src/app/learn/[moduleId]`, `src/components/learn`, and `src/lib/learn`.
+   - Converted `src/app/learn/page.tsx` into an immediate server-side redirect to `/studio`, ensuring any legacy bookmarks or internal links smoothly route to the Project Studio without 404s.
+   - Removed all video lesson metadata, video players, gated lesson logic, and curriculum module builders from the codebase.
+2. **Streamlining Trainer Studio to Frictionless Marketplace Hub (`/trainer`)**:
+   - Purged `createModule`, `createLesson`, `deleteModule`, and `bulkImportModules` server actions.
+   - Refocused `src/app/trainer/page.tsx` and `src/app/trainer/actions.ts` purely on:
+     - **Rapid Single Project Publishing**: Title, description, trade category, level, price (KES), downloadable file URL, and tags.
+     - **Batch Bulk CSV/JSON Import**: One-click batch ingest of multiple ready-to-sell projects with instant validation and error reporting.
+     - **Live Published Catalog & Sales Metrics**: Real-time overview of active projects, total sales, and trainer earnings.
+3. **Purge of Higher Diploma & Scope Simplification**:
+   - Narrowed `WorkspaceLevel` in `src/types/database.ts` to `"craft" | "diploma"`.
+   - Purged all `higher_diploma` references in trade templates (`src/lib/studio/templates/trade.ts`) and research templates (`src/lib/studio/templates/research.ts`).
+   - Cleaned `src/lib/studio/rubrics.ts` to strictly maintain Craft Certificate (1A) and Diploma (1B) KNEC scorecards.
+   - Simplified `src/app/studio/new/page.tsx` qualification selector to Craft Certificate and Diploma.
+4. **App Navigation, Routing & Landing Page Refinement**:
+   - Updated `AppShell.tsx` to remove "Curriculum Lessons" and "Higher Diploma" entries; prioritized Project Studio, Project Marketplace, Topic Bank, and Library.
+   - Updated default candidate post-login and post-signup redirects from `/learn` to `/studio` in `src/app/(auth)/actions.ts`.
+   - Updated unauthorized/non-admin fallback redirects across `/admin`, `/supervisor`, and `/supervisor/[workspaceId]` to route to `/studio`.
+   - Refreshed `src/app/page.tsx` landing page hero, feature grid, and action buttons to spotlight the Two-Pillar experience.
+5. **Quality Assurance & Verification**:
+   - `npx tsc --noEmit`: Exited with 0 errors.
+   - `npm run lint`: Exited with 0 errors/warnings.
+   - Turbopack production build verified.
+
+---
+
 ## [2026-10-26] — Global UI Migration: Kenya Education Cloud (KEC) Standard Across All Routes
 
 **Category:** UI / UX & Institutional Design System Rollout

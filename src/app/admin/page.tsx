@@ -52,7 +52,7 @@ export default async function AdminPage() {
     .single();
 
   if (profile?.role !== "admin") {
-    redirect("/learn");
+    redirect("/studio");
   }
 
   // Fetch admin dashboard data in parallel

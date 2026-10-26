@@ -13,7 +13,7 @@ export interface RubricBreakdown {
 }
 
 /**
- * Official KNEC Business & Technical Examinations Score Cards
+ * Official KNEC Business & Technical Examinations Score Cards (Craft & Diploma)
  * Source: KNEC Project Guidelines Part II to V
  */
 export const KNEC_RUBRICS: Record<
@@ -49,17 +49,6 @@ export const KNEC_RUBRICS: Record<
         { key: "submission", label: "Final Report Submission", maxMarks: 5 },
       ],
     },
-    higher_diploma: {
-      totalMarks: 100,
-      categories: [
-        { key: "proposal", label: "Title, rationale & justification", maxMarks: 5 },
-        { key: "defence_prep", label: "Defence, moderation & panel approval", maxMarks: 10 },
-        { key: "fabrication", label: "Advanced Practical & Sensory Testing", maxMarks: 25 },
-        { key: "report", label: "Dissertation Report Chapters", maxMarks: 40 },
-        { key: "defence", label: "Oral Viva Defence", maxMarks: 15 },
-        { key: "submission", label: "Final Submission", maxMarks: 5 },
-      ],
-    },
   },
   research_secondary: {
     craft: {
@@ -84,17 +73,6 @@ export const KNEC_RUBRICS: Record<
         },
         { key: "defence", label: "Project Oral Defence", maxMarks: 15 },
         { key: "submission", label: "Final Report Submission", maxMarks: 5 },
-      ],
-    },
-    higher_diploma: {
-      totalMarks: 100,
-      categories: [
-        { key: "proposal", label: "Research Title & Rationale", maxMarks: 5 },
-        { key: "defence_prep", label: "Proposal Defence & Moderation", maxMarks: 10 },
-        { key: "data_collection", label: "Statistical Modeling & Verification", maxMarks: 25 },
-        { key: "report", label: "Research Chapters Write-Up", maxMarks: 40 },
-        { key: "defence", label: "Oral Viva Defence", maxMarks: 15 },
-        { key: "submission", label: "Final Submission", maxMarks: 5 },
       ],
     },
   },
@@ -123,18 +101,6 @@ export const KNEC_RUBRICS: Record<
         { key: "defence", label: "Project Defence (10), Final Submission (5)", maxMarks: 15 },
       ],
     },
-    higher_diploma: {
-      totalMarks: 100,
-      categories: [
-        { key: "proposal", label: "Business Title & Strategic Rationale (5), Panel Approval (10)", maxMarks: 15 },
-        {
-          key: "report",
-          label: "Commercial Plan (Synopsis 5, Ch1 10, Ch2 10, Ch3 15, Ch4 15, Ch5 15)",
-          maxMarks: 70,
-        },
-        { key: "defence", label: "Defence & Presentation (10), Final Submission (5)", maxMarks: 15 },
-      ],
-    },
   },
 };
 
@@ -161,9 +127,7 @@ export function getRubricForWorkspace(
       ? `KNEC Scorecard: Entrepreneurship Business Plan (${level.toUpperCase()})`
       : level === "craft"
       ? "KNEC Scorecard 1A: Craft Trade Project"
-      : `KNEC Scorecard 1B: ${
-          level === "diploma" ? "Diploma" : "Higher Diploma"
-        } Trade Project`;
+      : "KNEC Scorecard 1B: Diploma Trade Project";
 
   return {
     scorecardName,

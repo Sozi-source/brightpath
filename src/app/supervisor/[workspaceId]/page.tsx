@@ -50,7 +50,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
   const profile = profileData as unknown as UserProfile | null;
 
   if (profile?.role !== "supervisor" && profile?.role !== "admin") {
-    redirect("/learn");
+    redirect("/studio");
   }
 
   // Load candidate workspace

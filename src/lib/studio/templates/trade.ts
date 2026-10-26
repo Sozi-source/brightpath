@@ -4,7 +4,7 @@ export interface SectionDef {
   phase: "proposal" | "project";
   guidance: string;
   rubricMarks?: number;
-  levels?: Array<"craft" | "diploma" | "higher_diploma">;
+  levels?: Array<"craft" | "diploma">;
   minWords?: number;
 }
 
@@ -64,7 +64,7 @@ export const TRADE_FABRICATION_SECTIONS: SectionDef[] = [
     key: "terms",
     title: "Definition of Operational Terms",
     phase: "project",
-    levels: ["diploma", "higher_diploma"],
+    levels: ["diploma"],
     guidance:
       "Define technical parameters and acronyms specific to this project (e.g. OFSP, HACCP, sensory hedonic scale, proximate composition).",
     minWords: 60,

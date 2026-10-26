@@ -56,7 +56,7 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     key: "terms",
     title: "Definition of Operational Terms",
     phase: "project",
-    levels: ["diploma", "higher_diploma"],
+    levels: ["diploma"],
     guidance:
       "Define epidemiological and statistical concepts used (e.g. HAZ, WHZ, Z-score, sample standard deviation, percentage point vs percentage change).",
     minWords: 60,
