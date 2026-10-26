@@ -72,17 +72,17 @@ export default async function StudioDashboardPage() {
       profile={profile}
       activeContextTitle={profile?.course || "KNEC Project Studio"}
     >
-      {/* 1. KEC-Standard Page Header with Dual-Tone Stripe and Breadcrumbs */}
+      {/* 1. Header Card */}
       <PageHeaderCard
-        title="KNEC Project Studio Workspaces"
-        subtitle="Official authoring and moderation portal for Craft Certificate (1A), Diploma (1B), and Entrepreneurship candidates. Formulate your research proposal, track supervisor sign-offs, and draft verified examination reports."
+        title="Project Studio"
+        subtitle="Author, manage, and submit your project portfolios."
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Project Studio", active: true },
         ]}
         metadata={[
-          { label: "Candidate", value: profile?.full_name || user.email?.split("@")[0] || "Enrolled Candidate" },
-          { label: "Admission No", value: profile?.admission_number || "Pending Registration" },
+          { label: "Candidate", value: profile?.full_name || user.email?.split("@")[0] || "Candidate" },
+          { label: "Admission No", value: profile?.admission_number || "Unset" },
           { label: "Institution", value: institutionName },
           { label: "Active Projects", value: `${workspaces.length} Registered` },
         ]}
@@ -92,7 +92,7 @@ export default async function StudioDashboardPage() {
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs sm:text-sm font-bold bg-blue-700 hover:bg-blue-800 text-white shadow-xs transition-colors"
           >
             <Plus className="h-4 w-4" />
-            <span>New Project Workspace</span>
+            <span>New Workspace</span>
           </Link>
         }
       />
@@ -103,7 +103,7 @@ export default async function StudioDashboardPage() {
           <div className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-blue-900" />
             <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-              Active Project Portfolios
+              Active Portfolios
             </h2>
           </div>
           <span className="text-xs font-mono text-slate-500 font-semibold">
@@ -113,16 +113,15 @@ export default async function StudioDashboardPage() {
 
         {workspaces.length === 0 ? (
           <ContentCard>
-            <div className="text-center py-12 space-y-3 max-w-lg mx-auto">
+            <div className="text-center py-12 space-y-3 max-w-sm mx-auto">
               <div className="h-12 w-12 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center mx-auto">
                 <Layers className="h-6 w-6" />
               </div>
               <h3 className="text-base font-bold text-slate-900">
-                No active project workspace registered
+                No active projects
               </h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Initialize your KNEC project workspace to configure your qualification level (Craft or Diploma),
-                select your practical track, and link with your institutional supervisor for proposal moderation.
+              <p className="text-xs text-slate-500 leading-normal">
+                Create a project workspace to begin drafting your proposal and chapters.
               </p>
               <div className="pt-2">
                 <Link
@@ -130,7 +129,7 @@ export default async function StudioDashboardPage() {
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold bg-blue-700 hover:bg-blue-800 text-white shadow-xs"
                 >
                   <Plus className="h-4 w-4" />
-                  <span>Initialize First Project</span>
+                  <span>New Workspace</span>
                 </Link>
               </div>
             </div>

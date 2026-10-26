@@ -21,6 +21,40 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-10-26] — Refactor: World-Class Typography, Fixed Persistent Sidebar & Global Enterprise Minimal Text Standard
+
+**Category:** UI/UX Design System, Typography Architecture & Layout Shell
+
+**Status:** Completed & Verified
+
+**Problem:**
+1. Previous pages contained congested text, verbose multi-sentence paragraphs, essay subtitles, and bulky advisory banners that cluttered the user experience.
+2. The global sidebar on desktop was set to `md:static`, causing it to scroll away and disappear off-screen on long pages (especially the Admin dashboard).
+3. The application was falling back to generic system `Arial` due to a hardcoded `font-family: Arial` rule in `globals.css`, and titles and stats numbers were rendered using heavy, thick `font-black` (900) and `font-extrabold` (800) blobs, creating a clumsy and unrefined visual appearance.
+
+**Files Changed:**
+- `AGENTS.md` (Added Rules 6 & 7: Enterprise Minimal Text & World-Class Refined Typography)
+- `docs/UI_DESIGN_SYSTEM.md` (Added Sections 1.1 & 1.2 specifications)
+- `src/app/globals.css` (Configured Geist Sans & Geist Mono, tabular numbers `cv02, cv03, cv04, cv11, tnum`, removed Arial)
+- `src/app/layout.tsx` (Attached `font-sans antialiased text-slate-800 bg-[#f4f7fb]` to root body)
+- `src/components/layout/AppShell.tsx` (Changed desktop sidebar to `md:sticky md:top-16 md:h-[calc(100vh-4rem)] md:shrink-0 md:self-start`; added Admin Modules quick-jump navigation)
+- `src/components/layout/PageHeaderCard.tsx` (Refined title from `font-extrabold` to `text-xl sm:text-2xl font-semibold`)
+- `src/components/layout/ContentCard.tsx` (Refined title from `font-bold` to `font-semibold`)
+- `src/app/admin/page.tsx` (Refined stats numbers from `font-black` to `font-semibold font-mono`; added anchor targets `#settings`, `#pending`, `#projects`, `#users`, `#institutions`, `#orders`, `#reports`)
+- `src/app/supervisor/page.tsx` (Refined title and stats numbers to `font-semibold`; streamlined KPI cards)
+- `src/app/supervisor/[workspaceId]/page.tsx` (Streamlined moderation decision and candidate review cards)
+- `src/app/page.tsx` (Refined hero title from `font-black` to `font-semibold`; tightened hero and pillar copy)
+- `src/app/projects/page.tsx` (Refined price typography to `font-mono font-semibold`)
+- `src/app/login/page.tsx` & `src/app/signup/page.tsx` (Refined brand and card titles to `font-semibold`)
+- `src/app/studio/page.tsx`, `src/app/studio/new/page.tsx`, `src/app/studio/[id]/page.tsx`, `src/app/studio/[id]/problem/page.tsx`, `src/app/studio/[id]/write/[sectionKey]/page.tsx`, `src/app/trainer/page.tsx`, `src/app/library/page.tsx` (Cleaned text congestion, streamlined copy, zero warnings)
+
+**Verification:**
+- `npx tsc --noEmit` exited 0 (strict type safety verified).
+- `npm run lint` exited 0 (zero errors, zero warnings across all files).
+- `npm run build` compiled all 21 routes with Next.js 16.4.3 Turbopack with Partial Prerendering (`◐`).
+
+---
+
 ## [2026-10-26] — Feature: Student Studio Project Starter Kits & Built-in KNEC Chapter Outlines
 
 **Category:** Studio Architecture, Student UX & KNEC Academic Outlines

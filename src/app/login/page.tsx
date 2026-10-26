@@ -17,13 +17,13 @@ export default async function LoginPage({
     <main className="min-h-screen flex flex-col justify-center items-center bg-[#f4f7fb] px-4 py-12">
       {/* Brand Header */}
       <div className="mb-6 text-center space-y-2">
-        <Link href="/" className="inline-flex items-center gap-2 font-black text-xl text-slate-900 tracking-tight">
+        <Link href="/" className="inline-flex items-center gap-2 font-semibold text-xl text-slate-900 tracking-tight">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0f3554] text-white shadow-xs">
             <GraduationCap className="h-5 w-5 text-[#f59e0b]" />
           </span>
           <span>BrightPath TVET</span>
         </Link>
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+        <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
           National Academic Project & Examination System
         </p>
       </div>
@@ -37,7 +37,7 @@ export default async function LoginPage({
 
         <div className="p-7 sm:p-8 space-y-6">
           <div className="text-center space-y-1">
-            <h1 className="text-xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
               Candidate & Faculty Portal Sign In
             </h1>
             <p className="text-xs text-slate-600">

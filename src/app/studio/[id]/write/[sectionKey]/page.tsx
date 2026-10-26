@@ -106,18 +106,17 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
     >
       <PageHeaderCard
         title={sectionDef.title}
-        subtitle={`${workspace.title || "Project Formulation"} • ${workspace.course} (${workspace.level.toUpperCase()} • ${typeLabel})`}
+        subtitle={`${workspace.title || "Project Workspace"} • ${workspace.course}`}
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Project Studio", href: "/studio" },
-          { label: workspace.title || "Workspace Overview", href: `/studio/${workspaceId}` },
+          { label: workspace.title || "Overview", href: `/studio/${workspaceId}` },
           { label: sectionDef.title, active: true },
         ]}
         metadata={[
-          { label: "Phase", value: sectionDef.phase === "proposal" ? "Proposal Section" : "Project Chapter" },
-          { label: "Rubric Marks", value: sectionDef.rubricMarks !== undefined ? `${sectionDef.rubricMarks} Marks` : "Institutional Criteria" },
-          { label: "Target Length", value: `Min ${sectionDef.minWords || 50} Words` },
-          { label: "Status", value: isLocked ? "Locked (Awaiting Approval)" : "Drafting Active" },
+          { label: "Track", value: typeLabel },
+          { label: "Target", value: `Min ${sectionDef.minWords || 50} words` },
+          { label: "Status", value: isLocked ? "Locked" : "Drafting" },
         ]}
         actions={
           <div className="flex items-center gap-2">
@@ -126,7 +125,7 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-white text-slate-700 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
-              <span>Workspace Overview</span>
+              <span>Overview</span>
             </Link>
             {isLocked && (
               <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-300">

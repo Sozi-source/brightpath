@@ -87,22 +87,22 @@ export default async function SupervisorPage() {
       activeContextTitle="Supervisor Moderation Portal"
     >
       <PageHeaderCard
-        title="Institutional Academic Candidate Supervision"
-        subtitle="Review candidate research proposals, evaluate draft chapters against KNEC rubrics, inspect the AI influence audit log, and sign candidate Annex 12 interaction records."
+        title="Candidate Supervision"
+        subtitle="Review candidate proposals, evaluate draft chapters, and track progress."
         breadcrumbs={[
           { label: "Home", href: "/" },
-          { label: "Supervisor Portal", active: true },
+          { label: "Supervisor", active: true },
         ]}
         metadata={[
           { label: "Supervisor", value: profile?.full_name || user.email || "Faculty Supervisor" },
           { label: "Institution", value: institution?.name || "Accredited TVET Center" },
-          { label: "Assigned Candidates", value: `${workspaces.length} Candidates` },
-          { label: "Pending Approvals", value: `${pendingCount} Proposals Awaiting Sign-off` },
+          { label: "Assigned", value: `${workspaces.length} Candidates` },
+          { label: "Pending", value: `${pendingCount} Proposals` },
         ]}
         actions={
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-bold px-2.5 py-1 rounded bg-blue-50 text-blue-800 border border-blue-200">
-              {profile?.role === "admin" ? "Administrative Oversight" : "Institutional Supervisor"}
+              {profile?.role === "admin" ? "Admin Oversight" : "Faculty Supervisor"}
             </span>
           </div>
         }
@@ -112,48 +112,48 @@ export default async function SupervisorPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
               Assigned Candidates
             </span>
             <span className="p-2 rounded-lg bg-blue-50 text-blue-700">
               <Users className="h-4 w-4" />
             </span>
           </div>
-          <p className="text-2xl font-black text-slate-900 tracking-tight">{workspaces.length}</p>
-          <p className="text-xs text-slate-500 mt-1">Total active project workspaces</p>
+          <p className="text-2xl font-semibold text-slate-900 tracking-tight">{workspaces.length}</p>
+          <p className="text-xs text-slate-500 mt-1">Active workspaces</p>
         </div>
 
         <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
               Pending Proposals
             </span>
             <span className="p-2 rounded-lg bg-amber-50 text-amber-700">
               <Clock className="h-4 w-4" />
             </span>
           </div>
-          <p className="text-2xl font-black text-amber-700 tracking-tight">{pendingCount}</p>
-          <p className="text-xs text-slate-500 mt-1">Proposals awaiting moderation sign-off</p>
+          <p className="text-2xl font-semibold text-amber-700 tracking-tight">{pendingCount}</p>
+          <p className="text-xs text-slate-500 mt-1">Awaiting review</p>
         </div>
 
         <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
               Approved / Active
             </span>
             <span className="p-2 rounded-lg bg-emerald-50 text-emerald-700">
               <CheckCircle className="h-4 w-4" />
             </span>
           </div>
-          <p className="text-2xl font-black text-emerald-700 tracking-tight">{approvedCount}</p>
-          <p className="text-xs text-slate-500 mt-1">Cleared for chapter drafting & compilation</p>
+          <p className="text-2xl font-semibold text-emerald-700 tracking-tight">{approvedCount}</p>
+          <p className="text-xs text-slate-500 mt-1">Cleared for drafting</p>
         </div>
       </div>
 
       {/* Candidate Workspaces Card */}
       <ContentCard
-        title="Supervised Candidate Roster"
-        subtitle="Manage assigned trainees, track trade specialization milestones, and moderate project proposals"
+        title="Candidate Roster"
+        subtitle="Assigned candidates and project proposal status."
         icon={ShieldCheck}
         headerRight={
           <span className="text-[11px] font-bold px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">

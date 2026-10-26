@@ -27,7 +27,7 @@ export function ContentCard({
             {Icon && <Icon className="h-4 w-4 text-blue-700 shrink-0" />}
             <div>
               {title && (
-                <h3 className="text-sm font-bold text-slate-900 leading-snug">
+                <h3 className="text-sm font-semibold text-slate-900 leading-snug">
                   {title}
                 </h3>
               )}

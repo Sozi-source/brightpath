@@ -142,14 +142,14 @@ export function AppShell({
 
           {/* Official Portal Branding */}
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-lg bg-[#0f3554] flex items-center justify-center text-white font-extrabold text-lg shadow-xs">
+            <div className="h-9 w-9 rounded-lg bg-[#0f3554] flex items-center justify-center text-white font-bold text-sm shadow-xs">
               <span className="text-amber-400">B</span>P
             </div>
             <div className="flex flex-col">
-              <span className="font-extrabold text-base sm:text-lg text-[#0f3554] tracking-tight leading-none">
+              <span className="font-semibold text-base sm:text-lg text-[#0f3554] tracking-tight leading-none">
                 BrightPath
               </span>
-              <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">
+              <span className="text-[10px] font-medium text-blue-700 uppercase tracking-wider">
                 TVET LMS & Project Studio
               </span>
             </div>
@@ -199,7 +199,7 @@ export function AppShell({
       <div className="flex-1 flex w-full">
         {/* Left Persistent Navigation Sidebar */}
         <aside
-          className={`fixed inset-y-0 left-0 top-16 z-30 w-64 bg-[#0f3554] text-white flex flex-col justify-between transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 top-16 z-30 w-64 bg-[#0f3554] text-white flex flex-col justify-between transition-transform duration-200 ease-in-out md:sticky md:top-16 md:h-[calc(100vh-4rem)] md:shrink-0 md:self-start md:translate-x-0 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           } shadow-md md:shadow-none`}
         >
@@ -300,6 +300,34 @@ export function AppShell({
                     <span>Admin Governance</span>
                   </Link>
                 )}
+              </div>
+            )}
+
+            {/* Admin Modules Quick Jump Navigation */}
+            {pathname.startsWith("/admin") && (
+              <div className="space-y-1 px-3 border-t border-white/10 pt-4">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-amber-400 px-3 pb-1">
+                  Admin Modules
+                </div>
+                {[
+                  { label: "Commission Fee", href: "#settings" },
+                  { label: "Pending Queue", href: "#pending" },
+                  { label: "Projects Catalog", href: "#projects" },
+                  { label: "User Directory", href: "#users" },
+                  { label: "TVET Institutions", href: "#institutions" },
+                  { label: "Transactions", href: "#orders" },
+                  { label: "Disputes & Reports", href: "#reports" },
+                ].map((item) => (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    className="flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
+                  >
+                    <span className="truncate">{item.label}</span>
+                    <ChevronRight className="h-3 w-3 text-slate-400" />
+                  </a>
+                ))}
               </div>
             )}
           </div>

@@ -137,20 +137,20 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
       activeContextTitle={`Review: ${workspace.student?.full_name || "Candidate"}`}
     >
       <PageHeaderCard
-        title={workspace.title || "Untitled Project Formulation"}
-        subtitle={`Academic supervision for ${workspace.student?.full_name || "Enrolled Student"} (${workspace.course} • ${workspace.level} Level)`}
+        title={workspace.title || "Untitled Project"}
+        subtitle={`${workspace.student?.full_name || "Candidate"} • ${workspace.course} (${workspace.level})`}
         breadcrumbs={[
           { label: "Home", href: "/" },
-          { label: "Supervisor Portal", href: "/supervisor" },
-          { label: workspace.student?.full_name || "Candidate Review", active: true },
+          { label: "Supervisor", href: "/supervisor" },
+          { label: workspace.student?.full_name || "Review", active: true },
         ]}
         metadata={[
-          { label: "Candidate", value: `${workspace.student?.full_name || "Student"} (${workspace.student?.admission_number || "No Adm"})` },
-          { label: "Curriculum Track", value: `${workspace.level} • ${typeLabel}` },
+          { label: "Candidate", value: `${workspace.student?.full_name || "Student"} (${workspace.student?.admission_number || "—"})` },
+          { label: "Track", value: `${workspace.level} • ${typeLabel}` },
           { label: "Institution", value: workspace.institution?.name || "Accredited TVET Center" },
           {
-            label: "Moderation Status",
-            value: isApproved ? "Proposal Approved" : isPending ? "Pending Moderation" : "Drafting / Ideation",
+            label: "Status",
+            value: isApproved ? "Approved" : isPending ? "Pending Review" : "Drafting",
           },
         ]}
         actions={
@@ -160,7 +160,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-white text-slate-700 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
-              <span>Back to Candidates</span>
+              <span>Back</span>
             </Link>
             <span
               className={`text-xs font-bold px-3 py-2 rounded-lg ${
@@ -180,12 +180,12 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
       <div className="space-y-6">
         {/* Proposal Moderation Section */}
         <ContentCard
-          title="Candidate Research Proposal Submission"
-          subtitle={`Evaluated under ${rubric.scorecardName}`}
+          title="Proposal Submission"
+          subtitle={rubric.scorecardName}
           icon={FileText}
           headerRight={
             <span className="text-[11px] font-bold px-2.5 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200">
-              {proposalDefs.length} Required Proposal Sections
+              {proposalDefs.length} Sections
             </span>
           }
         >
@@ -232,28 +232,28 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
 
         {/* Supervisor Moderation Decision Card */}
         <ContentCard
-          title="Supervisor Moderation Decision"
-          subtitle="Review candidate proposal against KNEC regulations. Approving unlocks Chapters 1–5 for drafting and records decision in Annex 12 log."
+          title="Moderation Decision"
+          subtitle="Approve proposal to unlock project chapters or request specific candidate revisions."
           icon={ShieldCheck}
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Form 1: Approve Proposal */}
-            <div className="p-4 sm:p-5 rounded-lg border border-emerald-200 bg-emerald-50/40 space-y-3">
+            <div className="p-4 rounded-lg border border-emerald-200 bg-emerald-50/40 space-y-2.5">
               <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs">
                 <CheckCircle2 className="h-4 w-4 text-emerald-700" />
                 <span>Approve Proposal</span>
               </div>
               <p className="text-[11px] text-emerald-900/80 leading-relaxed">
-                Confirms the title, statement of problem, objectives, and methodology meet institutional standards.
+                Clears proposal title and methodology, unlocking Chapters 1–5 for drafting.
               </p>
 
-              <form action={approveProposal} className="space-y-2.5">
+              <form action={approveProposal} className="space-y-2">
                 <input type="hidden" name="workspaceId" value={workspaceId} />
                 <textarea
                   name="comment"
                   rows={2}
-                  placeholder="Optional approval remarks (e.g. Approved for field data collection / fabrication)..."
-                  className="w-full text-xs bg-white border border-emerald-300 rounded-md p-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                  placeholder="Optional approval notes..."
+                  className="w-full text-xs bg-white border border-emerald-300 rounded-md p-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600"
                 />
                 <button
                   type="submit"
@@ -265,23 +265,23 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
             </div>
 
             {/* Form 2: Request Changes */}
-            <div className="p-4 sm:p-5 rounded-lg border border-rose-200 bg-rose-50/40 space-y-3">
+            <div className="p-4 rounded-lg border border-rose-200 bg-rose-50/40 space-y-2.5">
               <div className="flex items-center gap-2 text-rose-800 font-bold text-xs">
                 <AlertCircle className="h-4 w-4 text-rose-700" />
                 <span>Request Revisions</span>
               </div>
               <p className="text-[11px] text-rose-900/80 leading-relaxed">
-                Reverts status to candidate ideation and supplies mandatory moderation feedback.
+                Returns proposal to candidate ideation with required revision notes.
               </p>
 
-              <form action={requestProposalChanges} className="space-y-2.5">
+              <form action={requestProposalChanges} className="space-y-2">
                 <input type="hidden" name="workspaceId" value={workspaceId} />
                 <textarea
                   name="comment"
                   rows={2}
                   required
-                  placeholder="Specify exact revisions required (e.g. Narrow specific objectives, update study period)..."
-                  className="w-full text-xs bg-white border border-rose-300 rounded-md p-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-600"
+                  placeholder="Specify required revisions..."
+                  className="w-full text-xs bg-white border border-rose-300 rounded-md p-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-600"
                 />
                 <button
                   type="submit"
@@ -294,14 +294,14 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
           </div>
 
           {/* Title Refinement Form */}
-          <div className="mt-5 pt-4 border-t border-slate-200">
-            <form action={updateProposalTitle} className="space-y-2">
+          <div className="mt-4 pt-3.5 border-t border-slate-200">
+            <form action={updateProposalTitle} className="space-y-1.5">
               <input type="hidden" name="workspaceId" value={workspaceId} />
               <label
                 htmlFor="supTitle"
                 className="block text-xs font-bold text-slate-800"
               >
-                Supervisor Official Project Title Refinement (KNEC Moderation Standard)
+                Refine Official Project Title
               </label>
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
@@ -326,12 +326,12 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
 
         {/* Chapters Progress & AI Influence Metric */}
         <ContentCard
-          title="Project Chapters Status & AI Influence Audit"
-          subtitle="Integrity audit verifying candidate originality and compliance with institutional AI policies"
+          title="Project Chapters & AI Integrity"
+          subtitle="Candidate drafting progress and originality metrics."
           icon={Activity}
           headerRight={
             <span className="text-[11px] font-bold px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-              {projectDefs.length} Chapter Sections
+              {projectDefs.length} Sections
             </span>
           }
         >
@@ -373,8 +373,8 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
         {/* Supervisor Review History Log */}
         {reviews.length > 0 && (
           <ContentCard
-            title="Prior Moderation Audit Log"
-            subtitle="Chronological log of supervisor remarks, approvals, and revision demands"
+            title="Moderation History"
+            subtitle="Chronological log of supervisor reviews."
             icon={History}
           >
             <div className="space-y-3">

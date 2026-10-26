@@ -136,28 +136,28 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
       profile={profile}
       activeContextTitle={workspace.title || workspace.course}
     >
-      {/* 1. KEC Page Header Card with Two-Tone Accent Stripe & Breadcrumbs */}
+      {/* 1. Header Card */}
       <PageHeaderCard
-        title={workspace.title || "Project Title Formulation in Progress"}
-        subtitle={`Course: ${workspace.course} • Track: ${workspace.workspace_type.replace("_", " ").toUpperCase()} (${workspace.level.toUpperCase()} Level)`}
+        title={workspace.title || "Project Workspace"}
+        subtitle={`${workspace.course} • ${workspace.level.toUpperCase()} Level`}
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Project Studio", href: "/studio" },
           { label: workspace.title || "Overview", active: true },
         ]}
         metadata={[
-          { label: "Candidate", value: workspace.student?.full_name || "Enrolled Student" },
+          { label: "Candidate", value: workspace.student?.full_name || "Student" },
           { label: "Admission No", value: workspace.student?.admission_number || "Unset" },
           { label: "Supervisor", value: workspace.supervisor?.full_name || "Unassigned" },
           {
-            label: "Moderation Status",
+            label: "Status",
             value: isApproved
-              ? "Proposal Approved (Chapters Unlocked)"
+              ? "Approved (Chapters Unlocked)"
               : isPending
               ? "Awaiting Supervisor Approval"
               : hasChangesRequested
               ? "Revisions Requested"
-              : "Proposal Drafting",
+              : "Drafting",
           },
         ]}
         actions={
@@ -166,7 +166,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-white hover:bg-slate-50 text-blue-900 border border-slate-300 shadow-xs transition-colors"
           >
             <Lightbulb className="h-4 w-4 text-amber-500" />
-            <span>Topic Bank & Title</span>
+            <span>Topic & Title</span>
           </Link>
         }
       />
@@ -190,7 +190,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
             ) : (
               <Clock className="h-4 w-4" />
             )}
-            <span>2. Proposal Moderation</span>
+            <span>2. Moderation</span>
           </div>
           <div
             className={`p-2.5 rounded-lg border font-bold flex items-center justify-center gap-1.5 ${
@@ -204,7 +204,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
             ) : (
               <Lock className="h-4 w-4" />
             )}
-            <span>3. Chapters & Practical</span>
+            <span>3. Chapters</span>
           </div>
           <div
             className={`p-2.5 rounded-lg border font-bold flex items-center justify-center gap-1.5 ${
@@ -214,23 +214,20 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
             }`}
           >
             <Award className="h-4 w-4" />
-            <span>4. Final Defence</span>
+            <span>4. Defence</span>
           </div>
         </div>
       </div>
 
       {/* Changes Requested Notification Banner */}
       {hasChangesRequested && latestReview && (
-        <div className="bg-rose-50 border border-rose-200 rounded-xl p-5 space-y-2">
-          <div className="flex items-center gap-2 text-rose-800 font-bold text-sm">
-            <ShieldAlert className="h-5 w-5 text-rose-600" />
-            <span>Supervisor Feedback: Revisions Requested</span>
+        <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 space-y-2">
+          <div className="flex items-center gap-2 text-rose-800 font-bold text-xs sm:text-sm">
+            <ShieldAlert className="h-4 w-4 text-rose-600" />
+            <span>Supervisor Feedback</span>
           </div>
-          <p className="text-xs sm:text-sm text-rose-950 leading-relaxed bg-white p-3 rounded-lg border border-rose-200">
+          <p className="text-xs text-rose-950 leading-relaxed bg-white p-3 rounded-lg border border-rose-200">
             &ldquo;{latestReview.comment}&rdquo;
-          </p>
-          <p className="text-xs text-rose-700 font-medium">
-            Please revise your proposal sections below according to your supervisor&apos;s recommendations and resubmit.
           </p>
         </div>
       )}
@@ -241,8 +238,8 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
         <div className="lg:col-span-2 space-y-6">
           {/* Phase 1: Proposal Sections Checklist */}
           <ContentCard
-            title="Phase 1: Project Proposal Moderation Checklist"
-            subtitle="Draft all 4 sections with at least 20 words before submitting for supervisor review"
+            title="Proposal Sections"
+            subtitle="4 sections required before supervisor submission"
             icon={Layers}
             headerRight={
               isApproved ? (
@@ -322,8 +319,8 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
 
           {/* Phase 2: Project Chapters */}
           <ContentCard
-            title="Phase 2: Project Proper & Final Report Chapters"
-            subtitle={`Chapters 1 to ${workspace.workspace_type === "business_plan" ? "5" : "4"} per KNEC format guidelines`}
+            title="Project Chapters"
+            subtitle="Unlocked once proposal is approved"
             icon={Award}
             headerRight={
               !isApproved && (
@@ -335,14 +332,13 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
             }
           >
             {!isApproved ? (
-              <div className="p-8 rounded-lg bg-slate-50 border border-slate-200 text-center space-y-2">
-                <Lock className="h-8 w-8 mx-auto text-slate-400 mb-1" />
-                <h4 className="text-sm font-bold text-slate-900">
-                  Project Chapters Locked per KNEC Regulations
+              <div className="p-6 rounded-lg bg-slate-50 border border-slate-200 text-center space-y-1.5">
+                <Lock className="h-6 w-6 mx-auto text-slate-400 mb-1" />
+                <h4 className="text-xs font-bold text-slate-800">
+                  Chapters Locked
                 </h4>
-                <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
-                  Under KNEC Business and Technical Examinations regulations, project chapters unlock
-                  immediately once your project proposal is reviewed and approved by your supervisor.
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  Chapters unlock once your proposal is approved by your supervisor.
                 </p>
               </div>
             ) : (

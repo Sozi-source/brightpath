@@ -37,17 +37,15 @@ export default async function ProjectsPage() {
       activeContextTitle="TVET Projects Marketplace"
     >
       <PageHeaderCard
-        title="Ready-Made TVET Technical Projects & Business Plans"
-        subtitle="Download complete verified technical project packages, working schematics, source code repositories, and comprehensive KNEC-format business plans."
+        title="Projects Marketplace"
+        subtitle="Ready-made capstone packages, schematics, and business plans."
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Projects Marketplace", active: true },
         ]}
         metadata={[
-          { label: "Published Packages", value: `${projects.length} Verified Projects` },
-          { label: "Technical Trades", value: "Electrical, CS, Agriculture, Business" },
-          { label: "Delivery", value: "Instant Paystack / M-PESA Download" },
-          { label: "Integrity", value: "Faculty Reviewed & Screened" },
+          { label: "Available", value: `${projects.length} Projects` },
+          { label: "Delivery", value: "Instant Paystack / M-PESA" },
         ]}
         actions={
           isTrainerOrAdmin ? (
@@ -56,7 +54,7 @@ export default async function ProjectsPage() {
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-white text-blue-900 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
             >
               <Briefcase className="h-4 w-4 text-blue-700" />
-              <span>Trainer Studio</span>
+              <span>Publisher</span>
             </Link>
           ) : (
             <Link
@@ -64,7 +62,7 @@ export default async function ProjectsPage() {
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-white text-slate-700 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
             >
               <Download className="h-4 w-4 text-blue-700" />
-              <span>My Digital Library</span>
+              <span>My Library</span>
             </Link>
           )
         }
@@ -110,8 +108,8 @@ export default async function ProjectsPage() {
 
               <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] uppercase text-slate-400 font-bold block">Official Price</span>
-                  <span className="font-mono font-black text-lg text-slate-900">
+                  <span className="text-[10px] uppercase text-slate-400 font-medium block">Price</span>
+                  <span className="font-mono font-semibold text-base sm:text-lg text-slate-900">
                     KES {Number(p.price_kes).toLocaleString()}
                   </span>
                 </div>

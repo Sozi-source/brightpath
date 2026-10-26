@@ -48,17 +48,15 @@ export default async function LibraryPage() {
       activeContextTitle="Candidate Digital Library"
     >
       <PageHeaderCard
-        title="Candidate Digital Library & Resource Vault"
-        subtitle="Access and download verified project repositories, CAD blueprints, source code archives, and KNEC proposal templates associated with your purchases."
+        title="My Library"
+        subtitle="Purchased projects and downloadable assets."
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Digital Library", active: true },
         ]}
         metadata={[
           { label: "Learner", value: profile?.full_name || user.email || "Candidate" },
-          { label: "Purchased Packages", value: `${purchasedOrders.length} Completed Acquisitions` },
-          { label: "Download Entitlement", value: "Permanent Institutional Access" },
-          { label: "Verified Receipts", value: `${purchasedOrders.length} Paid Orders` },
+          { label: "Purchases", value: `${purchasedOrders.length} Projects` },
         ]}
         actions={
           <Link
@@ -66,7 +64,7 @@ export default async function LibraryPage() {
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-white text-blue-900 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
           >
             <Layers className="h-4 w-4 text-blue-700" />
-            <span>Browse Marketplace</span>
+            <span>Marketplace</span>
           </Link>
         }
       />

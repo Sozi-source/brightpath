@@ -27,6 +27,33 @@ BrightPath must look, feel, and function like an **authoritative, enterprise-gra
 | **Card Headers** | Plain text with generic Lucide icons | **Dual-Tone Accent Stripe**: Top edge features a 60/40 horizontal accent line (Blue + Gold) signaling national academic authority. |
 | **Typography & Contrast** | Faded gray text (`text-zinc-500` / `zinc-600`) | High-contrast, legible typography: Dark slate/navy headings (`#0f172a`), crisp metadata bars, bold tabular data (WCAG AAA compliant). |
 | **Information Density** | Sparse, airy, lots of empty padding | Structured, academic density: organized tables, rubrics cards, metadata bars, and clear document reader frames. |
+| **Copy & Descriptions** | Congested, multi-sentence paragraphs, essay card subtitles, and explanatory disclaimers | **Enterprise Minimal Text**: Punchy 1-3 word titles, optional 1-sentence subtitle (max 10 words), zero essay subtitles, concise self-explanatory form inputs, and sleek high-grade cards with no clutter. |
+
+---
+
+## 1.1 Mandatory Rule: Enterprise Minimal Text & High Density
+
+**Strict Rule:** Enterprise web applications (Stripe, Linear, GitHub, Vercel) never overwhelm users with dense explanatory prose, multi-line card subtitles, or long disclaimer paragraphs under form fields.
+
+1. **Headings**: 1 to 3 words max (`Project Studio`, `Projects Marketplace`, `New Workspace`, `Administration`).
+2. **Subtitles**: Exactly 1 short sentence (max 8-10 words) or omitted completely if the heading is self-explanatory.
+3. **Card Content**: Remove avoidable paragraphs. Use compact metric chips, badges, and high-grade Lucide icons (`w-4 h-4` in tinted badge containers `p-2 rounded-lg bg-blue-50 text-blue-700`).
+4. **Form Controls**: Labels must be concise (`Admission No`, `Price (KES)`, `Category`). Never put multi-line instructional paragraphs below inputs.
+5. **Disclaimers & Policies**: Reduce bulky disclaimer boxes to sleek single-line checkboxes or contextual tooltips.
+
+---
+
+## 1.2 Mandatory Rule: World-Class Refined Typography & Font Weights
+
+**Strict Rule:** Headings and metrics must NEVER use heavy, clunky bold weights (`font-black` or `font-extrabold`).
+
+1. **Font Stack**: Primary typeface is **Geist Sans** with tabular numbers enabled (`font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum"`). Code and numerical values use **Geist Mono**. Never fall back to generic Arial.
+2. **Weight Discipline**:
+   - **Primary Page Headings**: `text-xl sm:text-2xl font-semibold tracking-tight text-slate-900` (replaces heavy `font-extrabold`/`font-black`).
+   - **Card Titles**: `text-sm font-semibold text-slate-900`.
+   - **Stats Numbers**: `text-2xl font-semibold tracking-tight text-slate-900` or `font-mono font-semibold`. Forbid bloated `font-black` numbers.
+   - **Metadata & Chips**: `font-medium` (500) or `font-semibold` (600).
+   - **Prohibited Classes**: `font-black` (900) and `font-extrabold` (800) are strictly banned across all application files.
 
 ---
 

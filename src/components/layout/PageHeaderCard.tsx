@@ -39,7 +39,7 @@ export function PageHeaderCard({
         {/* Title & Actions Row */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0f2438] tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">
               {title}
             </h1>
             {subtitle && (
@@ -78,7 +78,7 @@ export function PageHeaderCard({
                     <span
                       className={`px-2.5 py-1 rounded ${
                         isLast
-                          ? "bg-white text-[#0f2438] font-bold shadow-xs"
+                          ? "bg-white text-slate-900 font-semibold shadow-xs"
                           : "text-slate-600"
                       }`}
                     >
@@ -97,7 +97,7 @@ export function PageHeaderCard({
             {metadata.map((item, idx) => (
               <div key={item.label} className="flex items-center gap-1">
                 {idx > 0 && <span className="text-slate-300 mr-3 hidden sm:inline">•</span>}
-                <span className="font-bold text-slate-900">{item.label}:</span>
+                <span className="font-semibold text-slate-900">{item.label}:</span>
                 <span className="text-slate-700">{item.value}</span>
               </div>
             ))}

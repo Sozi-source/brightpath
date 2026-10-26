@@ -64,17 +64,17 @@ export default async function HomePage() {
                 <GraduationCap className="h-5 w-5 text-[#f59e0b]" />
               </span>
               <div>
-                <span className="font-black text-sm tracking-tight text-slate-900 block leading-tight">
+                <span className="font-semibold text-sm tracking-tight text-slate-900 block leading-tight">
                   BrightPath TVET
                 </span>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
                   Kenya Education Cloud Standard
                 </span>
               </div>
             </Link>
           </div>
 
-          <nav className="hidden md:flex items-center gap-6 text-xs font-bold text-slate-600">
+          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-600">
             <Link href="/studio" className="hover:text-blue-700 transition-colors">
               Project Studio
             </Link>
@@ -92,19 +92,19 @@ export default async function HomePage() {
           <div className="flex items-center gap-2.5">
             {user ? (
               <div className="flex items-center gap-2.5">
-                <span className="hidden lg:inline-block text-xs font-bold text-slate-700">
+                <span className="hidden lg:inline-block text-xs font-semibold text-slate-700">
                   {fullName}
                 </span>
                 <Link
                   href={dashboardHref}
-                  className="rounded-lg bg-blue-700 hover:bg-blue-800 px-3.5 py-2 text-xs font-bold text-white transition-colors shadow-xs"
+                  className="rounded-lg bg-blue-700 hover:bg-blue-800 px-3.5 py-2 text-xs font-semibold text-white transition-colors shadow-xs"
                 >
                   Dashboard ({userRole})
                 </Link>
                 <form action={logout}>
                   <button
                     type="submit"
-                    className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                    className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                   >
                     Sign out
                   </button>
@@ -114,13 +114,13 @@ export default async function HomePage() {
               <>
                 <Link
                   href="/login"
-                  className="rounded-lg px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+                  className="rounded-lg px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/signup"
-                  className="rounded-lg bg-blue-700 hover:bg-blue-800 px-3.5 py-2 text-xs font-bold text-white transition-colors shadow-xs"
+                  className="rounded-lg bg-blue-700 hover:bg-blue-800 px-3.5 py-2 text-xs font-semibold text-white transition-colors shadow-xs"
                 >
                   Register Candidate
                 </Link>
@@ -140,40 +140,40 @@ export default async function HomePage() {
           </div>
 
           <div className="p-8 sm:p-12 lg:p-16 text-center max-w-4xl mx-auto space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-blue-200 bg-blue-50 text-xs font-bold text-blue-900 mx-auto shadow-xs">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-blue-200 bg-blue-50 text-xs font-semibold text-blue-900 mx-auto shadow-xs">
               <ShieldCheck className="h-4 w-4 text-blue-700" />
-              <span>National TVET Capstone Projects & Marketplace System</span>
+              <span>TVET Projects & Marketplace</span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 leading-[1.15]">
-              Progressive Project Building & Ready-Made Technical Marketplace
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-slate-900 leading-[1.15]">
+              Progressive Project Studio & Technical Marketplace
             </h1>
 
             <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
-              A simplified, high-efficiency platform for TVET candidates to progressively build accredited Research Projects and Business Plans, and for trainers to publish ready-made capstones for sale with zero friction.
+              Build accredited TVET research projects and business plans step-by-step, or discover and publish complete capstones with instant delivery.
             </p>
 
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link
                 href="/studio"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-blue-700 hover:bg-blue-800 px-6 py-3 text-xs sm:text-sm font-bold text-white shadow-xs transition-colors"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-blue-700 hover:bg-blue-800 px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition-colors"
               >
-                <span>Progressive Project Studio</span>
+                <span>Project Studio</span>
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/projects"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 px-6 py-3 text-xs sm:text-sm font-bold text-slate-800 transition-colors shadow-xs"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 px-5 py-2.5 text-xs sm:text-sm font-bold text-slate-800 transition-colors shadow-xs"
               >
                 <ShoppingBag className="h-4 w-4 text-emerald-700" />
-                <span>Browse Projects Marketplace</span>
+                <span>Browse Marketplace</span>
               </Link>
               <Link
                 href="/trainer"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 px-6 py-3 text-xs sm:text-sm font-bold text-slate-800 transition-colors shadow-xs"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 px-5 py-2.5 text-xs sm:text-sm font-bold text-slate-800 transition-colors shadow-xs"
               >
                 <Briefcase className="h-4 w-4 text-blue-700" />
-                <span>Publish Projects (Trainers)</span>
+                <span>Trainer Publisher</span>
               </Link>
             </div>
           </div>
@@ -200,52 +200,52 @@ export default async function HomePage() {
         </div>
 
         {/* 3. Core Institutional Pillars */}
-        <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
-              <FileText className="h-5 w-5" />
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
+              <FileText className="h-4 w-4" />
             </div>
-            <h2 className="text-base font-bold text-slate-900">Progressive Project Studio</h2>
+            <h2 className="text-sm font-bold text-slate-900">Project Studio</h2>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Step-by-step drafting for candidates: formulate research topics or business plans, draft section-by-section, track word counts, and submit to supervisors.
+              Formulate topics, draft section-by-section with KNEC chapter outlines, track words, and submit for moderation.
             </p>
             <Link
               href="/studio"
-              className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:underline pt-2"
+              className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:underline pt-1"
             >
               <span>Open Studio</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
 
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
-              <Layers className="h-5 w-5" />
+          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+              <Layers className="h-4 w-4" />
             </div>
-            <h2 className="text-base font-bold text-slate-900">Ready-Made Projects Marketplace</h2>
+            <h2 className="text-sm font-bold text-slate-900">Projects Marketplace</h2>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Download complete, tested technical source code packages and full business plans with instant delivery powered by Paystack.
+              Discover tested technical packages and business plans with instant delivery and M-PESA settlement.
             </p>
             <Link
               href="/projects"
-              className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:underline pt-2"
+              className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:underline pt-1"
             >
               <span>Explore Marketplace</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
 
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 text-indigo-700">
-              <Building className="h-5 w-5" />
+          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-700">
+              <Building className="h-4 w-4" />
             </div>
-            <h2 className="text-base font-bold text-slate-900">Supervisor Moderation</h2>
+            <h2 className="text-sm font-bold text-slate-900">Supervisor Moderation</h2>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Supervisors can review candidate proposal drafts, request specific revisions, approve titles, and sign off on chapters with minimal friction.
+              Review candidate proposals, verify chapter progress, refine project titles, and approve work.
             </p>
             <Link
               href="/supervisor"
-              className="inline-flex items-center gap-1 text-xs font-bold text-indigo-700 hover:underline pt-2"
+              className="inline-flex items-center gap-1 text-xs font-bold text-indigo-700 hover:underline pt-1"
             >
               <span>Supervisor Portal</span>
               <ArrowRight className="h-3.5 w-3.5" />

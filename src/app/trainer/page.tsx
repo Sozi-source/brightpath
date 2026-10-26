@@ -15,7 +15,6 @@ import {
   Trash2,
   ShieldCheck,
   UploadCloud,
-  FileSpreadsheet,
 } from "lucide-react";
 import type { Project, UserProfile } from "@/types/database";
 
@@ -60,25 +59,20 @@ export default async function TrainerPortalPage() {
       profile={profile}
       activeContextTitle="Trainer Project Publisher"
     >
-      {/* 1. KEC-Standard Page Header Card */}
+      {/* 1. Header Card */}
       <PageHeaderCard
-        title="Trainer Project Marketplace Publisher"
-        subtitle="Effortlessly publish and sell verified technical capstone packages, source code repositories, and complete business plans to TVET candidates across East Africa."
+        title="Project Publisher"
+        subtitle="Upload and manage technical capstone projects and business plans for sale."
         breadcrumbs={[
           { label: "Home", href: "/" },
-          { label: "Trainer Publisher Hub", active: true },
+          { label: "Publisher", active: true },
         ]}
         metadata={[
           {
-            label: "Faculty Trainer",
-            value: profile?.full_name || user.email?.split("@")[0] || "Faculty Trainer",
+            label: "Trainer",
+            value: profile?.full_name || user.email?.split("@")[0] || "Trainer",
           },
-          {
-            label: "Authorization",
-            value: isAdmin ? "System Administrator (Verified Trainer)" : "Accredited Faculty Trainer",
-          },
-          { label: "Published Packages", value: `${projects.length} Ready-Made Projects` },
-          { label: "Payment Channel", value: "Automated Paystack / M-PESA" },
+          { label: "Published", value: `${projects.length} Projects` },
         ]}
         actions={
           isAdmin ? (
@@ -87,33 +81,19 @@ export default async function TrainerPortalPage() {
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-white text-emerald-800 border border-emerald-300 shadow-xs hover:bg-emerald-50 transition-colors"
             >
               <ShieldCheck className="h-4 w-4 text-emerald-600" />
-              <span>Admin Governance</span>
+              <span>Admin</span>
             </Link>
           ) : undefined
         }
       />
 
-      {/* 2. Bulk Upload Hub Card (Zero-Labor Batch Publishing) */}
+      {/* 2. Bulk Upload Hub Card */}
       <ContentCard
-        title="Fast Bulk Upload Hub (CSV or JSON)"
-        subtitle="Batch publish dozens of projects in seconds. Upload a spreadsheet (.csv) or JSON array, or paste raw text below."
+        title="Bulk Import"
+        subtitle="Import multiple projects from CSV or JSON file"
         icon={UploadCloud}
-        headerRight={
-          <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
-            Zero Friction
-          </span>
-        }
       >
-        <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-5 space-y-4 max-w-3xl">
-          <div className="flex items-center gap-2">
-            <FileSpreadsheet className="h-4 w-4 text-emerald-700" />
-            <h3 className="text-xs sm:text-sm font-bold text-slate-900">
-              Bulk Import Projects Spreadsheet or JSON
-            </h3>
-          </div>
-          <p className="text-xs text-slate-600">
-            Publish multiple ready-made projects at once. Choose a spreadsheet file (.csv) or paste tabular data directly.
-          </p>
+        <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-4 space-y-3 max-w-3xl">
 
           <form action={bulkImportProjects} className="space-y-3">
             <div>

@@ -82,19 +82,17 @@ export default async function ProblemFinderPage({ params }: ProblemFinderPagePro
       activeContextTitle={`Problem Formulation: ${workspace.title || "Topic"}`}
     >
       <PageHeaderCard
-        title="Problem Formulation & Curated Topic Bank"
-        subtitle={`Select a verified curriculum research topic from our TVET knowledge base, or formulate your specific project title and demographic focus for ${workspace.course}.`}
+        title="Topic Formulation"
+        subtitle="Select a verified topic from the curriculum bank or enter your title."
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Project Studio", href: "/studio" },
-          { label: workspace.title || "Workspace Overview", href: `/studio/${workspaceId}` },
-          { label: "Problem Formulation", active: true },
+          { label: workspace.title || "Overview", href: `/studio/${workspaceId}` },
+          { label: "Topic Formulation", active: true },
         ]}
         metadata={[
-          { label: "Course Specialization", value: workspace.course },
-          { label: "TVET Track", value: `${workspace.level.toUpperCase()} • ${typeLabel}` },
-          { label: "Curriculum Bank", value: `${topics.length} Accredited Topics` },
-          { label: "Milestone", value: "Phase 1: Topic Selection" },
+          { label: "Course", value: workspace.course },
+          { label: "Track", value: `${workspace.level.toUpperCase()} • ${typeLabel}` },
         ]}
         actions={
           <Link
@@ -112,7 +110,6 @@ export default async function ProblemFinderPage({ params }: ProblemFinderPagePro
         initialTitle={workspace.title || ""}
         initialProblemArea={workspace.problem_area || ""}
         workspaceType={workspace.workspace_type}
-        level={workspace.level}
         topics={topics}
         action={updateWorkspaceTopic}
       />
