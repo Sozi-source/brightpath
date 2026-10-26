@@ -23,6 +23,7 @@ import {
   type CitationInfo,
   type EvidenceNote,
 } from "./sources";
+import { generateSecondaryDataTopics } from "./secondaryTopics";
 
 export interface TopicNarrowingOption {
   id: string;
@@ -179,6 +180,7 @@ export function getSectionQuestionGuide(
 ): SectionQuestionGuide {
   const isBusiness = context.workspaceType === "business_plan";
   const isTrade = context.workspaceType === "trade_fabrication";
+  const isSecondaryResearch = context.workspaceType === "research_secondary";
 
   // Proposal Title or Research Title
   if (sectionKey === "proposal.title" || sectionKey === "cover.details") {
@@ -207,19 +209,31 @@ export function getSectionQuestionGuide(
       };
     }
     return {
-      mainQuestion: "Which problem area or nutritional challenge do you wish to conduct your research on?",
+      mainQuestion: "What straightforward nutrition topic will you investigate using existing secondary data?",
       subQuestions: [
-        "What specific nutritional condition or indicator are you investigating (e.g. stunting, wasting, micronutrient deficiency, dietary diversity)?",
-        "Which geographic location or population group do you plan to study (e.g. children aged 6-59 months in Kilifi County)?",
-        "Which secondary survey dataset or hospital archive will you analyze (e.g. KDHS 2014-2022)?",
+        "What specific nutrition issue are you studying (e.g. child stunting, exclusive breastfeeding, iron supplementation, school feeding)?",
+        "Which county or population group is your study focused on?",
+        "Which existing secondary data source will you review (e.g. KDHS 2022 report, KNBS reports, MOH health facility registers, or school records)?",
       ],
       placeholderExample:
-        'e.g. "I want to investigate the longitudinal trends and determinants of child stunting among under-5s in Kilifi County using KDHS 2014 and 2022 survey data..."',
+        'e.g. "Assessment of Complementary Feeding Practices and Child Nutritional Status in Kitui County using KDHS 2022 Secondary Data."',
     };
   }
 
   // Problem Statement
   if (sectionKey.includes("problem")) {
+    if (isSecondaryResearch) {
+      return {
+        mainQuestion: "What nutrition problem exists in your study area, and what do published reports show?",
+        subQuestions: [
+          "What does existing data (e.g. KDHS 2022, KNBS, or MOH reports) show about this nutrition problem?",
+          "Which group (children under 5, pregnant women, pupils, or patients) is most affected?",
+          "Why is it helpful to review and summarize existing secondary records on this issue?",
+        ],
+        placeholderExample:
+          'e.g. "In our county, child stunting and poor dietary diversity remain high according to national nutrition reports. However, local health workers and students lack a simple summary comparing feeding practices and malnutrition rates from existing survey records..."',
+      };
+    }
     return {
       mainQuestion: "What exact problem or deficit exists, and why is it urgent to solve?",
       subQuestions: [
@@ -228,18 +242,31 @@ export function getSectionQuestionGuide(
         "Why have existing commercial products or conventional solutions failed to fix it?",
       ],
       placeholderExample:
-        'e.g. "In our county, stunting affects over 28% of children under 5 due to poor complementary feeding practices. Commercial imported baby foods are unaffordable for low-income mothers..."',
+        'e.g. "In our county, stunting affects over 18% of children under 5 due to poor complementary feeding practices. Commercial imported baby foods are unaffordable for low-income mothers..."',
     };
   }
 
   // Objectives
   if (sectionKey.includes("objectives")) {
+    if (isSecondaryResearch) {
+      return {
+        mainQuestion: "What 3 straightforward objectives will you achieve using secondary data?",
+        subQuestions: [
+          "What is your main general objective (starting with 'To assess...' or 'To examine...')?",
+          "Objective 1: Which main indicator or prevalence rate will you extract from the report/register?",
+          "Objective 2: Which related dietary practice or service coverage indicator will you review?",
+          "Objective 3: How will you compare the figures (e.g. by age group, rural vs. urban, or across years)?",
+        ],
+        placeholderExample:
+          'e.g. "General Objective: To assess infant feeding practices and child stunting in Kitui County using KDHS 2022 data.\nSpecific Objectives:\n1. To determine the proportion of children aged 6-23 months meeting minimum dietary diversity from KDHS 2022 tables.\n2. To examine stunting and wasting rates recorded in the survey report.\n3. To compare feeding indicators between rural and urban households."',
+      };
+    }
     return {
       mainQuestion: "What specific steps or investigations will you carry out?",
       subQuestions: [
         "What is the single overarching general objective of this project?",
         "What baseline data or raw material properties will you evaluate first (Objective 1)?",
-        "What formulation trials, survey analyses, or experiments will you conduct next (Objective 2)?",
+        "What formulation trials or experiments will you conduct next (Objective 2)?",
         "What evaluation, sensory testing, or costing will you perform to conclude (Objective 3)?",
       ],
       placeholderExample:
@@ -254,37 +281,113 @@ export function getSectionQuestionGuide(
     sectionKey.includes("significance")
   ) {
     return {
-      mainQuestion: "Who will benefit from this project and how will it help Kenya?",
+      mainQuestion: "Who will benefit from this project and how will the findings be useful?",
       subQuestions: [
-        "How will this research or product assist the Ministry of Health, County nutritionists, or local families?",
-        "What economic or community advantage does your solution provide (e.g. lower cost, local farmers)?",
+        "How will your findings help nutritionists, health workers, teachers, or community members?",
+        "Why is using secondary data (existing official reports) a practical and reliable approach for this study?",
       ],
       placeholderExample:
-        'e.g. "This study will provide county public health officers with localized dietary risk factors, enabling targeted food supplementation programs and supporting Kenya Vision 2030 nutrition targets..."',
+        'e.g. "This study summarizes official nutrition data in a simple format for county nutritionists, community health promoters, and college students to guide nutrition education..."',
     };
   }
 
   // Background
   if (sectionKey.includes("background")) {
     return {
-      mainQuestion: "What is the background context and history of this challenge?",
+      mainQuestion: "What is the background of this nutrition issue globally, in Kenya, and in your county?",
       subQuestions: [
-        "What national or regional statistics show the prevalence of this condition?",
-        "Why is your chosen county or raw material particularly relevant?",
-        "What previous interventions have been implemented, and what gap remains?",
+        "What is the nutrition topic and why does it matter for human health?",
+        "What do WHO, UNICEF, or Kenya national reports (such as KDHS 2022) say about this problem?",
+        "What is the situation in your selected county or target group?",
       ],
       placeholderExample:
-        'e.g. "Child undernutrition remains a persistent challenge in Sub-Saharan Africa. According to KDHS 2022, 18% of children in Kenya are stunted, with arid and coastal counties bearing the heaviest burden..."',
+        'e.g. "Good nutrition during early childhood is essential for growth and development. In Kenya, the 2022 KDHS report shows that 18% of children under five are stunted, with rural counties experiencing higher rates..."',
     };
   }
 
-  // Methodology / Procedure / Workflow
+  // Secondary Research Chapter 3 Specific Sections (Sources, Variables, Verification, Analysis, Ethics)
+  if (sectionKey === "ch3.sources") {
+    return {
+      mainQuestion: "Which official secondary reports, registers, or publications did you get your data from?",
+      subQuestions: [
+        "Which exact reports or registers did you use (e.g. KDHS 2022, KNBS KIHBS, MOH KHIS facility reports, or published studies)?",
+        "Which organization published or maintains these records (e.g. KNBS, Ministry of Health, FAO/WHO)?",
+        "Which specific tables, chapters, or summary sheets did you extract your numbers from?",
+      ],
+      placeholderExample:
+        'e.g. "This study relied entirely on secondary data extracted from the Kenya Demographic and Health Survey (KDHS) 2022 report published by KNBS and ICF, alongside Ministry of Health routine nutrition summary reports..."',
+    };
+  }
+
+  if (sectionKey === "ch3.variables") {
+    return {
+      mainQuestion: "Which key variables or nutrition indicators did you extract from the secondary records?",
+      subQuestions: [
+        "What is your main outcome (dependent) variable (e.g. stunting rate, anemia prevalence, school attendance)?",
+        "What are the independent or background variables (e.g. dietary diversity, age group, meal frequency, rural/urban residence)?",
+        "How are these indicators defined in standard WHO, FAO, or MOH guidelines?",
+      ],
+      placeholderExample:
+        'e.g. "The main dependent variable is child stunting (height-for-age below -2 SD). The independent variables extracted from the report are minimum dietary diversity (at least 5 out of 8 food groups) and minimum meal frequency..."',
+    };
+  }
+
+  if (sectionKey === "ch3.verification") {
+    return {
+      mainQuestion: "How did you check and verify that the extracted secondary figures were accurate?",
+      subQuestions: [
+        "How did you record the figures from the original report (e.g. using a structured data extraction checklist)?",
+        "How did you double-check the numbers against the official published tables to avoid copying errors?",
+      ],
+      placeholderExample:
+        'e.g. "A structured data extraction sheet was used to record percentages directly from the published KDHS 2022 tables. All extracted values were cross-checked twice against the official report to ensure accuracy and completeness..."',
+    };
+  }
+
+  if (sectionKey === "ch3.analysis") {
+    return {
+      mainQuestion: "How did you organize, summarize, and present the secondary data?",
+      subQuestions: [
+        "How were the extracted figures organized (e.g. grouped by objective in Microsoft Excel)?",
+        "Which simple descriptive statistics did you use (e.g. frequencies, percentages, averages/means)?",
+        "How will the results be presented in Chapter 4 (e.g. simple frequency tables and bar charts)?",
+      ],
+      placeholderExample:
+        'e.g. "The extracted secondary data was entered into Microsoft Excel and analyzed using simple descriptive statistics, including frequencies, percentages, and averages. Findings are presented in clear summary tables..."',
+    };
+  }
+
+  if (sectionKey === "ch3.ethics") {
+    return {
+      mainQuestion: "What ethical rules did you follow when using secondary data?",
+      subQuestions: [
+        "Did you collect any personal names or private patient identifiers? (State clearly that only anonymous summary data was used).",
+        "How did you credit the original data owners (e.g. citing KNBS, MOH, WHO, and published authors in APA 7th format)?",
+      ],
+      placeholderExample:
+        'e.g. "Because this study relied wholly on publicly available, anonymized secondary reports, no human subjects were interviewed. All data custodians and authors are properly acknowledged and cited in APA 7th format..."',
+    };
+  }
+
+  // Methodology / Design / Procedure / Workflow
   if (
     sectionKey.includes("methodology") ||
     sectionKey.includes("design") ||
     sectionKey.includes("procedure") ||
     sectionKey.includes("workflow")
   ) {
+    if (isSecondaryResearch) {
+      return {
+        mainQuestion: "How did you apply a descriptive cross-sectional design using secondary data?",
+        subQuestions: [
+          "State clearly that your study uses a descriptive cross-sectional research design based on secondary data.",
+          "Why is a descriptive cross-sectional design appropriate for summarizing existing nutrition indicators at a defined period?",
+          "Why did you choose secondary data (existing KDHS/KNBS/MOH reports) instead of collecting primary field data?",
+        ],
+        placeholderExample:
+          'e.g. "This study used a descriptive cross-sectional research design relying entirely on secondary data. This design was chosen because it allows clear description of nutritional indicators and feeding practices at a specific point in time using verified KDHS 2022 and MOH summary reports without field interviews..."',
+      };
+    }
     return {
       mainQuestion: "How will you practically execute this project step-by-step?",
       subQuestions: [
@@ -297,8 +400,25 @@ export function getSectionQuestionGuide(
     };
   }
 
-  // Results / Findings
-  if (sectionKey.includes("results") || sectionKey.includes("findings")) {
+  // Results / Findings / Subgroup / Discussion
+  if (
+    sectionKey.includes("results") ||
+    sectionKey.includes("findings") ||
+    sectionKey.includes("subgroup") ||
+    sectionKey.includes("discussion")
+  ) {
+    if (isSecondaryResearch) {
+      return {
+        mainQuestion: "What key percentages and findings did you extract from the secondary reports?",
+        subQuestions: [
+          "What exact percentages or figures were recorded from the report for each of your objectives?",
+          "How do the figures compare across groups (e.g. rural vs. urban, age groups, or boys vs. girls)?",
+          "How do your extracted findings compare with WHO standards or other published studies?",
+        ],
+        placeholderExample:
+          'e.g. "According to the extracted KDHS 2022 tables, 18% of children under five are stunted nationally, with higher prevalence in rural areas (20%) compared to urban areas (12%). Only 31% of children aged 6-23 months met the minimum acceptable diet..."',
+      };
+    }
     return {
       mainQuestion: "What were your key observations, measurements, or findings?",
       subQuestions: [
@@ -318,26 +438,26 @@ export function getSectionQuestionGuide(
     sectionKey.includes("summary")
   ) {
     return {
-      mainQuestion: "What final conclusions and recommendations do you draw?",
+      mainQuestion: "What final conclusions and practical recommendations do you draw from your findings?",
       subQuestions: [
-        "Did the project satisfy your original research questions and objectives?",
-        "What concrete actions should health coordinators, commercial millers, or households take?",
-        "What should future researchers investigate next?",
+        "What main conclusion answers each of your specific objectives?",
+        "What simple, practical actions should health workers, schools, or households take based on these findings?",
+        "What further secondary review or local study do you suggest for future students?",
       ],
       placeholderExample:
-        'e.g. "In conclusion, biofortified sweet potato and amaranth composite flour meets KEBS standards for complementary feeding. We recommend county health centers promote local household formulation..."',
+        'e.g. "In conclusion, secondary data shows that low dietary diversity remains a major driver of child undernutrition. County nutritionists should strengthen community education on affordable locally available protein and vegetable foods..."',
     };
   }
 
   // Default fallback
   return {
-    mainQuestion: `What are your core ideas and findings for ${sectionKey}?`,
+    mainQuestion: `What are your core points for ${sectionKey}?`,
     subQuestions: [
-      "What key observations or technical specifications belong in this section?",
-      "How does this support your overall project objectives?",
+      "What key facts, definitions, or observations belong in this section?",
+      "How does this section support your project objectives?",
     ],
     placeholderExample:
-      'Type your draft notes or bullet points here. Then click "Polish with AI" to expand and align with KNEC standards.',
+      'Write your draft points in your own words here, then click "Polish & Cite with AI" to refine and add verified citations.',
   };
 }
 
@@ -358,35 +478,49 @@ async function tryLlmTopicNarrowing(
 
   if (!geminiKey && !openaiKey) return null;
 
-  const systemPrompt = `You are a helpful, practical Academic Research Supervisor for TVET Certificate and Diploma students in Kenya studying ${context.course} (${context.level.toUpperCase()} level).
-CRITICAL REQUIREMENT - THE CANDIDATE IS A CERTIFICATE/CRAFT LEVEL STUDENT:
-All proposed research topics, objectives, and methodologies MUST be DIRECT, SIMPLE, CONCISE, and REALISTIC.
-1. DO NOT generate complex epidemiological or master's-level topics.
-2. STRICTLY FORBID heavy academic jargon like: "Longitudinal Trends and Socio-Demographic Determinants", "Retrospective secondary analysis of DHS micro-datasets", "multivariate logistic regression", "WHO Anthro Z-score modeling", "epidemiological cohorts".
-3. Titles MUST be direct, clear, and under 14 words (e.g., "Assessment of Household Food Insecurity and Academic Performance among Primary School Pupils in Kitui County").
-4. Problem Summary: 1-2 simple sentences in plain language describing the real community or school issue.
-5. General Aim: 1 simple sentence starting with "To assess...", "To investigate...", or "To determine...".
-6. Specific Objectives: Exactly 3 simple, numbered, practical steps a Certificate student can realistically achieve.
-7. Methodology: Simple and practical (e.g. "Descriptive survey using a simple structured questionnaire for pupils and teacher attendance checklists, analyzed with basic percentage tables").
+  const isSecondaryResearch = context.workspaceType === "research_secondary";
+
+  const designRules = isSecondaryResearch
+    ? `CRITICAL RESEARCH DESIGN RULES (CERTIFICATE / DIPLOMA SECONDARY RESEARCH):
+1. Every proposed topic MUST use a **Descriptive Cross-Sectional Research Design relying 100% on Secondary Data**.
+2. The student will NOT go to the field to administer questionnaires, conduct interviews, or take new anthropometric measurements (no weighing scales or MUAC tapes).
+3. Instead, the student will extract and summarize existing figures from verified secondary sources: Kenya Demographic and Health Survey (KDHS 2022 / 2014), KNBS reports (KIHBS), Ministry of Health (MOH / KHIS) facility summary reports, existing school feeding/attendance records, or published nutrition studies.
+4. Data analysis MUST be simple descriptive statistics: frequencies, percentages, averages, and simple comparison tables.`
+    : `CRITICAL TECHNICAL DESIGN RULES:
+1. Propose practical, realistic food product formulation or nutrition enterprise topics suitable for a TVET student.`;
+
+  const systemPrompt = `You are a practical Academic Research Supervisor for TVET Certificate and Diploma students in Kenya studying ${context.course} (${context.level.toUpperCase()} level).
+ALL proposed topics, objectives, and methodologies MUST be STRAIGHTFORWARD, SIMPLE, DIRECT, and REALISTIC for a Certificate student.
+
+${designRules}
+
+STRICT STYLE RULES:
+1. DO NOT generate complex master's-level or epidemiological topics.
+2. STRICTLY FORBID heavy jargon like: "Longitudinal Trends and Socio-Demographic Determinants", "Retrospective micro-dataset modeling", "multivariate logistic regression", "inferential econometric modeling".
+3. Titles MUST be direct, simple, and under 15 words (e.g., "Assessment of Complementary Feeding Practices and Child Stunting in Kitui County").
+4. Problem Summary: 1-2 simple sentences in plain language describing the issue.
+5. General Aim: 1 simple sentence starting with "To assess...", "To examine...", or "To determine...".
+6. Specific Objectives: Exactly 3 simple, numbered steps extracting/reviewing figures from secondary reports.
+7. Methodology Hint: Explicitly state "Descriptive cross-sectional study using secondary data from [specific report/register], analyzed using frequencies and percentages."
 
 Return strictly valid JSON with this shape:
 {
-  "problemAnalysis": "2 short, plain-language sentences explaining why this practical topic is important in Kenya.",
+  "problemAnalysis": "2 short, plain-language sentences explaining why this topic matters and which secondary reports can be used.",
   "options": [
     {
       "id": "opt-1",
-      "title": "Direct and simple title (under 14 words)",
-      "problemSummary": "1-2 simple sentences explaining the real-life problem",
+      "title": "Direct and simple title (under 15 words)",
+      "problemSummary": "1-2 simple sentences explaining the problem",
       "generalObjective": "Simple general aim",
       "specificObjectives": [
-        "1. First simple objective",
-        "2. Second simple objective",
-        "3. Third simple objective"
+        "1. First simple objective using secondary data",
+        "2. Second simple objective using secondary data",
+        "3. Third simple objective using secondary data"
       ],
-      "methodologyHint": "Simple, practical method (questionnaires, observation, basic percentages)"
+      "methodologyHint": "Descriptive cross-sectional design using secondary data from KDHS / KNBS / MOH reports, analyzed with simple percentages and frequency tables."
     }
   ],
-  "followUpQuestion": "A friendly, simple question to help the candidate choose their preferred focus"
+  "followUpQuestion": "A friendly, simple question to help the student pick their preferred option"
 }`;
 
   try {
@@ -463,10 +597,16 @@ async function tryLlmSectionPolish(params: {
         .join("\n")
     : "(none: this section has no verified source notes, so write without any citation)";
 
+  const designNote =
+    context.workspaceType === "research_secondary"
+      ? "Research design: Straightforward descriptive cross-sectional design relying entirely on secondary data (existing KDHS, KNBS, MOH reports, or institutional records; no primary field questionnaires or lab work)."
+      : "";
+
   const prompt = `You are a supportive academic writing coach for a Kenyan TVET student studying ${context.course} (${context.level} level).
 The student has written their own draft for the section "${sectionTitle}". Improve it; do not replace it.
 Project title: ${context.title || "Academic Project"}
 Problem area: ${context.problemArea || "Public health nutrition"}
+${designNote}
 Section guidance: ${guidance}
 Target length: at least ${minWords} words.
 
@@ -588,7 +728,6 @@ function generateDeterministicTopics(
   course: string
 ): TopicNarrowingResult {
   const loc = detectKenyaLocation(query);
-  const q = query.toLowerCase();
 
   // 1. Food Science / Trade Formulation
   if (type === "trade_fabrication") {
@@ -689,335 +828,8 @@ function generateDeterministicTopics(
     };
   }
 
-  // 3. Nutrition & Dietetics Research (Certificate & Diploma Standard)
-
-  // A. School / Education / Academic Performance / Breakfast Theme
-  if (
-    q.includes("school") ||
-    q.includes("performance") ||
-    q.includes("pupil") ||
-    q.includes("student") ||
-    q.includes("academic") ||
-    q.includes("attendance") ||
-    q.includes("class") ||
-    q.includes("learn") ||
-    q.includes("breakfast")
-  ) {
-    return {
-      problemAnalysis: `Household food shortages and skipping meals directly impair pupil alertness, classroom concentration, and school attendance across Kenyan primary schools.`,
-      options: [
-        {
-          id: "rs-1",
-          title: `Assessment of Household Food Insecurity and Academic Performance among Primary School Pupils in ${loc}`,
-          problemSummary: `Many school-going children experience household food shortages, leading to morning hunger, poor classroom concentration, and lower exam performance.`,
-          generalObjective: `To assess how household food insecurity affects the academic performance and school attendance of primary school pupils in ${loc}.`,
-          specificObjectives: [
-            `1. To determine the level of household food insecurity among pupils' families in ${loc}.`,
-            `2. To assess the school attendance and test scores of pupils from food-insecure households.`,
-            `3. To identify dietary coping strategies used by parents and guardians to manage food shortages.`,
-          ],
-          methodologyHint: `Descriptive survey using a simple structured questionnaire for pupils and teacher attendance checklists, summarized with basic percentage tables.`,
-        },
-        {
-          id: "rs-2",
-          title: `Investigation of School Feeding Programs and Pupil Classroom Participation in ${loc}`,
-          problemSummary: `Lack of consistent midday meals in schools contributes to early fatigue, lower afternoon attendance, and reduced participation during lessons.`,
-          generalObjective: `To evaluate how school feeding initiatives support pupil attendance and active participation in class.`,
-          specificObjectives: [
-            `1. To identify the types and regularity of meals provided to pupils during the school week.`,
-            `2. To compare pupil attendance rates on days with school meals versus days without.`,
-            `3. To evaluate teachers' assessments of pupil alertness and class participation.`,
-          ],
-          methodologyHint: `Simple observation checklists and brief interviews with class teachers and school cooks, analyzed with frequency tables.`,
-        },
-        {
-          id: "rs-3",
-          title: `A Survey on Breakfast Habits and Morning Class Concentration among Primary School Pupils in ${loc}`,
-          problemSummary: `A significant number of pupils attend morning lessons without eating breakfast, leading to lethargy, headaches, and difficulty concentrating on morning schoolwork.`,
-          generalObjective: `To examine the relationship between regular breakfast consumption and morning classroom attentiveness among primary pupils.`,
-          specificObjectives: [
-            `1. To determine the frequency of breakfast consumption among school pupils.`,
-            `2. To identify common breakfast foods and beverages consumed by pupils.`,
-            `3. To record teachers' observations regarding pupils' morning energy levels and attentiveness.`,
-          ],
-          methodologyHint: `Questionnaire survey administered to pupils with teacher guidance, summarized using simple frequency counts and percentages.`,
-        },
-      ],
-      followUpQuestion: `Would you prefer your study to focus on overall household food insecurity, midday school feeding programs, or morning breakfast habits?`,
-    };
-  }
-
-  // B. Dietary Diversity & Household Food Security Theme
-  if (
-    q.includes("diversity") ||
-    q.includes("dietary") ||
-    q.includes("food security") ||
-    q.includes("insecurity") ||
-    q.includes("vegetable") ||
-    q.includes("fruit") ||
-    q.includes("diet")
-  ) {
-    return {
-      problemAnalysis: `Evaluating household dietary diversity identifies micronutrient deficits and supports community health workers in promoting balanced family diets.`,
-      options: [
-        {
-          id: "rs-1",
-          title: `Assessment of Household Dietary Diversity and Food Consumption Patterns in ${loc}`,
-          problemSummary: `Many rural families rely primarily on starchy staples with limited intake of vegetables, fruits, and proteins, increasing the risk of nutrient deficiencies.`,
-          generalObjective: `To assess household dietary diversity and daily food consumption patterns among families in ${loc}.`,
-          specificObjectives: [
-            `1. To identify the main food groups commonly consumed by households in the study area.`,
-            `2. To determine the household dietary diversity score (HDDS) using a simple 24-hour food recall checklist.`,
-            `3. To identify factors such as food cost and market access that influence household food choices.`,
-          ],
-          methodologyHint: `Cross-sectional descriptive survey using a 24-hour dietary recall questionnaire with 30-50 household heads, analyzed with basic percentage tables.`,
-        },
-        {
-          id: "rs-2",
-          title: `Investigation of Household Food Security and Coping Strategies in ${loc}`,
-          problemSummary: `Seasonal dry spells and high market prices force families to skip meals or reduce food quantities, leading to household nutritional vulnerability.`,
-          generalObjective: `To determine household food security status and the coping mechanisms used during periods of food shortage.`,
-          specificObjectives: [
-            `1. To assess the number of balanced meals consumed daily by family members.`,
-            `2. To identify common coping strategies such as purchasing cheaper foods or borrowing food.`,
-            `3. To determine the availability and affordability of basic food commodities in local markets.`,
-          ],
-          methodologyHint: `Simple household survey using a structured questionnaire administered to caregivers, summarized using frequency tables.`,
-        },
-        {
-          id: "rs-3",
-          title: `Assessment of Fruit and Vegetable Consumption Habits among Households in ${loc}`,
-          problemSummary: `Low daily consumption of fresh fruits and green leafy vegetables contributes to micronutrient deficiencies such as vitamin A and iron deficiency.`,
-          generalObjective: `To assess the intake frequency of fruits and vegetables and barriers to adequate consumption in ${loc}.`,
-          specificObjectives: [
-            `1. To find out how frequently households consume fresh fruits and vegetables in a week.`,
-            `2. To identify commonly available indigenous vegetables grown or purchased in the community.`,
-            `3. To determine challenges that limit vegetable intake, including seasonal scarcity and water shortages.`,
-          ],
-          methodologyHint: `Community-based questionnaire survey with local mothers and market traders, analyzed with basic percentages.`,
-        },
-      ],
-      followUpQuestion: `Would you like your study to focus on overall dietary diversity scores, food security coping strategies, or fruit and vegetable consumption?`,
-    };
-  }
-
-  // C. Child Malnutrition, Infant & Young Child Feeding (IYCF) Theme
-  if (
-    q.includes("stunt") ||
-    q.includes("waste") ||
-    q.includes("child") ||
-    q.includes("infant") ||
-    q.includes("wean") ||
-    q.includes("complementary") ||
-    q.includes("iycf") ||
-    q.includes("under 5") ||
-    q.includes("under-5") ||
-    q.includes("growth")
-  ) {
-    return {
-      problemAnalysis: `Investigating infant and young child feeding practices directly addresses child growth and provides actionable evidence for maternal and child health clinics.`,
-      options: [
-        {
-          id: "rs-1",
-          title: `Assessment of Complementary Feeding Practices and Growth of Children Under 5 in ${loc}`,
-          problemSummary: `Inappropriate weaning foods and late introduction of nutrient-dense meals contribute to poor weight gain and childhood growth faltering.`,
-          generalObjective: `To assess complementary feeding practices and basic nutritional status of children under five years in ${loc}.`,
-          specificObjectives: [
-            `1. To determine the age at which complementary foods are first introduced to infants.`,
-            `2. To evaluate the ingredients and nutritional quality of complementary porridge prepared by mothers.`,
-            `3. To record mid-upper arm circumference (MUAC) and weight-for-age measurements of attending children.`,
-          ],
-          methodologyHint: `Clinic-based descriptive survey at the local health facility using MUAC tapes, weighing scales, and short mother questionnaires.`,
-        },
-        {
-          id: "rs-2",
-          title: `Investigation of Exclusive Breastfeeding Practices and Maternal Challenges in ${loc}`,
-          problemSummary: `Early introduction of water, cow's milk, or thin gruel before six months exposes infants to diarrheal infections and suboptimal growth.`,
-          generalObjective: `To examine the practice of exclusive breastfeeding and common challenges experienced by mothers during the first six months.`,
-          specificObjectives: [
-            `1. To find out the proportion of mothers who practice exclusive breastfeeding up to six months.`,
-            `2. To identify reasons given by mothers for introducing other liquids or solid foods early.`,
-            `3. To assess maternal awareness regarding the health benefits of exclusive breastfeeding.`,
-          ],
-          methodologyHint: `Descriptive survey using a structured interview questionnaire with nursing mothers attending child welfare clinics.`,
-        },
-        {
-          id: "rs-3",
-          title: `A Survey on Hygiene and Food Safety Practices during Child Meal Preparation in ${loc}`,
-          problemSummary: `Poor hygiene and improper food storage during complementary feeding lead to frequent diarrhea and subsequent child weight loss.`,
-          generalObjective: `To investigate hygiene practices observed by caregivers when preparing and feeding complementary meals.`,
-          specificObjectives: [
-            `1. To observe handwashing practices and cleanliness of feeding utensils.`,
-            `2. To identify how cooked baby food is stored and reheated before feeding.`,
-            `3. To record maternal reports on diarrheal episodes experienced by children in the past two weeks.`,
-          ],
-          methodologyHint: `Observation checklist and structured questionnaire administered to mothers during household visits.`,
-        },
-      ],
-      followUpQuestion: `Would you prefer to study complementary feeding diets, exclusive breastfeeding practices, or hygiene during food preparation?`,
-    };
-  }
-
-  // D. Maternal / Antenatal / Pregnancy Nutrition Theme
-  if (
-    q.includes("maternal") ||
-    q.includes("pregnant") ||
-    q.includes("pregnancy") ||
-    q.includes("anc") ||
-    q.includes("antenatal") ||
-    q.includes("anemia") ||
-    q.includes("iron")
-  ) {
-    return {
-      problemAnalysis: `Adequate maternal nutrition and adherence to antenatal micronutrient supplements safeguard maternal health and reduce low birth weight infants.`,
-      options: [
-        {
-          id: "rs-1",
-          title: `Assessment of Maternal Dietary Practices and Iron Supplementation in ${loc}`,
-          problemSummary: `Inadequate diet during pregnancy and poor adherence to iron-folic acid supplements contribute to maternal anemia and low birth weight.`,
-          generalObjective: `To assess dietary practices and adherence to iron supplements among pregnant women attending antenatal clinics in ${loc}.`,
-          specificObjectives: [
-            `1. To determine the frequency of balanced meal consumption among expectant mothers.`,
-            `2. To evaluate adherence rates to prescribed iron and folic acid supplements (IFAS).`,
-            `3. To identify common side effects and misconceptions that prevent regular supplement intake.`,
-          ],
-          methodologyHint: `Cross-sectional descriptive study using an interview questionnaire with pregnant women attending antenatal clinics.`,
-        },
-        {
-          id: "rs-2",
-          title: `Investigation of Cultural Food Taboos and Dietary Intake among Pregnant Women in ${loc}`,
-          problemSummary: `Traditional food avoidances that restrict nutritious foods such as eggs and meat during pregnancy can lead to maternal malnutrition.`,
-          generalObjective: `To identify cultural food taboos and their effect on the nutritional intake of pregnant women in ${loc}.`,
-          specificObjectives: [
-            `1. To document cultural food restrictions practiced by expectant mothers in the community.`,
-            `2. To assess the alternative foods consumed to replace restricted animal-source foods.`,
-            `3. To determine the source of nutrition information received by pregnant women.`,
-          ],
-          methodologyHint: `Descriptive survey using structured interviews with pregnant women attending local clinics.`,
-        },
-        {
-          id: "rs-3",
-          title: `Assessment of Dietary Diversity and Antenatal Weight Monitoring in ${loc}`,
-          problemSummary: `Lack of dietary variety and irregular weight monitoring during pregnancy reduce early detection of maternal undernutrition.`,
-          generalObjective: `To evaluate dietary diversity and the regularity of weight monitoring among pregnant women in ${loc}.`,
-          specificObjectives: [
-            `1. To calculate the Minimum Dietary Diversity for Women (MDD-W) score among pregnant women.`,
-            `2. To review antenatal clinic cards for regular gestational weight gain recording.`,
-            `3. To identify socio-economic barriers affecting maternal access to nutritious foods.`,
-          ],
-          methodologyHint: `Clinic-based survey combining 24-hour food recall checklists and maternal clinic card reviews.`,
-        },
-      ],
-      followUpQuestion: `Would you like your study to focus on iron supplement adherence, cultural food taboos, or dietary diversity in pregnancy?`,
-    };
-  }
-
-  // E. Chronic Lifestyle Diseases & Adult Nutrition Theme
-  if (
-    q.includes("diabetes") ||
-    q.includes("hypertens") ||
-    q.includes("blood pressure") ||
-    q.includes("elderly") ||
-    q.includes("salt") ||
-    q.includes("sugar") ||
-    q.includes("obesity") ||
-    q.includes("adult")
-  ) {
-    return {
-      problemAnalysis: `Promoting healthy dietary patterns and lifestyle awareness helps control diet-related non-communicable diseases in Kenyan communities.`,
-      options: [
-        {
-          id: "rs-1",
-          title: `Assessment of Dietary Habits and Salt Intake among Hypertensive Patients in ${loc}`,
-          problemSummary: `High dietary sodium intake and low intake of fruits and vegetables contribute to poor blood pressure control among hypertensive patients.`,
-          generalObjective: `To assess dietary habits, salt intake, and lifestyle practices among hypertensive patients attending local health centers.`,
-          specificObjectives: [
-            `1. To determine patients' awareness of dietary guidelines for managing high blood pressure.`,
-            `2. To assess the frequency of consumption of processed, salty, and fried foods.`,
-            `3. To identify challenges patients face in adopting low-salt and high-vegetable diets.`,
-          ],
-          methodologyHint: `Health center-based survey using structured questionnaires with patients attending chronic disease outpatient clinics.`,
-        },
-        {
-          id: "rs-2",
-          title: `Investigation of Dietary Knowledge and Glycemic Management among Diabetic Patients in ${loc}`,
-          problemSummary: `Lack of clear dietary guidance leads many diabetic patients to consume high-glycemic meals that cause unstable blood sugar levels.`,
-          generalObjective: `To evaluate dietary knowledge and meal planning practices among patients diagnosed with type 2 diabetes.`,
-          specificObjectives: [
-            `1. To evaluate patients' understanding of carbohydrate portion sizes.`,
-            `2. To determine the frequency of fruit, vegetable, and whole-grain consumption among patients.`,
-            `3. To identify dietary counseling received by patients during clinic visits.`,
-          ],
-          methodologyHint: `Descriptive survey using a structured questionnaire administered to diabetic clinic attendees.`,
-        },
-        {
-          id: "rs-3",
-          title: `A Survey on Nutritional Status and Dietary Challenges among Elderly Persons in ${loc}`,
-          problemSummary: `Poor dentition, reduced appetite, and limited income leave many elderly individuals at risk of inadequate protein and calorie intake.`,
-          generalObjective: `To assess the nutritional status and daily dietary challenges faced by elderly individuals in ${loc}.`,
-          specificObjectives: [
-            `1. To assess the daily meal frequency and common foods consumed by elderly community members.`,
-            `2. To measure mid-upper arm circumference (MUAC) and body mass index (BMI) of elderly participants.`,
-            `3. To identify physical and financial barriers that limit access to nutritious, easily chewable food.`,
-          ],
-          methodologyHint: `Community descriptive survey using a simplified questionnaire and anthropometric measurements with elderly persons.`,
-        },
-      ],
-      followUpQuestion: `Would you like to study dietary management of high blood pressure, diabetes meal planning, or elderly nutritional status?`,
-    };
-  }
-
-  // F. General Fallback for Any Other Nutrition Topic
-  const cleanSubject =
-    query
-      .replace(/[^\w\s-]/g, "")
-      .trim()
-      .split(/\s+/)
-      .slice(0, 5)
-      .join(" ") || "Community Nutrition Practices";
-
-  return {
-    problemAnalysis: `Practical investigation into ${cleanSubject} in ${loc} establishes essential local findings to help households and community health workers improve nutritional outcomes.`,
-    options: [
-      {
-        id: "rs-1",
-        title: `Assessment of ${cleanSubject} and Nutritional Status in ${loc}`,
-        problemSummary: `Limited local documentation on ${cleanSubject} makes it difficult to design effective community nutrition interventions.`,
-        generalObjective: `To assess the current status and community practices regarding ${cleanSubject} in ${loc}.`,
-        specificObjectives: [
-          `1. To determine the prevalence and common community practices related to ${cleanSubject}.`,
-          `2. To assess the association between ${cleanSubject} and overall dietary adequacy.`,
-          `3. To identify key community challenges that hinder optimal nutrition practices.`,
-        ],
-        methodologyHint: `Cross-sectional descriptive survey using simple structured questionnaires and checklists, analyzed with basic percentage tables.`,
-      },
-      {
-        id: "rs-2",
-        title: `Investigation into Factors Influencing ${cleanSubject} in ${loc}`,
-        problemSummary: `Socio-economic factors, food access, and cultural beliefs often constrain families from adopting balanced nutrition habits.`,
-        generalObjective: `To investigate the socio-economic and environmental factors influencing ${cleanSubject} in ${loc}.`,
-        specificObjectives: [
-          `1. To assess household income and food expenditure patterns in relation to ${cleanSubject}.`,
-          `2. To identify cultural beliefs and knowledge gaps affecting daily food choices.`,
-          `3. To recommend realistic, low-cost dietary solutions for local families.`,
-        ],
-        methodologyHint: `Structured interview questionnaire administered to household caregivers, summarized using frequency tables.`,
-      },
-      {
-        id: "rs-3",
-        title: `A Community Survey on Knowledge and Practices Regarding ${cleanSubject} in ${loc}`,
-        problemSummary: `Lack of targeted nutrition education leaves community members vulnerable to poor food selection and preparation habits.`,
-        generalObjective: `To evaluate community nutrition knowledge, attitudes, and daily practices concerning ${cleanSubject} in ${loc}.`,
-        specificObjectives: [
-          `1. To evaluate community awareness regarding the nutritional value of local foods.`,
-          `2. To document common food preparation and meal planning methods used by caregivers.`,
-          `3. To assess the role of community health volunteers in delivering practical nutrition education.`,
-        ],
-        methodologyHint: `Descriptive survey administered to community members and health volunteers, analyzed using simple percentages.`,
-      },
-    ],
-    followUpQuestion: `Would you like your study to focus on nutritional status assessment, socio-economic factors, or community nutrition knowledge?`,
-  };
+  // 3. Nutrition & Dietetics Research (Certificate & Diploma Standard: Descriptive Cross-Sectional Secondary Data Design)
+  return generateSecondaryDataTopics(query, loc);
 }
 
 function extractTopicEntities(draftText: string, context: WorkspaceContext) {

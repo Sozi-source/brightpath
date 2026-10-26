@@ -86,7 +86,7 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     chapter: "proposal",
     chapterTitle: "Proposal Overview",
     guidance:
-      "State a focused research title indicating the target population, geographic scope, survey dataset (e.g. KDHS 1998-2022), and primary indicators. Provide rationale.",
+      "State a straightforward research title indicating the nutrition topic, target population or county, and the secondary data source used (e.g. KDHS 2022, KNBS, MOH facility reports, or school records).",
     minWords: 30,
   },
   {
@@ -96,7 +96,7 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     chapter: "proposal",
     chapterTitle: "Proposal Overview",
     guidance:
-      "Describe public health, epidemiological, or nutritional trend problem. Identify the policy knowledge gap regarding how indicators changed over time.",
+      "Describe the nutrition problem in plain language using published figures, and explain why summarizing existing secondary records is needed.",
     minWords: 60,
   },
   {
@@ -106,7 +106,7 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     chapter: "proposal",
     chapterTitle: "Proposal Overview",
     guidance:
-      "Formulate 3 specific SMART objectives: 1) determine longitudinal trends of key indicator, 2) compute percentage changes across survey periods, and 3) assess socio-demographic variations.",
+      "State 1 clear general objective and 3 straightforward specific objectives that can be answered by extracting figures from existing secondary reports.",
     minWords: 50,
   },
   {
@@ -116,7 +116,7 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     chapter: "proposal",
     chapterTitle: "Proposal Overview",
     guidance:
-      "Explain how statistical trend analysis on official survey data supports county health planning, national intervention priorities, or clinical nutrition guidelines.",
+      "Explain how summarizing verified secondary nutrition data will help local health workers, nutritionists, teachers, and families.",
     minWords: 50,
   },
 
@@ -128,8 +128,8 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     chapter: "ch1",
     chapterTitle: "Chapter 1: Introduction",
     guidance:
-      "Provide global, regional (Sub-Saharan Africa), national (Kenya), and county context regarding the nutritional or epidemiological indicator under review.",
-    minWords: 200,
+      "Provide global, regional (Sub-Saharan Africa), national (Kenya), and local context on the nutrition topic using verified reports.",
+    minWords: 180,
   },
   {
     key: "ch1.problem",
@@ -138,8 +138,8 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     chapter: "ch1",
     chapterTitle: "Chapter 1: Introduction",
     guidance:
-      "Articulate persistent burden of the condition and why longitudinal secondary analysis is critical to guide county health interventions.",
-    minWords: 150,
+      "Explain the nutrition challenge, who is affected, and why a descriptive review of existing secondary data is needed.",
+    minWords: 120,
   },
   {
     key: "ch1.objectives",
@@ -148,18 +148,18 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     chapter: "ch1",
     chapterTitle: "Chapter 1: Introduction",
     guidance:
-      "Specify general research aim and 3 verifiable specific objectives (demographic baseline, longitudinal indicator shifts, subgroup determinants).",
-    minWords: 80,
+      "State your general objective and 3 straightforward specific objectives based on secondary data.",
+    minWords: 70,
   },
   {
     key: "ch1.questions",
-    title: "1.4 Research Questions / Hypotheses",
+    title: "1.4 Research Questions",
     phase: "project",
     chapter: "ch1",
     chapterTitle: "Chapter 1: Introduction",
     guidance:
-      "Provide precise research questions linked directly to each specific research objective.",
-    minWords: 80,
+      "Write 3 direct research questions matching your 3 specific objectives.",
+    minWords: 60,
   },
   {
     key: "ch1.justification",
@@ -168,8 +168,8 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     chapter: "ch1",
     chapterTitle: "Chapter 1: Introduction",
     guidance:
-      "Demonstrate utility of findings for health professionals, Ministry of Health, NGOs, and county nutrition planning departments.",
-    minWords: 100,
+      "Explain who benefits from this study (nutritionists, Ministry of Health, schools, community members) and why secondary data is practical.",
+    minWords: 90,
   },
   {
     key: "ch1.scope",
@@ -178,8 +178,8 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     chapter: "ch1",
     chapterTitle: "Chapter 1: Introduction",
     guidance:
-      "State specific survey rounds analyzed (e.g. KDHS 2003, 2008, 2014, 2022) and boundaries of secondary analytical methodology.",
-    minWords: 80,
+      "State the geographic area, target population, and exact secondary reports or registers (e.g. KDHS 2022, KNBS, MOH registers) covered by the study.",
+    minWords: 70,
   },
   {
     key: "ch1.limitations",
@@ -188,8 +188,8 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     chapter: "ch1",
     chapterTitle: "Chapter 1: Introduction",
     guidance:
-      "State inherent limitations of secondary retrospective datasets (e.g. unmeasured confounders, changes in sampling weights) and operational assumptions.",
-    minWords: 80,
+      "Note practical limitations of relying on secondary data (e.g. fixed variables already recorded in published reports) and how you addressed them.",
+    minWords: 70,
   },
   {
     key: "ch1.terms",
@@ -198,7 +198,7 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     chapter: "ch1",
     chapterTitle: "Chapter 1: Introduction",
     guidance:
-      "Define standard WHO epidemiological terms: Height-for-Age Z-score (HAZ/stunting), Weight-for-Height Z-score (WHZ/wasting), Weight-for-Age (WAZ), and Dietary Diversity Score (DDS).",
+      "Define key nutrition terms used in your study (e.g. stunting, wasting, exclusive breastfeeding, dietary diversity, secondary data).",
     minWords: 60,
   },
 
@@ -210,8 +210,8 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     chapter: "ch2",
     chapterTitle: "Chapter 2: Literature Review",
     guidance:
-      "Introduce theoretical frameworks, conceptual relationships, and empirical themes that structure this review.",
-    minWords: 100,
+      "Briefly introduce what chapters, books, and official reports are reviewed in this chapter.",
+    minWords: 80,
   },
   {
     key: "ch2.theoretical",
@@ -220,8 +220,8 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     chapter: "ch2",
     chapterTitle: "Chapter 2: Literature Review",
     guidance:
-      "Review the UNICEF Conceptual Framework of Malnutrition (immediate, underlying, and basic causes) or Social-Ecological Model.",
-    minWords: 250,
+      "Explain the UNICEF Conceptual Framework of Malnutrition (immediate, underlying, and basic causes) or another simple nutrition model.",
+    minWords: 180,
   },
   {
     key: "ch2.conceptual",
@@ -230,8 +230,8 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     chapter: "ch2",
     chapterTitle: "Chapter 2: Literature Review",
     guidance:
-      "Explain the interaction between independent variables (maternal education, wealth quintile, sanitation), intervening variables (health access), and dependent variables (nutritional status).",
-    minWords: 150,
+      "Explain how your independent variables (e.g. feeding practices, dietary diversity) relate to the dependent variable (nutritional status).",
+    minWords: 120,
   },
   {
     key: "ch2.empirical",
@@ -240,18 +240,18 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     chapter: "ch2",
     chapterTitle: "Chapter 2: Literature Review",
     guidance:
-      "Synthesize past published studies in Kenya and East Africa regarding trends and determinants, structured by each specific objective.",
-    minWords: 250,
+      "Review findings from real textbooks, WHO/FAO guidelines, KDHS reports, and published studies organized around your 3 objectives.",
+    minWords: 200,
   },
   {
     key: "ch2.gap",
-    title: "2.5 Critical Gaps in Existing Research",
+    title: "2.5 Summary and Gaps in Literature",
     phase: "project",
     chapter: "ch2",
     chapterTitle: "Chapter 2: Literature Review",
     guidance:
-      "Highlight what earlier studies missed regarding county-level devolution effects or recent KDHS updates that this project fills.",
-    minWords: 100,
+      "Summarize the reviewed literature and state the simple local summary gap that your descriptive secondary data study addresses.",
+    minWords: 80,
   },
 
   // ==================== CHAPTER 3: METHODOLOGY ====================
@@ -262,90 +262,90 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     chapter: "ch3",
     chapterTitle: "Chapter 3: Research Methodology",
     guidance:
-      "Detail descriptive retrospective longitudinal secondary study design and analytical protocol.",
-    minWords: 150,
-  },
-  {
-    key: "ch3.sources",
-    title: "3.2 Data Sources and Official Custodians",
-    phase: "project",
-    chapter: "ch3",
-    chapterTitle: "Chapter 3: Research Methodology",
-    guidance:
-      "List survey reports, publishers (KNBS, DHS Program), publication years, sample sizes, and official microdata repositories accessed.",
-    minWords: 150,
-  },
-  {
-    key: "ch3.variables",
-    title: "3.3 Variables and Indicator Definitions",
-    phase: "project",
-    chapter: "ch3",
-    chapterTitle: "Chapter 3: Research Methodology",
-    guidance:
-      "Define standard WHO/DHS case definitions for all nutritional and socio-demographic indicators tracked.",
-    minWords: 150,
-  },
-  {
-    key: "ch3.verification",
-    title: "3.4 Data Verification and Quality Control",
-    phase: "project",
-    chapter: "ch3",
-    chapterTitle: "Chapter 3: Research Methodology",
-    guidance:
-      "Describe cross-checking procedures conducted against published KNBS national tables to ensure data integrity.",
+      "Describe the descriptive cross-sectional research design relying entirely on secondary data and explain why it fits your objectives.",
     minWords: 120,
   },
   {
-    key: "ch3.analysis",
-    title: "3.5 Statistical Analysis Methods",
+    key: "ch3.sources",
+    title: "3.2 Secondary Data Sources",
     phase: "project",
     chapter: "ch3",
     chapterTitle: "Chapter 3: Research Methodology",
     guidance:
-      "Specify descriptive statistical methods: weighted percentages, sample standard deviation, percentage point changes, and annual rates of change.",
-    minWords: 150,
+      "Identify the exact secondary data sources used (e.g. KDHS 2022 report, KNBS KIHBS report, MOH KHIS facility registers, school records, or published studies).",
+    minWords: 120,
+  },
+  {
+    key: "ch3.variables",
+    title: "3.3 Study Variables and Indicators",
+    phase: "project",
+    chapter: "ch3",
+    chapterTitle: "Chapter 3: Research Methodology",
+    guidance:
+      "List and define the specific nutrition indicators and demographic variables extracted from the secondary reports.",
+    minWords: 120,
+  },
+  {
+    key: "ch3.verification",
+    title: "3.4 Data Extraction and Verification",
+    phase: "project",
+    chapter: "ch3",
+    chapterTitle: "Chapter 3: Research Methodology",
+    guidance:
+      "Explain how you used a data extraction checklist to record figures from the published tables and cross-checked them for accuracy.",
+    minWords: 100,
+  },
+  {
+    key: "ch3.analysis",
+    title: "3.5 Data Analysis and Presentation",
+    phase: "project",
+    chapter: "ch3",
+    chapterTitle: "Chapter 3: Research Methodology",
+    guidance:
+      "Explain how the extracted data was organized and summarized using simple descriptive statistics (frequencies, percentages, averages, and tables).",
+    minWords: 100,
   },
   {
     key: "ch3.ethics",
-    title: "3.6 Ethical Considerations and Data Attribution",
+    title: "3.6 Ethical Considerations",
     phase: "project",
     chapter: "ch3",
     chapterTitle: "Chapter 3: Research Methodology",
     guidance:
-      "State secondary data handling protocols, participant anonymization in public archives, and copyright attribution.",
-    minWords: 100,
+      "Explain that only anonymized public secondary reports were used (no human interviews) and all sources were properly cited in APA 7th format.",
+    minWords: 80,
   },
 
   // ==================== CHAPTER 4: RESULTS & DISCUSSION ====================
   {
     key: "ch4.results",
-    title: "4.1 Descriptive Statistical Results and Trends",
+    title: "4.1 Presentation of Descriptive Findings",
     phase: "project",
     chapter: "ch4",
     chapterTitle: "Chapter 4: Results and Discussion",
     guidance:
-      "Present calculated statistical tables, percentage point shifts, and trend charts generated from verified survey data.",
-    minWords: 250,
-  },
-  {
-    key: "ch4.subgroup",
-    title: "4.2 Sub-Group Disparities and Determinant Analysis",
-    phase: "project",
-    chapter: "ch4",
-    chapterTitle: "Chapter 4: Results and Discussion",
-    guidance:
-      "Present cross-tabulated findings by maternal education, household wealth quintile, child sex, and place of residence (urban/rural).",
+      "Present the frequencies, percentages, and summary tables extracted from your secondary data sources for each specific objective.",
     minWords: 200,
   },
   {
-    key: "ch4.discussion",
-    title: "4.3 Discussion of Trends and Comparative Analysis",
+    key: "ch4.subgroup",
+    title: "4.2 Comparison of Findings by Group or Area",
     phase: "project",
     chapter: "ch4",
     chapterTitle: "Chapter 4: Results and Discussion",
     guidance:
-      "Interpret why shifts occurred, linking historical policy milestones (e.g. Free Maternity Services, County Devolution) to trends.",
-    minWords: 250,
+      "Compare the extracted figures across demographic groups (e.g. age groups, rural vs. urban residence, or counties).",
+    minWords: 150,
+  },
+  {
+    key: "ch4.discussion",
+    title: "4.3 Discussion of Findings",
+    phase: "project",
+    chapter: "ch4",
+    chapterTitle: "Chapter 4: Results and Discussion",
+    guidance:
+      "Discuss what your extracted secondary findings mean and compare them with WHO standards and published studies from Chapter 2.",
+    minWords: 200,
   },
 
   // ==================== CHAPTER 5: SUMMARY & RECOMMENDATIONS ====================

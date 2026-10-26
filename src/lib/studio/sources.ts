@@ -552,9 +552,9 @@ export const SOURCE_LIBRARY: SourceEntry[] = [
     claims: [
       {
         text:
-          "A descriptive survey is suited to collecting information about people's attitudes, habits and opinions as they currently exist",
+          "A descriptive research design reports the status of a population or condition as it currently exists without manipulating study variables",
         roles: ["methods"],
-        sections: ["ch3.design"],
+        sections: ["ch3.design", "ch3.analysis"],
       },
     ],
   },
@@ -571,9 +571,9 @@ export const SOURCE_LIBRARY: SourceEntry[] = [
     claims: [
       {
         text:
-          "Descriptive research describes the characteristics of a population or phenomenon as it exists, without the researcher manipulating the variables",
+          "Secondary data refers to information that has already been collected and passed through the statistical process by another agency or researcher, and should be checked for reliability, suitability and adequacy before use",
         roles: ["methods"],
-        sections: ["ch3.design"],
+        sections: ["ch3.design", "ch3.sources", "ch3.verification"],
       },
     ],
   },
@@ -590,7 +590,7 @@ export const SOURCE_LIBRARY: SourceEntry[] = [
     claims: [
       {
         text:
-          "Researchers are expected to obtain informed consent and to protect the confidentiality and welfare of participants",
+          "Researchers must uphold ethical integrity by protecting confidentiality, avoiding fabrication of data, and accurately attributing all secondary sources and published works used in a study",
         roles: ["methods"],
         sections: ["ch3.ethics"],
       },
