@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getWorkspaceSections, getSectionStarterContent } from "@/lib/studio/templates";
+import { getWorkspaceSections } from "@/lib/studio/templates";
 import { saveSectionText, aiPolishSectionAction, acceptAiPolishedSection } from "@/app/studio/actions";
 import { SectionEditor, type StepItem } from "./SectionEditor";
 import { AppShell } from "@/components/layout/AppShell";
@@ -110,13 +110,6 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
     };
   });
 
-  // Compute built-in KNEC starter template for this specific section
-  const starterTemplate = getSectionStarterContent(
-    workspace.workspace_type,
-    workspace.level,
-    sectionDef.key
-  );
-
   return (
     <AppShell
       user={user}
@@ -135,7 +128,6 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
         phase={sectionDef.phase}
         isLocked={isLocked}
         currentText={textMap.get(sectionDef.key) || ""}
-        starterTemplate={starterTemplate}
         steps={steps}
         currentStepIndex={currentPhaseIndex}
         prevStep={prevStepDef ? { key: prevStepDef.key, title: prevStepDef.title } : null}

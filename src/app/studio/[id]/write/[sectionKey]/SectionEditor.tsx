@@ -44,7 +44,6 @@ interface SectionEditorProps {
   phase: "proposal" | "project";
   isLocked: boolean;
   currentText: string;
-  starterTemplate?: string;
   steps: StepItem[];
   currentStepIndex: number;
   prevStep: { key: string; title: string } | null;
@@ -65,7 +64,6 @@ export function SectionEditor({
   phase,
   isLocked,
   currentText: initialText,
-  starterTemplate,
   steps,
   currentStepIndex,
   prevStep,
@@ -87,17 +85,6 @@ export function SectionEditor({
 
   const wordsCount = text.trim() ? text.trim().split(/\s+/).length : 0;
   const isMinMet = wordsCount >= minWords;
-
-  const handleInsertTemplate = () => {
-    if (isLocked || !starterTemplate) return;
-    if (text.trim() && text.trim() !== starterTemplate.trim()) {
-      const confirmed = window.confirm(
-        "Replace current draft with official KNEC chapter outline?"
-      );
-      if (!confirmed) return;
-    }
-    setText(starterTemplate);
-  };
 
   const handleSave = () => {
     if (isLocked) return;
@@ -368,18 +355,6 @@ export function SectionEditor({
               </div>
 
               <div className="flex items-center gap-2">
-                {starterTemplate && (
-                  <button
-                    type="button"
-                    onClick={handleInsertTemplate}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
-                    title="Insert KNEC outline for this chapter"
-                  >
-                    <Lightbulb className="h-3.5 w-3.5 text-slate-600" />
-                    <span>Insert Outline</span>
-                  </button>
-                )}
-
                 {aiPolishAction && (
                   <button
                     type="button"
