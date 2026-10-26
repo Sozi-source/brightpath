@@ -32,8 +32,51 @@ export function getWorkspaceSections(
       masterList = TRADE_FABRICATION_SECTIONS;
   }
 
-  // Filter sections that apply to the selected academic level
-  return masterList.filter((sec) => !sec.levels || sec.levels.includes(level));
+  const isDiploma = level === "diploma";
+
+  // Filter sections that apply to the selected academic level and adjust word targets + analysis guidance:
+  // - Certificate: at least 15 pages (~3,750 - 4,200 words total; min 10 pages required), simple descriptive statistics.
+  // - Diploma: at least 40 pages (~10,000+ words total), both descriptive and inferential statistics.
+  return masterList
+    .filter((sec) => !sec.levels || sec.levels.includes(level))
+    .map((sec) => {
+      const baseWords = sec.minWords || 100;
+      const isSubstantiveChapter =
+        sec.phase === "project" &&
+        sec.chapter !== "cover" &&
+        sec.chapter !== "preliminary" &&
+        sec.chapter !== "appendices";
+
+      // Certificate uses 1.25x base (~3,850 words / ~15+ pages); Diploma uses 3.1x base (~10,000+ words / ~40+ pages)
+      const scaledMinWords = isSubstantiveChapter
+        ? Math.round((baseWords * (isDiploma ? 3.1 : 1.25)) / 10) * 10
+        : isDiploma && sec.phase === "proposal"
+        ? Math.round((baseWords * 1.5) / 10) * 10
+        : baseWords;
+
+      let guidance = sec.guidance;
+      if (type === "research_secondary") {
+        if (sec.key === "ch3.analysis") {
+          guidance = isDiploma
+            ? "Explain how the extracted secondary data was organized and analyzed using both descriptive statistics (frequencies, percentages, means, standard deviation) and inferential statistics (such as Chi-square test of association, t-test, or correlation at p < 0.05)."
+            : "Explain how the extracted secondary data was organized and summarized using simple descriptive statistics (frequencies, percentages, averages, and frequency tables).";
+        } else if (sec.key === "ch4.results") {
+          guidance = isDiploma
+            ? "Present both descriptive statistical findings (frequencies, percentages, means, standard deviations) and inferential test results (Chi-square, t-test, or correlation p-values) across your specific objectives."
+            : "Present the simple descriptive findings (frequencies, percentages, averages, and summary tables) extracted from your secondary data sources for each specific objective.";
+        } else if (sec.key === "ch4.subgroup") {
+          guidance = isDiploma
+            ? "Compare extracted figures across groups (age, sex, rural vs. urban residence) and report inferential statistical test results (e.g. Chi-square test of independence or t-test at p < 0.05)."
+            : "Compare the extracted percentages and averages across groups (e.g. age groups, sex, or rural vs. urban residence) using simple comparison tables.";
+        }
+      }
+
+      return {
+        ...sec,
+        minWords: scaledMinWords,
+        guidance,
+      };
+    });
 }
 
 /**

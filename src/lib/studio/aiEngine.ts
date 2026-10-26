@@ -61,6 +61,47 @@ export interface SectionPolishResult {
   warnings: string[];
 }
 
+export interface AcademicLevelSpec {
+  levelLabel: string;
+  minRequiredPages: number;
+  targetPages: number;
+  targetWords: number;
+  analysisMethods: string;
+  isDiploma: boolean;
+}
+
+/**
+ * Returns KNEC page length and statistical analysis standards for Certificate vs Diploma:
+ * - Certificate (Craft): Minimum 10 pages required, focused target of at least 15 pages (~3,750+ words).
+ *   Uses simple descriptive statistics (frequencies, percentages, averages/means, tables, and charts).
+ * - Diploma: Minimum 40 pages required (~10,000+ words).
+ *   Uses both descriptive statistics (frequencies, percentages, means, standard deviation) and
+ *   inferential statistics (e.g. Chi-square test of association, t-test, correlation, p-values at p < 0.05).
+ */
+export function getAcademicLevelSpec(level: string): AcademicLevelSpec {
+  const isDiploma = level.toLowerCase() === "diploma";
+  if (isDiploma) {
+    return {
+      levelLabel: "Diploma",
+      minRequiredPages: 40,
+      targetPages: 40,
+      targetWords: 10000,
+      analysisMethods:
+        "both descriptive statistics (frequencies, percentages, means, standard deviation) and inferential statistics (Chi-square test of association, t-test, correlation, and p-values at p < 0.05)",
+      isDiploma: true,
+    };
+  }
+  return {
+    levelLabel: "Certificate",
+    minRequiredPages: 10,
+    targetPages: 15,
+    targetWords: 3750,
+    analysisMethods:
+      "simple descriptive statistics (frequencies, percentages, averages/means, summary tables, and charts)",
+    isDiploma: false,
+  };
+}
+
 /**
  * 1. AI Topic Narrowing Coach
  * Takes raw student query (e.g. "child stunting in kilifi", "composite sweet potato flour")
@@ -73,13 +114,14 @@ export async function narrowDownTopic(
   const query = studentInput.trim();
   const type = context.workspaceType;
   const course = context.course;
+  const level = context.level;
 
   // Attempt external LLM if API key is present
   const llmResult = await tryLlmTopicNarrowing(query, context);
   if (llmResult) return llmResult;
 
   // Built-in Deterministic Academic Alignment Engine
-  return generateDeterministicTopics(query, type, course);
+  return generateDeterministicTopics(query, type, course, level);
 }
 
 const VERIFY_WARNING =
@@ -100,6 +142,7 @@ export async function polishAndAlignSection(params: {
 }): Promise<SectionPolishResult> {
   const { draftText, sectionKey, sectionTitle, guidance, minWords, context } = params;
   const rawWords = draftText.trim() ? draftText.trim().split(/\s+/).length : 0;
+  const levelSpec = getAcademicLevelSpec(context.level);
 
   const evidence = selectEvidence({
     sectionKey,
@@ -141,11 +184,11 @@ export async function polishAndAlignSection(params: {
       wordDiff: polishedWords - rawWords,
       targetMet: polishedWords >= minWords,
       improvements: [
-        "Your ideas kept and written in formal academic style",
+        `Aligned to ${levelSpec.levelLabel} standard (target ≥${levelSpec.targetPages} pages overall)`,
         citations.length > 0
           ? `${citations.length} verified source(s) cited in text`
           : "No verified source matched this section",
-        `Length now ${polishedWords} words (target ${minWords})`,
+        `Section length now ${polishedWords} words (target ${minWords} words)`,
       ],
       citations,
       warnings,
@@ -181,6 +224,7 @@ export function getSectionQuestionGuide(
   const isBusiness = context.workspaceType === "business_plan";
   const isTrade = context.workspaceType === "trade_fabrication";
   const isSecondaryResearch = context.workspaceType === "research_secondary";
+  const levelSpec = getAcademicLevelSpec(context.level);
 
   // Proposal Title or Research Title
   if (sectionKey === "proposal.title" || sectionKey === "cover.details") {
@@ -255,7 +299,9 @@ export function getSectionQuestionGuide(
           "What is your main general objective (starting with 'To assess...' or 'To examine...')?",
           "Objective 1: Which main indicator or prevalence rate will you extract from the report/register?",
           "Objective 2: Which related dietary practice or service coverage indicator will you review?",
-          "Objective 3: How will you compare the figures (e.g. by age group, rural vs. urban, or across years)?",
+          levelSpec.isDiploma
+            ? "Objective 3: How will you compare the figures and test statistical associations across groups (e.g. by age group, rural vs. urban, or across years)?"
+            : "Objective 3: How will you compare the figures (e.g. by age group, rural vs. urban, or across years)?",
         ],
         placeholderExample:
           'e.g. "General Objective: To assess infant feeding practices and child stunting in Kitui County using KDHS 2022 data.\nSpecific Objectives:\n1. To determine the proportion of children aged 6-23 months meeting minimum dietary diversity from KDHS 2022 tables.\n2. To examine stunting and wasting rates recorded in the survey report.\n3. To compare feeding indicators between rural and urban households."',
@@ -345,15 +391,29 @@ export function getSectionQuestionGuide(
   }
 
   if (sectionKey === "ch3.analysis") {
+    if (levelSpec.isDiploma) {
+      return {
+        mainQuestion:
+          "How did you analyze the secondary data using both descriptive and inferential statistics?",
+        subQuestions: [
+          "How were the extracted figures organized (e.g. entered into Microsoft Excel or SPSS by study objective)?",
+          "Which descriptive statistics did you compute (frequencies, percentages, means, standard deviation)?",
+          "Which inferential statistical tests did you use to test relationships or group differences (e.g. Chi-square test of association, t-test, or correlation at p < 0.05)?",
+        ],
+        placeholderExample:
+          'e.g. "The extracted secondary data was organized in Microsoft Excel and analyzed using both descriptive statistics (frequencies, percentages, means, and standard deviations) and inferential statistics (Chi-square test of independence at p < 0.05 to test associations between feeding practices and nutritional status)..."',
+      };
+    }
     return {
-      mainQuestion: "How did you organize, summarize, and present the secondary data?",
+      mainQuestion:
+        "How did you organize and summarize the secondary data using simple descriptive statistics?",
       subQuestions: [
         "How were the extracted figures organized (e.g. grouped by objective in Microsoft Excel)?",
-        "Which simple descriptive statistics did you use (e.g. frequencies, percentages, averages/means)?",
+        "Which simple descriptive statistics did you use (frequencies, percentages, and averages/means)?",
         "How will the results be presented in Chapter 4 (e.g. simple frequency tables and bar charts)?",
       ],
       placeholderExample:
-        'e.g. "The extracted secondary data was entered into Microsoft Excel and analyzed using simple descriptive statistics, including frequencies, percentages, and averages. Findings are presented in clear summary tables..."',
+        'e.g. "The extracted secondary data was entered into Microsoft Excel and analyzed using simple descriptive statistics, including frequencies, percentages, and averages. Findings are presented in clear summary tables and charts..."',
     };
   }
 
@@ -409,14 +469,19 @@ export function getSectionQuestionGuide(
   ) {
     if (isSecondaryResearch) {
       return {
-        mainQuestion: "What key percentages and findings did you extract from the secondary reports?",
+        mainQuestion: levelSpec.isDiploma
+          ? "What descriptive and inferential findings did you obtain from the secondary data?"
+          : "What key percentages and descriptive findings did you extract from the secondary reports?",
         subQuestions: [
-          "What exact percentages or figures were recorded from the report for each of your objectives?",
-          "How do the figures compare across groups (e.g. rural vs. urban, age groups, or boys vs. girls)?",
+          "What exact frequencies, percentages, or averages were recorded from the report for each objective?",
+          levelSpec.isDiploma
+            ? "How do the figures compare across groups (rural vs. urban, age groups, sex) and what did your inferential tests (e.g. Chi-square or t-test p-values) show?"
+            : "How do the figures compare across groups (e.g. rural vs. urban, age groups, or boys vs. girls)?",
           "How do your extracted findings compare with WHO standards or other published studies?",
         ],
-        placeholderExample:
-          'e.g. "According to the extracted KDHS 2022 tables, 18% of children under five are stunted nationally, with higher prevalence in rural areas (20%) compared to urban areas (12%). Only 31% of children aged 6-23 months met the minimum acceptable diet..."',
+        placeholderExample: levelSpec.isDiploma
+          ? 'e.g. "According to the extracted KDHS 2022 tables, 18% of children under five are stunted nationally, with higher prevalence in rural areas (20%) than urban areas (12%). Chi-square analysis indicated a statistically significant association between residence and stunting prevalence (p < 0.05)..."'
+          : 'e.g. "According to the extracted KDHS 2022 tables, 18% of children under five are stunted nationally, with higher prevalence in rural areas (20%) compared to urban areas (12%). Only 31% of children aged 6-23 months met the minimum acceptable diet..."',
       };
     }
     return {
@@ -479,33 +544,44 @@ async function tryLlmTopicNarrowing(
   if (!geminiKey && !openaiKey) return null;
 
   const isSecondaryResearch = context.workspaceType === "research_secondary";
+  const levelSpec = getAcademicLevelSpec(context.level);
 
   const designRules = isSecondaryResearch
-    ? `CRITICAL RESEARCH DESIGN RULES (CERTIFICATE / DIPLOMA SECONDARY RESEARCH):
+    ? `CRITICAL RESEARCH DESIGN & LEVEL RULES (${levelSpec.levelLabel.toUpperCase()} LEVEL):
 1. Every proposed topic MUST use a **Descriptive Cross-Sectional Research Design relying 100% on Secondary Data**.
 2. The student will NOT go to the field to administer questionnaires, conduct interviews, or take new anthropometric measurements (no weighing scales or MUAC tapes).
 3. Instead, the student will extract and summarize existing figures from verified secondary sources: Kenya Demographic and Health Survey (KDHS 2022 / 2014), KNBS reports (KIHBS), Ministry of Health (MOH / KHIS) facility summary reports, existing school feeding/attendance records, or published nutrition studies.
-4. Data analysis MUST be simple descriptive statistics: frequencies, percentages, averages, and simple comparison tables.`
-    : `CRITICAL TECHNICAL DESIGN RULES:
-1. Propose practical, realistic food product formulation or nutrition enterprise topics suitable for a TVET student.`;
+4. PROJECT LENGTH REQUIREMENT: ${
+        levelSpec.isDiploma
+          ? "Diploma project reports MUST be at least 40 pages long (~10,000+ words)."
+          : "Certificate project reports require at least 10 pages, and we focus on a target of at least 15 pages (~3,750+ words)."
+      }
+5. STATISTICAL ANALYSIS REQUIREMENT: ${
+        levelSpec.isDiploma
+          ? "Diploma students may use BOTH descriptive statistics (frequencies, percentages, means, standard deviation) AND inferential statistics (e.g. Chi-square test of association, t-test, correlation at p < 0.05)."
+          : "Certificate students use simple descriptive statistics ONLY (frequencies, percentages, averages/means, and simple summary tables/charts)."
+      }`
+    : `CRITICAL TECHNICAL DESIGN & LEVEL RULES (${levelSpec.levelLabel.toUpperCase()} LEVEL):
+1. Propose practical, realistic food product formulation or nutrition enterprise topics suitable for a ${levelSpec.levelLabel} TVET student.
+2. Target project report length: at least ${levelSpec.targetPages} pages (${levelSpec.targetWords}+ words).
+3. Data analysis: ${levelSpec.analysisMethods}.`;
 
-  const systemPrompt = `You are a practical Academic Research Supervisor for TVET Certificate and Diploma students in Kenya studying ${context.course} (${context.level.toUpperCase()} level).
-ALL proposed topics, objectives, and methodologies MUST be STRAIGHTFORWARD, SIMPLE, DIRECT, and REALISTIC for a Certificate student.
+  const systemPrompt = `You are a practical Academic Research Supervisor for TVET Certificate and Diploma students in Kenya studying ${context.course} (${levelSpec.levelLabel.toUpperCase()} level).
+ALL proposed topics, objectives, and methodologies MUST be STRAIGHTFORWARD, SIMPLE, DIRECT, and REALISTIC.
 
 ${designRules}
 
 STRICT STYLE RULES:
-1. DO NOT generate complex master's-level or epidemiological topics.
-2. STRICTLY FORBID heavy jargon like: "Longitudinal Trends and Socio-Demographic Determinants", "Retrospective micro-dataset modeling", "multivariate logistic regression", "inferential econometric modeling".
-3. Titles MUST be direct, simple, and under 15 words (e.g., "Assessment of Complementary Feeding Practices and Child Stunting in Kitui County").
-4. Problem Summary: 1-2 simple sentences in plain language describing the issue.
-5. General Aim: 1 simple sentence starting with "To assess...", "To examine...", or "To determine...".
-6. Specific Objectives: Exactly 3 simple, numbered steps extracting/reviewing figures from secondary reports.
-7. Methodology Hint: Explicitly state "Descriptive cross-sectional study using secondary data from [specific report/register], analyzed using frequencies and percentages."
+1. DO NOT generate overly convoluted titles or PhD-level econometric topics.
+2. Titles MUST be direct, simple, and under 15 words (e.g., "Assessment of Complementary Feeding Practices and Child Stunting in Kitui County").
+3. Problem Summary: 1-2 simple sentences in plain language describing the issue.
+4. General Aim: 1 simple sentence starting with "To assess...", "To examine...", or "To determine...".
+5. Specific Objectives: Exactly 3 simple, numbered steps extracting/reviewing figures from secondary reports.
+6. Methodology Hint: Explicitly state "Descriptive cross-sectional study using secondary data from [specific report/register], analyzed using ${levelSpec.analysisMethods} for a ${levelSpec.targetPages}+ page ${levelSpec.levelLabel} report."
 
 Return strictly valid JSON with this shape:
 {
-  "problemAnalysis": "2 short, plain-language sentences explaining why this topic matters and which secondary reports can be used.",
+  "problemAnalysis": "2 short, plain-language sentences explaining why this topic matters, which secondary reports can be used, and noting the ${levelSpec.targetPages}+ page ${levelSpec.levelLabel} standard.",
   "options": [
     {
       "id": "opt-1",
@@ -517,7 +593,7 @@ Return strictly valid JSON with this shape:
         "2. Second simple objective using secondary data",
         "3. Third simple objective using secondary data"
       ],
-      "methodologyHint": "Descriptive cross-sectional design using secondary data from KDHS / KNBS / MOH reports, analyzed with simple percentages and frequency tables."
+      "methodologyHint": "Descriptive cross-sectional design using secondary data from KDHS / KNBS / MOH reports, analyzed with ${levelSpec.analysisMethods}."
     }
   ],
   "followUpQuestion": "A friendly, simple question to help the student pick their preferred option"
@@ -590,6 +666,7 @@ async function tryLlmSectionPolish(params: {
   if (!geminiKey && !openaiKey) return null;
 
   const { draftText, sectionTitle, guidance, minWords, context, evidence } = params;
+  const levelSpec = getAcademicLevelSpec(context.level);
 
   const sourceNotes = evidence.length
     ? evidence
@@ -599,20 +676,24 @@ async function tryLlmSectionPolish(params: {
 
   const designNote =
     context.workspaceType === "research_secondary"
-      ? "Research design: Straightforward descriptive cross-sectional design relying entirely on secondary data (existing KDHS, KNBS, MOH reports, or institutional records; no primary field questionnaires or lab work)."
-      : "";
+      ? `Research design: Straightforward descriptive cross-sectional design relying entirely on secondary data (existing KDHS, KNBS, MOH reports, or institutional records; no primary field questionnaires or lab work).\nAcademic Level Standard: ${levelSpec.levelLabel} level — overall project report length must be at least ${levelSpec.targetPages} pages (minimum ${levelSpec.minRequiredPages} pages), and statistical analysis uses ${levelSpec.analysisMethods}.`
+      : `Academic Level Standard: ${levelSpec.levelLabel} level — overall project report length must be at least ${levelSpec.targetPages} pages (minimum ${levelSpec.minRequiredPages} pages), and data analysis uses ${levelSpec.analysisMethods}.`;
 
-  const prompt = `You are a supportive academic writing coach for a Kenyan TVET student studying ${context.course} (${context.level} level).
+  const prompt = `You are a supportive academic writing coach for a Kenyan TVET student studying ${context.course} (${levelSpec.levelLabel} level).
 The student has written their own draft for the section "${sectionTitle}". Improve it; do not replace it.
 Project title: ${context.title || "Academic Project"}
 Problem area: ${context.problemArea || "Public health nutrition"}
 ${designNote}
 Section guidance: ${guidance}
-Target length: at least ${minWords} words.
+Target section length: at least ${minWords} words (scaled so the full ${levelSpec.levelLabel} report reaches at least ${levelSpec.targetPages} pages).
 
 WRITING RULES
-1. Keep every fact, place, ingredient, number and idea the student wrote. Fix grammar, flow and structure, and deepen weak points with sound reasoning.
-2. Use clear, simple, formal academic English suitable for a ${context.level} student. Avoid heavy jargon.
+1. Keep every fact, place, ingredient, number and idea the student wrote. Fix grammar, flow and structure, and deepen weak points with sound reasoning so the section meets its ${minWords}-word target.
+2. Use clear, simple, formal academic English suitable for a ${levelSpec.levelLabel} student. ${
+    levelSpec.isDiploma
+      ? "For methodology and results sections, support both descriptive statistics (frequencies, percentages, means, SD) and inferential statistics (Chi-square tests, t-tests, correlation, p-values) where appropriate."
+      : "For methodology and results sections, stick strictly to simple descriptive statistics (frequencies, percentages, averages, tables, and charts)."
+  }
 3. Output ONLY the section text. No preamble, no commentary, no quoting the student's notes.
 
 CITATION RULES (strict)
@@ -725,16 +806,18 @@ function detectFoodIngredients(text: string): { ingA: string; ingB: string } {
 function generateDeterministicTopics(
   query: string,
   type: "research_secondary" | "trade_fabrication" | "business_plan",
-  course: string
+  course: string,
+  level: string = "certificate"
 ): TopicNarrowingResult {
   const loc = detectKenyaLocation(query);
+  const levelSpec = getAcademicLevelSpec(level);
 
   // 1. Food Science / Trade Formulation
   if (type === "trade_fabrication") {
     const { ingA, ingB } = detectFoodIngredients(query);
 
     return {
-      problemAnalysis: `Developing practical value-added food products under ${course} addresses local community nutrition needs and reduces post-harvest wastage in Kenya.`,
+      problemAnalysis: `Developing practical value-added food products under ${course} (${levelSpec.levelLabel} standard: ≥${levelSpec.targetPages} pages) addresses local community nutrition needs and uses ${levelSpec.analysisMethods}.`,
       options: [
         {
           id: "tf-1",
@@ -746,7 +829,7 @@ function generateDeterministicTopics(
             `2. To blend three experimental formulation ratios (70:30, 60:40, and 50:50).`,
             `3. To evaluate consumer sensory acceptability (taste, aroma, color, texture) with a 20-member panel.`,
           ],
-          methodologyHint: `Practical formulation trials, standardized cooking, and a 9-point hedonic sensory evaluation panel with local consumers.`,
+          methodologyHint: `Practical formulation trials, standardized cooking, and a 9-point hedonic sensory evaluation panel analyzed using ${levelSpec.analysisMethods}.`,
         },
         {
           id: "tf-2",
@@ -758,7 +841,7 @@ function generateDeterministicTopics(
             `2. To bake prototype batches under controlled oven temperature and time.`,
             `3. To assess consumer sensory acceptability and physical texture of the baked biscuits.`,
           ],
-          methodologyHint: `Kitchen baking trials, airtight packaging in clean pouches, and consumer acceptability scorecards.`,
+          methodologyHint: `Kitchen baking trials, airtight packaging in clean pouches, and consumer acceptability scorecards analyzed using ${levelSpec.analysisMethods}.`,
         },
         {
           id: "tf-3",
@@ -770,7 +853,7 @@ function generateDeterministicTopics(
             `2. To compare drying duration and moisture reduction under solar drying versus open-sun drying.`,
             `3. To assess the visual color, crispness, and rehydration properties of the dried slices.`,
           ],
-          methodologyHint: `Cabinet solar drying experiment, weight loss recording at regular intervals, and simple sensory evaluation.`,
+          methodologyHint: `Cabinet solar drying experiment, weight loss recording at regular intervals, and sensory evaluation analyzed using ${levelSpec.analysisMethods}.`,
         },
       ],
       followUpQuestion: `Which practical product do you prefer to develop: composite porridge flour, enriched biscuits, or solar-dried food slices?`,
@@ -785,7 +868,7 @@ function generateDeterministicTopics(
         : "Fortified Composite Flour";
 
     return {
-      problemAnalysis: `Establishing a small-scale food enterprise provides accessible, nutritious foods to local families while generating viable self-employment in Kenya.`,
+      problemAnalysis: `Establishing a small-scale food enterprise (${levelSpec.levelLabel} standard: ≥${levelSpec.targetPages} pages) provides accessible, nutritious foods to local families while generating viable self-employment in Kenya.`,
       options: [
         {
           id: "bp-1",
@@ -829,7 +912,7 @@ function generateDeterministicTopics(
   }
 
   // 3. Nutrition & Dietetics Research (Certificate & Diploma Standard: Descriptive Cross-Sectional Secondary Data Design)
-  return generateSecondaryDataTopics(query, loc);
+  return generateSecondaryDataTopics(query, loc, level);
 }
 
 function extractTopicEntities(draftText: string, context: WorkspaceContext) {
@@ -907,6 +990,7 @@ function generateDeterministicSectionPolish(params: {
   const { draftText, sectionKey, minWords, context, evidence } = params;
   const rawWords = draftText.trim() ? draftText.trim().split(/\s+/).length : 0;
   const { title } = extractTopicEntities(draftText, context);
+  const levelSpec = getAcademicLevelSpec(context.level);
 
   const paragraphs: string[] = [];
 
@@ -934,7 +1018,9 @@ function generateDeterministicSectionPolish(params: {
   ];
   if (citations.length > 0) warnings.push(VERIFY_WARNING);
   if (polishedWords < minWords) {
-    warnings.push(`Add more detail in your own words to reach ${minWords} words.`);
+    warnings.push(
+      `Add more detail in your own words to reach ${minWords} words (${levelSpec.levelLabel} overall project target: at least ${levelSpec.targetPages} pages).`
+    );
   }
 
   return {
@@ -944,11 +1030,11 @@ function generateDeterministicSectionPolish(params: {
     wordDiff: polishedWords - rawWords,
     targetMet: polishedWords >= minWords,
     improvements: [
-      "Your words kept, spelling and punctuation tidied",
+      `Your words kept and formatted for ${levelSpec.levelLabel} standard (≥${levelSpec.targetPages} pages)`,
       citations.length > 0
         ? `${citations.length} verified source(s) cited in text`
         : "No verified source matched this section",
-      `Length now ${polishedWords} words (target ${minWords})`,
+      `Section length now ${polishedWords} words (target ${minWords} words)`,
     ],
     citations,
     warnings,

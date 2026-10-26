@@ -47,21 +47,32 @@ function placeName(loc: string): string {
 
 const SURVEY = "Descriptive cross-sectional design using secondary data only";
 const NEXT_STEP = "Which data can you access easily: survey reports, facility or school records, or published studies?";
-const ANALYSIS =
-  "Using data that already exists keeps your project simple and ethical. Confirm that the figures you need are reported for your county and year before you adopt a topic.";
 
 function has(q: string, words: string[]): boolean {
   return words.some((w) => q.includes(w));
 }
 
-export function generateSecondaryDataTopics(query: string, loc: string): TopicNarrowingResult {
+export function generateSecondaryDataTopics(
+  query: string,
+  loc: string,
+  level: string = "certificate"
+): TopicNarrowingResult {
   const q = query.toLowerCase();
   const place = placeName(loc);
+  const isDiploma = level.toLowerCase() === "diploma";
+
+  const analysisNote = isDiploma
+    ? "Diploma Standard (≥ 40 Pages): Using verified secondary data keeps your study rigorous and ethical. Your analysis will combine descriptive statistics (frequencies, percentages, means, standard deviation) and inferential statistics (such as Chi-square tests of association, t-tests, or correlation at p < 0.05)."
+    : "Certificate Standard (≥ 15 Pages; min 10 pages): Using existing secondary data keeps your project straightforward and ethical. Your analysis will use simple descriptive statistics (frequencies, percentages, averages, and summary tables).";
+
+  const statSuffix = isDiploma
+    ? "analysed using both descriptive statistics (frequencies, percentages, means) and inferential statistics (Chi-square test of association / t-test at p < 0.05) for a 40+ page Diploma report."
+    : "summarised in Excel using simple descriptive statistics (frequencies, percentages, averages, and charts) for a 15+ page Certificate report.";
 
   // A. School feeding and pupils (existing school records and published reports)
   if (has(q, ["school", "pupil", "learner", "attendance", "breakfast", "academic"])) {
     return {
-      problemAnalysis: ANALYSIS,
+      problemAnalysis: analysisNote,
       options: [
         make(
           "rs-1",
@@ -71,9 +82,11 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
           [
             "To calculate the average pupil attendance rate recorded in the school registers for one academic year.",
             "To describe the meals provided to pupils as recorded in school feeding records.",
-            "To compare attendance between months or terms with and without school meals.",
+            isDiploma
+              ? "To compare and test the statistical difference in attendance between terms with and without school meals."
+              : "To compare attendance between months or terms with and without school meals.",
           ],
-          `${SURVEY}. Data from attendance registers and feeding records, used with the head teacher's permission and summarised in Excel using percentages and averages.`
+          `${SURVEY}. Data from attendance registers and feeding records, used with the head teacher's permission and ${statSuffix}`
         ),
         make(
           "rs-2",
@@ -83,9 +96,11 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
           [
             "To collect pupils' age, sex, weight and height from existing school health records.",
             "To classify pupils as normal, underweight or stunted using WHO growth standards.",
-            "To compare nutritional status by sex and class.",
+            isDiploma
+              ? "To compare and test the association between pupils' nutritional status, sex, and class level."
+              : "To compare nutritional status by sex and class.",
           ],
-          `${SURVEY}. Existing school health or clinic records with names removed, summarised with percentages and tables.`
+          `${SURVEY}. Existing school health or clinic records with names removed, ${statSuffix}`
         ),
         make(
           "rs-3",
@@ -97,7 +112,7 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
             "To describe their main findings on attendance and learning.",
             "To identify gaps and give simple recommendations.",
           ],
-          `${SURVEY}. Desk review of journal articles and agency reports, with findings summarised in a simple table.`
+          `${SURVEY}. Desk review of journal articles and agency reports, ${statSuffix}`
         ),
       ],
       followUpQuestion: NEXT_STEP,
@@ -107,7 +122,7 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
   // B. Maternal nutrition
   if (has(q, ["maternal", "pregnan", "antenatal", "anc", "anaemia", "anemia", "iron", "women"])) {
     return {
-      problemAnalysis: ANALYSIS,
+      problemAnalysis: analysisNote,
       options: [
         make(
           "rs-1",
@@ -117,9 +132,11 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
           [
             "To extract the number of first antenatal visits and women given iron and folic acid for one year.",
             "To calculate supplementation coverage by month or facility.",
-            "To identify the months or facilities with the lowest coverage.",
+            isDiploma
+              ? "To compare coverage across facilities and test whether seasonal or facility differences are statistically significant."
+              : "To identify the months or facilities with the lowest coverage.",
           ],
-          `${SURVEY}. Ministry of Health facility reports (KHIS) or antenatal registers, used with permission and summarised with percentages and charts.`
+          `${SURVEY}. Ministry of Health facility reports (KHIS) or antenatal registers, ${statSuffix}`
         ),
         make(
           "rs-2",
@@ -129,9 +146,11 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
           [
             "To extract women's body mass index categories from KDHS tables.",
             "To record the percentage of women with anaemia where it is reported.",
-            "To compare results by age group and urban or rural residence.",
+            isDiploma
+              ? "To compare results and assess the relationship between maternal nutritional status, age group, and urban or rural residence."
+              : "To compare results by age group and urban or rural residence.",
           ],
-          `${SURVEY}. KDHS report and statistical tables, summarised with percentages, tables and charts.`
+          `${SURVEY}. KDHS report and statistical tables, ${statSuffix}`
         ),
         make(
           "rs-3",
@@ -141,9 +160,11 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
           [
             "To extract the percentage of women with four or more antenatal visits.",
             "To describe the timing of the first antenatal visit.",
-            "To compare attendance by mother's education level and residence.",
+            isDiploma
+              ? "To examine and test the association between antenatal care attendance, mother's education level, and residence."
+              : "To compare attendance by mother's education level and residence.",
           ],
-          `${SURVEY}. KDHS 2022 report tables, summarised with percentages and charts.`
+          `${SURVEY}. KDHS 2022 report tables, ${statSuffix}`
         ),
       ],
       followUpQuestion: NEXT_STEP,
@@ -158,7 +179,7 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
     ])
   ) {
     return {
-      problemAnalysis: ANALYSIS,
+      problemAnalysis: analysisNote,
       options: [
         make(
           "rs-1",
@@ -168,9 +189,11 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
           [
             "To extract the percentage of stunted, wasted and underweight children from KDHS 2022.",
             "To compare the results by age group, sex and urban or rural residence.",
-            "To compare the results with the national average and the 2014 KDHS.",
+            isDiploma
+              ? "To evaluate changes between the 2014 and 2022 KDHS and test socio-demographic associations."
+              : "To compare the results with the national average and the 2014 KDHS.",
           ],
-          `${SURVEY}. KDHS 2022 and 2014 reports and statistical tables, summarised with percentages, tables and charts.`
+          `${SURVEY}. KDHS 2022 and 2014 reports and statistical tables, ${statSuffix}`
         ),
         make(
           "rs-2",
@@ -180,9 +203,11 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
           [
             "To extract the percentage of infants under six months who were exclusively breastfed.",
             "To extract the percentage of children aged 6 to 23 months who met minimum dietary diversity.",
-            "To compare these practices by mother's education and residence.",
+            isDiploma
+              ? "To compare and test the relationship between feeding practices, mother's education, and residence."
+              : "To compare these practices by mother's education and residence.",
           ],
-          `${SURVEY}. KDHS 2022 report tables, summarised with percentages and charts.`
+          `${SURVEY}. KDHS 2022 report tables, ${statSuffix}`
         ),
         make(
           "rs-3",
@@ -192,9 +217,11 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
           [
             "To extract the number of children reached with vitamin A and vaccines for one year.",
             "To calculate coverage by month or facility.",
-            "To identify the months or facilities with the lowest coverage.",
+            isDiploma
+              ? "To compare coverage across facilities and test whether monthly variations are statistically significant."
+              : "To identify the months or facilities with the lowest coverage.",
           ],
-          `${SURVEY}. Ministry of Health facility reports (KHIS), used with permission and summarised with percentages and charts.`
+          `${SURVEY}. Ministry of Health facility reports (KHIS), ${statSuffix}`
         ),
       ],
       followUpQuestion: NEXT_STEP,
@@ -204,7 +231,7 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
   // D. Non-communicable diseases and adult nutrition
   if (has(q, ["hypertens", "diabet", "blood pressure", "salt", "obes", "overweight", "adult", "elderly", "ncd"])) {
     return {
-      problemAnalysis: ANALYSIS,
+      problemAnalysis: analysisNote,
       options: [
         make(
           "rs-1",
@@ -214,9 +241,11 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
           [
             "To count adult patients diagnosed with hypertension or diabetes in one year.",
             "To describe the cases by age group and sex.",
-            "To record the dietary advice documented in patient files.",
+            isDiploma
+              ? "To record documented dietary advice and test the association between patient age group, sex, and diagnosis."
+              : "To record the dietary advice documented in patient files.",
           ],
-          `${SURVEY}. Outpatient registers and patient files, used with the facility in-charge's permission and with no patient names recorded.`
+          `${SURVEY}. Outpatient registers and patient files (anonymised), ${statSuffix}`
         ),
         make(
           "rs-2",
@@ -228,7 +257,7 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
             "To describe their main findings in a table.",
             "To identify gaps and give simple recommendations.",
           ],
-          `${SURVEY}. Desk review of journal articles and Ministry of Health reports, summarised in a simple table.`
+          `${SURVEY}. Desk review of journal articles and Ministry of Health reports, ${statSuffix}`
         ),
         make(
           "rs-3",
@@ -238,9 +267,11 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
           [
             "To extract the percentage of overweight and obese adults from the report.",
             "To compare results between men and women.",
-            "To compare the results with other published studies.",
+            isDiploma
+              ? "To evaluate differences across age groups and residence using descriptive and inferential comparisons."
+              : "To compare the results with other published studies.",
           ],
-          `${SURVEY}. Kenya STEPs Survey report and published studies, summarised with percentages and charts.`
+          `${SURVEY}. Kenya STEPs Survey report and published studies, ${statSuffix}`
         ),
       ],
       followUpQuestion: NEXT_STEP,
@@ -255,7 +286,7 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
     ])
   ) {
     return {
-      problemAnalysis: ANALYSIS,
+      problemAnalysis: analysisNote,
       options: [
         make(
           "rs-1",
@@ -265,9 +296,11 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
           [
             "To identify the main food groups consumed by households.",
             "To describe the share of household spending that goes to food.",
-            "To compare food consumption between rural and urban households.",
+            isDiploma
+              ? "To compare and test differences in food consumption and dietary diversity between rural and urban households."
+              : "To compare food consumption between rural and urban households.",
           ],
-          `${SURVEY}. Kenya Integrated Household Budget Survey 2015/16 reports, summarised with percentages, tables and charts.`
+          `${SURVEY}. Kenya Integrated Household Budget Survey 2015/16 reports, ${statSuffix}`
         ),
         make(
           "rs-2",
@@ -277,9 +310,11 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
           [
             "To identify food security assessment reports that cover the county.",
             "To record the percentage of households with poor food consumption or using coping strategies.",
-            "To describe changes between seasons or years.",
+            isDiploma
+              ? "To analyse seasonal changes and test associations between drought periods and poor food consumption."
+              : "To describe changes between seasons or years.",
           ],
-          `${SURVEY}. Kenya Food Security Steering Group and county assessment reports, summarised with percentages and charts.`
+          `${SURVEY}. Kenya Food Security Steering Group and county assessment reports, ${statSuffix}`
         ),
         make(
           "rs-3",
@@ -291,7 +326,7 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
             "To record production and consumption figures.",
             "To identify the reasons given for low consumption.",
           ],
-          `${SURVEY}. Desk review of reports and published studies, summarised in a simple table.`
+          `${SURVEY}. Desk review of reports and published studies, ${statSuffix}`
         ),
       ],
       followUpQuestion: NEXT_STEP,
@@ -309,7 +344,7 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
   );
 
   return {
-    problemAnalysis: ANALYSIS,
+    problemAnalysis: analysisNote,
     options: [
       make(
         "rs-1",
@@ -319,9 +354,11 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
         [
           `To identify the indicators for ${subject.toLowerCase()} in existing national reports.`,
           "To record the figures by age group, sex and residence.",
-          "To compare the results with the national average.",
+          isDiploma
+            ? "To compare results with the national average and test demographic associations."
+            : "To compare the results with the national average.",
         ],
-        `${SURVEY}. KDHS, KNBS and Ministry of Health reports, summarised with percentages, tables and charts.`
+        `${SURVEY}. KDHS, KNBS and Ministry of Health reports, ${statSuffix}`
       ),
       make(
         "rs-2",
@@ -331,9 +368,11 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
         [
           "To extract the relevant cases or indicators from facility records for one year.",
           "To describe them by age group and sex.",
-          "To identify months or groups with the highest burden.",
+          isDiploma
+            ? "To test whether case distribution differs significantly across age groups, sex, or months."
+            : "To identify months or groups with the highest burden.",
         ],
-        `${SURVEY}. Facility registers and reports, used with permission and with no names recorded.`
+        `${SURVEY}. Facility registers and reports (anonymised), ${statSuffix}`
       ),
       make(
         "rs-3",
@@ -345,7 +384,7 @@ export function generateSecondaryDataTopics(query: string, loc: string): TopicNa
           "To describe their main findings in a table.",
           "To identify gaps and give simple recommendations.",
         ],
-        `${SURVEY}. Desk review of journal articles and government reports, summarised in a simple table.`
+        `${SURVEY}. Desk review of journal articles and government reports, ${statSuffix}`
       ),
     ],
     followUpQuestion: NEXT_STEP,

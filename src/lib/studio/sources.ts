@@ -554,7 +554,13 @@ export const SOURCE_LIBRARY: SourceEntry[] = [
         text:
           "A descriptive research design reports the status of a population or condition as it currently exists without manipulating study variables",
         roles: ["methods"],
-        sections: ["ch3.design", "ch3.analysis"],
+        sections: ["ch3.design"],
+      },
+      {
+        text:
+          "Descriptive statistics such as frequencies, percentages and means summarize sample data clearly, while inferential statistics test relationships and differences between variables across groups",
+        roles: ["methods"],
+        sections: ["ch3.analysis"],
       },
     ],
   },
