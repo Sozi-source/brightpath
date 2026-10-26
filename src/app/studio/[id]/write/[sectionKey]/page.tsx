@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getWorkspaceSections, getSectionStarterContent } from "@/lib/studio/templates";
-import { saveSectionText } from "@/app/studio/actions";
+import { saveSectionText, aiPolishSectionAction, acceptAiPolishedSection } from "@/app/studio/actions";
 import { SectionEditor, type StepItem } from "./SectionEditor";
 import { AppShell } from "@/components/layout/AppShell";
 import type { UserProfile } from "@/types/database";
@@ -141,6 +141,8 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
         prevStep={prevStepDef ? { key: prevStepDef.key, title: prevStepDef.title } : null}
         nextStep={nextStepDef ? { key: nextStepDef.key, title: nextStepDef.title } : null}
         saveAction={saveSectionText}
+        aiPolishAction={aiPolishSectionAction}
+        acceptAiAction={acceptAiPolishedSection}
       />
     </AppShell>
   );

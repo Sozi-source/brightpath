@@ -7,6 +7,13 @@ import {
   getSectionStarterContent,
   getStarterKitById,
 } from "@/lib/studio/templates";
+import {
+  narrowDownTopic,
+  polishAndAlignSection,
+  type WorkspaceContext,
+  type TopicNarrowingResult,
+  type SectionPolishResult,
+} from "@/lib/studio/aiEngine";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { WorkspaceType, WorkspaceLevel } from "@/types/database";
@@ -270,3 +277,174 @@ export async function saveSectionText(formData: FormData) {
   revalidatePath(`/studio/${workspaceId}/write/${sectionKey}`);
   revalidatePath(`/supervisor/${workspaceId}`);
 }
+
+export async function aiNarrowTopicAction(formData: FormData): Promise<TopicNarrowingResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const workspaceId = formData.get("workspaceId")?.toString();
+  const studentInput = formData.get("studentInput")?.toString()?.trim() || "";
+
+  if (!workspaceId) throw new Error("Missing workspace ID.");
+  if (!studentInput) throw new Error("Please enter your problem idea or nutritional topic.");
+
+  const { data: workspace } = await supabase
+    .from("project_workspaces")
+    .select("workspace_type, level, course, title, problem_area")
+    .eq("id", workspaceId)
+    .single();
+
+  if (!workspace) throw new Error("Workspace not found.");
+
+  const context: WorkspaceContext = {
+    title: workspace.title,
+    course: workspace.course,
+    level: workspace.level,
+    problemArea: workspace.problem_area,
+    workspaceType: workspace.workspace_type,
+  };
+
+  const result = await narrowDownTopic(studentInput, context);
+
+  // Log to ai_events audit trail
+  await supabase.from("ai_events").insert({
+    workspace_id: workspaceId,
+    user_id: user.id,
+    kind: "topic_suggestions",
+    student_input: studentInput,
+    response: result as unknown as Record<string, unknown>,
+    suggestions_total: result.options.length,
+    model: process.env.GEMINI_API_KEY ? "gemini-1.5-flash" : "knec-academic-engine-v1",
+  });
+
+  return result;
+}
+
+export async function aiPolishSectionAction(formData: FormData): Promise<SectionPolishResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const workspaceId = formData.get("workspaceId")?.toString();
+  const sectionKey = formData.get("sectionKey")?.toString();
+  const draftText = formData.get("draftText")?.toString() || "";
+
+  if (!workspaceId || !sectionKey) throw new Error("Missing parameters.");
+
+  const { data: workspace } = await supabase
+    .from("project_workspaces")
+    .select("workspace_type, level, course, title, problem_area, student_id")
+    .eq("id", workspaceId)
+    .single();
+
+  if (!workspace || workspace.student_id !== user.id) {
+    throw new Error("Unauthorized.");
+  }
+
+  // Find section definition for guidance and minWords
+  const sectionDefs = getWorkspaceSections(workspace.workspace_type, workspace.level);
+  const def = sectionDefs.find((s) => s.key === sectionKey);
+
+  const context: WorkspaceContext = {
+    title: workspace.title,
+    course: workspace.course,
+    level: workspace.level,
+    problemArea: workspace.problem_area,
+    workspaceType: workspace.workspace_type,
+  };
+
+  const result = await polishAndAlignSection({
+    draftText,
+    sectionKey,
+    sectionTitle: def?.title || sectionKey,
+    guidance: def?.guidance || "Adhere to KNEC technical guidelines.",
+    minWords: def?.minWords || 100,
+    context,
+  });
+
+  // Log to ai_events audit trail
+  const { data: section } = await supabase
+    .from("workspace_sections")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .eq("section_key", sectionKey)
+    .single();
+
+  if (section) {
+    await supabase.from("ai_events").insert({
+      workspace_id: workspaceId,
+      section_id: section.id,
+      user_id: user.id,
+      kind: "language_suggestion",
+      student_input: draftText.slice(0, 500),
+      response: {
+        wordsOriginal: result.wordsOriginal,
+        wordsPolished: result.wordsPolished,
+        targetMet: result.targetMet,
+      },
+      suggestions_total: 1,
+      model: process.env.GEMINI_API_KEY ? "gemini-1.5-flash" : "knec-academic-engine-v1",
+    });
+  }
+
+  return result;
+}
+
+export async function acceptAiPolishedSection(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const workspaceId = formData.get("workspaceId")?.toString();
+  const sectionKey = formData.get("sectionKey")?.toString();
+  const polishedText = formData.get("text")?.toString() ?? "";
+  const charsAdded = parseInt(formData.get("charsAdded")?.toString() || "0", 10);
+
+  if (!workspaceId || !sectionKey) throw new Error("Missing parameters.");
+
+  const { data: section } = await supabase
+    .from("workspace_sections")
+    .select("id, ai_accepted_chars")
+    .eq("workspace_id", workspaceId)
+    .eq("section_key", sectionKey)
+    .single();
+
+  if (!section) throw new Error("Section not found.");
+
+  const currentAiChars = section.ai_accepted_chars || 0;
+
+  // 1. Update section with polished text
+  const { error: updErr } = await supabase
+    .from("workspace_sections")
+    .update({
+      current_text: polishedText,
+      status: "draft",
+      ai_accepted_chars: currentAiChars + (charsAdded > 0 ? charsAdded : polishedText.length),
+    })
+    .eq("id", section.id);
+
+  if (updErr) throw updErr;
+
+  // 2. Insert into section_versions with source student_accepted_suggestion
+  await supabase.from("section_versions").insert({
+    section_id: section.id,
+    text: polishedText,
+    source: "student_accepted_suggestion",
+    ai_chars_accepted: charsAdded > 0 ? charsAdded : polishedText.length,
+  });
+
+  revalidatePath(`/studio/${workspaceId}`);
+  revalidatePath(`/studio/${workspaceId}/write/${sectionKey}`);
+  revalidatePath(`/supervisor/${workspaceId}`);
+}
+

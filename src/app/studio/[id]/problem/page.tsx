@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { updateWorkspaceTopic } from "@/app/studio/actions";
-import { TopicSelector } from "./TopicSelector";
+import { updateWorkspaceTopic, aiNarrowTopicAction } from "@/app/studio/actions";
+import { TopicCoach } from "./TopicCoach";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ChevronLeft } from "lucide-react";
@@ -70,10 +70,10 @@ export default async function ProblemFinderPage({ params }: ProblemFinderPagePro
 
   const typeLabel =
     workspace.workspace_type === "trade_fabrication"
-      ? "Trade Fabrication"
+      ? "Food Science Formulation"
       : workspace.workspace_type === "research_secondary"
-      ? "Secondary Research"
-      : "Business Plan";
+      ? "Nutrition Research"
+      : "Nutrition Enterprise";
 
   return (
     <AppShell
@@ -82,8 +82,8 @@ export default async function ProblemFinderPage({ params }: ProblemFinderPagePro
       activeContextTitle={`Topic: ${workspace.title || "Formulation"}`}
     >
       <PageHeaderCard
-        title="Topic Formulation"
-        subtitle="Select curriculum topic or enter working title"
+        title="Topic Discovery & Formulation"
+        subtitle="Narrow down research ideas into approved examination proposals"
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Project Studio", href: "/studio" },
@@ -105,13 +105,15 @@ export default async function ProblemFinderPage({ params }: ProblemFinderPagePro
         }
       />
 
-      <TopicSelector
+      <TopicCoach
         workspaceId={workspace.id}
         initialTitle={workspace.title || ""}
         initialProblemArea={workspace.problem_area || ""}
         workspaceType={workspace.workspace_type}
+        course={workspace.course}
         topics={topics}
-        action={updateWorkspaceTopic}
+        saveAction={updateWorkspaceTopic}
+        aiNarrowAction={aiNarrowTopicAction}
       />
     </AppShell>
   );
