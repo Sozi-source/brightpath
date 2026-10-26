@@ -1,7 +1,9 @@
 import { notFound, redirect } from "next/navigation";
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getWorkspaceSections } from "@/lib/studio/templates";
 import { saveSectionText, aiPolishSectionAction, acceptAiPolishedSection } from "@/app/studio/actions";
+import { getSectionQuestionGuide, type WorkspaceContext } from "@/lib/studio/aiEngine";
 import { SectionEditor, type StepItem } from "./SectionEditor";
 import { AppShell } from "@/components/layout/AppShell";
 import type { UserProfile } from "@/types/database";
@@ -13,6 +15,7 @@ interface WriteSectionPageProps {
 }
 
 export default async function WriteSectionPage({ params }: WriteSectionPageProps) {
+  await connection();
   const { id: workspaceId, sectionKey: rawSectionKey } = await params;
   const sectionKey = decodeURIComponent(rawSectionKey);
 
@@ -39,6 +42,7 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
     .select(`
       id,
       title,
+      problem_area,
       workspace_type,
       level,
       course,
@@ -110,6 +114,15 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
     };
   });
 
+  const wsContext: WorkspaceContext = {
+    title: workspace.title,
+    course: workspace.course,
+    level: workspace.level,
+    problemArea: workspace.problem_area,
+    workspaceType: workspace.workspace_type,
+  };
+  const questionGuide = getSectionQuestionGuide(sectionDef.key, wsContext);
+
   return (
     <AppShell
       user={user}
@@ -128,6 +141,7 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
         phase={sectionDef.phase}
         isLocked={isLocked}
         currentText={textMap.get(sectionDef.key) || ""}
+        questionGuide={questionGuide}
         steps={steps}
         currentStepIndex={currentPhaseIndex}
         prevStep={prevStepDef ? { key: prevStepDef.key, title: prevStepDef.title } : null}

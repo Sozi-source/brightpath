@@ -106,7 +106,7 @@ export function TopicCoach({
                 </h2>
               </div>
               <p className="text-xs text-slate-500">
-                Tell the AI what challenge or product you wish to address. We will narrow it into 3 examination-ready proposals.
+                Type your topic idea. We will generate 3 direct and simple proposals tailored for Certificate & Diploma TVET examination standards.
               </p>
             </div>
 
@@ -129,7 +129,7 @@ export function TopicCoach({
                 rows={3}
                 value={studentInput}
                 onChange={(e) => setStudentInput(e.target.value)}
-                placeholder="e.g. Stunting among children under 5 in Kilifi county using local foods, or composite porridge flour from orange-fleshed sweet potato and amaranth..."
+                placeholder="e.g. food insecurity and school performance in Kitui, or child feeding practices in Kilifi, or composite sweet potato porridge flour..."
                 className="w-full text-xs sm:text-sm bg-slate-50/50 border border-slate-300 rounded-lg p-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:bg-white placeholder:text-slate-400"
               />
             </div>
@@ -207,7 +207,18 @@ export function TopicCoach({
                       <p className="line-clamp-2 text-slate-600">{opt.generalObjective}</p>
                     </div>
 
-                    <div className="text-[11px] text-slate-500 space-y-1">
+                    {opt.specificObjectives && opt.specificObjectives.length > 0 && (
+                      <div className="text-[11px] text-slate-600 space-y-1 pt-1 border-t border-slate-100">
+                        <span className="font-semibold text-slate-800 block">Objectives:</span>
+                        <ul className="space-y-0.5 text-slate-600 text-[10.5px]">
+                          {opt.specificObjectives.slice(0, 3).map((obj, i) => (
+                            <li key={i} className="line-clamp-1">{obj}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    <div className="text-[11px] text-slate-500 space-y-1 pt-1 border-t border-slate-100">
                       <span className="font-medium text-slate-700">Methodology:</span>
                       <p className="line-clamp-2">{opt.methodologyHint}</p>
                     </div>

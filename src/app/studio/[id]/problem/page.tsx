@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { updateWorkspaceTopic, aiNarrowTopicAction } from "@/app/studio/actions";
 import { TopicCoach } from "./TopicCoach";
@@ -15,6 +16,7 @@ interface ProblemFinderPageProps {
 }
 
 export default async function ProblemFinderPage({ params }: ProblemFinderPageProps) {
+  await connection();
   const { id: workspaceId } = await params;
   const supabase = await createClient();
 

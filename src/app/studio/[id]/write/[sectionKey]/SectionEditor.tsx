@@ -15,10 +15,9 @@ import {
   Check,
   X,
   FileCheck2,
-  ChevronDown,
-  ChevronUp,
+  HelpCircle,
 } from "lucide-react";
-import type { SectionPolishResult } from "@/lib/studio/aiEngine";
+import type { SectionPolishResult, SectionQuestionGuide } from "@/lib/studio/aiEngine";
 
 export interface StepItem {
   key: string;
@@ -44,6 +43,7 @@ interface SectionEditorProps {
   phase: "proposal" | "project";
   isLocked: boolean;
   currentText: string;
+  questionGuide?: SectionQuestionGuide;
   steps: StepItem[];
   currentStepIndex: number;
   prevStep: { key: string; title: string } | null;
@@ -64,6 +64,7 @@ export function SectionEditor({
   phase,
   isLocked,
   currentText: initialText,
+  questionGuide,
   steps,
   currentStepIndex,
   prevStep,
@@ -81,7 +82,6 @@ export function SectionEditor({
   const [isPolishing, startPolishTransition] = useTransition();
   const [polishResult, setPolishResult] = useState<SectionPolishResult | null>(null);
   const [isAcceptingAi, startAcceptTransition] = useTransition();
-  const [showPrompts, setShowPrompts] = useState(false);
 
   const wordsCount = text.trim() ? text.trim().split(/\s+/).length : 0;
   const isMinMet = wordsCount >= minWords;
@@ -390,40 +390,41 @@ export function SectionEditor({
               </div>
             )}
 
-            {/* Concise Prompt Guidance */}
-            <div className="space-y-2">
-              <div className="flex items-start gap-2.5 p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-700">
-                <Lightbulb className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                <div className="space-y-0.5 flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-slate-900">KNEC Examination Guide:</span>
-                    <button
-                      type="button"
-                      onClick={() => setShowPrompts(!showPrompts)}
-                      className="text-[11px] text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>{showPrompts ? "Hide prompts" : "Need ideas to write?"}</span>
-                      {showPrompts ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                    </button>
-                  </div>
-                  <p className="text-slate-600 leading-relaxed">{guidance}</p>
+            {/* Prominent Open-Ended Guided Question Card */}
+            <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-r from-indigo-50/90 via-blue-50/50 to-slate-50 border border-indigo-200 shadow-2xs space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-indigo-600 text-white shrink-0 mt-0.5 shadow-2xs">
+                  <HelpCircle className="h-4 w-4" />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-indigo-700 bg-indigo-100/70 px-2 py-0.5 rounded">
+                    Guided Question Prompt
+                  </span>
+                  <h2 className="text-sm sm:text-base font-semibold text-slate-900 tracking-tight leading-snug">
+                    {questionGuide?.mainQuestion || `What are your core ideas for ${sectionTitle}?`}
+                  </h2>
                 </div>
               </div>
 
-              {/* Formative Writing Prompts */}
-              {showPrompts && (
-                <div className="p-3 bg-amber-50/50 border border-amber-200 rounded-lg text-xs text-amber-950 space-y-1.5 animate-in fade-in duration-150">
-                  <span className="font-semibold block">Questions to answer in your draft:</span>
-                  <ul className="list-disc list-inside space-y-1 text-slate-700 text-[11px]">
-                    <li>What core background context, numbers, or ingredients are you focusing on?</li>
-                    <li>What practical deficit or gap in Kenya does this section resolve?</li>
-                    <li>How does your approach tie back to the project objectives?</li>
-                  </ul>
-                  <span className="text-[10px] text-slate-500 block pt-0.5">
-                    Tip: Write your thoughts in bullet points or notes, then click <strong>Polish with AI</strong> to expand into complete academic paragraphs.
+              {questionGuide && questionGuide.subQuestions.length > 0 && (
+                <div className="pl-11 space-y-1">
+                  <span className="text-[11px] font-semibold text-slate-700 block">
+                    Points to include in your draft:
                   </span>
+                  <ul className="list-disc list-inside space-y-0.5 text-xs text-slate-600">
+                    {questionGuide.subQuestions.map((q, idx) => (
+                      <li key={idx} className="leading-relaxed">{q}</li>
+                    ))}
+                  </ul>
                 </div>
               )}
+
+              {/* KNEC Syllabus Target Line */}
+              <div className="pl-11 pt-1 border-t border-indigo-100/80 flex items-center gap-1.5 text-[11px] text-slate-500">
+                <Lightbulb className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                <span className="font-medium text-slate-700">KNEC Examination Target:</span>
+                <span className="truncate">{guidance}</span>
+              </div>
             </div>
 
             {/* Editor Textarea */}
@@ -433,7 +434,10 @@ export function SectionEditor({
                 rows={14}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                placeholder="Write your section draft here in clear, concise language (or rough notes)... Then click 'Polish with AI' to align with KNEC standards."
+                placeholder={
+                  questionGuide?.placeholderExample ||
+                  "Write your section draft here in clear, concise language (or rough notes)... Then click 'Polish with AI' to align with KNEC standards."
+                }
                 className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg p-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 leading-relaxed font-sans placeholder:text-slate-400 min-h-[320px]"
               />
             </div>

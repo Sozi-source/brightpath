@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getWorkspaceSections } from "@/lib/studio/templates";
 import { getRubricForWorkspace } from "@/lib/studio/rubrics";
@@ -29,6 +30,7 @@ interface WorkspaceOverviewPageProps {
 }
 
 export default async function WorkspaceOverviewPage({ params }: WorkspaceOverviewPageProps) {
+  await connection();
   const { id: workspaceId } = await params;
   const supabase = await createClient();
 
