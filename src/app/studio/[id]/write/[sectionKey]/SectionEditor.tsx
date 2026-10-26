@@ -6,16 +6,32 @@ import {
   Save,
   CheckCircle,
   AlertCircle,
-  FileText,
+  ChevronLeft,
   ArrowRight,
   ArrowLeft,
   Lock,
   Sparkles,
+  Lightbulb,
 } from "lucide-react";
+
+export interface StepItem {
+  key: string;
+  title: string;
+  phase: "proposal" | "project";
+  stepNumber: number;
+  isDone: boolean;
+  isCurrent: boolean;
+  isLocked: boolean;
+  wordCount: number;
+  minWords: number;
+}
 
 interface SectionEditorProps {
   workspaceId: string;
+  workspaceTitle: string;
+  course: string;
   sectionKey: string;
+  sectionTitle: string;
   guidance: string;
   rubricMarks?: number;
   minWords?: number;
@@ -23,23 +39,29 @@ interface SectionEditorProps {
   isLocked: boolean;
   currentText: string;
   starterTemplate?: string;
-  prevSectionKey: string | null;
-  nextSectionKey: string | null;
+  steps: StepItem[];
+  currentStepIndex: number;
+  prevStep: { key: string; title: string } | null;
+  nextStep: { key: string; title: string } | null;
   saveAction: (formData: FormData) => Promise<void>;
 }
 
 export function SectionEditor({
   workspaceId,
+  workspaceTitle,
+  course,
   sectionKey,
+  sectionTitle,
   guidance,
-  rubricMarks,
-  minWords = 50,
+  minWords = 30,
   phase,
   isLocked,
   currentText: initialText,
   starterTemplate,
-  prevSectionKey,
-  nextSectionKey,
+  steps,
+  currentStepIndex,
+  prevStep,
+  nextStep,
   saveAction,
 }: SectionEditorProps) {
   const [text, setText] = useState(initialText);
@@ -83,161 +105,235 @@ export function SectionEditor({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Guidance Card */}
-      <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-2.5 shadow-xs">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">
-              {phase === "proposal" ? "Proposal" : "Chapter"}
-            </span>
-            {rubricMarks !== undefined && (
-              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
-                {rubricMarks}m
-              </span>
-            )}
-          </div>
+    <div className="space-y-4 max-w-5xl mx-auto">
+      {/* 1. Context Ribbon: Workspace Link & Step Progress */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <Link
+            href={`/studio/${workspaceId}`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:text-slate-900 transition-colors shrink-0"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            <span>Workspace</span>
+          </Link>
 
-          <div className="text-xs font-mono text-slate-500 flex items-center gap-2">
-            <span>Words: <span className="font-semibold text-slate-800">{wordsCount}</span> {minWords > 0 && `(min: ${minWords})`}</span>
-            {isMinMet && wordsCount > 0 && <span className="text-emerald-700 font-semibold">✓</span>}
+          <div className="min-w-0">
+            <span className="block text-xs font-semibold text-slate-900 truncate">
+              {workspaceTitle || course}
+            </span>
+            <span className="block text-[11px] text-slate-500 capitalize">
+              {phase === "proposal" ? "Proposal Phase" : "Project Phase"}
+            </span>
           </div>
         </div>
 
-        <p className="text-xs text-slate-600 leading-snug border-t border-slate-100 pt-2">
-          <span className="font-semibold text-slate-800">Prompt:</span> {guidance}
-        </p>
+        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+          <span className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-md">
+            Step {currentStepIndex + 1} of {steps.length}
+          </span>
+          <span
+            className={`text-[11px] font-mono px-2.5 py-1 rounded-md border transition-colors ${
+              isMinMet && wordsCount > 0
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold"
+                : "bg-slate-50 text-slate-600 border-slate-200"
+            }`}
+          >
+            {wordsCount} / {minWords} words
+          </span>
+        </div>
       </div>
 
-      {/* Locked Warning if Project phase not approved */}
+      {/* 2. Visual Step Progression Bar */}
+      <div className="bg-white rounded-xl border border-slate-200 p-2 sm:p-2.5 shadow-xs overflow-x-auto">
+        <div className="flex items-center gap-1.5 min-w-max">
+          {steps.map((st) => {
+            const isCurrent = st.isCurrent;
+            const isDone = st.isDone;
+            const isSecLocked = st.isLocked;
+
+            if (isSecLocked) {
+              return (
+                <div
+                  key={st.key}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 bg-slate-50 border border-slate-100 cursor-not-allowed"
+                >
+                  <Lock className="h-3.5 w-3.5" />
+                  <span>
+                    {st.stepNumber}. {st.title}
+                  </span>
+                </div>
+              );
+            }
+
+            return (
+              <Link
+                key={st.key}
+                href={`/studio/${workspaceId}/write/${encodeURIComponent(st.key)}`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  isCurrent
+                    ? "bg-indigo-600 text-white shadow-xs"
+                    : isDone
+                    ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200"
+                    : "bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200"
+                }`}
+              >
+                {isDone && !isCurrent ? (
+                  <CheckCircle className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                ) : (
+                  <span
+                    className={`inline-flex items-center justify-center h-4 w-4 rounded-full text-[10px] font-mono ${
+                      isCurrent ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
+                    }`}
+                  >
+                    {st.stepNumber}
+                  </span>
+                )}
+                <span className="truncate max-w-[140px] sm:max-w-none">{st.title}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 3. Unified Writing Canvas */}
       {isLocked ? (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center space-y-2 shadow-xs">
-          <Lock className="h-6 w-6 mx-auto text-amber-700" />
-          <h3 className="text-sm font-semibold text-amber-900">
-            Section Locked
-          </h3>
-          <p className="text-xs text-amber-800 max-w-sm mx-auto">
-            This chapter unlocks once your proposal is approved by your supervisor.
-          </p>
-          <div className="pt-1">
-            <Link
-              href={`/studio/${workspaceId}`}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-700 hover:bg-amber-800 text-white shadow-xs transition-colors"
-            >
-              <span>Return to Overview</span>
-              <ArrowRight className="h-3 w-3" />
-            </Link>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+          <div className="h-1 w-full flex">
+            <div className="h-full w-3/5 bg-blue-700" />
+            <div className="h-full w-2/5 bg-amber-500" />
+          </div>
+          <div className="p-8 text-center space-y-3">
+            <div className="h-12 w-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
+              <Lock className="h-6 w-6" />
+            </div>
+            <h3 className="text-base font-semibold text-slate-900">
+              Section Locked
+            </h3>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              This chapter unlocks after your proposal is approved by your supervisor.
+            </p>
+            <div className="pt-2">
+              <Link
+                href={`/studio/${workspaceId}`}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors"
+              >
+                <span>Return to Workspace</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
           </div>
         </div>
       ) : (
-        /* Active Writing Area */
-        <div className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 space-y-4 shadow-xs">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <label
-              htmlFor="editorTextarea"
-              className="text-xs font-semibold uppercase tracking-wider text-slate-700 flex items-center gap-2"
-            >
-              <FileText className="h-4 w-4 text-indigo-600" />
-              <span>Draft</span>
-            </label>
-
-            <div className="flex items-center gap-3">
-              {starterTemplate && (
-                <button
-                  type="button"
-                  onClick={handleInsertTemplate}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition-colors cursor-pointer"
-                  title="Insert official KNEC chapter starter outline"
-                >
-                  <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
-                  <span>Insert KNEC Outline</span>
-                </button>
-              )}
-
-              {saveStatus === "saved" && (
-                <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
-                  <CheckCircle className="h-3.5 w-3.5" />
-                  Saved
-                </span>
-              )}
-
-              {saveStatus === "error" && (
-                <span className="text-xs font-semibold text-rose-700 flex items-center gap-1">
-                  <AlertCircle className="h-3.5 w-3.5" />
-                  {errorMessage || "Error saving draft"}
-                </span>
-              )}
-            </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+          {/* Two-Tone KEC Accent Stripe */}
+          <div className="h-1 w-full flex">
+            <div className="h-full w-3/5 bg-blue-700" />
+            <div className="h-full w-2/5 bg-amber-500" />
           </div>
 
-          {/* Quick empty-state helper banner */}
-          {text.trim().length === 0 && starterTemplate && (
-            <div className="p-3 rounded-lg bg-indigo-50/70 border border-indigo-200 flex items-center justify-between gap-3 text-xs">
-              <span className="text-indigo-900 font-medium">
-                Load official KNEC outline and prompts:
-              </span>
-              <button
-                type="button"
-                onClick={handleInsertTemplate}
-                className="px-3 py-1 rounded-md text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shrink-0 shadow-xs transition-colors cursor-pointer"
-              >
-                Insert Outline
-              </button>
-            </div>
-          )}
+          <div className="p-5 sm:p-6 space-y-4">
+            {/* Canvas Header & Primary Controls */}
+            <div className="flex items-center justify-between gap-3 flex-wrap border-b border-slate-100 pb-3">
+              <div>
+                <h1 className="text-lg sm:text-xl font-semibold text-slate-900 tracking-tight">
+                  {sectionTitle}
+                </h1>
+                <p className="text-xs text-slate-500">
+                  Step {currentStepIndex + 1} • Minimum target: {minWords} words
+                </p>
+              </div>
 
-          <textarea
-            id="editorTextarea"
-            rows={14}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Write your section draft here..."
-            className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg p-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 leading-relaxed font-sans placeholder:text-slate-400"
-          />
+              <div className="flex items-center gap-2">
+                {starterTemplate && (
+                  <button
+                    type="button"
+                    onClick={handleInsertTemplate}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+                    title="Insert KNEC outline for this chapter"
+                  >
+                    <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+                    <span>Insert Outline</span>
+                  </button>
+                )}
 
-          {/* Action Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-slate-100">
-            <div className="flex items-center gap-3">
-              {prevSectionKey ? (
-                <Link
-                  href={`/studio/${workspaceId}/write/${prevSectionKey}`}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-indigo-600 transition-colors"
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isPending}
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  <span>Previous Section</span>
-                </Link>
-              ) : (
-                <span />
-              )}
-
-              {nextSectionKey && (
-                <Link
-                  href={`/studio/${workspaceId}/write/${nextSectionKey}`}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-indigo-600 transition-colors"
-                >
-                  <span>Next Section</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              )}
+                  <Save className="h-3.5 w-3.5" />
+                  <span>
+                    {isPending ? "Saving..." : saveStatus === "saved" ? "Saved ✓" : "Save Draft"}
+                  </span>
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <Link
-                href={`/studio/${workspaceId}`}
-                className="text-xs font-semibold text-slate-600 hover:text-slate-900"
-              >
-                Back to Workspace
-              </Link>
+            {/* Error banner if save fails */}
+            {saveStatus === "error" && (
+              <div className="rounded-lg bg-rose-50 border border-rose-200 p-2.5 text-xs font-semibold text-rose-800 flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
+                <span>{errorMessage || "Failed to save draft."}</span>
+              </div>
+            )}
 
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={isPending}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
-              >
-                <Save className="h-4 w-4" />
-                <span>{isPending ? "Saving..." : "Save Draft"}</span>
-              </button>
+            {/* Concise Prompt Guidance */}
+            <div className="flex items-start gap-2.5 p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-700">
+              <Lightbulb className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <span className="font-semibold text-slate-900">Guide:</span>
+                <p className="text-slate-600 leading-relaxed">{guidance}</p>
+              </div>
+            </div>
+
+            {/* Editor Textarea */}
+            <div>
+              <textarea
+                id="editorTextarea"
+                rows={14}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Write your section draft here in clear, concise academic English..."
+                className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg p-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 leading-relaxed font-sans placeholder:text-slate-400 min-h-[320px]"
+              />
+            </div>
+
+            {/* Step Navigation Footer */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
+              <div>
+                {prevStep ? (
+                  <Link
+                    href={`/studio/${workspaceId}/write/${encodeURIComponent(prevStep.key)}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                  >
+                    <ArrowLeft className="h-3.5 w-3.5" />
+                    <span>Previous Step: {prevStep.title}</span>
+                  </Link>
+                ) : (
+                  <span className="text-xs text-slate-400">First step</span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3">
+                {nextStep ? (
+                  <Link
+                    href={`/studio/${workspaceId}/write/${encodeURIComponent(nextStep.key)}`}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-colors"
+                  >
+                    <span>Next Step: {nextStep.title}</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                ) : (
+                  <Link
+                    href={`/studio/${workspaceId}`}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-colors"
+                  >
+                    <span>Complete {phase === "proposal" ? "Proposal" : "Chapters"}</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         </div>

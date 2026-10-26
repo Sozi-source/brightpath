@@ -1,12 +1,9 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getWorkspaceSections, getSectionStarterContent } from "@/lib/studio/templates";
 import { saveSectionText } from "@/app/studio/actions";
-import { SectionEditor } from "./SectionEditor";
+import { SectionEditor, type StepItem } from "./SectionEditor";
 import { AppShell } from "@/components/layout/AppShell";
-import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
-import { ChevronLeft, Lock } from "lucide-react";
 import type { UserProfile } from "@/types/database";
 
 export const instant = false;
@@ -58,7 +55,7 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
     redirect("/studio");
   }
 
-  // Find section definition from template
+  // Find section definitions from template
   const sectionDefs = getWorkspaceSections(workspace.workspace_type, workspace.level);
   const sectionDefIndex = sectionDefs.findIndex((s) => s.key === sectionKey);
 
@@ -67,31 +64,53 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
   }
 
   const sectionDef = sectionDefs[sectionDefIndex];
-  const prevSectionKey = sectionDefIndex > 0 ? sectionDefs[sectionDefIndex - 1].key : null;
-  const nextSectionKey =
-    sectionDefIndex < sectionDefs.length - 1 ? sectionDefs[sectionDefIndex + 1].key : null;
 
-  // Load existing section data from database
-  const { data: sectionRecord } = await supabase
+  // Load all existing sections to build the live step tracker
+  const { data: allSectionsData } = await supabase
     .from("workspace_sections")
-    .select("id, current_text, status, phase")
+    .select("id, section_key, phase, position, current_text, status")
     .eq("workspace_id", workspaceId)
-    .eq("section_key", sectionKey)
-    .single();
+    .order("position", { ascending: true });
+
+  const allSections = allSectionsData || [];
+  const textMap = new Map(allSections.map((s) => [s.section_key, s.current_text || ""]));
+
+  // Sections belonging to the current active phase (e.g. proposal vs project)
+  const phaseSections = sectionDefs.filter((s) => s.phase === sectionDef.phase);
+  const currentPhaseIndex = phaseSections.findIndex((s) => s.key === sectionKey);
+
+  const prevStepDef = currentPhaseIndex > 0 ? phaseSections[currentPhaseIndex - 1] : null;
+  const nextStepDef = currentPhaseIndex < phaseSections.length - 1 ? phaseSections[currentPhaseIndex + 1] : null;
 
   const isLocked =
     sectionDef.phase === "project" &&
     workspace.status !== "approved" &&
     workspace.status !== "submitted";
 
-  const typeLabel =
-    workspace.workspace_type === "trade_fabrication"
-      ? "Trade Fabrication"
-      : workspace.workspace_type === "research_secondary"
-      ? "Secondary Research"
-      : "Business Plan";
+  // Build interactive step list
+  const steps: StepItem[] = phaseSections.map((sec, idx) => {
+    const rawText = textMap.get(sec.key) || "";
+    const words = rawText.trim() ? rawText.trim().split(/\s+/).length : 0;
+    const isDone = words >= (sec.minWords || 30);
+    const isSecLocked =
+      sec.phase === "project" &&
+      workspace.status !== "approved" &&
+      workspace.status !== "submitted";
 
-  // Compute built-in KNEC starter template for this specific chapter
+    return {
+      key: sec.key,
+      title: sec.title,
+      phase: sec.phase,
+      stepNumber: idx + 1,
+      isDone,
+      isCurrent: sec.key === sectionKey,
+      isLocked: isSecLocked,
+      wordCount: words,
+      minWords: sec.minWords || 30,
+    };
+  });
+
+  // Compute built-in KNEC starter template for this specific section
   const starterTemplate = getSectionStarterContent(
     workspace.workspace_type,
     workspace.level,
@@ -102,53 +121,25 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
     <AppShell
       user={user}
       profile={profile}
-      activeContextTitle={`Drafting: ${sectionDef.title}`}
+      activeContextTitle={`Step ${currentPhaseIndex + 1}: ${sectionDef.title}`}
     >
-      <PageHeaderCard
-        title={sectionDef.title}
-        subtitle={`${workspace.title || "Project Workspace"} • ${workspace.course}`}
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Project Studio", href: "/studio" },
-          { label: workspace.title || "Overview", href: `/studio/${workspaceId}` },
-          { label: sectionDef.title, active: true },
-        ]}
-        metadata={[
-          { label: "Track", value: typeLabel },
-          { label: "Target", value: `Min ${sectionDef.minWords || 50} words` },
-          { label: "Status", value: isLocked ? "Locked" : "Drafting" },
-        ]}
-        actions={
-          <div className="flex items-center gap-2">
-            <Link
-              href={`/studio/${workspaceId}`}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              <span>Overview</span>
-            </Link>
-            {isLocked && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-300">
-                <Lock className="h-3.5 w-3.5" />
-                Locked
-              </span>
-            )}
-          </div>
-        }
-      />
-
       <SectionEditor
         workspaceId={workspace.id}
+        workspaceTitle={workspace.title || workspace.course}
+        course={workspace.course}
         sectionKey={sectionDef.key}
+        sectionTitle={sectionDef.title}
         guidance={sectionDef.guidance}
         rubricMarks={sectionDef.rubricMarks}
         minWords={sectionDef.minWords}
         phase={sectionDef.phase}
         isLocked={isLocked}
-        currentText={sectionRecord?.current_text || ""}
+        currentText={textMap.get(sectionDef.key) || ""}
         starterTemplate={starterTemplate}
-        prevSectionKey={prevSectionKey}
-        nextSectionKey={nextSectionKey}
+        steps={steps}
+        currentStepIndex={currentPhaseIndex}
+        prevStep={prevStepDef ? { key: prevStepDef.key, title: prevStepDef.title } : null}
+        nextStep={nextStepDef ? { key: nextStepDef.key, title: nextStepDef.title } : null}
         saveAction={saveSectionText}
       />
     </AppShell>

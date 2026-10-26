@@ -7,7 +7,7 @@ import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
 import { STARTER_KITS } from "@/lib/studio/templates";
 import {
-  Hammer,
+  FlaskConical,
   LineChart,
   Briefcase,
   GraduationCap,
@@ -65,7 +65,7 @@ export default async function NewWorkspacePage() {
         {/* Track Selection Card */}
         <ContentCard
           title="Curriculum Track"
-          icon={Hammer}
+          icon={FlaskConical}
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <label className="relative flex flex-col p-4 rounded-xl border border-slate-200 hover:border-indigo-600 cursor-pointer has-checked:border-indigo-600 has-checked:bg-indigo-50/40 transition-all shadow-2xs">
@@ -77,13 +77,13 @@ export default async function NewWorkspacePage() {
                 className="absolute top-4 right-4 text-indigo-600 focus:ring-indigo-600"
               />
               <div className="flex items-center gap-2 mb-1.5 text-indigo-600">
-                <Hammer className="h-4 w-4" />
+                <FlaskConical className="h-4 w-4" />
                 <span className="font-semibold text-sm text-slate-900">
-                  Trade Fabrication
+                  Food Science Formulation
                 </span>
               </div>
               <p className="text-xs text-slate-500 leading-snug">
-                Prototype engineering and fabrication.
+                Recipe formulation, proximate analysis, and sensory evaluation.
               </p>
             </label>
 
@@ -97,11 +97,11 @@ export default async function NewWorkspacePage() {
               <div className="flex items-center gap-2 mb-1.5 text-emerald-600">
                 <LineChart className="h-4 w-4" />
                 <span className="font-semibold text-sm text-slate-900">
-                  Secondary Research
+                  Nutrition Research
                 </span>
               </div>
               <p className="text-xs text-slate-500 leading-snug">
-                Survey analysis and data evaluation.
+                Public health survey analysis and KDHS dietary trends.
               </p>
             </label>
 
@@ -115,11 +115,11 @@ export default async function NewWorkspacePage() {
               <div className="flex items-center gap-2 mb-1.5 text-amber-600">
                 <Briefcase className="h-4 w-4" />
                 <span className="font-semibold text-sm text-slate-900">
-                  Business Plan
+                  Nutrition Enterprise
                 </span>
               </div>
               <p className="text-xs text-slate-500 leading-snug">
-                Commercial enterprise operations.
+                Commercial food processing and clinical dietary operations.
               </p>
             </label>
           </div>
@@ -182,7 +182,7 @@ export default async function NewWorkspacePage() {
                 id="course"
                 name="course"
                 defaultValue={profile?.course || "Diploma in Human Nutrition and Dietetics"}
-                placeholder="e.g. Diploma in Electrical Engineering"
+                placeholder="e.g. Diploma in Food Science and Technology"
                 required
                 className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 placeholder:text-slate-400"
               />
@@ -215,11 +215,11 @@ export default async function NewWorkspacePage() {
                 </span>
               </div>
               <p className="text-xs text-slate-500 leading-snug">
-                Standard KNEC chapters and guided prompts.
+                Standard KNEC chapters and guided prompts for Food Science and Nutrition.
               </p>
             </label>
 
-            {/* Domain Specific Starter Kits */}
+            {/* Domain Specific Starter Kits (Strictly Nutrition & Dietetics and Food Science) */}
             {STARTER_KITS.filter((kit) => kit.id !== "knec_std_research" && kit.id !== "knec_std_business" && kit.id !== "knec_std_trade").map((kit) => (
               <label
                 key={kit.id}
@@ -232,7 +232,7 @@ export default async function NewWorkspacePage() {
                   className="absolute top-4 right-4 text-indigo-600 focus:ring-indigo-600"
                 />
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                  <span className="text-[10px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-100">
                     {kit.badge}
                   </span>
                 </div>
@@ -262,7 +262,7 @@ export default async function NewWorkspacePage() {
                 </span>
               </div>
               <p className="text-xs text-slate-500 leading-snug">
-                Empty chapter sections.
+                Empty chapter sections for custom manual drafting.
               </p>
             </label>
           </div>

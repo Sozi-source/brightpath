@@ -4,7 +4,7 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
   // --- Proposal Phase ---
   {
     key: "proposal.title",
-    title: "Research Title & Rationale",
+    title: "Research Title and Rationale",
     phase: "proposal",
     guidance:
       "State a focused research title indicating the target population, geographic scope, secondary survey dataset (e.g. KDHS 1998-2022), and primary indicators. Provide rationale.",
@@ -28,7 +28,7 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
   },
   {
     key: "proposal.rationale",
-    title: "Significance & Justification",
+    title: "Significance and Justification",
     phase: "proposal",
     guidance:
       "Explain how statistical trend analysis on official survey data supports county health planning, national intervention priorities, or clinical guidelines.",
@@ -46,7 +46,7 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
   },
   {
     key: "ack",
-    title: "Declaration & Acknowledgements",
+    title: "Declaration and Acknowledgements",
     phase: "project",
     guidance:
       "Mandatory KNEC declaration of original candidate analytical work and formal acknowledgement of data custodians (KNBS, DHS, MOH).",
@@ -119,7 +119,7 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
   },
   {
     key: "ch2.background",
-    title: "2.2 Theoretical & Conceptual Framework",
+    title: "2.2 Theoretical and Conceptual Framework",
     phase: "project",
     guidance:
       "Review UNICEF conceptual framework of malnutrition or relevant health behavior theories.",
@@ -151,7 +151,7 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
   },
   {
     key: "ch3.sources",
-    title: "3.2 Data Sources & Official Custodians",
+    title: "3.2 Data Sources and Official Custodians",
     phase: "project",
     guidance:
       "List every survey report, publisher, publication year, sample size, and public data repository accessed.",
@@ -159,7 +159,7 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
   },
   {
     key: "ch3.variables",
-    title: "3.3 Variables & Indicator Definitions",
+    title: "3.3 Variables and Indicator Definitions",
     phase: "project",
     guidance:
       "Define standard WHO/DHS case definitions for all indicators tracked in the Data Module.",
@@ -167,7 +167,7 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
   },
   {
     key: "ch3.verification",
-    title: "3.4 Data Verification & Quality Control",
+    title: "3.4 Data Verification and Quality Control",
     phase: "project",
     guidance:
       "Describe cross-checking procedures conducted against original published tables to ensure data integrity.",
@@ -183,7 +183,7 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
   },
   {
     key: "ch3.ethics",
-    title: "3.6 Ethical Considerations & Data Attribution",
+    title: "3.6 Ethical Considerations and Data Attribution",
     phase: "project",
     guidance:
       "State data confidentiality handling, anonymization in secondary archives, and copyright attribution.",
@@ -191,7 +191,7 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
   },
   {
     key: "ch4.results",
-    title: "4.1 Descriptive Statistical Results & Trends",
+    title: "4.1 Descriptive Statistical Results and Trends",
     phase: "project",
     guidance:
       "Present calculated statistical tables and trend charts generated from your verified Data Points module.",
@@ -199,7 +199,7 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
   },
   {
     key: "ch4.discussion",
-    title: "4.2 Discussion of Trends & Comparative Analysis",
+    title: "4.2 Discussion of Trends and Comparative Analysis",
     phase: "project",
     guidance:
       "Interpret why shifts occurred, linking historical policy milestones (e.g. maternal health programs, devolution) to data trends.",
@@ -215,7 +215,7 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
   },
   {
     key: "ch4.recommendations",
-    title: "4.4 Policy & Practice Recommendations",
+    title: "4.4 Policy and Practice Recommendations",
     phase: "project",
     guidance:
       "Provide specific recommendations for Ministry of Health, County Nutrition coordinators, and public health practitioners.",

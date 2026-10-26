@@ -13,7 +13,7 @@ export const TRADE_FABRICATION_SECTIONS: SectionDef[] = [
   // --- Proposal Phase ---
   {
     key: "proposal.title",
-    title: "Project Title & Brief Rationale",
+    title: "Project Title and Rationale",
     phase: "proposal",
     guidance:
       "State a clear, descriptive, professional title indicating the raw materials, fabrication/formulation method, and target application. Briefly outline the product rationale.",
@@ -37,7 +37,7 @@ export const TRADE_FABRICATION_SECTIONS: SectionDef[] = [
   },
   {
     key: "proposal.rationale",
-    title: "Justification & Expected Utility",
+    title: "Justification and Utility",
     phase: "proposal",
     guidance:
       "Explain how the completed fabricated product or food formulation benefits the target community, local agro-processors, or institutional consumers.",
@@ -55,7 +55,7 @@ export const TRADE_FABRICATION_SECTIONS: SectionDef[] = [
   },
   {
     key: "ack",
-    title: "Declaration & Acknowledgements",
+    title: "Declaration and Acknowledgements",
     phase: "project",
     guidance:
       "Formal KNEC declaration of personal candidate authorship and appreciation to supervisors, laboratory technicians, and institutions.",
@@ -128,7 +128,7 @@ export const TRADE_FABRICATION_SECTIONS: SectionDef[] = [
   },
   {
     key: "ch2.background",
-    title: "2.2 Theoretical & Nutritional Background",
+    title: "2.2 Theoretical and Nutritional Background",
     phase: "project",
     guidance:
       "Review the botanical, physical, and chemical characteristics of your principal ingredients.",
@@ -152,7 +152,7 @@ export const TRADE_FABRICATION_SECTIONS: SectionDef[] = [
   },
   {
     key: "ch3.design",
-    title: "3.1 Formulation Design & Recipe Specifications",
+    title: "3.1 Formulation Design and Recipe Specifications",
     phase: "project",
     guidance:
       "Detail your formulation ratios (e.g. 70:30, 60:40 blends) and the engineering/food design rationale.",
@@ -160,7 +160,7 @@ export const TRADE_FABRICATION_SECTIONS: SectionDef[] = [
   },
   {
     key: "ch3.materials",
-    title: "3.2 Raw Materials, Reagents & Equipment",
+    title: "3.2 Raw Materials, Reagents, and Equipment",
     phase: "project",
     guidance:
       "List all ingredients with source locations, alongside technical equipment and testing apparatus used.",
@@ -176,7 +176,7 @@ export const TRADE_FABRICATION_SECTIONS: SectionDef[] = [
   },
   {
     key: "ch3.safety",
-    title: "3.4 Quality Control & Food Safety Protocol",
+    title: "3.4 Quality Control and Food Safety Protocol",
     phase: "project",
     guidance:
       "Outline hygienic measures, temperature controls, and hazard analysis points during processing.",
@@ -184,7 +184,7 @@ export const TRADE_FABRICATION_SECTIONS: SectionDef[] = [
   },
   {
     key: "ch3.records",
-    title: "3.5 Process Logs & Trial Observations",
+    title: "3.5 Process Logs and Trial Observations",
     phase: "project",
     guidance:
       "Document observations from trial batches, moisture changes, dough/flour texture, and troubleshooting adjustments.",
@@ -192,7 +192,7 @@ export const TRADE_FABRICATION_SECTIONS: SectionDef[] = [
   },
   {
     key: "ch4.results",
-    title: "4.1 Physical, Sensory & Laboratory Results",
+    title: "4.1 Physical, Sensory, and Laboratory Results",
     phase: "project",
     guidance:
       "Present sensory scores (taste, color, aroma, texture, overall acceptability) and proximate results in clear tables.",
@@ -208,7 +208,7 @@ export const TRADE_FABRICATION_SECTIONS: SectionDef[] = [
   },
   {
     key: "ch4.cost",
-    title: "4.3 Unit Costing & Economic Feasibility",
+    title: "4.3 Unit Costing and Economic Feasibility",
     phase: "project",
     guidance:
       "Detail direct ingredient costs, processing energy, packaging, labor, and final selling price per retail unit.",
