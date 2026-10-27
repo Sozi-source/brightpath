@@ -40,11 +40,13 @@ async function verifySupervisorOrAdmin(workspaceId: string) {
 
 export async function approveProposal(formData: FormData) {
   const workspaceId = formData.get("workspaceId")?.toString();
-  const comment = formData.get("comment")?.toString().trim() || "Proposal formally reviewed and approved.";
+  const comment =
+    formData.get("comment")?.toString().trim() ||
+    "Topic and drafted sections formally reviewed and approved.";
 
   if (!workspaceId) throw new Error("Missing workspace ID.");
 
-  const { supabase, user } = await verifySupervisorOrAdmin(workspaceId);
+  const { supabase, user, workspace } = await verifySupervisorOrAdmin(workspaceId);
 
   // 1. Insert supervisor review record
   const { error: revErr } = await supabase.from("supervisor_reviews").insert({
@@ -56,7 +58,7 @@ export async function approveProposal(formData: FormData) {
 
   if (revErr) throw new Error(revErr.message);
 
-  // 2. Update workspace status to 'approved'.
+  // 2. Update workspace status to 'approved' (unlocks Chapter 1+ or confirms review).
   const { error: wsErr } = await supabase
     .from("project_workspaces")
     .update({
@@ -68,9 +70,14 @@ export async function approveProposal(formData: FormData) {
   if (wsErr) throw new Error(wsErr.message);
 
   // 3. Auto-generate Annex 12 log entry
+  const logActivity =
+    workspace.status === "submitted"
+      ? "Chapter Review Moderation: Candidate drafted chapters reviewed and approved by supervisor."
+      : "Topic Moderation: Candidate project topic formally approved; Chapter 1 unlocked.";
+
   await supabase.from("project_log_entries").insert({
     workspace_id: workspaceId,
-    activity: "Proposal Moderation: Candidate research/project proposal officially approved.",
+    activity: logActivity,
     supervisor_comment: comment,
     auto_generated: true,
     supervisor_signed_at: new Date().toISOString(),
@@ -89,7 +96,7 @@ export async function requestProposalChanges(formData: FormData) {
     throw new Error("A clear feedback comment is required when requesting modifications.");
   }
 
-  const { supabase, user } = await verifySupervisorOrAdmin(workspaceId);
+  const { supabase, user, workspace } = await verifySupervisorOrAdmin(workspaceId);
 
   // 1. Insert review record
   const { error: revErr } = await supabase.from("supervisor_reviews").insert({
@@ -101,11 +108,15 @@ export async function requestProposalChanges(formData: FormData) {
 
   if (revErr) throw new Error(revErr.message);
 
-  // 2. Revert workspace status back to 'ideation' for the student to edit
+  // 2. If already approved or submitted (student is revising chapters), keep status 'approved' so chapters stay unlocked.
+  //    If still in 'proposal_pending' (Topic stage), return to 'ideation'.
+  const isChapterStage = workspace.status === "approved" || workspace.status === "submitted";
+  const nextStatus = isChapterStage ? "approved" : "ideation";
+
   const { error: wsErr } = await supabase
     .from("project_workspaces")
     .update({
-      status: "ideation",
+      status: nextStatus,
     })
     .eq("id", workspaceId);
 
@@ -114,7 +125,9 @@ export async function requestProposalChanges(formData: FormData) {
   // 3. Auto-generate log entry
   await supabase.from("project_log_entries").insert({
     workspace_id: workspaceId,
-    activity: "Proposal Moderation Review: Supervisor requested revisions on proposal sections.",
+    activity: isChapterStage
+      ? "Chapter Moderation Review: Supervisor requested revisions on drafted chapters."
+      : "Topic Moderation Review: Supervisor requested revisions on project topic.",
     supervisor_comment: comment,
     auto_generated: true,
     supervisor_signed_at: new Date().toISOString(),

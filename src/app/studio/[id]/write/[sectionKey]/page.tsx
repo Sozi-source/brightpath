@@ -86,27 +86,24 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
   const allSections = allSectionsData || [];
   const textMap = new Map(allSections.map((s) => [s.section_key, s.current_text || ""]));
 
-  // Sections belonging to the current active phase (e.g. proposal vs project)
-  const phaseSections = sectionDefs.filter((s) => s.phase === sectionDef.phase);
-  const currentPhaseIndex = phaseSections.findIndex((s) => s.key === sectionKey);
+  // Sections belonging to the current chapter (e.g. Chapter 1: 1.1 - 1.8)
+  const chapterSections = sectionDefs.filter(
+    (s) => (s.chapter || s.phase) === (sectionDef.chapter || sectionDef.phase)
+  );
+  const currentChapterIndex = chapterSections.findIndex((s) => s.key === sectionKey);
 
-  const prevStepDef = currentPhaseIndex > 0 ? phaseSections[currentPhaseIndex - 1] : null;
-  const nextStepDef = currentPhaseIndex < phaseSections.length - 1 ? phaseSections[currentPhaseIndex + 1] : null;
+  const prevStepDef = sectionDefIndex > 0 ? sectionDefs[sectionDefIndex - 1] : null;
+  const nextStepDef =
+    sectionDefIndex < sectionDefs.length - 1 ? sectionDefs[sectionDefIndex + 1] : null;
 
   const isLocked =
-    sectionDef.phase === "project" &&
-    workspace.status !== "approved" &&
-    workspace.status !== "submitted";
+    workspace.status !== "approved" && workspace.status !== "submitted";
 
-  // Build interactive step list
-  const steps: StepItem[] = phaseSections.map((sec, idx) => {
+  // Build interactive step list for the current chapter
+  const steps: StepItem[] = chapterSections.map((sec, idx) => {
     const rawText = textMap.get(sec.key) || "";
     const words = rawText.trim() ? rawText.trim().split(/\s+/).length : 0;
     const isDone = words >= (sec.minWords || 30);
-    const isSecLocked =
-      sec.phase === "project" &&
-      workspace.status !== "approved" &&
-      workspace.status !== "submitted";
 
     return {
       key: sec.key,
@@ -115,7 +112,7 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
       stepNumber: idx + 1,
       isDone,
       isCurrent: sec.key === sectionKey,
-      isLocked: isSecLocked,
+      isLocked,
       wordCount: words,
       minWords: sec.minWords || 30,
     };
@@ -155,7 +152,7 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
     <AppShell
       user={user}
       profile={profile}
-      activeContextTitle={`Step ${currentPhaseIndex + 1}: ${sectionDef.title}`}
+      activeContextTitle={sectionDef.title}
     >
       <SectionEditor
         workspaceId={workspace.id}
@@ -163,6 +160,7 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
         course={workspace.course}
         sectionKey={sectionDef.key}
         sectionTitle={sectionDef.title}
+        chapterTitle={sectionDef.chapterTitle || "Chapter"}
         guidance={sectionDef.guidance}
         rubricMarks={sectionDef.rubricMarks}
         minWords={sectionDef.minWords}
@@ -174,7 +172,7 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
         notebookTrackName={notebookTrackName}
         notebookPrompts={notebookPrompts}
         steps={steps}
-        currentStepIndex={currentPhaseIndex}
+        currentStepIndex={currentChapterIndex}
         prevStep={prevStepDef ? { key: prevStepDef.key, title: prevStepDef.title } : null}
         nextStep={nextStepDef ? { key: nextStepDef.key, title: nextStepDef.title } : null}
         saveAction={saveSectionText}

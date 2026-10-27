@@ -1,125 +1,6 @@
 import type { SectionDef } from "./trade";
 
 export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
-  // ==================== COVER & PRELIMINARY PAGES ====================
-  {
-    key: "cover.details",
-    title: "Project Cover Page",
-    phase: "project",
-    chapter: "cover",
-    chapterTitle: "Cover Page",
-    guidance:
-      "State institutional heading, research project title, candidate full name, KNEC index/admission number, diploma course, institutional department, supervisor name, and examination series.",
-    minWords: 40,
-    starterTemplate:
-      "INSTITUTION: [Name of TVET Institute / College]\nPROJECT TITLE: [Full Research Title]\nCANDIDATE NAME: [Student Full Name]\nADMISSION NUMBER: [Admission / Registration Number]\nKNEC INDEX NUMBER: [Index Number]\nCOURSE: Diploma in Nutrition and Dietetics\nSUPERVISOR: [Supervisor Name]\nSERIES: [Month, Year Examination Series]",
-  },
-  {
-    key: "prelim.declaration",
-    title: "Declaration and Approval",
-    phase: "project",
-    chapter: "preliminary",
-    chapterTitle: "Preliminary Pages",
-    guidance:
-      "Mandatory KNEC declaration of original candidate analytical work and formal supervisor recommendation for submission.",
-    minWords: 60,
-    starterTemplate:
-      "DECLARATION BY CANDIDATE\nI declare that this research project report is my original work and has not been presented for an examination or award in any other institution.\n\nCandidate Signature: __________________ Date: ______________\n[Candidate Full Name]\n\nAPPROVAL BY SUPERVISOR\nThis research project report has been submitted for examination with my approval as the institutional supervisor.\n\nSupervisor Signature: _________________ Date: ______________\n[Supervisor Full Name]",
-  },
-  {
-    key: "prelim.dedication",
-    title: "Dedication",
-    phase: "project",
-    chapter: "preliminary",
-    chapterTitle: "Preliminary Pages",
-    guidance: "Candidate's personal dedication to parents, mentors, or inspiring individuals.",
-    minWords: 30,
-    starterTemplate: "This research work is dedicated to...",
-  },
-  {
-    key: "prelim.acknowledgements",
-    title: "Acknowledgements",
-    phase: "project",
-    chapter: "preliminary",
-    chapterTitle: "Preliminary Pages",
-    guidance:
-      "Formal appreciation to institution leadership, academic trainers, data custodians (KNBS, DHS Program, MOH Kenya), and mentors.",
-    minWords: 60,
-    starterTemplate:
-      "I express my profound gratitude to the Almighty God, my supervisor [Name], and the Kenya National Bureau of Statistics for granting access to public survey archives that made this research possible.",
-  },
-  {
-    key: "prelim.abstract",
-    title: "Executive Synopsis / Abstract",
-    phase: "project",
-    chapter: "preliminary",
-    chapterTitle: "Preliminary Pages",
-    guidance:
-      "Single-spaced summary (150-250 words) synthesizing: 1) research context and problem statement, 2) general and specific objectives, 3) datasets and statistical analytical methods, 4) primary percentage point shifts and risk factors, and 5) core policy recommendations.",
-    minWords: 150,
-  },
-  {
-    key: "prelim.toc",
-    title: "Table of Contents, Tables, and Figures",
-    phase: "project",
-    chapter: "preliminary",
-    chapterTitle: "Preliminary Pages",
-    guidance: "Structured listing of chapters, subheadings, tables, and figures with corresponding page numbers.",
-    minWords: 40,
-  },
-  {
-    key: "prelim.acronyms",
-    title: "Abbreviations and Acronyms",
-    phase: "project",
-    chapter: "preliminary",
-    chapterTitle: "Preliminary Pages",
-    guidance:
-      "Alphabetical definitions of epidemiological and institutional acronyms (e.g. KDHS, KNBS, WHO, HAZ, WAZ, WHZ, SAM, MAM, IYCF, MDD, UNICEF, MOH).",
-    minWords: 40,
-  },
-
-  // ==================== PROPOSAL PHASE ====================
-  {
-    key: "proposal.title",
-    title: "Research Title and Rationale",
-    phase: "proposal",
-    chapter: "proposal",
-    chapterTitle: "Proposal Overview",
-    guidance:
-      "State a straightforward research title indicating the nutrition topic, target population or county, and the secondary data source used (e.g. KDHS 2022, KNBS, MOH facility reports, or school records).",
-    minWords: 30,
-  },
-  {
-    key: "proposal.problem",
-    title: "Statement of the Problem",
-    phase: "proposal",
-    chapter: "proposal",
-    chapterTitle: "Proposal Overview",
-    guidance:
-      "Describe the nutrition problem in plain language using published figures, and explain why summarizing existing secondary records is needed.",
-    minWords: 60,
-  },
-  {
-    key: "proposal.objectives",
-    title: "Research Objectives",
-    phase: "proposal",
-    chapter: "proposal",
-    chapterTitle: "Proposal Overview",
-    guidance:
-      "State 1 clear general objective and 3 straightforward specific objectives that can be answered by extracting figures from existing secondary reports.",
-    minWords: 50,
-  },
-  {
-    key: "proposal.rationale",
-    title: "Significance and Justification",
-    phase: "proposal",
-    chapter: "proposal",
-    chapterTitle: "Proposal Overview",
-    guidance:
-      "Explain how summarizing verified secondary nutrition data will help local health workers, nutritionists, teachers, and families.",
-    minWords: 50,
-  },
-
   // ==================== CHAPTER 1: INTRODUCTION ====================
   {
     key: "ch1.background",
@@ -390,13 +271,67 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     minWords: 80,
   },
 
-  // ==================== REFERENCES & APPENDICES ====================
+  // ==================== COVER, PRELIMINARY, REFERENCES & APPENDICES ====================
+  {
+    key: "prelim.abstract",
+    title: "Executive Synopsis / Abstract",
+    phase: "project",
+    chapter: "preliminary",
+    chapterTitle: "Preliminary Pages & Abstract",
+    guidance:
+      "Single-spaced summary (150-250 words) synthesizing: 1) research context and problem statement, 2) general and specific objectives, 3) datasets and analytical methods, 4) primary findings, and 5) core policy recommendations.",
+    minWords: 150,
+  },
+  {
+    key: "prelim.declaration",
+    title: "Declaration and Approval",
+    phase: "project",
+    chapter: "preliminary",
+    chapterTitle: "Preliminary Pages & Abstract",
+    guidance:
+      "Mandatory KNEC declaration of original candidate analytical work and formal supervisor recommendation for submission.",
+    minWords: 60,
+    starterTemplate:
+      "DECLARATION BY CANDIDATE\nI declare that this research project report is my original work and has not been presented for an examination or award in any other institution.\n\nCandidate Signature: __________________ Date: ______________\n[Candidate Full Name]\n\nAPPROVAL BY SUPERVISOR\nThis research project report has been submitted for examination with my approval as the institutional supervisor.\n\nSupervisor Signature: _________________ Date: ______________\n[Supervisor Full Name]",
+  },
+  {
+    key: "prelim.dedication",
+    title: "Dedication",
+    phase: "project",
+    chapter: "preliminary",
+    chapterTitle: "Preliminary Pages & Abstract",
+    guidance: "Candidate's personal dedication to parents, mentors, or inspiring individuals.",
+    minWords: 30,
+    starterTemplate: "This research work is dedicated to...",
+  },
+  {
+    key: "prelim.acknowledgements",
+    title: "Acknowledgements",
+    phase: "project",
+    chapter: "preliminary",
+    chapterTitle: "Preliminary Pages & Abstract",
+    guidance:
+      "Formal appreciation to institution leadership, academic trainers, data custodians (KNBS, DHS Program, MOH Kenya), and mentors.",
+    minWords: 60,
+    starterTemplate:
+      "I express my profound gratitude to the Almighty God, my supervisor [Name], and the Kenya National Bureau of Statistics for granting access to public survey archives that made this research possible.",
+  },
+  {
+    key: "prelim.acronyms",
+    title: "Abbreviations and Acronyms",
+    phase: "project",
+    chapter: "preliminary",
+    chapterTitle: "Preliminary Pages & Abstract",
+    guidance:
+      "Alphabetical definitions of epidemiological and institutional acronyms (e.g. KDHS, KNBS, WHO, HAZ, WAZ, WHZ, SAM, MAM, IYCF, MDD, UNICEF, MOH).",
+    minWords: 40,
+  },
   {
     key: "references",
-    title: "References",
+    title: "References (APA 7th Edition)",
     phase: "project",
     chapter: "references",
-    chapterTitle: "References",
+    chapterTitle: "References & Appendices",
     guidance:
       "Comprehensive list of cited sources formatted strictly according to APA 7th Edition.",
     minWords: 150,
@@ -405,19 +340,19 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
   },
   {
     key: "app.datasources",
-    title: "Appendix I: Secondary Survey Archive Verification Sheet",
+    title: "Appendix I: Secondary Data Extraction Sheet",
     phase: "project",
     chapter: "appendices",
-    chapterTitle: "Appendices",
-    guidance: "Catalog of official survey reports, sample sizes, and URLs accessed.",
+    chapterTitle: "References & Appendices",
+    guidance: "Catalog of official survey reports, indicators extracted, sample sizes, and table numbers accessed.",
     minWords: 50,
   },
   {
     key: "app.workplan",
-    title: "Appendix II: Project Work Plan (Gantt Chart)",
+    title: "Appendix II: Project Work Plan (Schedule)",
     phase: "project",
     chapter: "appendices",
-    chapterTitle: "Appendices",
+    chapterTitle: "References & Appendices",
     guidance: "Research timeline from topic formulation to final report defense.",
     minWords: 40,
   },
@@ -426,7 +361,7 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     title: "Appendix III: Research Budget Breakdown (KES)",
     phase: "project",
     chapter: "appendices",
-    chapterTitle: "Appendices",
+    chapterTitle: "References & Appendices",
     guidance: "Itemized expenditures for data packages, printing, binding, and institutional clearances.",
     minWords: 40,
   },

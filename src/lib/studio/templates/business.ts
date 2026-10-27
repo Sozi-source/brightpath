@@ -1,119 +1,10 @@
 import type { SectionDef } from "./trade";
 
 export const BUSINESS_PLAN_SECTIONS: SectionDef[] = [
-  // ==================== COVER & PRELIMINARY PAGES ====================
-  {
-    key: "cover.details",
-    title: "Business Plan Cover Page",
-    phase: "project",
-    chapter: "cover",
-    chapterTitle: "Cover Page",
-    guidance:
-      "Enterprise registered name, brand slogan, candidate full name, admission number, KNEC index number, course, supervisor, and examination series.",
-    minWords: 40,
-    starterTemplate:
-      "BUSINESS NAME: [Enterprise Trade Name]\nSLOGAN: [Business Slogan]\nCANDIDATE NAME: [Student Full Name]\nADMISSION NUMBER: [Admission / Registration Number]\nKNEC INDEX NUMBER: [Index Number]\nCOURSE: Diploma in Food Science and Technology / Nutrition and Dietetics\nSUPERVISOR: [Supervisor Name]\nEXAMINATION SERIES: [Month, Year Examination Series]",
-  },
-  {
-    key: "prelim.declaration",
-    title: "Declaration and Approval",
-    phase: "project",
-    chapter: "preliminary",
-    chapterTitle: "Preliminary Pages",
-    guidance:
-      "Formal candidate declaration of commercial project originality and supervisor sign-off recommendation.",
-    minWords: 60,
-    starterTemplate:
-      "DECLARATION BY CANDIDATE\nI declare that this business plan is my original work and has not been presented for examination or credit in any other institution.\n\nCandidate Signature: __________________ Date: ______________\n[Candidate Full Name]\n\nAPPROVAL BY SUPERVISOR\nThis business plan has been presented for examination with my approval as institutional supervisor.\n\nSupervisor Signature: _________________ Date: ______________\n[Supervisor Full Name]",
-  },
-  {
-    key: "prelim.dedication",
-    title: "Dedication",
-    phase: "project",
-    chapter: "preliminary",
-    chapterTitle: "Preliminary Pages",
-    guidance: "Candidate's personal dedication to family, business partners, or entrepreneurial mentors.",
-    minWords: 30,
-    starterTemplate: "This commercial venture plan is dedicated to...",
-  },
-  {
-    key: "prelim.acknowledgements",
-    title: "Acknowledgements",
-    phase: "project",
-    chapter: "preliminary",
-    chapterTitle: "Preliminary Pages",
-    guidance:
-      "Appreciation to trainers, micro-enterprise advisors, raw material suppliers, and financial mentors.",
-    minWords: 60,
-    starterTemplate:
-      "I extend heartfelt thanks to Almighty God, my supervisor [Name], and local agro-processors who contributed invaluable market insights.",
-  },
-  {
-    key: "prelim.executive_summary",
-    title: "Executive Summary / Synopsis",
-    phase: "project",
-    chapter: "preliminary",
-    chapterTitle: "Preliminary Pages",
-    guidance:
-      "High-impact commercial summary (150-250 words) covering: 1) enterprise vision & products, 2) target market & consumer deficit, 3) production setup & operational capacity, 4) management credentials, and 5) initial capital requirements & 3-year projected ROI.",
-    minWords: 150,
-  },
-  {
-    key: "prelim.toc",
-    title: "Table of Contents, Tables, and Figures",
-    phase: "project",
-    chapter: "preliminary",
-    chapterTitle: "Preliminary Pages",
-    guidance: "Formatted table of contents, list of tables, and list of figures with corresponding page numbers.",
-    minWords: 40,
-  },
-
-  // ==================== PROPOSAL PHASE ====================
-  {
-    key: "proposal.title",
-    title: "Enterprise Title and Commercial Rationale",
-    phase: "proposal",
-    chapter: "proposal",
-    chapterTitle: "Proposal Overview",
-    guidance:
-      "State registered business name, commercial concept, core products/services, and target regional market.",
-    minWords: 30,
-  },
-  {
-    key: "proposal.problem",
-    title: "Market Need and Consumer Problem",
-    phase: "proposal",
-    chapter: "proposal",
-    chapterTitle: "Proposal Overview",
-    guidance:
-      "Explain the exact consumer pain point, affordability challenge, or supply deficit in target community that this business solves.",
-    minWords: 60,
-  },
-  {
-    key: "proposal.objectives",
-    title: "Commercial and Operational Objectives",
-    phase: "proposal",
-    chapter: "proposal",
-    chapterTitle: "Proposal Overview",
-    guidance:
-      "List SMART business objectives: production scale, target market share, first-year revenue targets, and break-even timeline.",
-    minWords: 50,
-  },
-  {
-    key: "proposal.rationale",
-    title: "Economic Feasibility and Justification",
-    phase: "proposal",
-    chapter: "proposal",
-    chapterTitle: "Proposal Overview",
-    guidance:
-      "Explain why this commercial enterprise is financially viable and economically beneficial (job creation, farmer linkages).",
-    minWords: 50,
-  },
-
   // ==================== CHAPTER 1: BUSINESS DESCRIPTION ====================
   {
     key: "ch1.name",
-    title: "1.1 Business Name and Brand Logo Concept",
+    title: "1.1 Business Name and Brand Concept",
     phase: "project",
     chapter: "ch1",
     chapterTitle: "Chapter 1: Business Description",
@@ -480,13 +371,57 @@ export const BUSINESS_PLAN_SECTIONS: SectionDef[] = [
     minWords: 100,
   },
 
-  // ==================== REFERENCES & APPENDICES ====================
+  // ==================== PRELIMINARY, REFERENCES & APPENDICES ====================
+  {
+    key: "prelim.executive_summary",
+    title: "Executive Summary / Synopsis",
+    phase: "project",
+    chapter: "preliminary",
+    chapterTitle: "Preliminary Pages & Executive Summary",
+    guidance:
+      "High-impact commercial summary (150-250 words) covering: 1) enterprise vision & products, 2) target market & consumer deficit, 3) production setup & operational capacity, 4) management credentials, and 5) initial capital requirements & 3-year projected ROI.",
+    minWords: 150,
+  },
+  {
+    key: "prelim.declaration",
+    title: "Declaration and Approval",
+    phase: "project",
+    chapter: "preliminary",
+    chapterTitle: "Preliminary Pages & Executive Summary",
+    guidance:
+      "Formal candidate declaration of commercial project originality and supervisor sign-off recommendation.",
+    minWords: 60,
+    starterTemplate:
+      "DECLARATION BY CANDIDATE\nI declare that this business plan is my original work and has not been presented for examination or credit in any other institution.\n\nCandidate Signature: __________________ Date: ______________\n[Candidate Full Name]\n\nAPPROVAL BY SUPERVISOR\nThis business plan has been presented for examination with my approval as institutional supervisor.\n\nSupervisor Signature: _________________ Date: ______________\n[Supervisor Full Name]",
+  },
+  {
+    key: "prelim.dedication",
+    title: "Dedication",
+    phase: "project",
+    chapter: "preliminary",
+    chapterTitle: "Preliminary Pages & Executive Summary",
+    guidance: "Candidate's personal dedication to family, business partners, or entrepreneurial mentors.",
+    minWords: 30,
+    starterTemplate: "This commercial venture plan is dedicated to...",
+  },
+  {
+    key: "prelim.acknowledgements",
+    title: "Acknowledgements",
+    phase: "project",
+    chapter: "preliminary",
+    chapterTitle: "Preliminary Pages & Executive Summary",
+    guidance:
+      "Appreciation to trainers, micro-enterprise advisors, raw material suppliers, and financial mentors.",
+    minWords: 60,
+    starterTemplate:
+      "I extend heartfelt thanks to Almighty God, my supervisor [Name], and local agro-processors who contributed invaluable market insights.",
+  },
   {
     key: "references",
-    title: "References",
+    title: "References (APA 7th Edition)",
     phase: "project",
     chapter: "references",
-    chapterTitle: "References",
+    chapterTitle: "References & Appendices",
     guidance: "Statutory citations (KEBS food standards, County trade policies, and agricultural economic reports).",
     minWords: 100,
     starterTemplate:
@@ -497,8 +432,8 @@ export const BUSINESS_PLAN_SECTIONS: SectionDef[] = [
     title: "Appendix I: Business Implementation Schedule (Gantt Chart)",
     phase: "project",
     chapter: "appendices",
-    chapterTitle: "Appendices",
-    guidance: "Monthly milestones: premises acquisition, machine fitting, trail batch, licensing, and public launch.",
+    chapterTitle: "References & Appendices",
+    guidance: "Monthly milestones: premises acquisition, machine fitting, trial batch, licensing, and public launch.",
     minWords: 40,
   },
   {
@@ -506,7 +441,7 @@ export const BUSINESS_PLAN_SECTIONS: SectionDef[] = [
     title: "Appendix II: Machinery and Raw Material Supplier Quotations",
     phase: "project",
     chapter: "appendices",
-    chapterTitle: "Appendices",
+    chapterTitle: "References & Appendices",
     guidance: "Pro-forma invoice details for milling machinery, packaging sealers, and certified grain suppliers.",
     minWords: 40,
   },

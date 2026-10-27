@@ -33,6 +33,8 @@ export async function createWorkspace(formData: FormData) {
   const admissionNumber = formData.get("admissionNumber")?.toString().trim();
   const institutionId = formData.get("institutionId")?.toString().trim() || null;
   const supervisorId = formData.get("supervisorId")?.toString().trim() || null;
+  const initialTitle = formData.get("title")?.toString().trim() || null;
+  const initialProblem = formData.get("problemArea")?.toString().trim() || null;
   const privacyConsent = formData.get("privacyConsent")?.toString();
 
   if (!workspaceType || !level || !course) {
@@ -60,7 +62,7 @@ export async function createWorkspace(formData: FormData) {
 
   if (profileErr) throw new Error(profileErr.message);
 
-  // 2. Insert new project workspace (initial status: ideation)
+  // 2. Insert new project workspace
   const { data: workspace, error: wsErr } = await db
     .from("project_workspaces")
     .insert({
@@ -70,9 +72,9 @@ export async function createWorkspace(formData: FormData) {
       workspace_type: workspaceType,
       level,
       course,
-      title: null,
-      problem_area: null,
-      status: "ideation",
+      title: initialTitle,
+      problem_area: initialProblem,
+      status: initialTitle ? "proposal_pending" : "ideation",
     })
     .select("id")
     .single();
@@ -105,6 +107,10 @@ export async function createWorkspace(formData: FormData) {
   }
 
   revalidatePath("/studio");
+  revalidatePath("/supervisor");
+  if (initialTitle) {
+    redirect(`/studio/${workspace.id}`);
+  }
   redirect(`/studio/${workspace.id}/problem`);
 }
 
@@ -123,10 +129,11 @@ export async function updateWorkspaceTopic(formData: FormData) {
   const problemArea = formData.get("problemArea")?.toString().trim();
 
   if (!workspaceId) throw new Error("Missing workspace ID.");
+  if (!title) throw new Error("Please enter a project title.");
 
   const { data: existingWs } = await db
     .from("project_workspaces")
-    .select("id, student_id")
+    .select("id, student_id, status")
     .eq("id", workspaceId)
     .single();
 
@@ -134,11 +141,15 @@ export async function updateWorkspaceTopic(formData: FormData) {
     throw new Error("Unauthorized.");
   }
 
+  const nextStatus =
+    existingWs.status === "ideation" ? "proposal_pending" : existingWs.status;
+
   const { error } = await db
     .from("project_workspaces")
     .update({
-      title: title || null,
+      title,
       problem_area: problemArea || null,
+      status: nextStatus,
     })
     .eq("id", workspaceId)
     .eq("student_id", user.id);
@@ -147,23 +158,18 @@ export async function updateWorkspaceTopic(formData: FormData) {
     throw new Error(error.message || "Failed to save project topic.");
   }
 
-  // Sync proposal.title with the selected topic so Step 1 of the proposal is ready
-  if (title) {
-    const summaryText = problemArea
-      ? `### Research Title\n${title}\n\n${problemArea}`
-      : `### Research Title\n${title}`;
-    await db
-      .from("workspace_sections")
-      .update({
-        current_text: summaryText,
-        status: "draft",
-      })
-      .eq("workspace_id", workspaceId)
-      .eq("section_key", "proposal.title");
+  if (existingWs.status === "ideation") {
+    await db.from("project_log_entries").insert({
+      workspace_id: workspaceId,
+      activity: `Submitted project topic for supervisor approval: "${title}".`,
+      auto_generated: true,
+      student_signed_at: new Date().toISOString(),
+    });
   }
 
   revalidatePath(`/studio/${workspaceId}`);
   revalidatePath(`/studio/${workspaceId}/problem`);
+  revalidatePath("/supervisor");
   redirect(`/studio/${workspaceId}`);
 }
 
@@ -182,7 +188,7 @@ export async function submitProposalForApproval(formData: FormData) {
 
   const { data: ws } = await db
     .from("project_workspaces")
-    .select("id, student_id")
+    .select("id, student_id, title")
     .eq("id", workspaceId)
     .single();
 
@@ -190,25 +196,10 @@ export async function submitProposalForApproval(formData: FormData) {
     throw new Error("Unauthorized.");
   }
 
-  // Fetch proposal sections to ensure candidate has entered substantive text
-  const { data: proposalSections } = await db
-    .from("workspace_sections")
-    .select("section_key, current_text")
-    .eq("workspace_id", workspaceId)
-    .eq("phase", "proposal");
-
-  const emptyRequired = (proposalSections || []).filter(
-    (s: { section_key: string; current_text: string | null }) =>
-      !s.current_text || s.current_text.trim().length < 20
-  );
-
-  if (emptyRequired.length > 0) {
-    throw new Error(
-      "All proposal sections (Title, Problem Statement, Objectives, Rationale) must have written content before submitting for supervisor review."
-    );
+  if (!ws.title || ws.title.trim().length < 5) {
+    throw new Error("Please formulate your Project Title first before submitting for topic approval.");
   }
 
-  // Update workspace status to proposal_pending
   const { error } = await db
     .from("project_workspaces")
     .update({ status: "proposal_pending" })
@@ -217,15 +208,64 @@ export async function submitProposalForApproval(formData: FormData) {
 
   if (error) throw new Error(error.message);
 
-  // Add auto-generated project log entry (Annex 12 draft)
   await db.from("project_log_entries").insert({
     workspace_id: workspaceId,
-    activity: "Submitted project proposal for supervisor moderation review.",
+    activity: "Submitted project topic for supervisor approval.",
     auto_generated: true,
     student_signed_at: new Date().toISOString(),
   });
 
   revalidatePath(`/studio/${workspaceId}`);
+  revalidatePath("/supervisor");
+}
+
+export async function submitChaptersForReview(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const db = getServerDbClient(supabase);
+
+  const workspaceId = formData.get("workspaceId")?.toString();
+  if (!workspaceId) throw new Error("Missing workspace ID.");
+
+  const { data: ws } = await db
+    .from("project_workspaces")
+    .select("id, student_id, status")
+    .eq("id", workspaceId)
+    .single();
+
+  if (!ws || ws.student_id !== user.id) {
+    throw new Error("Unauthorized.");
+  }
+
+  if (ws.status !== "approved" && ws.status !== "submitted") {
+    throw new Error("Your project topic must be approved by your supervisor first.");
+  }
+
+  const { error } = await db
+    .from("project_workspaces")
+    .update({
+      status: "submitted",
+      submitted_at: new Date().toISOString(),
+    })
+    .eq("id", workspaceId)
+    .eq("student_id", user.id);
+
+  if (error) throw new Error(error.message);
+
+  await db.from("project_log_entries").insert({
+    workspace_id: workspaceId,
+    activity: "Submitted drafted chapters for supervisor review.",
+    auto_generated: true,
+    student_signed_at: new Date().toISOString(),
+  });
+
+  revalidatePath(`/studio/${workspaceId}`);
+  revalidatePath(`/supervisor/${workspaceId}`);
   revalidatePath("/supervisor");
 }
 

@@ -38,6 +38,7 @@ interface SectionEditorProps {
   course: string;
   sectionKey: string;
   sectionTitle: string;
+  chapterTitle?: string;
   guidance: string;
   rubricMarks?: number;
   minWords?: number;
@@ -61,9 +62,9 @@ export function SectionEditor({
   course,
   sectionKey,
   sectionTitle,
+  chapterTitle = "Chapter",
   guidance,
   minWords = 30,
-  phase,
   isLocked,
   currentText: initialText,
   questionGuide,
@@ -135,15 +136,15 @@ export function SectionEditor({
             <span className="block text-xs font-semibold text-slate-900 truncate">
               {workspaceTitle || course}
             </span>
-            <span className="block text-[11px] text-slate-500 capitalize">
-              {phase === "proposal" ? "Proposal Phase" : "Project Phase"}
+            <span className="block text-[11px] text-slate-500">
+              {chapterTitle}
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
           <span className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-md">
-            Step {currentStepIndex + 1} of {steps.length}
+            Section {currentStepIndex + 1} of {steps.length}
           </span>
           <span
             className={`text-[11px] font-mono px-2.5 py-1 rounded-md border transition-colors ${
@@ -224,7 +225,7 @@ export function SectionEditor({
               Section Locked
             </h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              This chapter unlocks after your proposal is approved by your supervisor.
+              Chapters unlock once your Project Topic is approved by your supervisor.
             </p>
             <div className="pt-2">
               <Link
@@ -253,7 +254,7 @@ export function SectionEditor({
                   {sectionTitle}
                 </h1>
                 <p className="text-xs text-slate-500">
-                  Step {currentStepIndex + 1} • Minimum target: {minWords} words
+                  {chapterTitle} • Minimum target: {minWords} words
                 </p>
               </div>
 
@@ -433,7 +434,7 @@ export function SectionEditor({
                     <span>Previous: {prevStep.title}</span>
                   </Link>
                 ) : (
-                  <span className="text-xs text-slate-400">First step</span>
+                  <span className="text-xs text-slate-400">First section</span>
                 )}
               </div>
 
@@ -451,7 +452,7 @@ export function SectionEditor({
                     href={`/studio/${workspaceId}`}
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-colors"
                   >
-                    <span>Finish {phase === "proposal" ? "Proposal" : "Chapters"}</span>
+                    <span>Return to Workspace Overview</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 )}

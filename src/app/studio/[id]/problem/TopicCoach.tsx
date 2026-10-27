@@ -352,7 +352,7 @@ export function TopicCoach({
               disabled={!selectedTitle.trim() || isSaving}
               className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
             >
-              <span>{isSaving ? "Saving..." : "Save & Continue to Overview"}</span>
+              <span>{isSaving ? "Submitting..." : "Submit Topic for Approval"}</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>

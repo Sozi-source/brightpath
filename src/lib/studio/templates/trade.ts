@@ -12,124 +12,6 @@ export interface SectionDef {
 }
 
 export const TRADE_FABRICATION_SECTIONS: SectionDef[] = [
-  // ==================== COVER & PRELIMINARY PAGES ====================
-  {
-    key: "cover.details",
-    title: "Project Cover Page",
-    phase: "project",
-    chapter: "cover",
-    chapterTitle: "Cover Page",
-    guidance:
-      "State institutional heading, project title, candidate full name, KNEC index/admission number, diploma course, institutional department, supervisor name, and examination series.",
-    minWords: 40,
-    starterTemplate:
-      "INSTITUTION: [Name of TVET Institute / College]\nPROJECT TITLE: [Full Project Title]\nCANDIDATE NAME: [Student Full Name]\nADMISSION NUMBER: [Admission / Registration Number]\nKNEC INDEX NUMBER: [Index Number]\nCOURSE: Diploma in Food Science and Technology\nSUPERVISOR: [Supervisor Name]\nSERIES: [Month, Year Examination Series]",
-  },
-  {
-    key: "prelim.declaration",
-    title: "Declaration and Approval",
-    phase: "project",
-    chapter: "preliminary",
-    chapterTitle: "Preliminary Pages",
-    guidance:
-      "Formal KNEC declaration of personal candidate authorship and signed recommendation by institutional supervisor.",
-    minWords: 60,
-    starterTemplate:
-      "DECLARATION BY CANDIDATE\nI declare that this project report is my original work and has not been presented for any examination or award in any other institution.\n\nCandidate Signature: __________________ Date: ______________\n[Candidate Full Name]\n\nAPPROVAL BY SUPERVISOR\nThis project report has been submitted for examination with my approval as the designated institutional supervisor.\n\nSupervisor Signature: _________________ Date: ______________\n[Supervisor Full Name]",
-  },
-  {
-    key: "prelim.dedication",
-    title: "Dedication",
-    phase: "project",
-    chapter: "preliminary",
-    chapterTitle: "Preliminary Pages",
-    guidance: "Candidate's personal dedication to mentors, family, or inspiring community members.",
-    minWords: 30,
-    starterTemplate: "This work is dedicated to...",
-  },
-  {
-    key: "prelim.acknowledgements",
-    title: "Acknowledgements",
-    phase: "project",
-    chapter: "preliminary",
-    chapterTitle: "Preliminary Pages",
-    guidance:
-      "Formal appreciation to institution leadership, academic trainers, laboratory technicians, raw material providers, and sensory panelists.",
-    minWords: 60,
-    starterTemplate:
-      "I wish to express sincere gratitude to Almighty God, my supervisor [Name], the Department of Food Science, and the laboratory staff for their guidance and technical support throughout this project.",
-  },
-  {
-    key: "prelim.abstract",
-    title: "Executive Synopsis / Abstract",
-    phase: "project",
-    chapter: "preliminary",
-    chapterTitle: "Preliminary Pages",
-    guidance:
-      "Single-spaced summary (150-250 words) synthesizing: 1) problem context, 2) general and specific objectives, 3) formulation methodology and recipe ratios, 4) key proximate and sensory findings, and 5) primary conclusions.",
-    minWords: 150,
-  },
-  {
-    key: "prelim.toc",
-    title: "Table of Contents, Tables, and Figures",
-    phase: "project",
-    chapter: "preliminary",
-    chapterTitle: "Preliminary Pages",
-    guidance: "Structured listing of chapters, subheadings, tables, and figures with corresponding pagination.",
-    minWords: 40,
-  },
-  {
-    key: "prelim.acronyms",
-    title: "Abbreviations and Acronyms",
-    phase: "project",
-    chapter: "preliminary",
-    chapterTitle: "Preliminary Pages",
-    guidance: "Alphabetical definitions of technical acronyms (e.g. KEBS, HACCP, AOAC, OFSP, RDA).",
-    minWords: 40,
-  },
-
-  // ==================== PROPOSAL PHASE ====================
-  {
-    key: "proposal.title",
-    title: "Project Title and Rationale",
-    phase: "proposal",
-    chapter: "proposal",
-    chapterTitle: "Proposal Overview",
-    guidance:
-      "State a clear, descriptive title indicating the raw materials, processing/formulation method, and target application. Briefly outline product rationale.",
-    minWords: 30,
-  },
-  {
-    key: "proposal.problem",
-    title: "Statement of the Problem",
-    phase: "proposal",
-    chapter: "proposal",
-    chapterTitle: "Proposal Overview",
-    guidance:
-      "Explain the exact practical or nutritional deficiency, post-harvest challenge, or product gap this project solves. State why existing solutions are inadequate.",
-    minWords: 60,
-  },
-  {
-    key: "proposal.objectives",
-    title: "Specific Objectives",
-    phase: "proposal",
-    chapter: "proposal",
-    chapterTitle: "Proposal Overview",
-    guidance:
-      "List 3 to 4 SMART objectives: 1) raw material sourcing and preparation, 2) processing/formulation trials, 3) sensory/quality testing, and 4) product unit costing.",
-    minWords: 50,
-  },
-  {
-    key: "proposal.rationale",
-    title: "Justification and Utility",
-    phase: "proposal",
-    chapter: "proposal",
-    chapterTitle: "Proposal Overview",
-    guidance:
-      "Explain how the completed fabricated product or food formulation benefits the target community, local agro-processors, or institutional consumers.",
-    minWords: 50,
-  },
-
   // ==================== CHAPTER 1: INTRODUCTION ====================
   {
     key: "ch1.background",
@@ -400,13 +282,66 @@ export const TRADE_FABRICATION_SECTIONS: SectionDef[] = [
     minWords: 80,
   },
 
-  // ==================== REFERENCES & APPENDICES ====================
+  // ==================== PRELIMINARY, REFERENCES & APPENDICES ====================
+  {
+    key: "prelim.abstract",
+    title: "Executive Synopsis / Abstract",
+    phase: "project",
+    chapter: "preliminary",
+    chapterTitle: "Preliminary Pages & Abstract",
+    guidance:
+      "Single-spaced summary (150-250 words) synthesizing: 1) problem context, 2) general and specific objectives, 3) formulation methodology and recipe ratios, 4) key proximate and sensory findings, and 5) primary conclusions.",
+    minWords: 150,
+  },
+  {
+    key: "prelim.declaration",
+    title: "Declaration and Approval",
+    phase: "project",
+    chapter: "preliminary",
+    chapterTitle: "Preliminary Pages & Abstract",
+    guidance:
+      "Formal KNEC declaration of personal candidate authorship and signed recommendation by institutional supervisor.",
+    minWords: 60,
+    starterTemplate:
+      "DECLARATION BY CANDIDATE\nI declare that this project report is my original work and has not been presented for any examination or award in any other institution.\n\nCandidate Signature: __________________ Date: ______________\n[Candidate Full Name]\n\nAPPROVAL BY SUPERVISOR\nThis project report has been submitted for examination with my approval as the designated institutional supervisor.\n\nSupervisor Signature: _________________ Date: ______________\n[Supervisor Full Name]",
+  },
+  {
+    key: "prelim.dedication",
+    title: "Dedication",
+    phase: "project",
+    chapter: "preliminary",
+    chapterTitle: "Preliminary Pages & Abstract",
+    guidance: "Candidate's personal dedication to mentors, family, or inspiring community members.",
+    minWords: 30,
+    starterTemplate: "This work is dedicated to...",
+  },
+  {
+    key: "prelim.acknowledgements",
+    title: "Acknowledgements",
+    phase: "project",
+    chapter: "preliminary",
+    chapterTitle: "Preliminary Pages & Abstract",
+    guidance:
+      "Formal appreciation to institution leadership, academic trainers, laboratory technicians, raw material providers, and sensory panelists.",
+    minWords: 60,
+    starterTemplate:
+      "I wish to express sincere gratitude to Almighty God, my supervisor [Name], the Department of Food Science, and the laboratory staff for their guidance and technical support throughout this project.",
+  },
+  {
+    key: "prelim.acronyms",
+    title: "Abbreviations and Acronyms",
+    phase: "project",
+    chapter: "preliminary",
+    chapterTitle: "Preliminary Pages & Abstract",
+    guidance: "Alphabetical definitions of technical acronyms (e.g. KEBS, HACCP, AOAC, OFSP, RDA).",
+    minWords: 40,
+  },
   {
     key: "references",
-    title: "References",
+    title: "References (APA 7th Edition)",
     phase: "project",
     chapter: "references",
-    chapterTitle: "References",
+    chapterTitle: "References & Appendices",
     guidance:
       "Comprehensive list of cited sources formatted strictly according to APA 7th Edition (KEBS standards, peer-reviewed journals, FAO/WHO).",
     minWords: 150,
@@ -418,17 +353,17 @@ export const TRADE_FABRICATION_SECTIONS: SectionDef[] = [
     title: "Appendix I: Sensory Evaluation Score Sheet",
     phase: "project",
     chapter: "appendices",
-    chapterTitle: "Appendices",
+    chapterTitle: "References & Appendices",
     guidance: "Hedonic 9-point score sheet used by consumer panelists.",
     minWords: 50,
   },
   {
     key: "app.workplan",
-    title: "Appendix II: Project Work Plan (Gantt Chart)",
+    title: "Appendix II: Project Work Plan (Schedule)",
     phase: "project",
     chapter: "appendices",
-    chapterTitle: "Appendices",
-    guidance: "Project timeline from proposal formulation to final examination report binding.",
+    chapterTitle: "References & Appendices",
+    guidance: "Project timeline from topic formulation to final examination report binding.",
     minWords: 40,
   },
   {
@@ -436,7 +371,7 @@ export const TRADE_FABRICATION_SECTIONS: SectionDef[] = [
     title: "Appendix III: Project Budget Breakdown (KES)",
     phase: "project",
     chapter: "appendices",
-    chapterTitle: "Appendices",
+    chapterTitle: "References & Appendices",
     guidance: "Itemized expenditures for raw ingredients, laboratory analysis, stationery, and binding.",
     minWords: 40,
   },
