@@ -3,7 +3,7 @@ import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
 import { getWorkspaceSections } from "@/lib/studio/templates";
-import { saveSectionText, aiPolishSectionAction, acceptAiPolishedSection } from "@/app/studio/actions";
+import { saveSectionText } from "@/app/studio/actions";
 import { getSectionQuestionGuide, type WorkspaceContext } from "@/lib/studio/aiEngine";
 import { SectionEditor, type StepItem } from "./SectionEditor";
 import { AppShell } from "@/components/layout/AppShell";
@@ -150,8 +150,6 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
         prevStep={prevStepDef ? { key: prevStepDef.key, title: prevStepDef.title } : null}
         nextStep={nextStepDef ? { key: nextStepDef.key, title: nextStepDef.title } : null}
         saveAction={saveSectionText}
-        aiPolishAction={aiPolishSectionAction}
-        acceptAiAction={acceptAiPolishedSection}
       />
     </AppShell>
   );

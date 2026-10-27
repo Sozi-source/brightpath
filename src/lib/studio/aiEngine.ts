@@ -522,7 +522,7 @@ export function getSectionQuestionGuide(
       "How does this section support your project objectives?",
     ],
     placeholderExample:
-      'Write your draft points in your own words here, then click "Polish & Cite with AI" to refine and add verified citations.',
+      "Write your draft points in your own words here in clear, concise language.",
   };
 }
 

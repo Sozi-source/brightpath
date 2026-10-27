@@ -10,14 +10,10 @@ import {
   ArrowRight,
   ArrowLeft,
   Lock,
-  Sparkles,
   Lightbulb,
-  Check,
-  X,
-  FileCheck2,
   HelpCircle,
 } from "lucide-react";
-import type { SectionPolishResult, SectionQuestionGuide } from "@/lib/studio/aiEngine";
+import type { SectionQuestionGuide } from "@/lib/studio/aiEngine";
 
 export interface StepItem {
   key: string;
@@ -49,8 +45,6 @@ interface SectionEditorProps {
   prevStep: { key: string; title: string } | null;
   nextStep: { key: string; title: string } | null;
   saveAction: (formData: FormData) => Promise<void>;
-  aiPolishAction?: (formData: FormData) => Promise<SectionPolishResult>;
-  acceptAiAction?: (formData: FormData) => Promise<void>;
 }
 
 export function SectionEditor({
@@ -70,18 +64,11 @@ export function SectionEditor({
   prevStep,
   nextStep,
   saveAction,
-  aiPolishAction,
-  acceptAiAction,
 }: SectionEditorProps) {
   const [text, setText] = useState(initialText);
   const [isPending, startTransition] = useTransition();
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
-
-  // AI Polish state
-  const [isPolishing, startPolishTransition] = useTransition();
-  const [polishResult, setPolishResult] = useState<SectionPolishResult | null>(null);
-  const [isAcceptingAi, startAcceptTransition] = useTransition();
 
   const wordsCount = text.trim() ? text.trim().split(/\s+/).length : 0;
   const isMinMet = wordsCount >= minWords;
@@ -105,50 +92,6 @@ export function SectionEditor({
         setErrorMessage(err instanceof Error ? err.message : "Failed to save section.");
       }
     });
-  };
-
-  const handleAiPolish = () => {
-    if (isLocked || !aiPolishAction || isPolishing) return;
-    setErrorMessage("");
-
-    startPolishTransition(async () => {
-      try {
-        const formData = new FormData();
-        formData.append("workspaceId", workspaceId);
-        formData.append("sectionKey", sectionKey);
-        formData.append("draftText", text);
-        const res = await aiPolishAction(formData);
-        setPolishResult(res);
-      } catch (err: unknown) {
-        setErrorMessage(err instanceof Error ? err.message : "AI Polish failed.");
-      }
-    });
-  };
-
-  const handleAcceptAi = () => {
-    if (!polishResult || !acceptAiAction) return;
-
-    startAcceptTransition(async () => {
-      try {
-        const formData = new FormData();
-        formData.append("workspaceId", workspaceId);
-        formData.append("sectionKey", sectionKey);
-        formData.append("text", polishResult.polishedText);
-        formData.append("charsAdded", polishResult.wordDiff.toString());
-        await acceptAiAction(formData);
-
-        setText(polishResult.polishedText);
-        setPolishResult(null);
-        setSaveStatus("saved");
-        setTimeout(() => setSaveStatus("idle"), 3500);
-      } catch (err: unknown) {
-        setErrorMessage(err instanceof Error ? err.message : "Failed to accept AI suggestion.");
-      }
-    });
-  };
-
-  const handleDismissAi = () => {
-    setPolishResult(null);
   };
 
   return (
@@ -242,106 +185,7 @@ export function SectionEditor({
         </div>
       </div>
 
-      {/* 3. AI Polish Preview Banner & Review Card */}
-      {polishResult && (
-        <div className="bg-white rounded-xl border-2 border-indigo-500 shadow-md overflow-hidden animate-in fade-in duration-200">
-          <div className="p-4 sm:p-5 bg-indigo-50/60 border-b border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="p-1 rounded-md bg-indigo-600 text-white">
-                  <Sparkles className="h-4 w-4" />
-                </span>
-                <h3 className="text-sm font-semibold text-indigo-950">
-                  KNEC Academic Polish Preview
-                </h3>
-                <span
-                  className={`text-[11px] font-mono font-semibold px-2 py-0.5 rounded ${
-                    polishResult.targetMet
-                      ? "bg-emerald-100 text-emerald-800"
-                      : "bg-amber-100 text-amber-800"
-                  }`}
-                >
-                  {polishResult.wordsPolished} words ({polishResult.wordDiff >= 0 ? `+${polishResult.wordDiff}` : polishResult.wordDiff}) • Target: {minWords}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 flex-wrap text-[11px] text-slate-600">
-                {polishResult.improvements.map((imp, i) => (
-                  <span key={i} className="inline-flex items-center gap-1 bg-white px-2 py-0.5 rounded border border-indigo-100">
-                    <Check className="h-3 w-3 text-indigo-600" />
-                    {imp}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-              <button
-                type="button"
-                onClick={handleDismissAi}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition-colors cursor-pointer"
-              >
-                <X className="h-3.5 w-3.5" />
-                <span>Keep Current</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleAcceptAi}
-                disabled={isAcceptingAi}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
-              >
-                <FileCheck2 className="h-3.5 w-3.5" />
-                <span>{isAcceptingAi ? "Applying..." : "Accept & Apply to Draft"}</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="p-4 sm:p-5 bg-white space-y-3">
-            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-              {sectionKey === "references" ? "Compiled References" : "Polished Draft"}
-            </span>
-            <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-800 whitespace-pre-line leading-relaxed max-h-[300px] overflow-y-auto font-sans">
-              {polishResult.polishedText || "Nothing to compile yet."}
-            </div>
-
-            {polishResult.warnings.length > 0 && (
-              <ul className="space-y-1">
-                {polishResult.warnings.map((w, i) => (
-                  <li
-                    key={i}
-                    className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900"
-                  >
-                    <AlertCircle className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
-                    <span>{w}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {polishResult.citations.length > 0 && (
-              <div className="space-y-2">
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-                  Sources cited
-                </span>
-                <ul className="space-y-2">
-                  {polishResult.citations.map((c) => (
-                    <li key={c.id} className="rounded-lg border border-slate-200 p-3 space-y-1">
-                      <span className="text-[11px] font-mono font-semibold text-indigo-700">{c.inText}</span>
-                      <p className="text-xs text-slate-800">{c.reference}</p>
-                      {c.supports.map((s, i) => (
-                        <p key={i} className="text-[11px] text-slate-500">
-                          Supports: {s}.
-                        </p>
-                      ))}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 4. Unified Writing Canvas */}
+      {/* 3. Unified Writing Canvas */}
       {isLocked ? (
         <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
           <div className="h-1 w-full flex">
@@ -390,33 +234,10 @@ export function SectionEditor({
               </div>
 
               <div className="flex items-center gap-2">
-                {aiPolishAction && (
-                  <button
-                    type="button"
-                    onClick={handleAiPolish}
-                    disabled={isPolishing || isPending}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-colors cursor-pointer disabled:opacity-50"
-                    title={
-                      sectionKey === "references"
-                        ? "Build the reference list from sources cited in your chapters"
-                        : "Polish and deepen your writing, with verified in-text citations"
-                    }
-                  >
-                    <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
-                    <span>
-                      {isPolishing
-                        ? "Working..."
-                        : sectionKey === "references"
-                        ? "Build References"
-                        : "Polish with AI"}
-                    </span>
-                  </button>
-                )}
-
                 <button
                   type="button"
                   onClick={handleSave}
-                  disabled={isPending || isPolishing}
+                  disabled={isPending}
                   className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
                   <Save className="h-3.5 w-3.5" />
@@ -481,7 +302,7 @@ export function SectionEditor({
                 onChange={(e) => setText(e.target.value)}
                 placeholder={
                   questionGuide?.placeholderExample ||
-                  "Write your section draft here in clear, concise language (or rough notes)... Then click 'Polish with AI' to align with KNEC standards."
+                  "Write your section draft here in clear, concise language..."
                 }
                 className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg p-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 leading-relaxed font-sans placeholder:text-slate-400 min-h-[320px]"
               />
