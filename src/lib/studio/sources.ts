@@ -129,6 +129,44 @@ export const SOURCE_LIBRARY: SourceEntry[] = [
       },
     ],
   },
+  {
+    id: "knbs2018",
+    kind: "report",
+    authors: "Kenya National Bureau of Statistics",
+    short: "KNBS",
+    year: 2018,
+    title:
+      "Basic report on well-being in Kenya: Based on the 2015/16 Kenya Integrated Household Budget Survey (KIHBS)",
+    container: "Kenya National Bureau of Statistics",
+    topics: ["food_security", "dietary_diversity", "child_nutrition", "kenya"],
+    claims: [
+      {
+        text:
+          "The Kenya Integrated Household Budget Survey reported that about 32% of the Kenyan population experienced food poverty, with low-income urban and rural households spending the largest share of income on basic staple foods",
+        roles: ["context", "literature"],
+      },
+    ],
+  },
+  {
+    id: "kimanimurage2015",
+    kind: "journal",
+    authors:
+      "Kimani-Murage, E. W., Muthuri, S. K., Oti, S. O., Mutua, M. K., van de Vijver, S., & Kyobutungi, C.",
+    short: "Kimani-Murage et al.",
+    year: 2015,
+    title: "Evidence of a double burden of malnutrition in urban poor settings in Nairobi, Kenya",
+    container: "PLOS ONE",
+    detail: "10(6), e0129943",
+    doi: "https://doi.org/10.1371/journal.pone.0129943",
+    topics: ["child_nutrition", "stunting", "dietary_diversity", "food_security", "kenya"],
+    claims: [
+      {
+        text:
+          "Surveys in low-income informal settlements in Nairobi documented high prevalence of stunting (above 40%) among children under five years alongside widespread household food insecurity and limited dietary diversity",
+        roles: ["context", "literature"],
+      },
+    ],
+  },
   // ---------------------------------------------------- Food security / diversity
   {
     id: "sofi2023",
@@ -735,7 +773,7 @@ export function citationRoleFor(sectionKey: string): CitationRole | null {
   return null;
 }
 
-const ROLE_LIMIT: Record<CitationRole, number> = { context: 4, literature: 7, methods: 3 };
+const ROLE_LIMIT: Record<CitationRole, number> = { context: 6, literature: 7, methods: 3 };
 
 export function selectEvidence(params: {
   sectionKey: string;

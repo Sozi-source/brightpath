@@ -601,21 +601,12 @@ Return strictly valid JSON with this shape:
 
   try {
     if (geminiKey) {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`;
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: `${systemPrompt}\n\nStudent Idea: ${query}` }] }],
-          generationConfig: { responseMimeType: "application/json", temperature: 0.3 },
-        }),
-        signal: AbortSignal.timeout(9000),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const jsonText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (jsonText) return JSON.parse(jsonText);
-      }
+      const jsonText = await callGeminiText(
+        `${systemPrompt}\n\nStudent Idea: ${query}`,
+        geminiKey,
+        { jsonMode: true, temperature: 0.3, timeoutMs: 18000 }
+      );
+      if (jsonText) return JSON.parse(jsonText);
     }
 
     if (openaiKey) {
@@ -634,7 +625,7 @@ Return strictly valid JSON with this shape:
           response_format: { type: "json_object" },
           temperature: 0.3,
         }),
-        signal: AbortSignal.timeout(9000),
+        signal: AbortSignal.timeout(15000),
       });
       if (res.ok) {
         const data = await res.json();
@@ -649,7 +640,104 @@ Return strictly valid JSON with this shape:
   return null;
 }
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+const DEFAULT_GEMINI_MODELS = [
+  "gemini-3.5-flash",
+  "gemini-flash-latest",
+  "gemini-3.1-flash-lite",
+];
+
+async function callGeminiText(
+  promptText: string,
+  apiKey: string,
+  options: { jsonMode?: boolean; temperature?: number; timeoutMs?: number } = {}
+): Promise<string | null> {
+  const configuredModel = process.env.GEMINI_MODEL?.trim();
+  const models = configuredModel
+    ? [configuredModel, ...DEFAULT_GEMINI_MODELS.filter((m) => m !== configuredModel)]
+    : DEFAULT_GEMINI_MODELS;
+
+  const generationConfig: Record<string, unknown> = {
+    temperature: options.temperature ?? 0.4,
+  };
+  if (options.jsonMode) {
+    generationConfig.responseMimeType = "application/json";
+  }
+
+  for (const model of models) {
+    try {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: promptText }] }],
+          generationConfig,
+        }),
+        signal: AbortSignal.timeout(options.timeoutMs ?? 25000),
+      });
+
+      if (!res.ok) continue;
+
+      const data = await res.json();
+      const parts: Array<{ text?: string; thought?: boolean }> =
+        data?.candidates?.[0]?.content?.parts || [];
+      const text = parts
+        .filter((p) => !p.thought && typeof p.text === "string")
+        .map((p) => p.text)
+        .join("\n")
+        .trim();
+
+      if (text) return text;
+    } catch {
+      // Try next fallback Gemini model
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Strips stacked/duplicate "### Research Title" prefixes left over from previous polishes
+ * while preserving the student's actual title and notes.
+ */
+function stripDuplicateTitleHeaders(rawDraft: string): string {
+  const lines = rawDraft
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  const cleaned: string[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    // Skip standalone "### Research Title" header lines
+    if (/^#{1,4}\s*research\s+title\.?$/i.test(line)) {
+      continue;
+    }
+    // Strip inline "### Research Title." or "Research Title:" prefix
+    const stripped = line.replace(/^(?:#{1,4}\s*)?research\s+title[.:;\s-]*/i, "").trim();
+    if (!stripped) continue;
+
+    // Skip if an earlier line was auto-generated generic title and a later line has more specific student notes
+    if (
+      cleaned.length > 0 &&
+      /^assessment of household dietary diversity and daily food consumption patterns in nairobi county\.?$/i.test(
+        cleaned[cleaned.length - 1]
+      )
+    ) {
+      cleaned.pop();
+    }
+    if (
+      cleaned.length > 0 &&
+      cleaned[cleaned.length - 1].toLowerCase().replace(/\.$/, "") ===
+        stripped.toLowerCase().replace(/\.$/, "")
+    ) {
+      continue;
+    }
+    cleaned.push(stripped);
+  }
+
+  return cleaned.join("\n\n");
+}
 
 async function tryLlmSectionPolish(params: {
   draftText: string;
@@ -665,7 +753,8 @@ async function tryLlmSectionPolish(params: {
 
   if (!geminiKey && !openaiKey) return null;
 
-  const { draftText, sectionTitle, guidance, minWords, context, evidence } = params;
+  const { sectionKey, sectionTitle, guidance, minWords, context, evidence } = params;
+  const cleanedDraft = stripDuplicateTitleHeaders(params.draftText);
   const levelSpec = getAcademicLevelSpec(context.level);
 
   const sourceNotes = evidence.length
@@ -676,53 +765,54 @@ async function tryLlmSectionPolish(params: {
 
   const designNote =
     context.workspaceType === "research_secondary"
-      ? `Research design: Straightforward descriptive cross-sectional design relying entirely on secondary data (existing KDHS, KNBS, MOH reports, or institutional records; no primary field questionnaires or lab work).\nAcademic Level Standard: ${levelSpec.levelLabel} level — overall project report length must be at least ${levelSpec.targetPages} pages (minimum ${levelSpec.minRequiredPages} pages), and statistical analysis uses ${levelSpec.analysisMethods}.`
+      ? `Research design: Straightforward descriptive cross-sectional design relying entirely on secondary data (existing KDHS, KNBS, MOH reports, or published studies; no primary field questionnaires or lab work).\nAcademic Level Standard: ${levelSpec.levelLabel} level — overall project report length must be at least ${levelSpec.targetPages} pages (minimum ${levelSpec.minRequiredPages} pages), and statistical analysis uses ${levelSpec.analysisMethods}.`
       : `Academic Level Standard: ${levelSpec.levelLabel} level — overall project report length must be at least ${levelSpec.targetPages} pages (minimum ${levelSpec.minRequiredPages} pages), and data analysis uses ${levelSpec.analysisMethods}.`;
 
+  const sectionFormatRule =
+    sectionKey === "proposal.title" || sectionKey === "cover.details"
+      ? `SECTION FORMAT FOR RESEARCH TITLE & RATIONALE:
+- Start with a single heading "### Research Title" followed on the next line by ONE clear, properly capitalized research title that preserves the student's exact study site (e.g., Mathare Informal Settlement, Nairobi County) and target group (e.g., Children Under Five Years). NEVER repeat "### Research Title" more than once.
+- Then add a heading "### Study Rationale" followed by 2–3 well-structured paragraphs that explain the background, target group, secondary data sources (e.g. KDHS 2022, KNBS, Ministry of Health reports, and comparable studies in similar demographic settings), and why the study matters, weaving verified citations naturally into the sentences.`
+      : `SECTION FORMAT:
+- Write 2–4 coherent, well-structured academic paragraphs addressing "${sectionTitle}". Do NOT repeat section headings multiple times.`;
+
   const prompt = `You are a supportive academic writing coach for a Kenyan TVET student studying ${context.course} (${levelSpec.levelLabel} level).
-The student has written their own draft for the section "${sectionTitle}". Improve it; do not replace it.
+The student has written their draft notes and context for the section "${sectionTitle}".
 Project title: ${context.title || "Academic Project"}
 Problem area: ${context.problemArea || "Public health nutrition"}
 ${designNote}
 Section guidance: ${guidance}
 Target section length: at least ${minWords} words (scaled so the full ${levelSpec.levelLabel} report reaches at least ${levelSpec.targetPages} pages).
 
+${sectionFormatRule}
+
 WRITING RULES
-1. Keep every fact, place, ingredient, number and idea the student wrote. Fix grammar, flow and structure, and deepen weak points with sound reasoning so the section meets its ${minWords}-word target.
-2. Use clear, simple, formal academic English suitable for a ${levelSpec.levelLabel} student. ${
+1. Keep every specific fact, study site (such as Mathare informal settlement in Nairobi, specific counties, or schools), target population (e.g. children under five years), and secondary data source (e.g. KDHS 2022, KNBS, MoH Kenya) the student mentioned.
+2. CONVERT INSTRUCTIONS INTO ACADEMIC PROSE: Students often write notes or instructions to the AI inside their draft (such as "You will focus on KDHS 2022, KNBS and MoH Kenya data...", "you can also explore other similar research findings...", "I want to...", or "use KDHS..."). Follow those instructions, and NEVER leave second-person ("you will", "you can") or conversational prompt instructions in the final text. Always write in formal third-person academic English ("This study focuses on...", "Furthermore, comparative empirical findings from similar urban informal settlements and demographic settings demonstrate...").
+3. Use clear, simple, formal academic English suitable for a ${levelSpec.levelLabel} student. ${
     levelSpec.isDiploma
       ? "For methodology and results sections, support both descriptive statistics (frequencies, percentages, means, SD) and inferential statistics (Chi-square tests, t-tests, correlation, p-values) where appropriate."
       : "For methodology and results sections, stick strictly to simple descriptive statistics (frequencies, percentages, averages, tables, and charts)."
   }
-3. Output ONLY the section text. No preamble, no commentary, no quoting the student's notes.
+4. Output ONLY the polished section text. No preamble, no meta-commentary.
 
 CITATION RULES (strict)
-4. You may support a statement ONLY with the SOURCE NOTES below. Paraphrase the finding in your own words; never copy more than four consecutive words.
-5. To cite, write [[cite:ID]] straight after the statement, before the full stop, using an id from the notes. Several sources: [[cite:a]][[cite:b]].
-6. Never write an author name, year, title, journal, page number or reference yourself. Never cite anything not in the notes.
-7. Do not add statistics or percentages that are not in the student's draft or the notes.
-8. Only cite a note when the statement genuinely matches its finding. It is fine to use few or none.
+5. You may support a statement ONLY with the SOURCE NOTES below. Weave the paraphrased findings naturally into your paragraphs to support the student's topic and comparative settings; never copy more than four consecutive words and never dump a disconnected list of citations at the end.
+6. To cite, write [[cite:ID]] straight after the statement, before the full stop, using an id from the notes. Several sources: [[cite:a]][[cite:b]].
+7. Never write an author name, year, title, journal, page number or reference yourself. Never cite anything not in the notes.
+8. Do not add statistics or percentages that are not in the student's draft or the notes.
 
 SOURCE NOTES
 ${sourceNotes}`;
 
   try {
     if (geminiKey) {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`;
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: `${prompt}\n\nCandidate Draft:\n${draftText}` }] }],
-          generationConfig: { temperature: 0.4 },
-        }),
-        signal: AbortSignal.timeout(12000),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text && text.trim().length > 50) return text.trim();
-      }
+      const text = await callGeminiText(
+        `${prompt}\n\nCandidate Draft & Context Notes:\n${cleanedDraft}`,
+        geminiKey,
+        { temperature: 0.35, timeoutMs: 25000 }
+      );
+      if (text && text.length > 50) return text;
     }
 
     if (openaiKey) {
@@ -736,11 +826,11 @@ ${sourceNotes}`;
           model: "gpt-4o-mini",
           messages: [
             { role: "system", content: prompt },
-            { role: "user", content: `Candidate Draft:\n${draftText}` },
+            { role: "user", content: `Candidate Draft & Context Notes:\n${cleanedDraft}` },
           ],
-          temperature: 0.4,
+          temperature: 0.35,
         }),
-        signal: AbortSignal.timeout(12000),
+        signal: AbortSignal.timeout(20000),
       });
       if (res.ok) {
         const data = await res.json();
@@ -761,6 +851,28 @@ ${sourceNotes}`;
 
 function detectKenyaLocation(text: string): string {
   const t = text.toLowerCase();
+
+  // Check specific urban informal settlements / sub-locations first so they are never lost!
+  const settlements: Array<[string, string]> = [
+    ["mathare", "Mathare Informal Settlement, Nairobi County"],
+    ["kibera", "Kibera Informal Settlement, Nairobi County"],
+    ["mukuru", "Mukuru Informal Settlement, Nairobi County"],
+    ["korogocho", "Korogocho Informal Settlement, Nairobi County"],
+    ["kawangware", "Kawangware, Nairobi County"],
+    ["dandora", "Dandora, Nairobi County"],
+    ["kangemi", "Kangemi, Nairobi County"],
+    ["viwandani", "Viwandani Informal Settlement, Nairobi County"],
+    ["eastleigh", "Eastleigh, Nairobi County"],
+    ["kisauni", "Kisauni, Mombasa County"],
+    ["likoni", "Likoni, Mombasa County"],
+    ["nyalenda", "Nyalenda Informal Settlement, Kisumu County"],
+    ["kondele", "Kondele, Kisumu County"],
+  ];
+
+  for (const [key, label] of settlements) {
+    if (t.includes(key)) return label;
+  }
+
   const counties = [
     "kitui", "kilifi", "kisumu", "turkana", "machakos", "homa bay", "nairobi", "mombasa",
     "nakuru", "kakamega", "meru", "kiambu", "uasin gishu", "garissa", "mandera", "wajir",
@@ -916,11 +1028,25 @@ function generateDeterministicTopics(
 }
 
 function extractTopicEntities(draftText: string, context: WorkspaceContext) {
-  const combined = `${draftText} ${context.title || ""} ${context.problemArea || ""}`.toLowerCase();
+  const cleanedDraft = stripDuplicateTitleHeaders(draftText);
+  const combined = `${cleanedDraft} ${context.title || ""} ${context.problemArea || ""}`.toLowerCase();
   const location = detectKenyaLocation(combined);
 
-  // If candidate already has an established project title in the workspace, prioritize it!
-  let title = context.title?.trim() || "";
+  // Check if the student explicitly wrote an "Assessment of..." or "Evaluation of..." title in their draft
+  const explicitTitleMatch = cleanedDraft.match(
+    /(?:^|\n|\.\s*)((?:Assessment|Evaluation|Investigation|Analysis|Determinants|Prevalence)\s+of\s+[^.\n]{15,120})/i
+  );
+
+  let title = "";
+  if (explicitTitleMatch?.[1]) {
+    title = explicitTitleMatch[1]
+      .trim()
+      .replace(/\bmathare\s+slum\b/gi, "Mathare Informal Settlement")
+      .replace(/\bnairobi\b/gi, "Nairobi County")
+      .replace(/\s+County\s+County\b/gi, " County");
+  } else if (context.title?.trim()) {
+    title = context.title.trim();
+  }
 
   // Topic detection
   let topic = "Household Dietary Diversity and Nutritional Outcomes";
@@ -934,6 +1060,11 @@ function extractTopicEntities(draftText: string, context: WorkspaceContext) {
     topic = "Household Food Insecurity and Academic Performance among Primary School Pupils";
   } else if (combined.includes("breakfast")) {
     topic = "Breakfast Consumption Habits and Morning Class Concentration";
+  } else if (
+    (combined.includes("dietary diversity") || combined.includes("diet diversity")) &&
+    (combined.includes("under five") || combined.includes("below five") || combined.includes("under-5") || combined.includes("child"))
+  ) {
+    topic = "Household Dietary Diversity and Nutritional Outcomes among Children Under Five Years";
   } else if (combined.includes("dietary diversity") || combined.includes("diet diversity")) {
     topic = "Household Dietary Diversity and Daily Food Consumption Patterns";
   } else if (combined.includes("stunting") || combined.includes("under-5") || combined.includes("complementary") || combined.includes("weaning")) {
@@ -955,13 +1086,52 @@ function extractTopicEntities(draftText: string, context: WorkspaceContext) {
   return { location, topic, title };
 }
 
-function cleanStudentDraft(draftText: string): string[] {
-  return draftText
+function rewriteStudentDirectivesToAcademic(sentence: string): string {
+  let s = sentence.trim();
+  // Convert second-person prompt instructions ("You will focus on...", "you can also explore...") into third-person academic prose
+  s = s.replace(
+    /^you\s+will\s+focus\s+on\s+/i,
+    "This study relies on secondary data extracted from "
+  );
+  s = s.replace(
+    /,\s*you\s+can\s+also\s+explore\s+other\s+similar\s+research\s+findings\s+in\s+different\s+geographical\s+areas\s+or\s+demographic\s+settings\.?$/i,
+    ", supplemented by comparative empirical findings from related geographical and demographic settings."
+  );
+  s = s.replace(
+    /\byou\s+can\s+also\s+explore\s+/gi,
+    "and incorporates comparative evidence from "
+  );
+  s = s.replace(/^i\s+am\s+investigating\s+(?:on\s+)?/i, "This study investigates ");
+  s = s.replace(/^i\s+want\s+to\s+conduct\s+my\s+study\s+in\s+/i, "The study is conducted in ");
+  s = s.replace(/^use\s+(kdhs|knbs|moh)/i, "The investigation utilizes secondary records from $1");
+  return s;
+}
+
+function cleanStudentDraft(draftText: string, stripTitleLine?: string): string[] {
+  const deduplicated = stripDuplicateTitleHeaders(draftText);
+
+  return deduplicated
     .split(/\n\s*\n/)
     .map((block) =>
       block
         .split("\n")
         .map((line) => line.trim().replace(/^(?:[-*•]+|\d+[.)])\s*/, ""))
+        .filter(Boolean)
+        .map((line) => {
+          // Split inline sentences so we can strip a duplicate title sentence and rewrite directives
+          const sentences = line
+            .split(/(?<=[.?!])\s+/)
+            .map((part) => part.trim())
+            .filter(Boolean)
+            .filter((part) => {
+              if (!stripTitleLine) return true;
+              const normPart = part.toLowerCase().replace(/[.?!]+$/, "").trim();
+              const normTitle = stripTitleLine.toLowerCase().replace(/[.?!]+$/, "").trim();
+              return normPart !== normTitle;
+            })
+            .map(rewriteStudentDirectivesToAcademic);
+          return sentences.join(" ");
+        })
         .filter(Boolean)
         .map((line) => (/[.?!:]$/.test(line) ? line : `${line}.`))
         .join(" ")
@@ -993,12 +1163,18 @@ function generateDeterministicSectionPolish(params: {
   const levelSpec = getAcademicLevelSpec(context.level);
 
   const paragraphs: string[] = [];
+  const isTitleSection = sectionKey === "proposal.title" || sectionKey === "cover.details";
 
-  if (sectionKey === "proposal.title" || sectionKey === "cover.details") {
+  if (isTitleSection) {
     paragraphs.push(`### Research Title\n${title}`);
   }
 
-  paragraphs.push(...cleanStudentDraft(draftText));
+  const bodyParagraphs = cleanStudentDraft(draftText, isTitleSection ? title : undefined);
+  if (isTitleSection && bodyParagraphs.length > 0) {
+    paragraphs.push(`### Study Rationale\n${bodyParagraphs.join("\n\n")}`);
+  } else {
+    paragraphs.push(...bodyParagraphs);
+  }
 
   const alreadyCited = new Set(findCitedSources(draftText).map((s) => s.id));
   const freshEvidence = evidence.filter((e) => !alreadyCited.has(e.source.id));
