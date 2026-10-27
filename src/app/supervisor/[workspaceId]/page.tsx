@@ -86,11 +86,6 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
 
   const workspace = workspaceData as unknown as ProjectWorkspace;
 
-  // Authorization: must be assigned supervisor or admin
-  if (profile.role !== "admin" && workspace.supervisor_id !== user.id) {
-    redirect("/supervisor");
-  }
-
   // Load sections
   const { data: sectionsData } = await db
     .from("workspace_sections")

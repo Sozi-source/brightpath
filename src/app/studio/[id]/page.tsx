@@ -19,7 +19,6 @@ import {
   Clock,
   Lock,
   Unlock,
-  UserCheck,
   Send,
   ShieldAlert,
   ChevronRight,
@@ -174,7 +173,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
         metadata={[
           { label: "Candidate", value: workspace.student?.full_name || "Student" },
           { label: "Admission No", value: workspace.student?.admission_number || "Unset" },
-          { label: "Supervisor", value: workspace.supervisor?.full_name || "Unassigned" },
+          { label: "Qualification", value: levelLabel },
           {
             label: "Status",
             value: isSubmitted
@@ -526,7 +525,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
           )}
         </div>
 
-        {/* Right Column (1 Col): Scorecard & Supervisor */}
+        {/* Right Column (1 Col): Scorecard */}
         <div className="space-y-6">
           {/* KNEC Scorecard Card */}
           <ContentCard
@@ -549,41 +548,6 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                 </div>
               ))}
             </div>
-          </ContentCard>
-
-          {/* Assigned Supervisor Card */}
-          <ContentCard
-            title="Department Supervisor"
-            subtitle="Topic moderation and chapter review"
-            icon={UserCheck}
-          >
-            {workspace.supervisor?.full_name ? (
-              <div className="space-y-2 text-xs">
-                <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1">
-                  <span className="font-semibold text-slate-900 block text-sm">
-                    {workspace.supervisor.full_name}
-                  </span>
-                  <span className="text-xs text-indigo-600 font-medium block">
-                    Faculty Project Supervisor
-                  </span>
-                  {workspace.institution?.name && (
-                    <span className="text-[11px] text-slate-500 block pt-1">
-                      {workspace.institution.name}
-                    </span>
-                  )}
-                </div>
-                <span className="inline-block text-[11px] text-slate-500">
-                  Topic approval and continuous chapter sign-off
-                </span>
-              </div>
-            ) : (
-              <div className="p-4 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
-                <span className="font-semibold block">No Supervisor Assigned</span>
-                <p className="text-[11px] text-amber-800">
-                  Assign a supervisor to submit your topic for approval.
-                </p>
-              </div>
-            )}
           </ContentCard>
         </div>
       </div>

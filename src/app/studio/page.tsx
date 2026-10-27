@@ -14,7 +14,6 @@ import {
   Hammer,
   LineChart,
   Briefcase,
-  UserCheck,
   CheckCircle,
   FileText,
   FolderKanban,
@@ -249,15 +248,6 @@ export default async function StudioDashboardPage() {
                         Course: <span className="font-medium text-slate-800">{ws.course}</span>
                       </p>
                     </div>
-
-                    {ws.supervisor?.full_name && (
-                      <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-200">
-                        <UserCheck className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
-                        <span className="font-medium text-slate-900 truncate">
-                          Supervisor: {ws.supervisor.full_name}
-                        </span>
-                      </div>
-                    )}
 
                     {/* Progress Bar */}
                     <div className="space-y-1 pt-1">

@@ -11,7 +11,6 @@ import {
   LineChart,
   Briefcase,
   GraduationCap,
-  Building,
 } from "lucide-react";
 
 export const instant = false;
@@ -33,14 +32,6 @@ export default async function NewWorkspacePage() {
     .select("full_name, role, admission_number, course, level, institution_id")
     .eq("id", user.id)
     .single();
-
-  const [{ data: institutionsData }, { data: supervisorsData }] = await Promise.all([
-    db.from("institutions").select("id, name, code").order("name"),
-    db.from("profiles").select("id, full_name, institution_id").eq("role", "supervisor").order("full_name"),
-  ]);
-
-  const institutions = institutionsData || [];
-  const supervisors = supervisorsData || [];
 
   return (
     <AppShell
@@ -187,57 +178,6 @@ export default async function NewWorkspacePage() {
                 required
                 className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 placeholder:text-slate-400"
               />
-            </div>
-          </div>
-        </ContentCard>
-
-        {/* Institution & Assigned Supervisor */}
-        <ContentCard
-          title="Supervision"
-          icon={Building}
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="institutionId"
-                className="block text-xs font-semibold text-slate-700 mb-1.5"
-              >
-                Institution
-              </label>
-              <select
-                id="institutionId"
-                name="institutionId"
-                defaultValue={profile?.institution_id || (institutions[0]?.id ?? "")}
-                className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600"
-              >
-                <option value="">-- Independent Candidate --</option>
-                {institutions.map((inst) => (
-                  <option key={inst.id} value={inst.id}>
-                    {inst.name} {inst.code ? `(${inst.code})` : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="supervisorId"
-                className="block text-xs font-semibold text-slate-700 mb-1.5"
-              >
-                Supervisor
-              </label>
-              <select
-                id="supervisorId"
-                name="supervisorId"
-                className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600"
-              >
-                <option value="">-- Assign Later --</option>
-                {supervisors.map((sup) => (
-                  <option key={sup.id} value={sup.id}>
-                    {sup.full_name || "Faculty Supervisor"}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
         </ContentCard>

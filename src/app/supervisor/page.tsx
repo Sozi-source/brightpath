@@ -43,8 +43,8 @@ export default async function SupervisorPage() {
     redirect("/studio");
   }
 
-  // Fetch candidates supervised by this user (or all if admin)
-  let query = db
+  // Fetch all candidate workspaces for faculty moderation
+  const { data: workspacesData } = await db
     .from("project_workspaces")
     .select(`
       id,
@@ -66,11 +66,6 @@ export default async function SupervisorPage() {
     `)
     .order("updated_at", { ascending: false });
 
-  if (profile?.role !== "admin") {
-    query = query.eq("supervisor_id", user.id);
-  }
-
-  const { data: workspacesData } = await query;
   const workspaces: ProjectWorkspace[] = (workspacesData as unknown as ProjectWorkspace[]) || [];
 
   const { data: settingsData } = await db

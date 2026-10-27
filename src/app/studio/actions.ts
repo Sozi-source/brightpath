@@ -31,8 +31,6 @@ export async function createWorkspace(formData: FormData) {
   const level = formData.get("level")?.toString() as WorkspaceLevel;
   const course = formData.get("course")?.toString().trim();
   const admissionNumber = formData.get("admissionNumber")?.toString().trim();
-  const institutionId = formData.get("institutionId")?.toString().trim() || null;
-  const supervisorId = formData.get("supervisorId")?.toString().trim() || null;
   const initialTitle = formData.get("title")?.toString().trim() || null;
   const initialProblem = formData.get("problemArea")?.toString().trim() || null;
   const privacyConsent = formData.get("privacyConsent")?.toString();
@@ -48,6 +46,22 @@ export async function createWorkspace(formData: FormData) {
   if (privacyConsent !== "on") {
     throw new Error("You must agree to the privacy and personal data notice to continue.");
   }
+
+  // Automatically resolve student's existing institution or default institution + default supervisor
+  const [{ data: existingProfile }, { data: defaultInst }, { data: defaultSupervisor }] =
+    await Promise.all([
+      db.from("profiles").select("institution_id").eq("id", user.id).maybeSingle(),
+      db.from("institutions").select("id").limit(1).maybeSingle(),
+      db
+        .from("profiles")
+        .select("id")
+        .in("role", ["supervisor", "admin"])
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+  const institutionId = existingProfile?.institution_id || defaultInst?.id || null;
+  const supervisorId = defaultSupervisor?.id || null;
 
   // 1. Update student profile with academic registration info
   const { error: profileErr } = await db

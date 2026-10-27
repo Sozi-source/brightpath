@@ -21,7 +21,12 @@ async function verifySupervisorOrAdmin(workspaceId: string) {
     .eq("id", user.id)
     .single();
 
-  const isAdmin = profile?.role === "admin";
+  const isSupervisorOrAdmin =
+    profile?.role === "admin" || profile?.role === "supervisor";
+
+  if (!isSupervisorOrAdmin) {
+    throw new Error("Unauthorized: Only faculty supervisors or admins can perform this review.");
+  }
 
   const { data: workspace } = await db
     .from("project_workspaces")
@@ -31,11 +36,7 @@ async function verifySupervisorOrAdmin(workspaceId: string) {
 
   if (!workspace) throw new Error("Workspace not found.");
 
-  if (!isAdmin && workspace.supervisor_id !== user.id) {
-    throw new Error("Unauthorized: Only the assigned supervisor or admin can perform this review.");
-  }
-
-  return { supabase: db, user, workspace, isAdmin };
+  return { supabase: db, user, workspace };
 }
 
 export async function approveProposal(formData: FormData) {
