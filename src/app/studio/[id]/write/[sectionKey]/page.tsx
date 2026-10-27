@@ -2,22 +2,12 @@ import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
-import {
-  getWorkspaceSections,
-  getStandardKnecFillInTemplate,
-  countUnfilledPlaceholders,
-} from "@/lib/studio/templates";
-import {
-  saveSectionText,
-  aiPolishSectionAction,
-  acceptAiPolishedSection,
-  resolveWorkspaceAiMode,
-} from "@/app/studio/actions";
+import { getWorkspaceSections } from "@/lib/studio/templates";
+import { saveSectionText, aiPolishSectionAction, acceptAiPolishedSection } from "@/app/studio/actions";
 import { getSectionQuestionGuide, type WorkspaceContext } from "@/lib/studio/aiEngine";
-import { selectEvidence, toCitationInfo, type CitationInfo } from "@/lib/studio/sources";
 import { SectionEditor, type StepItem } from "./SectionEditor";
 import { AppShell } from "@/components/layout/AppShell";
-import type { UserProfile, SupervisorReview } from "@/types/database";
+import type { UserProfile } from "@/types/database";
 
 export const instant = false;
 
@@ -60,8 +50,7 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
       level,
       course,
       status,
-      student_id,
-      institution_id
+      student_id
     `)
     .eq("id", workspaceId)
     .single();
@@ -69,11 +58,7 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
   if (!workspace) notFound();
 
   // Authorize student (or supervisor/admin)
-  if (
-    workspace.student_id !== user.id &&
-    profile?.role !== "admin" &&
-    profile?.role !== "supervisor"
-  ) {
+  if (workspace.student_id !== user.id && profile?.role !== "admin" && profile?.role !== "supervisor") {
     redirect("/studio");
   }
 
@@ -87,60 +72,37 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
 
   const sectionDef = sectionDefs[sectionDefIndex];
 
-  // Load all existing sections + effective AI mode in parallel
-  const [{ data: allSectionsData }, effectiveAiMode] = await Promise.all([
-    db
-      .from("workspace_sections")
-      .select("id, section_key, phase, position, current_text, status")
-      .eq("workspace_id", workspaceId)
-      .order("position", { ascending: true }),
-    resolveWorkspaceAiMode(db, workspace.institution_id, workspace.student_id),
-  ]);
+  // Load all existing sections to build the live step tracker
+  const { data: allSectionsData } = await db
+    .from("workspace_sections")
+    .select("id, section_key, phase, position, current_text, status")
+    .eq("workspace_id", workspaceId)
+    .order("position", { ascending: true });
 
   const allSections = allSectionsData || [];
   const textMap = new Map(allSections.map((s) => [s.section_key, s.current_text || ""]));
-  const currentSecRecord = allSections.find((s) => s.section_key === sectionKey);
-
-  // Fetch latest supervisor review for this specific section if available
-  let latestSectionReview: SupervisorReview | null = null;
-  if (currentSecRecord?.id) {
-    const { data: secRevData } = await db
-      .from("supervisor_reviews")
-      .select("id, workspace_id, section_id, supervisor_id, status, comment, created_at")
-      .eq("workspace_id", workspaceId)
-      .eq("section_id", currentSecRecord.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    latestSectionReview = (secRevData as SupervisorReview | null) || null;
-  }
 
   // Sections belonging to the current active phase (e.g. proposal vs project)
   const phaseSections = sectionDefs.filter((s) => s.phase === sectionDef.phase);
   const currentPhaseIndex = phaseSections.findIndex((s) => s.key === sectionKey);
 
   const prevStepDef = currentPhaseIndex > 0 ? phaseSections[currentPhaseIndex - 1] : null;
-  const nextStepDef =
-    currentPhaseIndex < phaseSections.length - 1 ? phaseSections[currentPhaseIndex + 1] : null;
+  const nextStepDef = currentPhaseIndex < phaseSections.length - 1 ? phaseSections[currentPhaseIndex + 1] : null;
 
   const isLocked =
-    workspace.status === "closed" ||
-    (sectionDef.phase === "project" &&
-      workspace.status !== "approved" &&
-      workspace.status !== "submitted");
+    sectionDef.phase === "project" &&
+    workspace.status !== "approved" &&
+    workspace.status !== "submitted";
 
   // Build interactive step list
   const steps: StepItem[] = phaseSections.map((sec, idx) => {
     const rawText = textMap.get(sec.key) || "";
     const words = rawText.trim() ? rawText.trim().split(/\s+/).length : 0;
-    const isDone =
-      words >= (sec.minWords || 30) && countUnfilledPlaceholders(rawText) === 0;
+    const isDone = words >= (sec.minWords || 30);
     const isSecLocked =
-      workspace.status === "closed" ||
-      (sec.phase === "project" &&
-        workspace.status !== "approved" &&
-        workspace.status !== "submitted");
+      sec.phase === "project" &&
+      workspace.status !== "approved" &&
+      workspace.status !== "submitted";
 
     return {
       key: sec.key,
@@ -164,38 +126,6 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
   };
   const questionGuide = getSectionQuestionGuide(sectionDef.key, wsContext);
 
-  const standardTemplate = getStandardKnecFillInTemplate({
-    type: workspace.workspace_type,
-    level: workspace.level,
-    sectionKey: sectionDef.key,
-    sectionTitle: sectionDef.title,
-    workspaceTitle: workspace.title,
-    course: workspace.course,
-  });
-
-  const storedText = textMap.get(sectionDef.key) || "";
-  const isGenericOrBlank =
-    !storedText.trim() ||
-    storedText.includes("[Provide substantive technical content aligned with KNEC requirements:");
-  const initialEditorText =
-    isGenericOrBlank && standardTemplate ? standardTemplate : storedText;
-
-  // Select verified KNEC/KDHS/WHO/KEBS citations matching this section & topic
-  const evidenceNotes = selectEvidence({
-    sectionKey: sectionDef.key,
-    text: initialEditorText,
-    title: workspace.title,
-    problemArea: workspace.problem_area,
-    workspaceType: workspace.workspace_type,
-  });
-  const uniqueCitationsMap = new Map<string, CitationInfo>();
-  for (const note of evidenceNotes) {
-    if (!uniqueCitationsMap.has(note.source.id)) {
-      uniqueCitationsMap.set(note.source.id, toCitationInfo(note.source, evidenceNotes));
-    }
-  }
-  const availableCitations = Array.from(uniqueCitationsMap.values());
-
   return (
     <AppShell
       user={user}
@@ -213,20 +143,7 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
         minWords={sectionDef.minWords}
         phase={sectionDef.phase}
         isLocked={isLocked}
-        aiMode={effectiveAiMode}
-        sectionStatus={currentSecRecord?.status || "empty"}
-        supervisorReview={
-          latestSectionReview
-            ? {
-                status: latestSectionReview.status,
-                comment: latestSectionReview.comment,
-                createdAt: latestSectionReview.created_at,
-              }
-            : null
-        }
-        currentText={initialEditorText}
-        standardTemplate={standardTemplate}
-        availableCitations={availableCitations}
+        currentText={textMap.get(sectionDef.key) || ""}
         questionGuide={questionGuide}
         steps={steps}
         currentStepIndex={currentPhaseIndex}

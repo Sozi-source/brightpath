@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
-import { updateWorkspaceTopic, aiNarrowTopicAction, resolveWorkspaceAiMode } from "@/app/studio/actions";
+import { updateWorkspaceTopic, aiNarrowTopicAction } from "@/app/studio/actions";
 import { TopicCoach } from "./TopicCoach";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
@@ -50,8 +50,7 @@ export default async function ProblemFinderPage({ params }: ProblemFinderPagePro
       level,
       course,
       status,
-      student_id,
-      institution_id
+      student_id
     `)
     .eq("id", workspaceId)
     .single();
@@ -65,15 +64,12 @@ export default async function ProblemFinderPage({ params }: ProblemFinderPagePro
     redirect("/studio");
   }
 
-  // Fetch topics from topic_bank and resolve institutional AI policy in parallel
-  const [{ data: topicsData }, effectiveAiMode] = await Promise.all([
-    db
-      .from("topic_bank")
-      .select("id, area, title, workspace_type, suggested_indicators, suggested_sources, course_tags, active")
-      .eq("active", true)
-      .order("area", { ascending: true }),
-    resolveWorkspaceAiMode(db, workspace.institution_id, workspace.student_id),
-  ]);
+  // Fetch topics from topic_bank
+  const { data: topicsData } = await db
+    .from("topic_bank")
+    .select("id, area, title, workspace_type, suggested_indicators, suggested_sources, course_tags, active")
+    .eq("active", true)
+    .order("area", { ascending: true });
 
   const topics: TopicBankItem[] = topicsData || [];
 
@@ -120,7 +116,6 @@ export default async function ProblemFinderPage({ params }: ProblemFinderPagePro
         initialProblemArea={workspace.problem_area || ""}
         workspaceType={workspace.workspace_type}
         course={workspace.course}
-        aiMode={effectiveAiMode}
         topics={topics}
         saveAction={updateWorkspaceTopic}
         aiNarrowAction={aiNarrowTopicAction}
