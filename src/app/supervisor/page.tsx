@@ -6,6 +6,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
 import { StatCard } from "@/components/ui/StatCard";
+import { NotebookLmSettingsCard } from "./NotebookLmSettingsCard";
 import {
   Users,
   Clock,
@@ -72,6 +73,12 @@ export default async function SupervisorPage() {
   const { data: workspacesData } = await query;
   const workspaces: ProjectWorkspace[] = (workspacesData as unknown as ProjectWorkspace[]) || [];
 
+  const { data: settingsData } = await db
+    .from("platform_settings")
+    .select("notebook_research_url, notebook_fabrication_url, notebook_business_url")
+    .eq("id", 1)
+    .maybeSingle();
+
   const pendingCount = workspaces.filter((w) => w.status === "proposal_pending").length;
   const approvedCount = workspaces.filter(
     (w) => w.status === "approved" || w.status === "submitted"
@@ -136,6 +143,16 @@ export default async function SupervisorPage() {
           subtext="Cleared for drafting"
         />
       </div>
+
+      {/* Shared Google NotebookLM Library Configuration */}
+      <NotebookLmSettingsCard
+        notebookUrl={
+          settingsData?.notebook_research_url ||
+          settingsData?.notebook_fabrication_url ||
+          settingsData?.notebook_business_url ||
+          ""
+        }
+      />
 
       {/* Candidate Workspaces Card */}
       <ContentCard

@@ -118,6 +118,9 @@ export interface ContentReport {
 export interface PlatformSettings {
   id: number;
   commission_percent: number;
+  notebook_research_url?: string | null;
+  notebook_fabrication_url?: string | null;
+  notebook_business_url?: string | null;
 }
 
 export interface LessonProgress {

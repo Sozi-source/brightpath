@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
 import { getWorkspaceSections } from "@/lib/studio/templates";
 import { getRubricForWorkspace } from "@/lib/studio/rubrics";
+import { resolveNotebookLmUrl } from "@/lib/studio/notebookLmHelper";
 import { submitProposalForApproval } from "@/app/studio/actions";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
@@ -22,6 +23,8 @@ import {
   Award,
   Layers,
   Lightbulb,
+  BookOpen,
+  ExternalLink,
 } from "lucide-react";
 import type { ProjectWorkspace, WorkspaceSection, SupervisorReview } from "@/types/database";
 
@@ -136,6 +139,14 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
   const isPending = workspace.status === "proposal_pending";
   const hasChangesRequested = latestReview?.status === "changes_requested" && !isApproved && !isPending;
 
+  const { data: settingsData } = await db
+    .from("platform_settings")
+    .select("notebook_research_url, notebook_fabrication_url, notebook_business_url")
+    .eq("id", 1)
+    .maybeSingle();
+
+  const { url: notebookUrl } = resolveNotebookLmUrl(workspace.workspace_type, settingsData);
+
   return (
     <AppShell
       user={user}
@@ -167,7 +178,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
           },
         ]}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {!isApproved && workspace.student_id === user.id && (
               <DeleteDraftButton
                 workspaceId={workspaceId}
@@ -175,6 +186,16 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                 redirectAfter
               />
             )}
+            <a
+              href={notebookUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-xs transition-colors"
+            >
+              <BookOpen className="h-4 w-4 text-indigo-600" />
+              <span>NotebookLM Library</span>
+              <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
+            </a>
             <Link
               href={`/studio/${workspaceId}/problem`}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white hover:bg-slate-50 text-indigo-700 border border-slate-300 shadow-xs transition-colors"

@@ -12,8 +12,13 @@ import {
   Lock,
   Lightbulb,
   HelpCircle,
+  BookOpen,
+  ExternalLink,
+  Copy,
+  Check,
 } from "lucide-react";
 import type { SectionQuestionGuide } from "@/lib/studio/aiEngine";
+import type { NotebookLmPromptItem } from "@/lib/studio/notebookLmHelper";
 
 export interface StepItem {
   key: string;
@@ -40,6 +45,9 @@ interface SectionEditorProps {
   isLocked: boolean;
   currentText: string;
   questionGuide?: SectionQuestionGuide;
+  notebookUrl: string;
+  notebookTrackName: string;
+  notebookPrompts: NotebookLmPromptItem[];
   steps: StepItem[];
   currentStepIndex: number;
   prevStep: { key: string; title: string } | null;
@@ -59,6 +67,9 @@ export function SectionEditor({
   isLocked,
   currentText: initialText,
   questionGuide,
+  notebookUrl,
+  notebookTrackName,
+  notebookPrompts,
   steps,
   currentStepIndex,
   prevStep,
@@ -69,9 +80,22 @@ export function SectionEditor({
   const [isPending, startTransition] = useTransition();
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [showNotebookPanel, setShowNotebookPanel] = useState(false);
+  const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
 
   const wordsCount = text.trim() ? text.trim().split(/\s+/).length : 0;
   const isMinMet = wordsCount >= minWords;
+
+  const handleCopyAndLaunchNotebook = async (item: NotebookLmPromptItem) => {
+    try {
+      await navigator.clipboard.writeText(item.prompt);
+      setCopiedPromptId(item.id);
+      setTimeout(() => setCopiedPromptId(null), 4000);
+    } catch {
+      // Fallback if clipboard permission denied
+    }
+    window.open(notebookUrl, "_blank", "noopener,noreferrer");
+  };
 
   const handleSave = () => {
     if (isLocked) return;
@@ -236,6 +260,19 @@ export function SectionEditor({
               <div className="flex items-center gap-2">
                 <button
                   type="button"
+                  onClick={() => setShowNotebookPanel(!showNotebookPanel)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${
+                    showNotebookPanel
+                      ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
+                      : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
+                  }`}
+                >
+                  <BookOpen className="h-3.5 w-3.5" />
+                  <span>NotebookLM Library</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={handleSave}
                   disabled={isPending}
                   className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
@@ -247,6 +284,82 @@ export function SectionEditor({
                 </button>
               </div>
             </div>
+
+            {/* Expandable Zero-Quota NotebookLM Companion Bar */}
+            {showNotebookPanel && (
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-100">
+                      <BookOpen className="h-3.5 w-3.5" />
+                    </span>
+                    <div>
+                      <span className="text-xs font-semibold text-slate-900 block">
+                        {notebookTrackName}
+                      </span>
+                      <span className="text-[11px] text-slate-500">
+                        Click a query to copy it and open Google NotebookLM for verified Kenyan facts &amp; citations
+                      </span>
+                    </div>
+                  </div>
+
+                  <a
+                    href={notebookUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white hover:bg-slate-100 text-indigo-700 border border-slate-300 shadow-2xs transition-colors self-start sm:self-auto shrink-0"
+                  >
+                    <span>Open NotebookLM</span>
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {notebookPrompts.map((item) => {
+                    const isCopied = copiedPromptId === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => handleCopyAndLaunchNotebook(item)}
+                        className={`p-3 rounded-lg border text-left transition-all cursor-pointer flex flex-col justify-between gap-2 ${
+                          isCopied
+                            ? "bg-emerald-50 border-emerald-300 text-emerald-900"
+                            : "bg-white hover:border-indigo-300 border-slate-200 text-slate-800 shadow-2xs"
+                        }`}
+                      >
+                        <div className="space-y-0.5">
+                          <div className="flex items-center justify-between gap-1.5">
+                            <span className="text-xs font-semibold text-slate-900">
+                              {item.label}
+                            </span>
+                            {isCopied ? (
+                              <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                            ) : (
+                              <Copy className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-500 line-clamp-1">
+                            {item.shortHint}
+                          </p>
+                        </div>
+
+                        <span className="text-[10px] font-mono font-semibold text-indigo-700 flex items-center gap-1">
+                          {isCopied ? (
+                            <span className="text-emerald-700">Copied! Paste in NotebookLM ✓</span>
+                          ) : (
+                            <>
+                              <span>Copy Query &amp; Launch</span>
+                              <ExternalLink className="h-3 w-3" />
+                            </>
+                          )}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Error banner if save fails */}
             {saveStatus === "error" && (

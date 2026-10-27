@@ -5,6 +5,10 @@ import { getServerDbClient } from "@/lib/supabase/admin";
 import { getWorkspaceSections } from "@/lib/studio/templates";
 import { saveSectionText } from "@/app/studio/actions";
 import { getSectionQuestionGuide, type WorkspaceContext } from "@/lib/studio/aiEngine";
+import {
+  resolveNotebookLmUrl,
+  getNotebookLmPromptsForSection,
+} from "@/lib/studio/notebookLmHelper";
 import { SectionEditor, type StepItem } from "./SectionEditor";
 import { AppShell } from "@/components/layout/AppShell";
 import type { UserProfile } from "@/types/database";
@@ -126,6 +130,27 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
   };
   const questionGuide = getSectionQuestionGuide(sectionDef.key, wsContext);
 
+  const { data: settingsData } = await db
+    .from("platform_settings")
+    .select("notebook_research_url, notebook_fabrication_url, notebook_business_url")
+    .eq("id", 1)
+    .maybeSingle();
+
+  const { url: notebookUrl, trackName: notebookTrackName } = resolveNotebookLmUrl(
+    workspace.workspace_type,
+    settingsData
+  );
+
+  const notebookPrompts = getNotebookLmPromptsForSection({
+    sectionKey: sectionDef.key,
+    sectionTitle: sectionDef.title,
+    workspaceTitle: workspace.title,
+    problemArea: workspace.problem_area,
+    course: workspace.course,
+    level: workspace.level,
+    workspaceType: workspace.workspace_type,
+  });
+
   return (
     <AppShell
       user={user}
@@ -145,6 +170,9 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
         isLocked={isLocked}
         currentText={textMap.get(sectionDef.key) || ""}
         questionGuide={questionGuide}
+        notebookUrl={notebookUrl}
+        notebookTrackName={notebookTrackName}
+        notebookPrompts={notebookPrompts}
         steps={steps}
         currentStepIndex={currentPhaseIndex}
         prevStep={prevStepDef ? { key: prevStepDef.key, title: prevStepDef.title } : null}

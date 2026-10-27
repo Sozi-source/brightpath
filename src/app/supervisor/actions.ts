@@ -144,3 +144,41 @@ export async function updateProposalTitle(formData: FormData) {
   revalidatePath(`/studio/${workspaceId}`);
 }
 
+export async function saveNotebookLmLinks(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const db = getServerDbClient(supabase);
+
+  const { data: profile } = await db
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.role !== "admin" && profile?.role !== "supervisor") {
+    throw new Error("Unauthorized: Only faculty supervisors or admins can update NotebookLM links.");
+  }
+
+  const masterUrl = formData.get("notebookUrl")?.toString().trim() || null;
+
+  const { error } = await db
+    .from("platform_settings")
+    .update({
+      notebook_research_url: masterUrl,
+      notebook_fabrication_url: masterUrl,
+      notebook_business_url: masterUrl,
+    })
+    .eq("id", 1);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/supervisor");
+  revalidatePath("/studio", "layout");
+}
+
+
