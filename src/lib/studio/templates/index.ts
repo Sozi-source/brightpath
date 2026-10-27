@@ -3,7 +3,7 @@ import { TRADE_FABRICATION_SECTIONS, type SectionDef } from "./trade";
 import { RESEARCH_SECONDARY_SECTIONS } from "./research";
 import { BUSINESS_PLAN_SECTIONS } from "./business";
 
-export type { SectionDef };
+export type { SectionDef, SectionDef as SectionDefinition };
 
 export function getWorkspaceSections(
   type: WorkspaceType,
