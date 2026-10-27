@@ -10,14 +10,54 @@ import {
 import {
   narrowDownTopic,
   polishAndAlignSection,
+  evaluateSectionFeedbackOnly,
   type WorkspaceContext,
   type TopicNarrowingResult,
   type SectionPolishResult,
 } from "@/lib/studio/aiEngine";
 import { compileReferenceList } from "@/lib/studio/sources";
+import { enforceRateLimit, requireUuid, requireNonEmptyString } from "@/lib/validation";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { WorkspaceType, WorkspaceLevel } from "@/types/database";
+import type { WorkspaceType, WorkspaceLevel, AiMode } from "@/types/database";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+/**
+ * Resolves the effective institutional AI governance policy (`off` | `feedback_only` | `feedback_and_polish`)
+ * for a given workspace and student.
+ */
+export async function resolveWorkspaceAiMode(
+  db: SupabaseClient,
+  workspaceInstitutionId: string | null | undefined,
+  studentId: string
+): Promise<AiMode> {
+  let targetInstitutionId = workspaceInstitutionId || null;
+
+  if (!targetInstitutionId) {
+    const { data: studentProfile } = await db
+      .from("profiles")
+      .select("institution_id")
+      .eq("id", studentId)
+      .maybeSingle();
+    targetInstitutionId = studentProfile?.institution_id || null;
+  }
+
+  if (!targetInstitutionId) {
+    return "feedback_and_polish";
+  }
+
+  const { data: institution } = await db
+    .from("institutions")
+    .select("ai_mode")
+    .eq("id", targetInstitutionId)
+    .maybeSingle();
+
+  const mode = institution?.ai_mode as AiMode | undefined;
+  if (mode === "off" || mode === "feedback_only" || mode === "feedback_and_polish") {
+    return mode;
+  }
+  return "feedback_and_polish";
+}
 
 export async function createWorkspace(formData: FormData) {
   const supabase = await createClient();
@@ -121,6 +161,14 @@ export async function createWorkspace(formData: FormData) {
     throw new Error("Failed to initialize workspace section checklist: " + sectionsErr.message);
   }
 
+  // 4. Create initial Annex 12 project log entry
+  await db.from("project_log_entries").insert({
+    workspace_id: workspace.id,
+    activity: `Initialized ${level.toUpperCase()} project workspace for ${course}.`,
+    auto_generated: true,
+    student_signed_at: new Date().toISOString(),
+  });
+
   revalidatePath("/studio");
   redirect(`/studio/${workspace.id}/problem`);
 }
@@ -135,11 +183,12 @@ export async function updateWorkspaceTopic(formData: FormData) {
 
   const db = getServerDbClient(supabase);
 
-  const workspaceId = formData.get("workspaceId")?.toString();
-  const title = formData.get("title")?.toString().trim();
-  const problemArea = formData.get("problemArea")?.toString().trim();
-
-  if (!workspaceId) throw new Error("Missing workspace ID.");
+  const workspaceId = requireUuid(formData.get("workspaceId"), "workspace ID");
+  const title = requireNonEmptyString(formData.get("title"), "Project title", {
+    minLength: 5,
+    maxLength: 300,
+  });
+  const problemArea = formData.get("problemArea")?.toString().trim() || null;
 
   const { data: existingWs } = await db
     .from("project_workspaces")
@@ -154,8 +203,8 @@ export async function updateWorkspaceTopic(formData: FormData) {
   const { error } = await db
     .from("project_workspaces")
     .update({
-      title: title || null,
-      problem_area: problemArea || null,
+      title,
+      problem_area: problemArea,
     })
     .eq("id", workspaceId)
     .eq("student_id", user.id);
@@ -194,8 +243,7 @@ export async function submitProposalForApproval(formData: FormData) {
 
   const db = getServerDbClient(supabase);
 
-  const workspaceId = formData.get("workspaceId")?.toString();
-  if (!workspaceId) throw new Error("Missing workspace ID.");
+  const workspaceId = requireUuid(formData.get("workspaceId"), "workspace ID");
 
   const { data: ws } = await db
     .from("project_workspaces")
@@ -246,6 +294,114 @@ export async function submitProposalForApproval(formData: FormData) {
   revalidatePath("/supervisor");
 }
 
+export async function submitFinalProject(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const db = getServerDbClient(supabase);
+  const workspaceId = requireUuid(formData.get("workspaceId"), "workspace ID");
+
+  const { data: ws } = await db
+    .from("project_workspaces")
+    .select("id, student_id, status")
+    .eq("id", workspaceId)
+    .single();
+
+  if (!ws || ws.student_id !== user.id) {
+    throw new Error("Unauthorized.");
+  }
+
+  if (ws.status !== "approved" && ws.status !== "submitted") {
+    throw new Error("Proposal must be approved before submitting the final project report.");
+  }
+
+  const { data: projectSections } = await db
+    .from("workspace_sections")
+    .select("section_key, current_text")
+    .eq("workspace_id", workspaceId)
+    .eq("phase", "project");
+
+  const incomplete = (projectSections || []).filter(
+    (s: { section_key: string; current_text: string | null }) =>
+      !s.current_text || s.current_text.trim().length < 20
+  );
+
+  if (incomplete.length > 0) {
+    throw new Error(
+      `Please complete all project chapters before final submission (${incomplete.length} section(s) still empty or incomplete).`
+    );
+  }
+
+  const nowIso = new Date().toISOString();
+  const { error } = await db
+    .from("project_workspaces")
+    .update({
+      status: "submitted",
+      submitted_at: nowIso,
+    })
+    .eq("id", workspaceId)
+    .eq("student_id", user.id);
+
+  if (error) throw new Error(error.message);
+
+  await db.from("project_log_entries").insert({
+    workspace_id: workspaceId,
+    activity:
+      "Final Examination Submission: Candidate submitted completed project chapters and compiled references for final grading and oral defence.",
+    auto_generated: true,
+    student_signed_at: nowIso,
+  });
+
+  revalidatePath(`/studio/${workspaceId}`);
+  revalidatePath(`/supervisor/${workspaceId}`);
+  revalidatePath("/supervisor");
+}
+
+export async function addProjectLogEntry(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const db = getServerDbClient(supabase);
+  const workspaceId = requireUuid(formData.get("workspaceId"), "workspace ID");
+  const activity = requireNonEmptyString(formData.get("activity"), "Milestone activity", {
+    minLength: 5,
+    maxLength: 600,
+  });
+  const problems = formData.get("problems")?.toString().trim() || null;
+
+  const { data: ws } = await db
+    .from("project_workspaces")
+    .select("id, student_id")
+    .eq("id", workspaceId)
+    .single();
+
+  if (!ws || ws.student_id !== user.id) {
+    throw new Error("Unauthorized.");
+  }
+
+  const { error } = await db.from("project_log_entries").insert({
+    workspace_id: workspaceId,
+    activity,
+    problems,
+    auto_generated: false,
+    student_signed_at: new Date().toISOString(),
+  });
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/studio/${workspaceId}`);
+  revalidatePath(`/studio/${workspaceId}/export`);
+  revalidatePath(`/supervisor/${workspaceId}`);
+}
+
 export async function saveSectionText(formData: FormData) {
   const supabase = await createClient();
   const {
@@ -256,11 +412,11 @@ export async function saveSectionText(formData: FormData) {
 
   const db = getServerDbClient(supabase);
 
-  const workspaceId = formData.get("workspaceId")?.toString();
-  const sectionKey = formData.get("sectionKey")?.toString();
+  const workspaceId = requireUuid(formData.get("workspaceId"), "workspace ID");
+  const sectionKey = requireNonEmptyString(formData.get("sectionKey"), "section key", {
+    maxLength: 100,
+  });
   const text = formData.get("text")?.toString() ?? "";
-
-  if (!workspaceId || !sectionKey) throw new Error("Missing workspace or section key.");
 
   // Fetch section and workspace
   const { data: section } = await db
@@ -280,6 +436,10 @@ export async function saveSectionText(formData: FormData) {
 
   if (!workspace || workspace.student_id !== user.id) {
     throw new Error("Unauthorized.");
+  }
+
+  if (workspace.status === "closed") {
+    throw new Error("This project workspace has been closed and finalized by your supervisor.");
   }
 
   // Enforce KNEC Rule 6: project chapters locked before proposal approval
@@ -331,21 +491,40 @@ export async function aiNarrowTopicAction(formData: FormData): Promise<TopicNarr
 
   if (!user) redirect("/login");
 
+  const rateCheck = enforceRateLimit(`ai_narrow:${user.id}`, 10, 60_000);
+  if (!rateCheck.allowed) {
+    throw new Error(
+      `Rate limit reached. Please wait ${rateCheck.retryAfterSeconds}s before requesting more AI topic proposals.`
+    );
+  }
+
   const db = getServerDbClient(supabase);
 
-  const workspaceId = formData.get("workspaceId")?.toString();
-  const studentInput = formData.get("studentInput")?.toString()?.trim() || "";
-
-  if (!workspaceId) throw new Error("Missing workspace ID.");
-  if (!studentInput) throw new Error("Please enter your problem idea or nutritional topic.");
+  const workspaceId = requireUuid(formData.get("workspaceId"), "workspace ID");
+  const studentInput = requireNonEmptyString(
+    formData.get("studentInput"),
+    "Problem idea or nutritional topic",
+    { minLength: 3, maxLength: 1000 }
+  );
 
   const { data: workspace } = await db
     .from("project_workspaces")
-    .select("workspace_type, level, course, title, problem_area")
+    .select("workspace_type, level, course, title, problem_area, student_id, institution_id")
     .eq("id", workspaceId)
     .single();
 
   if (!workspace) throw new Error("Workspace not found.");
+  if (workspace.student_id !== user.id) {
+    throw new Error("Unauthorized.");
+  }
+
+  // Enforce Institution AI Governance Policy
+  const aiMode = await resolveWorkspaceAiMode(db, workspace.institution_id, user.id);
+  if (aiMode === "off") {
+    throw new Error(
+      "Institutional Policy: AI topic generation is disabled for your institution (AI Mode: Off). Please choose from the National Curriculum Topic Bank below or enter your topic directly."
+    );
+  }
 
   const context: WorkspaceContext = {
     title: workspace.title,
@@ -356,6 +535,8 @@ export async function aiNarrowTopicAction(formData: FormData): Promise<TopicNarr
   };
 
   const result = await narrowDownTopic(studentInput, context);
+  const estTokensIn = Math.ceil(studentInput.length / 4) + 250;
+  const estTokensOut = Math.ceil(JSON.stringify(result).length / 4);
 
   // Log to ai_events audit trail
   await db.from("ai_events").insert({
@@ -365,7 +546,9 @@ export async function aiNarrowTopicAction(formData: FormData): Promise<TopicNarr
     student_input: studentInput,
     response: result as unknown as Record<string, unknown>,
     suggestions_total: result.options.length,
-    model: process.env.GEMINI_API_KEY ? "gemini-2.0-flash" : "knec-academic-engine-v1",
+    model: process.env.GEMINI_API_KEY ? "gemini-3.5-flash" : "knec-academic-engine-v1",
+    tokens_in: estTokensIn,
+    tokens_out: estTokensOut,
   });
 
   return result;
@@ -379,17 +562,24 @@ export async function aiPolishSectionAction(formData: FormData): Promise<Section
 
   if (!user) redirect("/login");
 
+  const rateCheck = enforceRateLimit(`ai_polish:${user.id}`, 12, 60_000);
+  if (!rateCheck.allowed) {
+    throw new Error(
+      `Rate limit reached. Please wait ${rateCheck.retryAfterSeconds}s before running another AI check.`
+    );
+  }
+
   const db = getServerDbClient(supabase);
 
-  const workspaceId = formData.get("workspaceId")?.toString();
-  const sectionKey = formData.get("sectionKey")?.toString();
+  const workspaceId = requireUuid(formData.get("workspaceId"), "workspace ID");
+  const sectionKey = requireNonEmptyString(formData.get("sectionKey"), "section key", {
+    maxLength: 100,
+  });
   const draftText = formData.get("draftText")?.toString() || "";
-
-  if (!workspaceId || !sectionKey) throw new Error("Missing parameters.");
 
   const { data: workspace } = await db
     .from("project_workspaces")
-    .select("workspace_type, level, course, title, problem_area, student_id")
+    .select("workspace_type, level, course, title, problem_area, student_id, institution_id")
     .eq("id", workspaceId)
     .single();
 
@@ -397,7 +587,7 @@ export async function aiPolishSectionAction(formData: FormData): Promise<Section
     throw new Error("Unauthorized.");
   }
 
-  // References section: compile an APA 7th list from sources cited in the other sections.
+  // References section: deterministic APA 7th compilation from sources cited in the candidate's chapters
   if (sectionKey === "references") {
     const { data: allSections } = await db
       .from("workspace_sections")
@@ -438,6 +628,14 @@ export async function aiPolishSectionAction(formData: FormData): Promise<Section
     };
   }
 
+  // Enforce Institution AI Governance Policy
+  const aiMode = await resolveWorkspaceAiMode(db, workspace.institution_id, user.id);
+  if (aiMode === "off") {
+    throw new Error(
+      "Institutional Policy: AI writing assistance is disabled by your institution (AI Mode: Off)."
+    );
+  }
+
   // Find section definition for guidance and minWords
   const sectionDefs = getWorkspaceSections(workspace.workspace_type, workspace.level);
   const def = sectionDefs.find((s) => s.key === sectionKey);
@@ -450,14 +648,25 @@ export async function aiPolishSectionAction(formData: FormData): Promise<Section
     workspaceType: workspace.workspace_type,
   };
 
-  const result = await polishAndAlignSection({
-    draftText,
-    sectionKey,
-    sectionTitle: def?.title || sectionKey,
-    guidance: def?.guidance || "Adhere to KNEC technical guidelines.",
-    minWords: def?.minWords || 100,
-    context,
-  });
+  // If institution is in feedback_only mode, return rubric diagnostics & verified citations without rewriting prose
+  const result =
+    aiMode === "feedback_only"
+      ? evaluateSectionFeedbackOnly({
+          draftText,
+          sectionKey,
+          sectionTitle: def?.title || sectionKey,
+          guidance: def?.guidance || "Adhere to KNEC technical guidelines.",
+          minWords: def?.minWords || 100,
+          context,
+        })
+      : await polishAndAlignSection({
+          draftText,
+          sectionKey,
+          sectionTitle: def?.title || sectionKey,
+          guidance: def?.guidance || "Adhere to KNEC technical guidelines.",
+          minWords: def?.minWords || 100,
+          context,
+        });
 
   // Log to ai_events audit trail
   const { data: section } = await db
@@ -468,19 +677,30 @@ export async function aiPolishSectionAction(formData: FormData): Promise<Section
     .single();
 
   if (section) {
+    const estTokensIn = Math.ceil(draftText.length / 4) + 300;
+    const estTokensOut = Math.ceil(result.polishedText.length / 4);
+
     await db.from("ai_events").insert({
       workspace_id: workspaceId,
       section_id: section.id,
       user_id: user.id,
-      kind: "language_suggestion",
+      kind: aiMode === "feedback_only" ? "rubric_feedback" : "language_suggestion",
       student_input: draftText.slice(0, 500),
       response: {
+        aiMode,
         wordsOriginal: result.wordsOriginal,
         wordsPolished: result.wordsPolished,
         targetMet: result.targetMet,
       },
       suggestions_total: 1,
-      model: process.env.GEMINI_API_KEY ? "gemini-2.0-flash" : "knec-academic-engine-v1",
+      model:
+        aiMode === "feedback_only"
+          ? "knec-rubric-validator-v1"
+          : process.env.GEMINI_API_KEY
+          ? "gemini-3.5-flash"
+          : "knec-academic-engine-v1",
+      tokens_in: estTokensIn,
+      tokens_out: estTokensOut,
     });
   }
 
@@ -497,16 +717,15 @@ export async function acceptAiPolishedSection(formData: FormData) {
 
   const db = getServerDbClient(supabase);
 
-  const workspaceId = formData.get("workspaceId")?.toString();
-  const sectionKey = formData.get("sectionKey")?.toString();
+  const workspaceId = requireUuid(formData.get("workspaceId"), "workspace ID");
+  const sectionKey = requireNonEmptyString(formData.get("sectionKey"), "section key", {
+    maxLength: 100,
+  });
   const polishedText = formData.get("text")?.toString() ?? "";
-  const charsAdded = parseInt(formData.get("charsAdded")?.toString() || "0", 10);
-
-  if (!workspaceId || !sectionKey) throw new Error("Missing parameters.");
 
   const { data: ws } = await db
     .from("project_workspaces")
-    .select("student_id")
+    .select("student_id, institution_id, status")
     .eq("id", workspaceId)
     .single();
 
@@ -514,16 +733,45 @@ export async function acceptAiPolishedSection(formData: FormData) {
     throw new Error("Unauthorized.");
   }
 
+  if (ws.status === "closed") {
+    throw new Error("Workspace is finalized and locked.");
+  }
+
+  // Enforce Institution AI Governance Policy on accepting AI prose
+  if (sectionKey !== "references") {
+    const aiMode = await resolveWorkspaceAiMode(db, ws.institution_id, user.id);
+    if (aiMode === "off" || aiMode === "feedback_only") {
+      throw new Error(
+        `Institutional Policy: Automated prose replacement is disabled under ${
+          aiMode === "off" ? "AI Disabled" : "Feedback-Only"
+        } mode.`
+      );
+    }
+  }
+
   const { data: section } = await db
     .from("workspace_sections")
-    .select("id, ai_accepted_chars")
+    .select("id, current_text, ai_accepted_chars")
     .eq("workspace_id", workspaceId)
     .eq("section_key", sectionKey)
     .single();
 
   if (!section) throw new Error("Section not found.");
 
-  const currentAiChars = section.ai_accepted_chars || 0;
+  const previousText = (section.current_text || "").trim();
+  const nextText = polishedText.trim();
+  const currentAiChars = Math.max(0, section.ai_accepted_chars || 0);
+
+  // Compute genuine net AI character contribution (or minimum 25% of rewritten block when polishing)
+  const netGrowth = Math.max(0, nextText.length - previousText.length);
+  const estimatedAiContribution =
+    sectionKey === "references"
+      ? 0
+      : netGrowth > 0
+      ? netGrowth
+      : Math.round(nextText.length * 0.25);
+
+  const updatedAiChars = Math.min(nextText.length, currentAiChars + estimatedAiContribution);
 
   // 1. Update section with polished text
   const { error: updErr } = await db
@@ -531,7 +779,7 @@ export async function acceptAiPolishedSection(formData: FormData) {
     .update({
       current_text: polishedText,
       status: "draft",
-      ai_accepted_chars: currentAiChars + (charsAdded > 0 ? charsAdded : polishedText.length),
+      ai_accepted_chars: updatedAiChars,
     })
     .eq("id", section.id);
 
@@ -542,12 +790,10 @@ export async function acceptAiPolishedSection(formData: FormData) {
     section_id: section.id,
     text: polishedText,
     source: "student_accepted_suggestion",
-    ai_chars_accepted: charsAdded > 0 ? charsAdded : polishedText.length,
+    ai_chars_accepted: estimatedAiContribution,
   });
 
   revalidatePath(`/studio/${workspaceId}`);
   revalidatePath(`/studio/${workspaceId}/write/${sectionKey}`);
   revalidatePath(`/supervisor/${workspaceId}`);
 }
-
-

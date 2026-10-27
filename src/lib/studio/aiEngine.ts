@@ -207,6 +207,61 @@ export async function polishAndAlignSection(params: {
   });
 }
 
+/**
+ * 2b. Feedback-Only Rubric & Citation Check (Enforced when institution.ai_mode === "feedback_only")
+ * Returns formative rubric assessment and matching verified literature WITHOUT rewriting candidate text.
+ */
+export function evaluateSectionFeedbackOnly(params: {
+  draftText: string;
+  sectionKey: string;
+  sectionTitle: string;
+  guidance: string;
+  minWords: number;
+  context: WorkspaceContext;
+}): SectionPolishResult {
+  const { draftText, sectionKey, guidance, minWords, context } = params;
+  const rawWords = draftText.trim() ? draftText.trim().split(/\s+/).length : 0;
+  const levelSpec = getAcademicLevelSpec(context.level);
+  const guide = getSectionQuestionGuide(sectionKey, context);
+
+  const evidence = selectEvidence({
+    sectionKey,
+    text: draftText,
+    title: context.title,
+    problemArea: context.problemArea,
+    workspaceType: context.workspaceType,
+  });
+
+  const citations = evidence.map((e) => toCitationInfo(e.source, evidence));
+  const warnings: string[] = [
+    "Institution Policy: Feedback-Only mode active. AI provides rubric diagnostics and verified sources without rewriting your text.",
+  ];
+
+  if (rawWords < minWords) {
+    warnings.push(
+      `Current draft has ${rawWords} words (target: ${minWords} words for ${levelSpec.levelLabel} standard). Expand using the guided sub-questions.`
+    );
+  }
+
+  return {
+    polishedText: draftText,
+    wordsOriginal: rawWords,
+    wordsPolished: rawWords,
+    wordDiff: 0,
+    targetMet: rawWords >= minWords,
+    improvements: [
+      `Checked against ${levelSpec.levelLabel} KNEC target (${rawWords}/${minWords} words)`,
+      `Syllabus criterion: ${guidance}`,
+      ...guide.subQuestions.slice(0, 2).map((q) => `Verify coverage: ${q}`),
+      citations.length > 0
+        ? `${citations.length} verified reference(s) suggested below for manual citation`
+        : "No additional source notes matched",
+    ],
+    citations,
+    warnings,
+  };
+}
+
 
 /**
  * 3. Formative Writing Prompts & Open-Ended Guided Questions

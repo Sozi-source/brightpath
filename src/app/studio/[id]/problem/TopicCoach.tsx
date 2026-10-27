@@ -11,7 +11,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import type { TopicBankItem } from "@/types/database";
+import type { TopicBankItem, AiMode } from "@/types/database";
 import type { TopicNarrowingOption, TopicNarrowingResult } from "@/lib/studio/aiEngine";
 
 interface TopicCoachProps {
@@ -20,6 +20,7 @@ interface TopicCoachProps {
   initialProblemArea: string;
   workspaceType: "research_secondary" | "trade_fabrication" | "business_plan";
   course: string;
+  aiMode?: AiMode;
   topics: TopicBankItem[];
   saveAction: (formData: FormData) => Promise<void>;
   aiNarrowAction: (formData: FormData) => Promise<TopicNarrowingResult>;
@@ -31,6 +32,7 @@ export function TopicCoach({
   initialProblemArea,
   workspaceType,
   course,
+  aiMode = "feedback_and_polish",
   topics,
   saveAction,
   aiNarrowAction,
@@ -46,11 +48,11 @@ export function TopicCoach({
 
   // Form submission state
   const [isSaving, startSaveTransition] = useTransition();
-  const [showCuratedBank, setShowCuratedBank] = useState(false);
+  const [showCuratedBank, setShowCuratedBank] = useState(aiMode === "off");
   const [actionError, setActionError] = useState<string | null>(null);
 
   const handleAskAi = () => {
-    if (!studentInput.trim() || isAiLoading) return;
+    if (!studentInput.trim() || isAiLoading || aiMode === "off") return;
     setActionError(null);
 
     startAiTransition(async () => {
@@ -111,7 +113,9 @@ export function TopicCoach({
                 </h2>
               </div>
               <p className="text-xs text-slate-500">
-                Type your topic idea. We will generate 3 direct and simple proposals tailored for Certificate & Diploma TVET examination standards.
+                {aiMode === "off"
+                  ? "AI topic generation is disabled by your institution policy. Select from the National Curriculum Topic Bank below or enter your topic directly."
+                  : "Type your topic idea. We will generate 3 direct and simple proposals tailored for Certificate & Diploma TVET examination standards."}
               </p>
             </div>
 
@@ -120,42 +124,43 @@ export function TopicCoach({
             </span>
           </div>
 
-          {/* Open-Ended Question Prompt */}
-          <div className="space-y-2">
-            <label
-              htmlFor="studentInput"
-              className="block text-xs font-semibold text-slate-800"
-            >
-              Which problem area or nutritional challenge do you wish to conduct your research on?
-            </label>
-            <div className="relative">
-              <textarea
-                id="studentInput"
-                rows={3}
-                value={studentInput}
-                onChange={(e) => setStudentInput(e.target.value)}
-                placeholder="e.g. food insecurity and school performance in Kitui, or child feeding practices in Kilifi, or composite sweet potato porridge flour..."
-                className="w-full text-xs sm:text-sm bg-slate-50/50 border border-slate-300 rounded-lg p-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:bg-white placeholder:text-slate-400"
-              />
-            </div>
-
-            <div className="flex items-center justify-between gap-3 pt-1">
-              <span className="text-[11px] text-slate-500 flex items-center gap-1">
-                <HelpCircle className="h-3.5 w-3.5 text-slate-400" />
-                Mention any health condition, food ingredient, or target community.
-              </span>
-
-              <button
-                type="button"
-                onClick={handleAskAi}
-                disabled={!studentInput.trim() || isAiLoading}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+          {aiMode !== "off" && (
+            <div className="space-y-2">
+              <label
+                htmlFor="studentInput"
+                className="block text-xs font-semibold text-slate-800"
               >
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>{isAiLoading ? "Narrowing Down..." : "Narrow Down with AI"}</span>
-              </button>
+                Which problem area or nutritional challenge do you wish to conduct your research on?
+              </label>
+              <div className="relative">
+                <textarea
+                  id="studentInput"
+                  rows={3}
+                  value={studentInput}
+                  onChange={(e) => setStudentInput(e.target.value)}
+                  placeholder="e.g. food insecurity and school performance in Kitui, or child feeding practices in Kilifi, or composite sweet potato porridge flour..."
+                  className="w-full text-xs sm:text-sm bg-slate-50/50 border border-slate-300 rounded-lg p-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:bg-white placeholder:text-slate-400"
+                />
+              </div>
+
+              <div className="flex items-center justify-between gap-3 pt-1">
+                <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                  <HelpCircle className="h-3.5 w-3.5 text-slate-400" />
+                  Mention any health condition, food ingredient, or target community.
+                </span>
+
+                <button
+                  type="button"
+                  onClick={handleAskAi}
+                  disabled={!studentInput.trim() || isAiLoading}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>{isAiLoading ? "Narrowing Down..." : "Narrow Down with AI"}</span>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
