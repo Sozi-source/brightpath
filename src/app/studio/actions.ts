@@ -5,7 +5,6 @@ import { getServerDbClient } from "@/lib/supabase/admin";
 import {
   getWorkspaceSections,
   getSectionStarterContent,
-  getStarterKitById,
 } from "@/lib/studio/templates";
 import {
   narrowDownTopic,
@@ -37,7 +36,6 @@ export async function createWorkspace(formData: FormData) {
   const admissionNumber = formData.get("admissionNumber")?.toString().trim();
   const institutionId = formData.get("institutionId")?.toString().trim() || null;
   const supervisorId = formData.get("supervisorId")?.toString().trim() || null;
-  const templateKitId = formData.get("templateKit")?.toString().trim() || "knec_standard";
   const privacyConsent = formData.get("privacyConsent")?.toString();
 
   if (!workspaceType || !level || !course) {
@@ -65,15 +63,6 @@ export async function createWorkspace(formData: FormData) {
 
   if (profileErr) throw new Error(profileErr.message);
 
-  // Determine initial title/problem area from selected template if available
-  const selectedKit =
-    templateKitId !== "clean_slate" && templateKitId !== "knec_standard"
-      ? getStarterKitById(templateKitId)
-      : null;
-
-  const initialTitle = selectedKit?.sampleTitle || null;
-  const initialProblemArea = selectedKit?.sampleProblemArea || null;
-
   // 2. Insert new project workspace (initial status: ideation)
   const { data: workspace, error: wsErr } = await db
     .from("project_workspaces")
@@ -84,8 +73,8 @@ export async function createWorkspace(formData: FormData) {
       workspace_type: workspaceType,
       level,
       course,
-      title: initialTitle,
-      problem_area: initialProblemArea,
+      title: null,
+      problem_area: null,
       status: "ideation",
     })
     .select("id")
@@ -95,13 +84,10 @@ export async function createWorkspace(formData: FormData) {
     throw new Error(wsErr?.message || "Failed to initialize project workspace.");
   }
 
-  // 3. Populate workspace sections pre-filled with KNEC starter outlines
+  // 3. Populate workspace sections
   const sectionDefs = getWorkspaceSections(workspaceType, level);
   const sectionsPayload = sectionDefs.map((def, idx) => {
-    const starterText =
-      templateKitId === "clean_slate"
-        ? ""
-        : getSectionStarterContent(workspaceType, level, def.key, templateKitId);
+    const starterText = getSectionStarterContent(workspaceType, level, def.key);
 
     return {
       workspace_id: workspace.id,

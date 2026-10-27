@@ -6,14 +6,12 @@ import { createWorkspace } from "@/app/studio/actions";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
-import { STARTER_KITS } from "@/lib/studio/templates";
 import {
   FlaskConical,
   LineChart,
   Briefcase,
   GraduationCap,
   Building,
-  Sparkles,
 } from "lucide-react";
 
 export const instant = false;
@@ -190,84 +188,6 @@ export default async function NewWorkspacePage() {
                 className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 placeholder:text-slate-400"
               />
             </div>
-          </div>
-        </ContentCard>
-
-        {/* Starting Template Selection */}
-        <ContentCard
-          title="Starter Template"
-          icon={Sparkles}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Default KNEC Standard Outline */}
-            <label className="relative flex flex-col p-4 rounded-xl border border-slate-200 hover:border-indigo-600 cursor-pointer has-checked:border-indigo-600 has-checked:bg-indigo-50/40 transition-all md:col-span-2 shadow-2xs">
-              <input
-                type="radio"
-                name="templateKit"
-                value="knec_standard"
-                defaultChecked
-                className="absolute top-4 right-4 text-indigo-600 focus:ring-indigo-600"
-              />
-              <div className="flex items-center gap-2 mb-1 text-indigo-700">
-                <Sparkles className="h-4 w-4" />
-                <span className="font-semibold text-sm text-slate-900">
-                  KNEC Chapter Outline
-                </span>
-                <span className="text-[10px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 ml-auto mr-6">
-                  Standard
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 leading-snug">
-                Standard KNEC chapters and guided prompts for Food Science and Nutrition.
-              </p>
-            </label>
-
-            {/* Domain Specific Starter Kits (Strictly Nutrition & Dietetics and Food Science) */}
-            {STARTER_KITS.filter((kit) => kit.id !== "knec_std_research" && kit.id !== "knec_std_business" && kit.id !== "knec_std_trade").map((kit) => (
-              <label
-                key={kit.id}
-                className="relative flex flex-col p-4 rounded-xl border border-slate-200 hover:border-indigo-600 cursor-pointer has-checked:border-indigo-600 has-checked:bg-indigo-50/40 transition-all shadow-2xs"
-              >
-                <input
-                  type="radio"
-                  name="templateKit"
-                  value={kit.id}
-                  className="absolute top-4 right-4 text-indigo-600 focus:ring-indigo-600"
-                />
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-100">
-                    {kit.badge}
-                  </span>
-                </div>
-                <h4 className="font-semibold text-xs sm:text-sm text-slate-900 mb-1 pr-6">
-                  {kit.title}
-                </h4>
-                <p className="text-xs text-slate-500 leading-snug">
-                  {kit.description}
-                </p>
-              </label>
-            ))}
-
-            {/* Clean Slate */}
-            <label className="relative flex flex-col p-4 rounded-xl border border-slate-200 hover:border-indigo-600 cursor-pointer has-checked:border-indigo-600 has-checked:bg-indigo-50/40 transition-all md:col-span-2 shadow-2xs">
-              <input
-                type="radio"
-                name="templateKit"
-                value="clean_slate"
-                className="absolute top-4 right-4 text-indigo-600 focus:ring-indigo-600"
-              />
-              <div className="flex items-center gap-2 mb-1 text-slate-700">
-                <span className="font-semibold text-sm text-slate-900">
-                  Clean Slate
-                </span>
-                <span className="text-[10px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600 ml-auto mr-6">
-                  Minimal
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 leading-snug">
-                Empty chapter sections for custom manual drafting.
-              </p>
-            </label>
           </div>
         </ContentCard>
 
