@@ -147,8 +147,8 @@ export default async function NewWorkspacePage() {
                   required
                   className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg px-3.5 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600"
                 >
-                  <option value="diploma">Diploma (Scorecard 1B)</option>
-                  <option value="craft">Craft Certificate (Scorecard 1A)</option>
+                  <option value="diploma">Diploma</option>
+                  <option value="craft">Certificate</option>
                 </select>
               </div>
 

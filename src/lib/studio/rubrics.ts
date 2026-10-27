@@ -122,12 +122,13 @@ export function getRubricForWorkspace(
   const rubric =
     KNEC_RUBRICS[type]?.[level] || KNEC_RUBRICS.trade_fabrication.diploma;
 
+  const levelLabel = level === "craft" ? "Certificate" : "Diploma";
   const scorecardName =
     type === "business_plan"
-      ? `KNEC Scorecard: Entrepreneurship Business Plan (${level.toUpperCase()})`
-      : level === "craft"
-      ? "KNEC Scorecard 1A: Craft Trade Project"
-      : "KNEC Scorecard 1B: Diploma Trade Project";
+      ? `${levelLabel} Business Plan`
+      : type === "research_secondary"
+      ? `${levelLabel} Research Project`
+      : `${levelLabel} Project`;
 
   return {
     scorecardName,

@@ -154,6 +154,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
     .maybeSingle();
 
   const { url: notebookUrl } = resolveNotebookLmUrl(workspace.workspace_type, settingsData);
+  const levelLabel = workspace.level === "craft" ? "Certificate" : "Diploma";
 
   return (
     <AppShell
@@ -164,7 +165,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
       {/* 1. Header Card */}
       <PageHeaderCard
         title={workspace.title || "Project Workspace"}
-        subtitle={`${workspace.course} • ${workspace.level.toUpperCase()} Level`}
+        subtitle={`${workspace.course} • ${levelLabel} Level`}
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Project Studio", href: "/studio" },
@@ -485,7 +486,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                     {workspace.title}
                   </h2>
                   <p className="text-xs text-slate-600">
-                    {workspace.student?.full_name} • {workspace.course} ({workspace.level.toUpperCase()})
+                    {workspace.student?.full_name} • {workspace.course} ({levelLabel})
                   </p>
                 </div>
 

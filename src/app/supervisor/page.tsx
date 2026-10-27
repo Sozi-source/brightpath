@@ -199,8 +199,8 @@ export default async function SupervisorPage() {
                           {ws.student.admission_number}
                         </span>
                       )}
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                        {ws.level}
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                        {ws.level === "craft" ? "Certificate" : "Diploma"}
                       </span>
                     </div>
 

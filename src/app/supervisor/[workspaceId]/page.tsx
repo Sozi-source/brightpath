@@ -136,6 +136,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
   const isSubmitted = workspace.status === "submitted";
   const isPending = workspace.status === "proposal_pending";
 
+  const levelLabel = workspace.level === "craft" ? "Certificate" : "Diploma";
   const typeLabel =
     workspace.workspace_type === "trade_fabrication"
       ? "Food Science Formulation"
@@ -151,7 +152,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
     >
       <PageHeaderCard
         title={workspace.title || "Untitled Project"}
-        subtitle={`${workspace.student?.full_name || "Candidate"} • ${workspace.course} (${workspace.level})`}
+        subtitle={`${workspace.student?.full_name || "Candidate"} • ${workspace.course} (${levelLabel})`}
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Supervisor", href: "/supervisor" },
@@ -159,7 +160,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
         ]}
         metadata={[
           { label: "Candidate", value: `${workspace.student?.full_name || "Student"} (${workspace.student?.admission_number || "—"})` },
-          { label: "Track", value: `${workspace.level} • ${typeLabel}` },
+          { label: "Track", value: `${levelLabel} • ${typeLabel}` },
           { label: "Total Words", value: `${totalWords.toLocaleString()} words` },
           {
             label: "Status",
@@ -392,7 +393,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
                     {workspace.student?.full_name || "Candidate"} ({workspace.student?.admission_number || "No Admission No"})
                   </p>
                   <p>
-                    {workspace.course} • {workspace.level.toUpperCase()} Level ({typeLabel})
+                    {workspace.course} • {levelLabel} Level ({typeLabel})
                   </p>
                 </div>
               </header>

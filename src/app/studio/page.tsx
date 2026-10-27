@@ -216,7 +216,7 @@ export default async function StudioDashboardPage() {
                     <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-mono font-semibold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded">
-                          {ws.level} Level
+                          {ws.level === "craft" ? "Certificate" : "Diploma"}
                         </span>
                         <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
                           <TypeIcon className="h-3.5 w-3.5 text-indigo-600" />
