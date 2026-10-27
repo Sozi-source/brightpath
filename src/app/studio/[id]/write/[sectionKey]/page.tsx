@@ -2,7 +2,11 @@ import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
-import { getWorkspaceSections } from "@/lib/studio/templates";
+import {
+  getWorkspaceSections,
+  getStandardKnecFillInTemplate,
+  countUnfilledPlaceholders,
+} from "@/lib/studio/templates";
 import {
   saveSectionText,
   aiPolishSectionAction,
@@ -10,6 +14,7 @@ import {
   resolveWorkspaceAiMode,
 } from "@/app/studio/actions";
 import { getSectionQuestionGuide, type WorkspaceContext } from "@/lib/studio/aiEngine";
+import { selectEvidence, toCitationInfo, type CitationInfo } from "@/lib/studio/sources";
 import { SectionEditor, type StepItem } from "./SectionEditor";
 import { AppShell } from "@/components/layout/AppShell";
 import type { UserProfile, SupervisorReview } from "@/types/database";
@@ -129,7 +134,8 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
   const steps: StepItem[] = phaseSections.map((sec, idx) => {
     const rawText = textMap.get(sec.key) || "";
     const words = rawText.trim() ? rawText.trim().split(/\s+/).length : 0;
-    const isDone = words >= (sec.minWords || 30);
+    const isDone =
+      words >= (sec.minWords || 30) && countUnfilledPlaceholders(rawText) === 0;
     const isSecLocked =
       workspace.status === "closed" ||
       (sec.phase === "project" &&
@@ -157,6 +163,38 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
     workspaceType: workspace.workspace_type,
   };
   const questionGuide = getSectionQuestionGuide(sectionDef.key, wsContext);
+
+  const standardTemplate = getStandardKnecFillInTemplate({
+    type: workspace.workspace_type,
+    level: workspace.level,
+    sectionKey: sectionDef.key,
+    sectionTitle: sectionDef.title,
+    workspaceTitle: workspace.title,
+    course: workspace.course,
+  });
+
+  const storedText = textMap.get(sectionDef.key) || "";
+  const isGenericOrBlank =
+    !storedText.trim() ||
+    storedText.includes("[Provide substantive technical content aligned with KNEC requirements:");
+  const initialEditorText =
+    isGenericOrBlank && standardTemplate ? standardTemplate : storedText;
+
+  // Select verified KNEC/KDHS/WHO/KEBS citations matching this section & topic
+  const evidenceNotes = selectEvidence({
+    sectionKey: sectionDef.key,
+    text: initialEditorText,
+    title: workspace.title,
+    problemArea: workspace.problem_area,
+    workspaceType: workspace.workspace_type,
+  });
+  const uniqueCitationsMap = new Map<string, CitationInfo>();
+  for (const note of evidenceNotes) {
+    if (!uniqueCitationsMap.has(note.source.id)) {
+      uniqueCitationsMap.set(note.source.id, toCitationInfo(note.source, evidenceNotes));
+    }
+  }
+  const availableCitations = Array.from(uniqueCitationsMap.values());
 
   return (
     <AppShell
@@ -186,7 +224,9 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
               }
             : null
         }
-        currentText={textMap.get(sectionDef.key) || ""}
+        currentText={initialEditorText}
+        standardTemplate={standardTemplate}
+        availableCitations={availableCitations}
         questionGuide={questionGuide}
         steps={steps}
         currentStepIndex={currentPhaseIndex}

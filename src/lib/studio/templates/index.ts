@@ -8,9 +8,21 @@ import {
   getStarterKitById,
   type StarterKit,
 } from "./starterKits";
+import {
+  getStandardKnecFillInTemplate,
+  countUnfilledPlaceholders,
+  extractUnfilledPlaceholders,
+} from "./knecSectionTemplates";
 
 export type { SectionDef, StarterKit };
-export { STARTER_KITS, getAvailableStarterKits, getStarterKitById };
+export {
+  STARTER_KITS,
+  getAvailableStarterKits,
+  getStarterKitById,
+  getStandardKnecFillInTemplate,
+  countUnfilledPlaceholders,
+  extractUnfilledPlaceholders,
+};
 
 export function getWorkspaceSections(
   type: WorkspaceType,
@@ -109,14 +121,26 @@ export function getSectionStarterContent(
     return defaultKit.sectionsContent[sectionKey];
   }
 
-  // 3. Fall back to section definition starterTemplate if set
   const sections = getWorkspaceSections(type, level);
   const sec = sections.find((s) => s.key === sectionKey);
+
+  // 3. Fall back to standardized KNEC Fill-In Template for this section
+  const standardFillIn = getStandardKnecFillInTemplate({
+    type,
+    level,
+    sectionKey,
+    sectionTitle: sec?.title,
+  });
+  if (standardFillIn) {
+    return standardFillIn;
+  }
+
+  // 4. Fall back to section definition starterTemplate if set
   if (sec?.starterTemplate) {
     return sec.starterTemplate;
   }
 
-  // 4. Fall back to minimal structured heading
+  // 5. Fall back to minimal structured heading
   if (sec) {
     return `## ${sec.title}\n\n[Provide substantive technical content aligned with KNEC requirements: ${sec.guidance}]`;
   }

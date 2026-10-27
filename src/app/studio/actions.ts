@@ -9,7 +9,6 @@ import {
 } from "@/lib/studio/templates";
 import {
   narrowDownTopic,
-  polishAndAlignSection,
   evaluateSectionFeedbackOnly,
   type WorkspaceContext,
   type TopicNarrowingResult,
@@ -605,7 +604,9 @@ export async function aiPolishSectionAction(formData: FormData): Promise<Section
     const currentWords = draftText.trim() ? draftText.trim().split(/\s+/).length : 0;
     const warnings: string[] = [];
     if (references.length === 0) {
-      warnings.push("No verified citations found yet. Polish your chapters first, then build references.");
+      warnings.push(
+        "No verified citations found yet. Insert verified citations into your chapters first, then build references."
+      );
     }
     if (unverified.length > 0) {
       warnings.push(
@@ -632,7 +633,7 @@ export async function aiPolishSectionAction(formData: FormData): Promise<Section
   const aiMode = await resolveWorkspaceAiMode(db, workspace.institution_id, user.id);
   if (aiMode === "off") {
     throw new Error(
-      "Institutional Policy: AI writing assistance is disabled by your institution (AI Mode: Off)."
+      "Institutional Policy: Automated rubric diagnostics are disabled by your institution (AI Mode: Off)."
     );
   }
 
@@ -648,25 +649,15 @@ export async function aiPolishSectionAction(formData: FormData): Promise<Section
     workspaceType: workspace.workspace_type,
   };
 
-  // If institution is in feedback_only mode, return rubric diagnostics & verified citations without rewriting prose
-  const result =
-    aiMode === "feedback_only"
-      ? evaluateSectionFeedbackOnly({
-          draftText,
-          sectionKey,
-          sectionTitle: def?.title || sectionKey,
-          guidance: def?.guidance || "Adhere to KNEC technical guidelines.",
-          minWords: def?.minWords || 100,
-          context,
-        })
-      : await polishAndAlignSection({
-          draftText,
-          sectionKey,
-          sectionTitle: def?.title || sectionKey,
-          guidance: def?.guidance || "Adhere to KNEC technical guidelines.",
-          minWords: def?.minWords || 100,
-          context,
-        });
+  // Run standardized KNEC Rubric, Template Completeness & Citation Validator (never rewrites student prose)
+  const result = evaluateSectionFeedbackOnly({
+    draftText,
+    sectionKey,
+    sectionTitle: def?.title || sectionKey,
+    guidance: def?.guidance || "Adhere to KNEC technical guidelines.",
+    minWords: def?.minWords || 100,
+    context,
+  });
 
   // Log to ai_events audit trail
   const { data: section } = await db
@@ -677,14 +668,14 @@ export async function aiPolishSectionAction(formData: FormData): Promise<Section
     .single();
 
   if (section) {
-    const estTokensIn = Math.ceil(draftText.length / 4) + 300;
-    const estTokensOut = Math.ceil(result.polishedText.length / 4);
+    const estTokensIn = Math.ceil(draftText.length / 4) + 150;
+    const estTokensOut = Math.ceil(JSON.stringify(result.improvements).length / 4);
 
     await db.from("ai_events").insert({
       workspace_id: workspaceId,
       section_id: section.id,
       user_id: user.id,
-      kind: aiMode === "feedback_only" ? "rubric_feedback" : "language_suggestion",
+      kind: "rubric_feedback",
       student_input: draftText.slice(0, 500),
       response: {
         aiMode,
@@ -693,12 +684,7 @@ export async function aiPolishSectionAction(formData: FormData): Promise<Section
         targetMet: result.targetMet,
       },
       suggestions_total: 1,
-      model:
-        aiMode === "feedback_only"
-          ? "knec-rubric-validator-v1"
-          : process.env.GEMINI_API_KEY
-          ? "gemini-3.5-flash"
-          : "knec-academic-engine-v1",
+      model: "knec-rubric-validator-v1",
       tokens_in: estTokensIn,
       tokens_out: estTokensOut,
     });

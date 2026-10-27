@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import {
   Save,
@@ -10,7 +10,6 @@ import {
   ArrowRight,
   ArrowLeft,
   Lock,
-  Sparkles,
   Lightbulb,
   Check,
   X,
@@ -18,8 +17,15 @@ import {
   HelpCircle,
   ShieldCheck,
   MessageSquare,
+  FileText,
+  BookOpen,
+  ClipboardCheck,
+  Crosshair,
+  Plus,
 } from "lucide-react";
 import type { SectionPolishResult, SectionQuestionGuide } from "@/lib/studio/aiEngine";
+import type { CitationInfo } from "@/lib/studio/sources";
+import { extractUnfilledPlaceholders } from "@/lib/studio/templates/knecSectionTemplates";
 import type { AiMode, ReviewStatus, SectionStatus } from "@/types/database";
 
 export interface StepItem {
@@ -53,6 +59,8 @@ interface SectionEditorProps {
     createdAt: string;
   } | null;
   currentText: string;
+  standardTemplate?: string;
+  availableCitations?: CitationInfo[];
   questionGuide?: SectionQuestionGuide;
   steps: StepItem[];
   currentStepIndex: number;
@@ -77,6 +85,8 @@ export function SectionEditor({
   sectionStatus = "draft",
   supervisorReview = null,
   currentText: initialText,
+  standardTemplate = "",
+  availableCitations = [],
   questionGuide,
   steps,
   currentStepIndex,
@@ -90,17 +100,21 @@ export function SectionEditor({
   const [isPending, startTransition] = useTransition();
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [citationFeedback, setCitationFeedback] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  // AI Polish state
+  // Rubric Check / Reference Compilation state
   const [isPolishing, startPolishTransition] = useTransition();
   const [polishResult, setPolishResult] = useState<SectionPolishResult | null>(null);
   const [isAcceptingAi, startAcceptTransition] = useTransition();
 
   const wordsCount = text.trim() ? text.trim().split(/\s+/).length : 0;
-  const isMinMet = wordsCount >= minWords;
+  const unfilledPlaceholders = extractUnfilledPlaceholders(text);
+  const unfilledCount = unfilledPlaceholders.length;
   const isReferencesSection = sectionKey === "references";
-  const canUseAiButton = isReferencesSection || aiMode !== "off";
-  const canAcceptAiRewrite = isReferencesSection || aiMode === "feedback_and_polish";
+  const canUseRubricButton = isReferencesSection || aiMode !== "off";
+  // Only the deterministic APA 7th Reference Compiler replaces section text; content sections stay 100% student-authored
+  const canAcceptCompiledText = isReferencesSection;
 
   const handleSave = () => {
     if (isLocked) return;
@@ -123,8 +137,8 @@ export function SectionEditor({
     });
   };
 
-  const handleAiPolish = () => {
-    if (isLocked || !aiPolishAction || isPolishing || !canUseAiButton) return;
+  const handleRubricCheckOrBuildRefs = () => {
+    if (isLocked || !aiPolishAction || isPolishing || !canUseRubricButton) return;
     setErrorMessage("");
 
     startPolishTransition(async () => {
@@ -137,13 +151,13 @@ export function SectionEditor({
         setPolishResult(res);
       } catch (err: unknown) {
         setSaveStatus("error");
-        setErrorMessage(err instanceof Error ? err.message : "AI check failed.");
+        setErrorMessage(err instanceof Error ? err.message : "Rubric check failed.");
       }
     });
   };
 
-  const handleAcceptAi = () => {
-    if (!polishResult || !acceptAiAction || !canAcceptAiRewrite) return;
+  const handleAcceptCompiledReferences = () => {
+    if (!polishResult || !acceptAiAction || !canAcceptCompiledText) return;
 
     startAcceptTransition(async () => {
       try {
@@ -151,10 +165,7 @@ export function SectionEditor({
         formData.append("workspaceId", workspaceId);
         formData.append("sectionKey", sectionKey);
         formData.append("text", polishResult.polishedText);
-        formData.append(
-          "charsAdded",
-          Math.max(0, polishResult.polishedText.length - text.length).toString()
-        );
+        formData.append("charsAdded", "0");
         await acceptAiAction(formData);
 
         setText(polishResult.polishedText);
@@ -163,9 +174,67 @@ export function SectionEditor({
         setTimeout(() => setSaveStatus("idle"), 3500);
       } catch (err: unknown) {
         setSaveStatus("error");
-        setErrorMessage(err instanceof Error ? err.message : "Failed to accept AI suggestion.");
+        setErrorMessage(
+          err instanceof Error ? err.message : "Failed to apply compiled references."
+        );
       }
     });
+  };
+
+  const handleLoadKnecTemplate = () => {
+    if (isLocked || !standardTemplate) return;
+    const isGenericOrEmpty =
+      !text.trim() ||
+      text.includes("[Provide substantive technical content aligned with KNEC requirements:");
+
+    if (!isGenericOrEmpty && text.trim() !== standardTemplate.trim()) {
+      const confirmed = window.confirm(
+        "Replace current draft with the fresh standardized KNEC fill-in template for this section?"
+      );
+      if (!confirmed) return;
+    }
+    setText(standardTemplate);
+    setSaveStatus("idle");
+  };
+
+  const handleJumpToNextPlaceholder = () => {
+    const el = textareaRef.current;
+    if (!el || unfilledPlaceholders.length === 0) return;
+
+    const currentCursor = el.selectionEnd || 0;
+    const targetToken = unfilledPlaceholders[0];
+    let nextIdx = text.indexOf(targetToken, currentCursor);
+    if (nextIdx === -1) {
+      nextIdx = text.indexOf(targetToken, 0);
+    }
+    if (nextIdx !== -1) {
+      el.focus();
+      el.setSelectionRange(nextIdx, nextIdx + targetToken.length);
+    }
+  };
+
+  const handleInsertAtCursor = (snippet: string, label: string) => {
+    if (isLocked) return;
+    const el = textareaRef.current;
+    if (el) {
+      const start = el.selectionStart ?? text.length;
+      const end = el.selectionEnd ?? text.length;
+      const before = text.slice(0, start);
+      const after = text.slice(end);
+      const needsLeadingSpace = before.length > 0 && !/[\s(\n]$/.test(before);
+      const inserted = `${needsLeadingSpace ? " " : ""}${snippet}`;
+      const updated = `${before}${inserted}${after}`;
+      setText(updated);
+      setTimeout(() => {
+        el.focus();
+        const cursor = start + inserted.length;
+        el.setSelectionRange(cursor, cursor);
+      }, 10);
+    } else {
+      setText((prev) => `${prev.trimEnd()} ${snippet}`);
+    }
+    setCitationFeedback(`Inserted ${label}`);
+    setTimeout(() => setCitationFeedback(null), 2500);
   };
 
   const handleDismissAi = () => {
@@ -191,18 +260,31 @@ export function SectionEditor({
             </span>
             <span className="block text-[11px] text-slate-500 capitalize">
               {phase === "proposal" ? "Proposal Phase" : "Project Phase"} • Status:{" "}
-              {sectionStatus.toUpperCase()}
+              {sectionStatus.toUpperCase()} • 100% Candidate Authorship Template
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 flex-wrap">
           <span className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-md">
             Step {currentStepIndex + 1} of {steps.length}
           </span>
+          {!isReferencesSection && (
+            <span
+              className={`text-[11px] font-mono px-2.5 py-1 rounded-md border transition-colors ${
+                unfilledCount === 0 && wordsCount > 0
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold"
+                  : "bg-amber-50 text-amber-800 border-amber-200 font-semibold"
+              }`}
+            >
+              {unfilledCount === 0 && wordsCount > 0
+                ? "Template Fields Filled ✓"
+                : `${unfilledCount} [field${unfilledCount === 1 ? "" : "s"}] to fill`}
+            </span>
+          )}
           <span
             className={`text-[11px] font-mono px-2.5 py-1 rounded-md border transition-colors ${
-              isMinMet && wordsCount > 0
+              wordsCount >= minWords
                 ? "bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold"
                 : "bg-slate-50 text-slate-600 border-slate-200"
             }`}
@@ -298,19 +380,19 @@ export function SectionEditor({
         </div>
       )}
 
-      {/* 3. AI Polish / Rubric Feedback Preview Banner & Review Card */}
+      {/* 3. KNEC Rubric Pre-Check / Reference Compilation Card */}
       {polishResult && (
         <div className="bg-white rounded-xl border-2 border-indigo-500 shadow-md overflow-hidden animate-in fade-in duration-200">
           <div className="p-4 sm:p-5 bg-indigo-50/60 border-b border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="p-1 rounded-md bg-indigo-600 text-white">
-                  <Sparkles className="h-4 w-4" />
+                  <ClipboardCheck className="h-4 w-4" />
                 </span>
                 <h3 className="text-sm font-semibold text-indigo-950">
-                  {aiMode === "feedback_only" && !isReferencesSection
-                    ? "KNEC Rubric & Citation Diagnostics"
-                    : "KNEC Academic Polish Preview"}
+                  {isReferencesSection
+                    ? "Compiled APA 7th Edition Reference List"
+                    : "KNEC Examination Rubric & Template Completeness Check"}
                 </h3>
                 <span
                   className={`text-[11px] font-mono font-semibold px-2 py-0.5 rounded ${
@@ -319,7 +401,8 @@ export function SectionEditor({
                       : "bg-amber-100 text-amber-800"
                   }`}
                 >
-                  {polishResult.wordsPolished} words ({polishResult.wordDiff >= 0 ? `+${polishResult.wordDiff}` : polishResult.wordDiff}) • Target: {minWords}
+                  {polishResult.wordsPolished} / {minWords} words{" "}
+                  {polishResult.targetMet ? "• Ready ✓" : "• Action Needed"}
                 </span>
               </div>
               <div className="flex items-center gap-2 flex-wrap text-[11px] text-slate-600">
@@ -342,27 +425,27 @@ export function SectionEditor({
                 className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 <X className="h-3.5 w-3.5" />
-                <span>{canAcceptAiRewrite ? "Keep Current" : "Close Feedback"}</span>
+                <span>Close Check</span>
               </button>
-              {canAcceptAiRewrite && (
+              {canAcceptCompiledText && (
                 <button
                   type="button"
-                  onClick={handleAcceptAi}
+                  onClick={handleAcceptCompiledReferences}
                   disabled={isAcceptingAi}
                   className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
                   <FileCheck2 className="h-3.5 w-3.5" />
-                  <span>{isAcceptingAi ? "Applying..." : "Accept & Apply to Draft"}</span>
+                  <span>{isAcceptingAi ? "Applying..." : "Apply Compiled References"}</span>
                 </button>
               )}
             </div>
           </div>
 
           <div className="p-4 sm:p-5 bg-white space-y-3">
-            {canAcceptAiRewrite && (
+            {canAcceptCompiledText && (
               <>
                 <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-                  {isReferencesSection ? "Compiled References" : "Polished Draft"}
+                  Compiled APA 7th References
                 </span>
                 <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-800 whitespace-pre-line leading-relaxed max-h-[300px] overflow-y-auto font-sans">
                   {polishResult.polishedText || "Nothing to compile yet."}
@@ -370,8 +453,8 @@ export function SectionEditor({
               </>
             )}
 
-            {polishResult.warnings.length > 0 && (
-              <ul className="space-y-1">
+            {polishResult.warnings.length > 0 ? (
+              <ul className="space-y-1.5">
                 {polishResult.warnings.map((w, i) => (
                   <li
                     key={i}
@@ -382,31 +465,16 @@ export function SectionEditor({
                   </li>
                 ))}
               </ul>
-            )}
-
-            {polishResult.citations.length > 0 && (
-              <div className="space-y-2">
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-                  {aiMode === "feedback_only"
-                    ? "Verified Sources Matching Your Topic"
-                    : "Sources cited"}
-                </span>
-                <ul className="space-y-2">
-                  {polishResult.citations.map((c) => (
-                    <li key={c.id} className="rounded-lg border border-slate-200 p-3 space-y-1">
-                      <span className="text-[11px] font-mono font-semibold text-indigo-700">
-                        {c.inText}
-                      </span>
-                      <p className="text-xs text-slate-800">{c.reference}</p>
-                      {c.supports.map((s, i) => (
-                        <p key={i} className="text-[11px] text-slate-500">
-                          Supports: {s}.
-                        </p>
-                      ))}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            ) : (
+              !isReferencesSection && (
+                <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-900">
+                  <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <span>
+                    Excellent work! All template placeholders are filled and your section meets the
+                    KNEC word count and citation requirements.
+                  </span>
+                </div>
+              )
             )}
           </div>
         </div>
@@ -454,41 +522,66 @@ export function SectionEditor({
                   {sectionTitle}
                 </h1>
                 <p className="text-xs text-slate-500">
-                  Step {currentStepIndex + 1} • Minimum target: {minWords} words
+                  Step {currentStepIndex + 1} • Replace{" "}
+                  <code className="font-mono text-indigo-700 bg-indigo-50 px-1 py-0.5 rounded">
+                    [bracketed fields]
+                  </code>{" "}
+                  in your own words • Target: {minWords}+ words
                 </p>
               </div>
 
               <div className="flex items-center gap-2 flex-wrap">
-                {!canUseAiButton && (
+                {standardTemplate && !isReferencesSection && (
+                  <button
+                    type="button"
+                    onClick={handleLoadKnecTemplate}
+                    disabled={isPending}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors cursor-pointer"
+                    title="Load or reset the official standardized KNEC fill-in template for this section"
+                  >
+                    <FileText className="h-3.5 w-3.5 text-slate-600" />
+                    <span>Load KNEC Template</span>
+                  </button>
+                )}
+
+                {unfilledCount > 0 && !isReferencesSection && (
+                  <button
+                    type="button"
+                    onClick={handleJumpToNextPlaceholder}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition-colors cursor-pointer"
+                    title="Highlight the next unfilled [bracket] field in the editor"
+                  >
+                    <Crosshair className="h-3.5 w-3.5 text-amber-700" />
+                    <span>Next [Field] ({unfilledCount})</span>
+                  </button>
+                )}
+
+                {!canUseRubricButton && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
                     <ShieldCheck className="h-3.5 w-3.5 text-slate-500" />
-                    <span>AI Disabled by Institution</span>
+                    <span>Manual Mode</span>
                   </span>
                 )}
 
-                {aiPolishAction && canUseAiButton && (
+                {aiPolishAction && canUseRubricButton && (
                   <button
                     type="button"
-                    onClick={handleAiPolish}
+                    onClick={handleRubricCheckOrBuildRefs}
                     disabled={isPolishing || isPending}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-colors cursor-pointer disabled:opacity-50"
                     title={
                       isReferencesSection
-                        ? "Build the reference list from sources cited in your chapters"
-                        : aiMode === "feedback_only"
-                        ? "Run KNEC rubric diagnostics and find verified sources"
-                        : "Polish and deepen your writing, with verified in-text citations"
+                        ? "Compile APA 7th references from verified sources cited across your chapters"
+                        : "Check template completion, word count target, and APA citations against KNEC rubric"
                     }
                   >
-                    <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+                    <ClipboardCheck className="h-3.5 w-3.5 text-indigo-600" />
                     <span>
                       {isPolishing
-                        ? "Working..."
+                        ? "Checking..."
                         : isReferencesSection
-                        ? "Build References"
-                        : aiMode === "feedback_only"
-                        ? "Check Rubric & Sources"
-                        : "Polish with AI"}
+                        ? "Build APA References"
+                        : "Run KNEC Rubric Check"}
                     </span>
                   </button>
                 )}
@@ -507,7 +600,7 @@ export function SectionEditor({
               </div>
             </div>
 
-            {/* Error banner if save or AI fails */}
+            {/* Error banner if save fails */}
             {(saveStatus === "error" || Boolean(errorMessage)) && (
               <div className="rounded-lg bg-rose-50 border border-rose-200 p-2.5 text-xs font-semibold text-rose-800 flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
@@ -515,27 +608,24 @@ export function SectionEditor({
               </div>
             )}
 
-            {/* Prominent Open-Ended Guided Question Card */}
-            <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-r from-indigo-50/90 via-blue-50/50 to-slate-50 border border-indigo-200 shadow-2xs space-y-3">
+            {/* Prominent Guided Fill-In Instructions Card */}
+            <div className="p-4 rounded-xl bg-gradient-to-r from-indigo-50/90 via-blue-50/50 to-slate-50 border border-indigo-200 shadow-2xs space-y-2.5">
               <div className="flex items-start gap-3">
                 <div className="p-2 rounded-lg bg-indigo-600 text-white shrink-0 mt-0.5 shadow-2xs">
                   <HelpCircle className="h-4 w-4" />
                 </div>
                 <div className="space-y-1">
                   <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-indigo-700 bg-indigo-100/70 px-2 py-0.5 rounded">
-                    Guided Question Prompt
+                    Standardized KNEC Fill-In Guide
                   </span>
-                  <h2 className="text-sm sm:text-base font-semibold text-slate-900 tracking-tight leading-snug">
-                    {questionGuide?.mainQuestion || `What are your core ideas for ${sectionTitle}?`}
+                  <h2 className="text-sm font-semibold text-slate-900 tracking-tight leading-snug">
+                    {questionGuide?.mainQuestion || `Complete the standardized KNEC template for ${sectionTitle}`}
                   </h2>
                 </div>
               </div>
 
               {questionGuide && questionGuide.subQuestions.length > 0 && (
                 <div className="pl-11 space-y-1">
-                  <span className="text-[11px] font-semibold text-slate-700 block">
-                    Points to include in your draft:
-                  </span>
                   <ul className="list-disc list-inside space-y-0.5 text-xs text-slate-600">
                     {questionGuide.subQuestions.map((q, idx) => (
                       <li key={idx} className="leading-relaxed">
@@ -549,23 +639,103 @@ export function SectionEditor({
               {/* KNEC Syllabus Target Line */}
               <div className="pl-11 pt-1 border-t border-indigo-100/80 flex items-center gap-1.5 text-[11px] text-slate-500">
                 <Lightbulb className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                <span className="font-medium text-slate-700">KNEC Examination Target:</span>
+                <span className="font-medium text-slate-700">KNEC Syllabus Standard:</span>
                 <span className="truncate">{guidance}</span>
               </div>
             </div>
+
+            {/* Interactive Verified KNEC / KDHS Citation & Data Picker */}
+            {availableCitations.length > 0 && !isReferencesSection && (
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-2.5">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
+                      <BookOpen className="h-3.5 w-3.5" />
+                    </span>
+                    <div>
+                      <h3 className="text-xs font-semibold text-slate-900">
+                        Verified KNEC, KDHS 2022, WHO & KEBS Reference Bank
+                      </h3>
+                      <p className="text-[11px] text-slate-500">
+                        Click to insert an official APA 7th citation or verified statistic at your cursor.
+                      </p>
+                    </div>
+                  </div>
+                  {citationFeedback && (
+                    <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-md">
+                      {citationFeedback} ✓
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {availableCitations.map((cit) => {
+                    const primaryFact = cit.supports[0] || "";
+                    return (
+                      <div
+                        key={cit.id}
+                        className="bg-white rounded-lg border border-slate-200 p-2.5 flex flex-col justify-between gap-2 shadow-2xs"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-mono font-semibold text-indigo-700">
+                              {cit.inText}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleInsertAtCursor(cit.inText, cit.inText)}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-colors cursor-pointer"
+                            >
+                              <Plus className="h-3 w-3" />
+                              <span>Cite {cit.inText}</span>
+                            </button>
+                          </div>
+                          {primaryFact && (
+                            <p className="text-[11px] text-slate-600 leading-snug line-clamp-2">
+                              {primaryFact}.
+                            </p>
+                          )}
+                        </div>
+                        {primaryFact && (
+                          <div className="pt-1 border-t border-slate-100 flex items-center justify-between gap-2">
+                            <span className="text-[10px] text-slate-400 truncate">
+                              {cit.reference}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleInsertAtCursor(
+                                  `${primaryFact} ${cit.inText}.`,
+                                  `finding ${cit.inText}`
+                                )
+                              }
+                              className="text-[10px] font-semibold text-slate-600 hover:text-indigo-700 shrink-0 cursor-pointer"
+                            >
+                              + Insert Finding
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Editor Textarea */}
             <div>
               <textarea
                 id="editorTextarea"
-                rows={14}
+                ref={textareaRef}
+                rows={16}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder={
+                  standardTemplate ||
                   questionGuide?.placeholderExample ||
-                  "Write your section draft here in clear, concise language (or rough notes)..."
+                  "Fill in the standardized KNEC section template here in your own words..."
                 }
-                className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg p-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 leading-relaxed font-sans placeholder:text-slate-400 min-h-[320px]"
+                className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg p-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 leading-relaxed font-sans placeholder:text-slate-400 min-h-[360px]"
               />
             </div>
 

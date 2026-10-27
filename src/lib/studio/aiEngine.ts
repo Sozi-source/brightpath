@@ -20,10 +20,13 @@ import {
   findUnsupportedFigures,
   toCitationInfo,
   formatInText,
+  auditCitations,
+  citationRoleFor,
   type CitationInfo,
   type EvidenceNote,
 } from "./sources";
 import { generateSecondaryDataTopics } from "./secondaryTopics";
+import { extractUnfilledPlaceholders } from "./templates/knecSectionTemplates";
 
 export interface TopicNarrowingOption {
   id: string;
@@ -208,8 +211,10 @@ export async function polishAndAlignSection(params: {
 }
 
 /**
- * 2b. Feedback-Only Rubric & Citation Check (Enforced when institution.ai_mode === "feedback_only")
- * Returns formative rubric assessment and matching verified literature WITHOUT rewriting candidate text.
+ * 2b. KNEC Rubric, Template Completeness & Citation Validator
+ * Evaluates the candidate's filled-in KNEC template against examination standards
+ * (unfilled bracket placeholders, word count target, and verified APA 7th citations)
+ * WITHOUT rewriting the candidate's own prose (preserving 100% candidate originality).
  */
 export function evaluateSectionFeedbackOnly(params: {
   draftText: string;
@@ -232,31 +237,71 @@ export function evaluateSectionFeedbackOnly(params: {
     workspaceType: context.workspaceType,
   });
 
-  const citations = evidence.map((e) => toCitationInfo(e.source, evidence));
-  const warnings: string[] = [
-    "Institution Policy: Feedback-Only mode active. AI provides rubric diagnostics and verified sources without rewriting your text.",
-  ];
+  // Deduplicate matched sources by source.id
+  const uniqueSourcesMap = new Map<string, CitationInfo>();
+  for (const e of evidence) {
+    if (!uniqueSourcesMap.has(e.source.id)) {
+      uniqueSourcesMap.set(e.source.id, toCitationInfo(e.source, evidence));
+    }
+  }
+  const citations = Array.from(uniqueSourcesMap.values());
+
+  const unfilledPlaceholders = extractUnfilledPlaceholders(draftText);
+  const citedSources = findCitedSources(draftText);
+  const unverifiedCitations = auditCitations(draftText);
+  const requiresCitations = citationRoleFor(sectionKey) !== null;
+
+  const warnings: string[] = [];
+
+  if (unfilledPlaceholders.length > 0) {
+    const sample = unfilledPlaceholders.slice(0, 3).join(", ");
+    warnings.push(
+      `Template Completeness: ${unfilledPlaceholders.length} bracketed placeholder(s) still need to be replaced with your own details/figures (e.g. ${sample}${
+        unfilledPlaceholders.length > 3 ? ", ..." : ""
+      }).`
+    );
+  }
 
   if (rawWords < minWords) {
     warnings.push(
-      `Current draft has ${rawWords} words (target: ${minWords} words for ${levelSpec.levelLabel} standard). Expand using the guided sub-questions.`
+      `Word Count Target: Current draft has ${rawWords} words (${
+        minWords - rawWords
+      } more words needed to reach the ${minWords}-word ${levelSpec.levelLabel} target).`
     );
   }
+
+  if (requiresCitations && citedSources.length === 0) {
+    warnings.push(
+      "Citation Check: No verified APA 7th in-text citation detected in this section yet. Use the Verified Citation Picker below to insert (Author, Year) citations."
+    );
+  }
+
+  if (unverifiedCitations.length > 0) {
+    warnings.push(
+      `Unverified Citation Notice: Confirm that these citations appear in your final References list: ${unverifiedCitations.join(
+        "; "
+      )}.`
+    );
+  }
+
+  const improvements: string[] = [
+    unfilledPlaceholders.length === 0 && rawWords > 0
+      ? "All KNEC template placeholders completed ✓"
+      : `${unfilledPlaceholders.length} template placeholder(s) remaining`,
+    `Word count: ${rawWords}/${minWords} words (${levelSpec.levelLabel} standard)`,
+    requiresCitations
+      ? `${citedSources.length} verified library source(s) cited in text`
+      : `Syllabus criterion: ${guidance}`,
+    ...guide.subQuestions.slice(0, 2).map((q) => `Rubric check: ${q}`),
+  ];
 
   return {
     polishedText: draftText,
     wordsOriginal: rawWords,
     wordsPolished: rawWords,
     wordDiff: 0,
-    targetMet: rawWords >= minWords,
-    improvements: [
-      `Checked against ${levelSpec.levelLabel} KNEC target (${rawWords}/${minWords} words)`,
-      `Syllabus criterion: ${guidance}`,
-      ...guide.subQuestions.slice(0, 2).map((q) => `Verify coverage: ${q}`),
-      citations.length > 0
-        ? `${citations.length} verified reference(s) suggested below for manual citation`
-        : "No additional source notes matched",
-    ],
+    targetMet: rawWords >= minWords && unfilledPlaceholders.length === 0,
+    improvements,
     citations,
     warnings,
   };

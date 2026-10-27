@@ -786,7 +786,23 @@ export function selectEvidence(params: {
   if (!role) return [];
 
   const topics = detectTopics(`${params.text} ${params.title ?? ""} ${params.problemArea ?? ""}`);
-  if (params.workspaceType === "business_plan") topics.add("business");
+  if (params.workspaceType === "business_plan") {
+    topics.add("business");
+  } else if (params.workspaceType === "trade_fabrication") {
+    if (topics.size === 0) {
+      topics.add("food_processing");
+      topics.add("proximate");
+      topics.add("sensory");
+    }
+  } else {
+    // Default nutrition & KDHS baseline topics when starting a fresh section
+    if (topics.size === 0) {
+      topics.add("child_nutrition");
+      topics.add("stunting");
+      topics.add("dietary_diversity");
+      topics.add("iycf");
+    }
+  }
 
   const scored: { note: EvidenceNote; score: number; order: number }[] = [];
   let order = 0;
