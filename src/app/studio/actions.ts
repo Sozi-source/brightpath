@@ -550,4 +550,53 @@ export async function acceptAiPolishedSection(formData: FormData) {
   revalidatePath(`/supervisor/${workspaceId}`);
 }
 
+export async function deleteDraftWorkspace(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const db = getServerDbClient(supabase);
+  const workspaceId = formData.get("workspaceId")?.toString()?.trim();
+  const redirectAfter = formData.get("redirectAfter")?.toString() === "true";
+
+  if (!workspaceId) {
+    throw new Error("Missing workspace ID.");
+  }
+
+  const { data: ws } = await db
+    .from("project_workspaces")
+    .select("id, student_id, status")
+    .eq("id", workspaceId)
+    .single();
+
+  if (!ws || ws.student_id !== user.id) {
+    throw new Error("Unauthorized to delete this workspace.");
+  }
+
+  if (ws.status === "approved" || ws.status === "submitted" || ws.status === "closed") {
+    throw new Error("Approved or submitted projects cannot be deleted.");
+  }
+
+  const { error } = await db
+    .from("project_workspaces")
+    .delete()
+    .eq("id", workspaceId)
+    .eq("student_id", user.id);
+
+  if (error) {
+    throw new Error(error.message || "Failed to delete draft project.");
+  }
+
+  revalidatePath("/studio");
+  revalidatePath("/supervisor");
+
+  if (redirectAfter) {
+    redirect("/studio");
+  }
+}
+
+
 

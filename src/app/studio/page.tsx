@@ -6,6 +6,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
 import { StatCard } from "@/components/ui/StatCard";
+import { DeleteDraftButton } from "./DeleteDraftButton";
 import {
   Plus,
   ArrowRight,
@@ -275,18 +276,23 @@ export default async function StudioDashboardPage() {
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
                     <span className="text-[11px] text-slate-500">
                       Updated {new Date(ws.updated_at).toLocaleDateString()}
                     </span>
 
-                    <Link
-                      href={`/studio/${ws.id}`}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
-                    >
-                      <span>Open Studio</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      {!isApproved && (
+                        <DeleteDraftButton workspaceId={ws.id} title={ws.title} />
+                      )}
+                      <Link
+                        href={`/studio/${ws.id}`}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
+                      >
+                        <span>Open Studio</span>
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </Link>
+                    </div>
                   </div>
                 </div>
               );

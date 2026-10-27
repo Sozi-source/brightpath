@@ -9,6 +9,7 @@ import { submitProposalForApproval } from "@/app/studio/actions";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
+import { DeleteDraftButton } from "../DeleteDraftButton";
 import {
   CheckCircle2,
   Clock,
@@ -166,13 +167,22 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
           },
         ]}
         actions={
-          <Link
-            href={`/studio/${workspaceId}/problem`}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white hover:bg-slate-50 text-indigo-700 border border-slate-300 shadow-xs transition-colors"
-          >
-            <Lightbulb className="h-4 w-4 text-amber-500" />
-            <span>Topic Formulation</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            {!isApproved && workspace.student_id === user.id && (
+              <DeleteDraftButton
+                workspaceId={workspaceId}
+                title={workspace.title}
+                redirectAfter
+              />
+            )}
+            <Link
+              href={`/studio/${workspaceId}/problem`}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white hover:bg-slate-50 text-indigo-700 border border-slate-300 shadow-xs transition-colors"
+            >
+              <Lightbulb className="h-4 w-4 text-amber-500" />
+              <span>Topic Formulation</span>
+            </Link>
+          </div>
         }
       />
 
