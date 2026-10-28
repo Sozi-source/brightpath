@@ -340,9 +340,9 @@ Return strictly valid JSON with this shape:
 }
 
 const DEFAULT_GEMINI_MODELS = [
-  "gemini-3.5-flash",
-  "gemini-flash-latest",
-  "gemini-3.1-flash-lite",
+  "gemini-2.5-flash",
+  "gemini-2.0-flash",
+  "gemini-1.5-flash",
 ];
 
 async function callGeminiText(
@@ -623,8 +623,140 @@ function generateDeterministicTopics(
   const loc = detectKenyaLocation(query);
   const levelSpec = getAcademicLevelSpec(level);
 
+  const q = query.toLowerCase();
+
+  const isResearchQuery =
+    q.includes("factor") ||
+    q.includes("contribut") ||
+    q.includes("determinant") ||
+    q.includes("prevalen") ||
+    q.includes("wast") ||
+    q.includes("stunt") ||
+    q.includes("underweight") ||
+    q.includes("malnutrit") ||
+    q.includes("kdhs") ||
+    q.includes("breastfe") ||
+    q.includes("attendance") ||
+    q.includes("intake") ||
+    q.includes("maternal") ||
+    q.includes("hypertens") ||
+    q.includes("diabet");
+
+  const isExplicitProduct =
+    q.includes("flour") ||
+    q.includes("biscuit") ||
+    q.includes("dry") ||
+    q.includes("drier") ||
+    q.includes("recipe") ||
+    q.includes("process") ||
+    q.includes("bake") ||
+    q.includes("juice") ||
+    q.includes("yogurt") ||
+    q.includes("bread") ||
+    q.includes("snack") ||
+    q.includes("paste") ||
+    q.includes("rutf") ||
+    q.includes("rusf");
+
+  // If a student entered a pure public health/epidemiological research query without asking for a food product,
+  // route directly to the Secondary Research generator so they get precise KDHS and facility study proposals.
+  if (type === "trade_fabrication" && isResearchQuery && !isExplicitProduct) {
+    return generateSecondaryDataTopics(query, loc, level);
+  }
+
   // 1. Food Science / Trade Formulation
   if (type === "trade_fabrication") {
+    // Condition-tailored formulations
+    if (q.includes("wast") || q.includes("malnutrit") || q.includes("acute")) {
+      return {
+        problemAnalysis: `Formulating targeted therapeutic or supplementary foods under ${course} (${levelSpec.levelLabel} standard: ≥${levelSpec.targetPages} pages) provides practical clinical nutrition solutions for acute child wasting in ${loc}.`,
+        options: [
+          {
+            id: "tf-w1",
+            title: `Formulation and Sensory Evaluation of a Locally Sourced Ready-to-Use Supplementary Food (RUSF) Paste for Children with Wasting in ${loc}`,
+            problemSummary: `Commercial therapeutic foods for wasting are expensive and often imported, leaving vulnerable children in arid and resource-poor communities without accessible rehabilitation feeds.`,
+            generalObjective: `To formulate and evaluate the sensory acceptability of a nutrient-dense RUSF paste using locally available peanuts, roasted sorghum, and milk powder in ${loc}.`,
+            specificObjectives: [
+              `1. To roast, mill, and blend local peanuts, sorghum, and dry milk into a smooth lipid-rich paste.`,
+              `2. To prepare three experimental formulation ratios meeting WHO/UNICEF macronutrient guidelines for supplementary feeding.`,
+              `3. To evaluate sensory acceptability (taste, mouthfeel, aroma) with a trained testing panel.`,
+            ],
+            methodologyHint: `Kitchen batch formulation, hygiene standard trials, and a 9-point hedonic sensory evaluation panel analyzed using ${levelSpec.analysisMethods}.`,
+          },
+          {
+            id: "tf-w2",
+            title: `Development and Proximate Analysis of High-Energy Composite Porridge Flour for Management of Child Undernutrition in ${loc}`,
+            problemSummary: `Traditional cereal gruels provided to wasted children have high water content, low energy density, and inadequate protein to support rapid catch-up growth.`,
+            generalObjective: `To develop and evaluate the nutrient density of an energy-dense composite flour blend from locally accessible grains and legumes.`,
+            specificObjectives: [
+              `1. To process, pre-cook (roast), and mill selected grains to reduce dietary bulk and starch viscosity.`,
+              `2. To blend the composite flours in ratios designed to deliver at least 400 kcal per 100g.`,
+              `3. To evaluate sensory acceptability and cooked porridge consistency with a panel of mothers and care-givers.`,
+            ],
+            methodologyHint: `Grain germination or roasting trials, standardized viscosity testing, and sensory acceptance scoring analyzed using ${levelSpec.analysisMethods}.`,
+          },
+          {
+            id: "tf-w3",
+            title: `Processing and Quality Assessment of a Fortified Lipid-Based Nutrient Supplement (LNS) Prototype in ${loc}`,
+            problemSummary: `Infants recovering from wasting suffer frequent relapses due to inadequate home micronutrient fortification during convalescence.`,
+            generalObjective: `To prepare and test the physical stability and acceptability of a small-quantity lipid-based nutrient supplement prototype.`,
+            specificObjectives: [
+              `1. To blend vegetable oil, legume flours, and micronutrient premix into a homogeneous shelf-stable spread.`,
+              `2. To monitor oil separation and physical texture over a 4-week storage period at ambient temperature.`,
+              `3. To evaluate taste acceptability and ease of feeding with a sensory assessment panel.`,
+            ],
+            methodologyHint: `Pilot spread formulation, room temperature accelerated shelf stability observation, and acceptability testing analyzed using ${levelSpec.analysisMethods}.`,
+          },
+        ],
+        followUpQuestion: `Would you prefer to develop a Ready-to-Use Supplementary Food (RUSF) paste, high-energy composite porridge flour, or an LNS spread prototype?`,
+      };
+    }
+
+    if (q.includes("diabet") || q.includes("hypertens") || q.includes("glycem") || q.includes("sugar")) {
+      return {
+        problemAnalysis: `Developing low-glycemic, high-fiber functional foods under ${course} (${levelSpec.levelLabel} standard: ≥${levelSpec.targetPages} pages) supports community dietary management of non-communicable diseases.`,
+        options: [
+          {
+            id: "tf-d1",
+            title: `Formulation and Sensory Acceptability of Low-Glycemic Index Composite Flour from Sorghum, Millet, and Fenugreek for Diabetic Management in ${loc}`,
+            problemSummary: `Diabetic patients frequently struggle to find staple flour alternatives that prevent rapid postprandial blood glucose spikes.`,
+            generalObjective: `To formulate and test a palatable low-glycemic flour blend using high-fiber indigenous grains.`,
+            specificObjectives: [
+              `1. To clean and mill whole sorghum, finger millet, and fenugreek seeds into uniform flour blends.`,
+              `2. To prepare composite ugali or porridge samples across three formulation ratios.`,
+              `3. To assess consumer sensory acceptability and texture preferences among an evaluation panel.`,
+            ],
+            methodologyHint: `Milling and blending trials, sensory evaluation panel, and estimated glycemic response analysis using ${levelSpec.analysisMethods}.`,
+          },
+          {
+            id: "tf-d2",
+            title: `Development and Quality Assessment of High-Fiber Snack Crackers Incorporating Legume Flours for Diabetic Diets in ${loc}`,
+            problemSummary: `Commercial snack foods are high in refined wheat flour and added sugars, lacking healthy options for individuals managing diabetes.`,
+            generalObjective: `To formulate and bake a high-dietary-fiber snack cracker incorporating pigeon pea or chickpea flour.`,
+            specificObjectives: [
+              `1. To prepare cracker dough using varying proportions of composite pulse and whole cereal flours.`,
+              `2. To bake test batches under standardized oven temperature and timing.`,
+              `3. To evaluate crispness, sensory acceptability, and packaging moisture resistance.`,
+            ],
+            methodologyHint: `Baking trials, moisture-barrier packaging testing, and sensory acceptance scoring analyzed using ${levelSpec.analysisMethods}.`,
+          },
+          {
+            id: "tf-d3",
+            title: `Processing and Physicochemical Evaluation of Herbal Dietary Tea Infusions for Blood Pressure Support in ${loc}`,
+            problemSummary: `Local communities lack standardized, hygienically packaged herbal tea blends formulated to support cardiovascular health.`,
+            generalObjective: `To process and assess the acceptability of a dried herbal infusion blend combining hibiscus and indigenous herbs.`,
+            specificObjectives: [
+              `1. To wash, solar dry, and mill herbal ingredients into tea-bag grade granules.`,
+              `2. To blend experimental infusions and evaluate liquor color, aroma, and taste acceptability.`,
+              `3. To assess moisture content and packaging shelf stability under ambient conditions.`,
+            ],
+            methodologyHint: `Drying experiment, sensory infusion panel, and moisture content recording analyzed using ${levelSpec.analysisMethods}.`,
+          },
+        ],
+        followUpQuestion: `Do you prefer to formulate composite flour for ugali, high-fiber baked crackers, or herbal infusion teas?`,
+      };
+    }
+
     const { ingA, ingB } = detectFoodIngredients(query);
 
     return {
@@ -632,7 +764,7 @@ function generateDeterministicTopics(
       options: [
         {
           id: "tf-1",
-          title: `Formulation and Sensory Acceptability of Composite Porridge Flour from ${ingA} and ${ingB}`,
+          title: `Formulation and Sensory Acceptability of Composite Porridge Flour from ${ingA} and ${ingB} in ${loc}`,
           problemSummary: `Single-cereal porridges lack adequate protein and essential micronutrients, leading to poor growth and nutrient deficiencies among young children.`,
           generalObjective: `To formulate and evaluate the sensory acceptability of a nutrient-dense composite porridge flour from ${ingA} and ${ingB}.`,
           specificObjectives: [
@@ -644,7 +776,7 @@ function generateDeterministicTopics(
         },
         {
           id: "tf-2",
-          title: `Development and Quality Assessment of Nutrient-Enriched Biscuits Incorporating ${ingA}`,
+          title: `Development and Quality Assessment of Nutrient-Enriched Biscuits Incorporating ${ingA} in ${loc}`,
           problemSummary: `Commercial snacks consumed by school children are high in refined sugars and low in dietary fiber and essential vitamins.`,
           generalObjective: `To formulate and assess the sensory quality of baked biscuits enriched with ${ingA} flour.`,
           specificObjectives: [
@@ -656,7 +788,7 @@ function generateDeterministicTopics(
         },
         {
           id: "tf-3",
-          title: `Processing and Quality Evaluation of Solar-Dried ${ingA} Slices using a Simple Dryer`,
+          title: `Processing and Quality Evaluation of Solar-Dried ${ingA} Slices using a Simple Dryer in ${loc}`,
           problemSummary: `Seasonal overproduction of perishable produce leads to heavy post-harvest rotting and economic losses for rural smallholder farmers.`,
           generalObjective: `To evaluate the quality and drying duration of ${ingA} slices dried using a simple solar cabinet dryer.`,
           specificObjectives: [

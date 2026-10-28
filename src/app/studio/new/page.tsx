@@ -65,7 +65,6 @@ export default async function NewWorkspacePage() {
                 type="radio"
                 name="workspaceType"
                 value="trade_fabrication"
-                defaultChecked
                 className="absolute top-4 right-4 text-indigo-600 focus:ring-indigo-600"
               />
               <div className="flex items-center gap-2 mb-1.5 text-indigo-600">
@@ -84,6 +83,7 @@ export default async function NewWorkspacePage() {
                 type="radio"
                 name="workspaceType"
                 value="research_secondary"
+                defaultChecked
                 className="absolute top-4 right-4 text-indigo-600 focus:ring-indigo-600"
               />
               <div className="flex items-center gap-2 mb-1.5 text-emerald-600">

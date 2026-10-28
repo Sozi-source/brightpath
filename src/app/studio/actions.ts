@@ -187,6 +187,58 @@ export async function updateWorkspaceTopic(formData: FormData) {
   redirect(`/studio/${workspaceId}`);
 }
 
+export async function updateWorkspaceTrackAction(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const db = getServerDbClient(supabase);
+  const workspaceId = formData.get("workspaceId")?.toString();
+  const newType = formData.get("workspaceType")?.toString() as WorkspaceType;
+
+  if (!workspaceId || !newType) throw new Error("Missing workspace ID or track type.");
+
+  const { data: ws } = await db
+    .from("project_workspaces")
+    .select("id, student_id, level, status")
+    .eq("id", workspaceId)
+    .single();
+
+  if (!ws || ws.student_id !== user.id) throw new Error("Unauthorized.");
+
+  // Update track
+  const { error: wsErr } = await db
+    .from("project_workspaces")
+    .update({ workspace_type: newType })
+    .eq("id", workspaceId);
+
+  if (wsErr) throw new Error(wsErr.message);
+
+  // If in ideation/proposal_pending, update workspace sections to the new track's template
+  if (ws.status === "ideation" || ws.status === "proposal_pending") {
+    await db.from("workspace_sections").delete().eq("workspace_id", workspaceId);
+
+    const sectionDefs = getWorkspaceSections(newType, ws.level);
+    const sectionsPayload = sectionDefs.map((def, idx) => ({
+      workspace_id: workspaceId,
+      section_key: def.key,
+      phase: def.phase,
+      position: idx + 1,
+      current_text: getSectionStarterContent(newType, ws.level, def.key),
+      status: "empty" as const,
+    }));
+
+    await db.from("workspace_sections").insert(sectionsPayload);
+  }
+
+  revalidatePath(`/studio/${workspaceId}`);
+  revalidatePath(`/studio/${workspaceId}/problem`);
+  revalidatePath("/studio");
+}
+
 export async function submitProposalForApproval(formData: FormData) {
   const supabase = await createClient();
   const {

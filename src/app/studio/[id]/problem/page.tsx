@@ -3,7 +3,11 @@ import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
-import { updateWorkspaceTopic, aiNarrowTopicAction } from "@/app/studio/actions";
+import {
+  updateWorkspaceTopic,
+  updateWorkspaceTrackAction,
+  aiNarrowTopicAction,
+} from "@/app/studio/actions";
 import { TopicCoach } from "./TopicCoach";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
@@ -87,17 +91,16 @@ export default async function ProblemFinderPage({ params }: ProblemFinderPagePro
       activeContextTitle={`Topic: ${workspace.title || "Formulation"}`}
     >
       <PageHeaderCard
-        title="Topic Discovery & Formulation"
-        subtitle="Narrow down research ideas into approved examination proposals"
+        title="Project Topic"
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Project Studio", href: "/studio" },
           { label: workspace.title || "Overview", href: `/studio/${workspaceId}` },
-          { label: "Topic Formulation", active: true },
+          { label: "Topic", active: true },
         ]}
         metadata={[
           { label: "Course", value: workspace.course },
-          { label: "Track", value: `${workspace.level.toUpperCase()} • ${typeLabel}` },
+          { label: "Track", value: `${workspace.level === "craft" ? "Certificate" : "Diploma"} • ${typeLabel}` },
         ]}
         actions={
           <Link
@@ -118,6 +121,7 @@ export default async function ProblemFinderPage({ params }: ProblemFinderPagePro
         course={workspace.course}
         topics={topics}
         saveAction={updateWorkspaceTopic}
+        switchTrackAction={updateWorkspaceTrackAction}
         aiNarrowAction={aiNarrowTopicAction}
       />
     </AppShell>
