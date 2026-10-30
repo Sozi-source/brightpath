@@ -55,12 +55,6 @@ export function AppShell({
     { label: "Digital Library", href: "/library", icon: Library },
   ];
 
-  const academicTracks = [
-    { label: "Diploma Projects (1B)", href: "/studio", level: "diploma" },
-    { label: "Craft Certificate (1A)", href: "/studio", level: "craft" },
-    { label: "Business Plan (Entrepreneurship)", href: "/studio", level: "business" },
-  ];
-
   return (
     <div className="min-h-screen bg-[#f4f7fb] text-slate-800 flex flex-col font-sans">
       {/* 1. Global Institutional Top Bar (KEC White Bar with App Launcher) */}
@@ -115,7 +109,7 @@ export function AppShell({
                     </div>
                     <span className="text-xs font-bold text-slate-800">Marketplace</span>
                   </Link>
-                  <Link
+                  {isRoleTrainer && <Link
                     href="/trainer"
                     className="p-2.5 rounded-lg hover:bg-indigo-50 border border-transparent hover:border-indigo-100 flex flex-col items-center text-center gap-1.5 transition-colors"
                   >
@@ -123,8 +117,8 @@ export function AppShell({
                       <Briefcase className="h-4 w-4" />
                     </div>
                     <span className="text-xs font-bold text-slate-800">Trainer Publisher</span>
-                  </Link>
-                  <Link
+                  </Link>}
+                  {isRoleSupervisor && <Link
                     href="/supervisor"
                     className="p-2.5 rounded-lg hover:bg-amber-50 border border-transparent hover:border-amber-100 flex flex-col items-center text-center gap-1.5 transition-colors"
                   >
@@ -132,7 +126,7 @@ export function AppShell({
                       <ShieldCheck className="h-4 w-4" />
                     </div>
                     <span className="text-xs font-bold text-slate-800">Supervisor</span>
-                  </Link>
+                  </Link>}
                 </div>
               </div>
             )}
@@ -221,7 +215,7 @@ export function AppShell({
                 Main Portal
               </div>
               {navItems.map((item) => {
-                const isActive = pathname === item.href;
+                const isActive = item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`);
                 const Icon = item.icon;
                 return (
                   <Link
@@ -240,24 +234,6 @@ export function AppShell({
                   </Link>
                 );
               })}
-            </div>
-
-            {/* Academic Level Groups */}
-            <div className="space-y-1 px-3 border-t border-slate-100 pt-4">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-3 pb-1">
-                KNEC Academic Levels
-              </div>
-              {academicTracks.map((track) => (
-                <Link
-                  key={track.label}
-                  href={track.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className="flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
-                >
-                  <span className="truncate">{track.label}</span>
-                  <ChevronRight className="h-3.5 w-3.5 text-slate-300 shrink-0" />
-                </Link>
-              ))}
             </div>
 
             {/* Faculty / Supervisor / Governance Portals */}

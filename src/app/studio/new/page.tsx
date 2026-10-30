@@ -37,11 +37,10 @@ export default async function NewWorkspacePage() {
     <AppShell
       user={user}
       profile={profile}
-      activeContextTitle="New Workspace"
+      activeContextTitle="New Project"
     >
       <PageHeaderCard
-        title="New Workspace"
-        subtitle="Configure curriculum track and qualification level"
+        title="New Project"
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Project Studio", href: "/studio" },
@@ -65,6 +64,7 @@ export default async function NewWorkspacePage() {
                 type="radio"
                 name="workspaceType"
                 value="trade_fabrication"
+                required
                 className="absolute top-4 right-4 text-indigo-600 focus:ring-indigo-600"
               />
               <div className="flex items-center gap-2 mb-1.5 text-indigo-600">
@@ -83,7 +83,7 @@ export default async function NewWorkspacePage() {
                 type="radio"
                 name="workspaceType"
                 value="research_secondary"
-                defaultChecked
+                required
                 className="absolute top-4 right-4 text-indigo-600 focus:ring-indigo-600"
               />
               <div className="flex items-center gap-2 mb-1.5 text-emerald-600">
@@ -102,6 +102,7 @@ export default async function NewWorkspacePage() {
                 type="radio"
                 name="workspaceType"
                 value="business_plan"
+                required
                 className="absolute top-4 right-4 text-indigo-600 focus:ring-indigo-600"
               />
               <div className="flex items-center gap-2 mb-1.5 text-amber-600">
@@ -210,7 +211,7 @@ export default async function NewWorkspacePage() {
             type="submit"
             className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-xs sm:text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer"
           >
-            <span>Create Workspace</span>
+            <span>Create Project</span>
           </button>
         </div>
       </form>

@@ -4,8 +4,6 @@ import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
 import { getWorkspaceSections, type SectionDefinition } from "@/lib/studio/templates";
-import { getRubricForWorkspace } from "@/lib/studio/rubrics";
-import { resolveNotebookLmUrl } from "@/lib/studio/notebookLmHelper";
 import {
   submitProposalForApproval,
   submitChaptersForReview,
@@ -19,16 +17,10 @@ import {
   CheckCircle2,
   Clock,
   Lock,
-  Unlock,
   Send,
   ShieldAlert,
   ChevronRight,
-  Award,
   Lightbulb,
-  BookOpen,
-  ExternalLink,
-  FileText,
-  Sparkles,
 } from "lucide-react";
 import type { ProjectWorkspace, WorkspaceSection, SupervisorReview } from "@/types/database";
 import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
@@ -121,7 +113,6 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
 
   // Template definitions & KNEC Rubric
   const templateDefs = getWorkspaceSections(workspace.workspace_type, workspace.level);
-  const rubric = getRubricForWorkspace(workspace.workspace_type, workspace.level);
 
   const sectionsMap = new Map(sections.map((s) => [s.section_key, s]));
 
@@ -150,14 +141,13 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
     const s = sectionsMap.get(def.key);
     return s && s.current_text && s.current_text.trim().length >= 20;
   });
+  const firstIncompleteChapterKey = chapterGroups.find((group) =>
+    group.defs.some((def) => {
+      const text = sectionsMap.get(def.key)?.current_text || "";
+      return text.trim().split(/\s+/).filter(Boolean).length < (def.minWords || 30);
+    })
+  )?.chapterKey;
 
-  const { data: settingsData } = await db
-    .from("platform_settings")
-    .select("notebook_research_url, notebook_fabrication_url, notebook_business_url")
-    .eq("id", 1)
-    .maybeSingle();
-
-  const { url: notebookUrl } = resolveNotebookLmUrl(workspace.workspace_type, settingsData);
   const levelLabel = workspace.level === "craft" ? "Certificate" : "Diploma";
 
   return (
@@ -168,7 +158,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
     >
       {/* 1. Header Card */}
       <PageHeaderCard
-        title={workspace.title || "Project Workspace"}
+        title={isBusiness ? "Business Plan" : "Project Workspace"}
         subtitle={`${workspace.course} • ${levelLabel} Level`}
         breadcrumbs={[
           { label: "Home", href: "/" },
@@ -179,18 +169,6 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
           { label: "Candidate", value: workspace.student?.full_name || "Student" },
           { label: "Admission No", value: workspace.student?.admission_number || "Unset" },
           { label: "Qualification", value: levelLabel },
-          {
-            label: "Status",
-            value: isSubmitted
-              ? "Chapters Submitted"
-              : isApproved
-              ? "Topic Approved"
-              : isPending
-              ? "Pending Topic Approval"
-              : hasChangesRequested
-              ? "Revisions Requested"
-              : "Topic Formulation",
-          },
         ]}
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -213,74 +191,9 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                 redirectAfter
               />
             )}
-            <a
-              href={notebookUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-xs transition-colors"
-            >
-              <BookOpen className="h-4 w-4 text-indigo-600" />
-              <span>NotebookLM Library</span>
-              <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
-            </a>
-            <Link
-              href={`/studio/${workspaceId}/problem`}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white hover:bg-slate-50 text-indigo-700 border border-slate-300 shadow-xs transition-colors"
-            >
-              <Lightbulb className="h-4 w-4 text-amber-500" />
-              <span>Topic Formulation</span>
-            </Link>
           </div>
         }
       />
-
-      {/* 2. 4-Stage Stepper Progression Bar */}
-      <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
-          <div className="p-2.5 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 font-semibold flex items-center justify-center gap-1.5">
-            <CheckCircle2 className="h-4 w-4 text-indigo-600" />
-            <span>1. Topic Selection</span>
-          </div>
-          <div
-            className={`p-2.5 rounded-lg border font-semibold flex items-center justify-center gap-1.5 ${
-              isApproved || isPending
-                ? "border-indigo-200 bg-indigo-50 text-indigo-700"
-                : "border-slate-200 text-slate-500 bg-slate-50/50"
-            }`}
-          >
-            {isApproved ? (
-              <CheckCircle2 className="h-4 w-4 text-indigo-600" />
-            ) : (
-              <Clock className="h-4 w-4" />
-            )}
-            <span>2. Topic Approval</span>
-          </div>
-          <div
-            className={`p-2.5 rounded-lg border font-semibold flex items-center justify-center gap-1.5 ${
-              isApproved
-                ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                : "border-slate-200 text-slate-500 bg-slate-50/50"
-            }`}
-          >
-            {isApproved ? (
-              <Unlock className="h-4 w-4 text-emerald-600" />
-            ) : (
-              <Lock className="h-4 w-4" />
-            )}
-            <span>3. Chapter Writing</span>
-          </div>
-          <div
-            className={`p-2.5 rounded-lg border font-semibold flex items-center justify-center gap-1.5 ${
-              isSubmitted
-                ? "border-indigo-200 bg-indigo-50 text-indigo-700"
-                : "border-slate-200 text-slate-500 bg-slate-50/50"
-            }`}
-          >
-            <Award className="h-4 w-4" />
-            <span>4. Supervisor Review</span>
-          </div>
-        </div>
-      </div>
 
       {/* Changes Requested Notification Banner */}
       {hasChangesRequested && latestReview && (
@@ -295,18 +208,10 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
         </div>
       )}
 
-      {/* Main Grid: Left 2 Cols (Workflows), Right 1 Col (Scorecard & Supervisor) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column (2 Cols) */}
-        <div className="lg:col-span-2 space-y-6">
+      <div className="space-y-4">
           {/* Stage 1: Project Topic & Approval / Business Plan Concept */}
           <ContentCard
-            title={isBusiness ? "Stage 1: Business Plan Concept" : "Stage 1: Project Topic"}
-            subtitle={
-              isBusiness
-                ? "Submit your business plan concept for supervisor approval to unlock Chapter 1"
-                : "Submit your topic for supervisor approval to unlock Chapter 1"
-            }
+            title={isBusiness ? "Project setup" : "Project topic"}
             icon={Lightbulb}
             headerRight={
               isApproved ? (
@@ -380,13 +285,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
 
           {/* Stage 2: KNEC Chapters (Starting at Chapter 1) */}
           <ContentCard
-            title={isBusiness ? "Stage 2: Business Plan Chapters" : "Stage 2: Project Chapters"}
-            subtitle={
-              isBusiness
-                ? "Guided drafting starting with Chapter 1 (Business Description) once approved"
-                : "Guided writing starting with Chapter 1 once your topic is approved"
-            }
-            icon={Award}
+            title="Write your project"
             headerRight={
               !isApproved ? (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-600">
@@ -414,17 +313,10 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
             }
           >
             {!isApproved ? (
-              <div className="p-6 rounded-lg bg-slate-50 border border-slate-200 text-center space-y-1.5">
-                <Lock className="h-6 w-6 mx-auto text-slate-400 mb-1" />
-                <h4 className="text-xs font-semibold text-slate-800">
-                  {isBusiness
-                    ? "Chapters Locked Until Business Plan Approval"
-                    : "Chapters Locked Until Topic Approval"}
-                </h4>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  {isBusiness
-                    ? "Submit your Business Plan Concept in Stage 1. Once your supervisor approves your concept, Chapter 1 unlocks immediately."
-                    : "Submit your Project Topic in Stage 1. Once your supervisor approves your topic, Chapter 1 unlocks immediately."}
+            <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <Lock className="h-4 w-4 shrink-0 text-slate-500" />
+                <p className="text-xs text-slate-700">
+                  Chapters unlock after your {isBusiness ? "plan concept" : "topic"} is approved.
                 </p>
               </div>
             ) : (
@@ -439,18 +331,18 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                   }).length;
 
                   return (
-                    <div
+                    <details
                       key={group.chapterKey}
-                      className="rounded-xl border border-slate-200 overflow-hidden bg-slate-50/40"
+                      open={group.chapterKey === firstIncompleteChapterKey}
+                      className="group rounded-lg border border-slate-200 bg-white"
                     >
-                      <div className="px-4 py-2.5 bg-slate-100/80 border-b border-slate-200 flex items-center justify-between gap-2">
-                        <span className="text-xs font-semibold text-slate-900">
-                          {group.chapterTitle}
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
+                        <span className="text-xs font-semibold text-slate-900">{group.chapterTitle}</span>
+                        <span className="flex items-center gap-2 text-[11px] text-slate-600">
+                          {completedCount}/{group.defs.length} done
+                          <ChevronRight className="h-3.5 w-3.5 transition-transform group-open:rotate-90" />
                         </span>
-                        <span className="text-[11px] font-mono text-slate-600">
-                          {completedCount}/{group.defs.length} completed
-                        </span>
-                      </div>
+                      </summary>
 
                       <div className="divide-y divide-slate-200/70 bg-white">
                         {group.defs.map((def) => {
@@ -481,9 +373,6 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                                     </span>
                                   )}
                                 </div>
-                                <p className="text-[11px] text-slate-500 truncate max-w-md pl-5">
-                                  {s?.current_text ? s.current_text : def.guidance}
-                                </p>
                               </div>
 
                               <div className="flex items-center gap-3 shrink-0">
@@ -502,94 +391,14 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                           );
                         })}
                       </div>
-                    </div>
+                    </details>
                   );
                 })}
               </div>
             )}
           </ContentCard>
 
-          {/* Continuous Document Preview for Student */}
-          {isApproved && hasDraftedChapterContent && (
-            <ContentCard
-              title="Continuous Document Preview"
-              subtitle="Compiled view of your drafted chapters as seen by your supervisor"
-              icon={FileText}
-            >
-              <div className="rounded-xl border border-slate-200 bg-white p-6 sm:p-8 space-y-6 shadow-2xs">
-                <div className="text-center border-b border-slate-200 pb-5 space-y-1">
-                  <p className="text-[11px] font-mono uppercase tracking-widest text-slate-500">
-                    {workspace.institution?.name || "Kenya National Examinations Council (KNEC)"}
-                  </p>
-                  <h2 className="text-base sm:text-lg font-semibold text-slate-900 uppercase tracking-tight">
-                    {workspace.title}
-                  </h2>
-                  <p className="text-xs text-slate-600">
-                    {workspace.student?.full_name} • {workspace.course} ({levelLabel})
-                  </p>
-                </div>
 
-                {chapterGroups.map((group) => {
-                  const draftedDefs = group.defs.filter((d) => {
-                    const s = sectionsMap.get(d.key);
-                    return s && s.current_text && s.current_text.trim().length > 0;
-                  });
-
-                  if (draftedDefs.length === 0) return null;
-
-                  return (
-                    <div key={group.chapterKey} className="space-y-4 pt-2">
-                      <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide border-b border-slate-200 pb-1.5">
-                        {group.chapterTitle}
-                      </h3>
-                      <div className="space-y-4">
-                        {draftedDefs.map((def) => {
-                          const s = sectionsMap.get(def.key);
-                          return (
-                            <div key={def.key} className="space-y-1.5">
-                              <h4 className="text-xs font-semibold text-slate-800">
-                                {def.title}
-                              </h4>
-                              <div className="text-xs sm:text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
-                                {s?.current_text}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </ContentCard>
-          )}
-        </div>
-
-        {/* Right Column (1 Col): Scorecard */}
-        <div className="space-y-6">
-          {/* KNEC Scorecard Card */}
-          <ContentCard
-            title="KNEC Scorecard"
-            subtitle={`${rubric.scorecardName} (100 Marks)`}
-            icon={Award}
-          >
-            <div className="space-y-2">
-              {rubric.breakdown.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between text-xs py-2 border-b border-slate-100 last:border-0"
-                >
-                  <span className="text-slate-800 font-medium">
-                    {item.category}
-                  </span>
-                  <span className="font-mono font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
-                    {item.marks}m
-                  </span>
-                </div>
-              ))}
-            </div>
-          </ContentCard>
-        </div>
       </div>
     </AppShell>
   );

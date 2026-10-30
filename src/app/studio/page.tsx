@@ -5,18 +5,12 @@ import { getServerDbClient } from "@/lib/supabase/admin";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
-import { StatCard } from "@/components/ui/StatCard";
 import { DeleteDraftButton } from "./DeleteDraftButton";
 import {
   Plus,
   ArrowRight,
-  Layers,
-  Hammer,
-  LineChart,
-  Briefcase,
-  CheckCircle,
-  FileText,
-  FolderKanban,
+  Clock3,
+  CheckCircle2,
 } from "lucide-react";
 import type { ProjectWorkspace } from "@/types/database";
 
@@ -67,18 +61,6 @@ export default async function StudioDashboardPage() {
 
   const workspaces: ProjectWorkspace[] = (workspacesData as unknown as ProjectWorkspace[]) || [];
 
-  const totalCompletedSections = workspaces.reduce((acc, ws) => {
-    return (
-      acc +
-      (ws.workspace_sections || []).filter(
-        (s) => s.current_text && s.current_text.trim().length > 30
-      ).length
-    );
-  }, 0);
-  const approvedCount = workspaces.filter(
-    (w) => w.status === "approved" || w.status === "submitted"
-  ).length;
-
   const rawInst = profile?.institutions as unknown;
   const institutionName =
     (Array.isArray(rawInst)
@@ -91,19 +73,15 @@ export default async function StudioDashboardPage() {
       profile={profile}
       activeContextTitle={profile?.course || "KNEC Project Studio"}
     >
-      {/* 1. Header Card */}
       <PageHeaderCard
         title="Project Studio"
-        subtitle="Project portfolio management"
+        subtitle="Continue your project work."
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Project Studio", active: true },
         ]}
         metadata={[
-          { label: "Candidate", value: profile?.full_name || user.email?.split("@")[0] || "Candidate" },
-          { label: "Admission No", value: profile?.admission_number || "Unset" },
           { label: "Institution", value: institutionName },
-          { label: "Active Projects", value: `${workspaces.length} Registered` },
         ]}
         actions={
           <Link
@@ -116,70 +94,30 @@ export default async function StudioDashboardPage() {
         }
       />
 
-      {/* KPI Metric Summary Strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard
-          label="Portfolios"
-          value={workspaces.length}
-          icon={FolderKanban}
-          color="indigo"
-          subtext="Active workspaces"
-        />
-        <StatCard
-          label="Approved Proposals"
-          value={approvedCount}
-          icon={CheckCircle}
-          color="emerald"
-          subtext="Cleared for drafting"
-        />
-        <StatCard
-          label="Drafted Chapters"
-          value={totalCompletedSections}
-          icon={FileText}
-          color="amber"
-          subtext="Sections completed"
-        />
-      </div>
-
-      {/* 2. Active Workspaces Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Layers className="h-5 w-5 text-indigo-600" />
-            <h2 className="text-base sm:text-lg font-semibold text-slate-900 tracking-tight">
-              Active Portfolios
-            </h2>
-          </div>
-          <span className="text-xs font-mono text-slate-500 font-semibold">
-            {workspaces.length} {workspaces.length === 1 ? "portfolio" : "portfolios"}
-          </span>
+          <h2 className="text-sm font-semibold text-slate-900 tracking-tight">Your projects</h2>
+          <span className="text-xs text-slate-500">{workspaces.length}</span>
         </div>
 
         {workspaces.length === 0 ? (
           <ContentCard>
-            <div className="text-center py-12 space-y-3 max-w-sm mx-auto">
-              <div className="h-12 w-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto">
-                <Layers className="h-6 w-6" />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900">No projects yet</h3>
+                <p className="text-xs text-slate-600">Create a workspace to get started.</p>
               </div>
-              <h3 className="text-base font-semibold text-slate-900">
-                No active projects
-              </h3>
-              <p className="text-xs text-slate-500 leading-normal">
-                Create a project workspace to begin drafting your proposal and chapters.
-              </p>
-              <div className="pt-2">
                 <Link
                   href="/studio/new"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs"
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white"
                 >
                   <Plus className="h-4 w-4" />
-                  <span>New Workspace</span>
+                  <span>New project</span>
                 </Link>
-              </div>
             </div>
           </ContentCard>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white shadow-xs">
             {workspaces.map((ws) => {
               const typeLabel =
                 ws.workspace_type === "trade_fabrication"
@@ -187,13 +125,6 @@ export default async function StudioDashboardPage() {
                   : ws.workspace_type === "research_secondary"
                   ? "Secondary Research"
                   : "Business Plan";
-
-              const TypeIcon =
-                ws.workspace_type === "trade_fabrication"
-                  ? Hammer
-                  : ws.workspace_type === "research_secondary"
-                  ? LineChart
-                  : Briefcase;
 
               const sections = ws.workspace_sections;
               const totalSections = sections?.length || 0;
@@ -207,82 +138,23 @@ export default async function StudioDashboardPage() {
               const isPending = ws.status === "proposal_pending";
 
               return (
-                <div
-                  key={ws.id}
-                  className="bg-white rounded-xl border border-slate-200 shadow-xs p-5 sm:p-6 flex flex-col justify-between space-y-5 hover:border-slate-300 transition-all"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono font-semibold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded">
-                          {ws.level === "craft" ? "Certificate" : "Diploma"}
-                        </span>
-                        <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
-                          <TypeIcon className="h-3.5 w-3.5 text-indigo-600" />
-                          <span>{typeLabel}</span>
-                        </span>
-                      </div>
-
-                      <span
-                        className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
-                          isApproved
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                            : isPending
-                            ? "bg-amber-50 text-amber-700 border-amber-200"
-                            : "bg-slate-100 text-slate-700 border-slate-200"
-                        }`}
-                      >
-                        {isApproved
-                          ? "Approved"
-                          : isPending
-                          ? "Pending Review"
-                          : "Drafting"}
+                <div key={ws.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0 space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="truncate text-sm font-semibold text-slate-900">{ws.title || "Untitled project"}</h3>
+                      <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium ${isApproved ? "border-emerald-200 bg-emerald-50 text-emerald-800" : isPending ? "border-amber-200 bg-amber-50 text-amber-800" : "border-slate-200 bg-slate-50 text-slate-700"}`}>
+                        {isApproved ? <CheckCircle2 className="h-3 w-3" /> : <Clock3 className="h-3 w-3" />}
+                        {isApproved ? "Approved" : isPending ? "Awaiting review" : "In progress"}
                       </span>
                     </div>
-
-                    <div className="space-y-1">
-                      <h3 className="text-base font-semibold text-slate-900 line-clamp-2 leading-snug">
-                        {ws.title || "Topic Formulation"}
-                      </h3>
-                      <p className="text-xs text-slate-500 line-clamp-1">
-                        Course: <span className="font-medium text-slate-800">{ws.course}</span>
-                      </p>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="space-y-1 pt-1">
-                      <div className="flex items-center justify-between text-xs text-slate-600">
-                        <span>Chapters Completed</span>
-                        <span className="font-mono font-semibold text-indigo-600">
-                          {completedSections} / {totalSections} ({progressPct}%)
-                        </span>
-                      </div>
-                      <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
-                        <div
-                          className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${progressPct}%` }}
-                        />
-                      </div>
-                    </div>
+                    <p className="truncate text-xs text-slate-600">{typeLabel} · {ws.course} · {ws.level === "craft" ? "Certificate" : "Diploma"}</p>
+                    <p className="text-[11px] text-slate-500">{completedSections} of {totalSections} sections drafted · {progressPct}%</p>
                   </div>
-
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <span className="text-[11px] text-slate-500">
-                      Updated {new Date(ws.updated_at).toLocaleDateString()}
-                    </span>
-
-                    <div className="flex items-center gap-2">
-                      {!isApproved && (
-                        <DeleteDraftButton workspaceId={ws.id} title={ws.title} />
-                      )}
-                      <Link
-                        href={`/studio/${ws.id}`}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
-                      >
-                        <span>Open Studio</span>
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </Link>
-                    </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {!isApproved && <DeleteDraftButton workspaceId={ws.id} title={ws.title} />}
+                    <Link href={`/studio/${ws.id}`} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700">
+                      <span>Continue</span><ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
                   </div>
                 </div>
               );

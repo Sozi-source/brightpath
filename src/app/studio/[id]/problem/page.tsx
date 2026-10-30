@@ -5,14 +5,13 @@ import { createClient } from "@/lib/supabase/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
 import {
   updateWorkspaceTopic,
-  updateWorkspaceTrackAction,
   aiNarrowTopicAction,
 } from "@/app/studio/actions";
 import { TopicCoach } from "./TopicCoach";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ChevronLeft } from "lucide-react";
-import type { TopicBankItem, UserProfile } from "@/types/database";
+import type { UserProfile } from "@/types/database";
 
 export const instant = false;
 
@@ -68,15 +67,6 @@ export default async function ProblemFinderPage({ params }: ProblemFinderPagePro
     redirect("/studio");
   }
 
-  // Fetch topics from topic_bank
-  const { data: topicsData } = await db
-    .from("topic_bank")
-    .select("id, area, title, workspace_type, suggested_indicators, suggested_sources, course_tags, active")
-    .eq("active", true)
-    .order("area", { ascending: true });
-
-  const topics: TopicBankItem[] = topicsData || [];
-
   const typeLabel =
     workspace.workspace_type === "trade_fabrication"
       ? "Food Science Formulation"
@@ -129,10 +119,7 @@ export default async function ProblemFinderPage({ params }: ProblemFinderPagePro
         initialTitle={workspace.title || ""}
         initialProblemArea={workspace.problem_area || ""}
         workspaceType={workspace.workspace_type}
-        course={workspace.course}
-        topics={topics}
         saveAction={updateWorkspaceTopic}
-        switchTrackAction={updateWorkspaceTrackAction}
         aiNarrowAction={aiNarrowTopicAction}
       />
     </AppShell>
