@@ -14,6 +14,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
 import { DeleteDraftButton } from "../DeleteDraftButton";
+import { BusinessPlanBuilderModal } from "./BusinessPlanBuilderModal";
 import {
   CheckCircle2,
   Clock,
@@ -27,8 +28,10 @@ import {
   BookOpen,
   ExternalLink,
   FileText,
+  Sparkles,
 } from "lucide-react";
 import type { ProjectWorkspace, WorkspaceSection, SupervisorReview } from "@/types/database";
+import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
 
 export const instant = false;
 
@@ -71,6 +74,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
       course,
       title,
       problem_area,
+      business_plan_specs,
       status,
       approved_at,
       submitted_at,
@@ -134,6 +138,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
     group.defs.push(def);
   }
 
+  const isBusiness = workspace.workspace_type === "business_plan";
   const isTopicReady = Boolean(workspace.title && workspace.title.trim().length >= 5);
   const isApproved = workspace.status === "approved" || workspace.status === "submitted";
   const isSubmitted = workspace.status === "submitted";
@@ -189,6 +194,18 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
         ]}
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            {isBusiness && workspace.student_id === user.id && (
+              <BusinessPlanBuilderModal
+                workspaceId={workspaceId}
+                defaultCandidateName={workspace.student?.full_name || ""}
+                defaultAdmissionNumber={workspace.student?.admission_number || ""}
+                defaultInstitutionName={workspace.institution?.name || ""}
+                defaultSupervisorName={workspace.supervisor?.full_name || ""}
+                defaultCourse={workspace.course}
+                defaultLevel={workspace.level}
+                initialSpecs={workspace.business_plan_specs as Partial<BusinessPlanSpecs> | undefined}
+              />
+            )}
             {!isApproved && workspace.student_id === user.id && (
               <DeleteDraftButton
                 workspaceId={workspaceId}
@@ -282,21 +299,25 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column (2 Cols) */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Stage 1: Project Topic & Approval */}
+          {/* Stage 1: Project Topic & Approval / Business Plan Concept */}
           <ContentCard
-            title="Stage 1: Project Topic"
-            subtitle="Submit your topic for supervisor approval to unlock Chapter 1"
+            title={isBusiness ? "Stage 1: Business Plan Concept" : "Stage 1: Project Topic"}
+            subtitle={
+              isBusiness
+                ? "Submit your business plan concept for supervisor approval to unlock Chapter 1"
+                : "Submit your topic for supervisor approval to unlock Chapter 1"
+            }
             icon={Lightbulb}
             headerRight={
               isApproved ? (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                  <span>Topic Approved</span>
+                  <span>{isBusiness ? "Plan Approved" : "Topic Approved"}</span>
                 </span>
               ) : isPending ? (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
                   <Clock className="h-3.5 w-3.5 text-amber-600" />
-                  <span>Pending Topic Approval</span>
+                  <span>{isBusiness ? "Pending Plan Approval" : "Pending Topic Approval"}</span>
                 </span>
               ) : (
                 <form action={submitProposalForApproval}>
@@ -307,7 +328,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                     className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Send className="h-3.5 w-3.5" />
-                    <span>Submit Topic for Approval</span>
+                    <span>{isBusiness ? "Submit Plan for Approval" : "Submit Topic for Approval"}</span>
                   </button>
                 </form>
               )
@@ -317,10 +338,13 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div className="space-y-1 min-w-0">
                   <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-indigo-700">
-                    Official Project Title
+                    {isBusiness ? "Approved Business Plan Title" : "Official Project Title"}
                   </span>
                   <h4 className="text-sm font-semibold text-slate-900 leading-snug">
-                    {workspace.title || "No project topic formulated yet."}
+                    {workspace.title ||
+                      (isBusiness
+                        ? "No business plan concept formulated yet."
+                        : "No project topic formulated yet.")}
                   </h4>
                 </div>
 
@@ -328,7 +352,15 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                   href={`/studio/${workspaceId}/problem`}
                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 shadow-xs transition-colors shrink-0 self-start"
                 >
-                  <span>{workspace.title ? "Edit Topic" : "Formulate Topic"}</span>
+                  <span>
+                    {workspace.title
+                      ? isBusiness
+                        ? "Edit Plan Concept"
+                        : "Edit Topic"
+                      : isBusiness
+                      ? "Formulate Concept"
+                      : "Formulate Topic"}
+                  </span>
                   <ChevronRight className="h-3 w-3 text-slate-400" />
                 </Link>
               </div>
@@ -336,7 +368,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
               {workspace.problem_area && (
                 <div className="pt-2 border-t border-slate-200/80 space-y-1">
                   <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-500">
-                    Problem Focus &amp; Initial Objectives
+                    {isBusiness ? "Business Concept & Enterprise Profile" : "Problem Focus & Initial Objectives"}
                   </span>
                   <p className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">
                     {workspace.problem_area}
@@ -348,8 +380,12 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
 
           {/* Stage 2: KNEC Chapters (Starting at Chapter 1) */}
           <ContentCard
-            title="Stage 2: Project Chapters"
-            subtitle="Guided writing starting with Chapter 1 once your topic is approved"
+            title={isBusiness ? "Stage 2: Business Plan Chapters" : "Stage 2: Project Chapters"}
+            subtitle={
+              isBusiness
+                ? "Guided drafting starting with Chapter 1 (Business Description) once approved"
+                : "Guided writing starting with Chapter 1 once your topic is approved"
+            }
             icon={Award}
             headerRight={
               !isApproved ? (
@@ -381,10 +417,14 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
               <div className="p-6 rounded-lg bg-slate-50 border border-slate-200 text-center space-y-1.5">
                 <Lock className="h-6 w-6 mx-auto text-slate-400 mb-1" />
                 <h4 className="text-xs font-semibold text-slate-800">
-                  Chapters Locked Until Topic Approval
+                  {isBusiness
+                    ? "Chapters Locked Until Business Plan Approval"
+                    : "Chapters Locked Until Topic Approval"}
                 </h4>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  Submit your Project Topic in Stage 1. Once your supervisor approves your topic, Chapter 1 unlocks immediately.
+                  {isBusiness
+                    ? "Submit your Business Plan Concept in Stage 1. Once your supervisor approves your concept, Chapter 1 unlocks immediately."
+                    : "Submit your Project Topic in Stage 1. Once your supervisor approves your topic, Chapter 1 unlocks immediately."}
                 </p>
               </div>
             ) : (

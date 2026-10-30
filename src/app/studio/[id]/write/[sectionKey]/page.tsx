@@ -3,7 +3,10 @@ import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
 import { getWorkspaceSections } from "@/lib/studio/templates";
-import { saveSectionText } from "@/app/studio/actions";
+import {
+  polishBusinessPlanSectionAction,
+  saveSectionText,
+} from "@/app/studio/actions";
 import { getSectionQuestionGuide, type WorkspaceContext } from "@/lib/studio/aiEngine";
 import {
   resolveNotebookLmUrl,
@@ -176,6 +179,11 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
         prevStep={prevStepDef ? { key: prevStepDef.key, title: prevStepDef.title } : null}
         nextStep={nextStepDef ? { key: nextStepDef.key, title: nextStepDef.title } : null}
         saveAction={saveSectionText}
+        polishAction={
+          workspace.workspace_type === "business_plan"
+            ? polishBusinessPlanSectionAction
+            : undefined
+        }
       />
     </AppShell>
   );

@@ -1,0 +1,420 @@
+﻿                KNEC ENTREPRENEURSHIP BUSINESS PLAN TEMPLATE  
+           Craft, Diploma and Higher Diploma.  
+                                              How to use this template  
+           Delete this page and all grey Guidance lines before printing.  
+           Replace every [bracketed placeholder] with your own work. Write all text yourself.  
+           The layout follows the KNEC Entrepreneurship Project Report Outline.  
+           Use your own survey, your own price quotes and your own numbers. A plan built on real evidence is easy to defend.  
+           Use the companion Excel financial model for Chapter Five.  
+       
+              Format required by KNEC  
+                A4 paper, Times New Roman, font size 12, 1.5 line spacing. This template is already set up that way.  
+                Bound and labelled. Two copies: one for the institution, one for you.  
+                Signed declarations by you and your supervisor.  
+                APA referencing.  
+              Marks  
+                Business idea: title and rationale 5, defence and approval 10.  
+                Plan: Synopsis 5, Chapter One 10, Two 10, Three 15, Four 15, Five 15.  
+                Business proposal: defence 10, final report submission 5.  
+              Do not  
+                Do not copy another business plan.  
+                Do not invent survey results or prices.  
+                Do not make figures in the text differ from the financial tables.  
+          
+               
+               
+              [BUSINESS PLAN TITLE IN CAPITAL LETTERS]  
+               
+            Presented by:  
+              [Candidate’s full name]  
+            Index Number: [index number]  
+            Institution: [name of institution]  
+            Supervisor: [supervisor’s name]  
+               
+            Submitted to the Kenya National Examinations Council in partial fulfilment of the requirements for the award of [name of certificate or diploma]  
+               
+            [Month and year of submission]  
+          
+               DECLARATION  
+              Candidate’s declaration  
+           I declare that this business plan is my original work and that I personally undertook it. It has not been presented to any other institution or examination body for any award.  
+           Name: ________________________________________  
+           Index number: ________________________________________  
+           Signature: ________________________________________  
+           Date: ________________________________________  
+              Supervisor’s declaration  
+           I confirm that the work reported in this business plan is the candidate’s original work and that the candidate received appropriate supervision.  
+           Name: ________________________________________  
+           Signature: ________________________________________  
+           Date: ________________________________________  
+                ACKNOWLEDGEMENTS  
+           [Thank those who helped. Keep it short.]  
+                LIST OF TABLES AND FIGURES  
+           [List each table and figure with its number, title and page.]  
+                TABLE OF CONTENTS  
+         TOC \h \o "1-3"   
+    
+                
+              Guidance: Right-click the table in Word and choose Update Field, then Update entire table, after you finish writing.  
+          
+               SYNOPSIS / EXECUTIVE SUMMARY  
+              Guidance: Write this last. One page. A reader should understand the whole plan from this page alone.  
+                What the business is and what it sells.  
+                Who the customers are and how big the market is.  
+                Who owns and runs it.  
+                How much money is needed, where it comes from and the expected profit.  
+                Why the business will succeed.  
+           [Write your executive summary here.]  
+                CHAPTER ONE: BUSINESS DESCRIPTION  
+              1.1 Business name and nature  
+              Guidance: Give the name, the type of business and the sector.  
+           [Write your text here.]  
+              1.2 Products or services  
+              Guidance: Describe what you will sell and what makes it useful to customers.  
+           [Write your text here.]  
+              1.3 Form of ownership  
+              Guidance: State whether sole proprietorship, partnership or company, and explain why it fits.  
+           [Write your text here.]  
+              1.4 Location  
+              Guidance: Say where the business will operate and why. Consider customers, suppliers, security and cost.  
+           [Write your text here.]  
+              1.5 Mission, vision and objectives  
+              Guidance: Write one sentence each for mission and vision. List measurable business objectives.  
+           [Write your text here.]  
+              1.6 Legal and licensing requirements  
+              Guidance: List the permits, licences, registrations and health or safety certificates required, and the authority for each. Check current requirements.  
+           [Write your text here.]  
+              1.7 SWOT analysis  
+              Guidance: List strengths, weaknesses, opportunities and threats, then say what you will do about each weakness and threat.  
+           [Write your text here.]  
+                CHAPTER TWO: MARKETING PLAN  
+              2.1 Market research  
+              Guidance: Describe how you gathered information (survey, interviews, observation), the sample size and the main findings. Put the questionnaire in the appendix.  
+           [Write your text here.]  
+              2.2 Target market  
+              Guidance: Describe your customers: who they are, where they are and how many.  
+           [Write your text here.]  
+              2.3 Competitor analysis  
+              Guidance: Visit competitors. Record real prices and observations.  
+                                               Competitor  
+                            Location  
+                            Price  
+                            Strengths  
+                            Weaknesses  
+                               
+                             
+                             
+                             
+                             
+                               
+                             
+                             
+                             
+                             
+                               
+                             
+                             
+                             
+                             
+                               
+                             
+                             
+                             
+                             
+       
+              2.4 Marketing mix  
+                Product  
+           [Features, quality, packaging, brand.]  
+                Price  
+           [Your price and how you decided it (costs, competitors, customers).]  
+                Place  
+           [How products reach customers.]  
+                Promotion  
+           [How customers will learn about you, with costs.]  
+              2.5 Sales forecast  
+              Guidance: Base the forecast on your market research. Explain your assumptions.  
+                                              Product  
+                            Year 1  
+                            Year 2  
+                            Year 3  
+                               
+                             
+                             
+                             
+                               
+                             
+                             
+                             
+                               
+                             
+                             
+                             
+                               
+                             
+                             
+                             
+                   CHAPTER THREE: ORGANIZATION AND MANAGEMENT PLAN  
+              3.1 Organisation structure  
+              Guidance: Insert an organisation chart showing positions and reporting lines.  
+           [Write your text here.]  
+              3.2 Staffing  
+              Guidance: List every position, number of staff, duties and qualifications.  
+                                              Position  
+                            Number  
+                            Duties  
+                            Qualifications  
+                               
+                             
+                             
+                             
+                               
+                             
+                             
+                             
+                               
+                             
+                             
+                             
+                               
+                             
+                             
+                             
+       
+              3.3 Management team  
+              Guidance: Describe who manages the business and their experience. Describe how decisions are made.  
+           [Write your text here.]  
+              3.4 Remuneration  
+              Guidance: State the pay for each position and how it is paid.  
+           [Write your text here.]  
+              3.5 Pre-operational requirements  
+              Guidance: List what must be done before opening: registration, premises, equipment, recruitment, stock.  
+           [Write your text here.]  
+              3.6 Professional support  
+              Guidance: List any accountant, lawyer, mentor or advisor you will use.  
+           [Write your text here.]  
+                CHAPTER FOUR: OPERATIONAL / PRODUCTION PLAN  
+              4.1 Workflow  
+              Guidance: Describe the process from raw materials to the customer. Add a flowchart.  
+           [Write your text here.]  
+              4.2 Premises and layout  
+              Guidance: Describe the space and include a simple layout drawing.  
+           [Write your text here.]  
+              4.3 Equipment and machinery  
+              Guidance: Use real price quotes. Keep the quotes in the appendix.  
+                                              Item  
+                            Number  
+                            Cost (KES)  
+                            Supplier and quote reference  
+                               
+                             
+                             
+                             
+                               
+                             
+                             
+                             
+                               
+                             
+                             
+                             
+                               
+                             
+                             
+                             
+                               
+                             
+                             
+                             
+       
+              4.4 Materials and suppliers  
+                                              Material  
+                            Quantity per month  
+                            Cost (KES)  
+                            Supplier  
+                               
+                             
+                             
+                             
+                               
+                             
+                             
+                             
+                               
+                             
+                             
+                             
+                               
+                             
+                             
+                             
+       
+              4.5 Quality control and safety  
+              Guidance: Describe the checks that keep your product safe and consistent.  
+           [Write your text here.]  
+              4.6 Operating schedule  
+              Guidance: State working days and hours, and how stock and waste are managed.  
+           [Write your text here.]  
+                CHAPTER FIVE: FINANCIAL PLAN  
+              Guidance: Use the companion Excel financial model. Copy results into the tables below. All figures must match the model and the text.  
+              5.1 Start-up costs and funding  
+              Guidance: List every start-up cost and the source of the money (own savings, loan, partners).  
+           [Write your text here.]  
+                                             Start-up item  
+                            Cost (KES)  
+                            Quote or receipt ref.  
+                               
+                             
+                             
+                               
+                             
+                             
+                               
+                             
+                             
+                               
+                             
+                             
+                               
+                             
+                             
+                               
+                             
+                             
+       
+              5.2 Assumptions  
+              Guidance: List every assumption behind the numbers: prices, volumes, growth, costs, loan terms, tax.  
+           [Write your text here.]  
+              5.3 Projected income statement (three years)  
+                                              Item (KES)  
+                            Year 1  
+                            Year 2  
+                            Year 3  
+                             Sales  
+                             
+                             
+                             
+                             Cost of goods sold  
+                             
+                             
+                             
+                             Gross profit  
+                             
+                             
+                             
+                             Operating expenses  
+                             
+                             
+                             
+                             Depreciation  
+                             
+                             
+                             
+                             Interest  
+                             
+                             
+                             
+                             Tax  
+                             
+                             
+                             
+                             Net profit  
+                             
+                             
+                             
+       
+              5.4 Projected cash flow (three years)  
+                                              Item (KES)  
+                            Year 1  
+                            Year 2  
+                            Year 3  
+                             Opening cash  
+                             
+                             
+                             
+                             Cash from operations  
+                             
+                             
+                             
+                             Loan repayment  
+                             
+                             
+                             
+                             Net cash change  
+                             
+                             
+                             
+                             Closing cash  
+                             
+                             
+                             
+                               
+                             
+                             
+                             
+       
+              5.5 Projected balance sheet (three years)  
+                                              Item (KES)  
+                            Year 1  
+                            Year 2  
+                            Year 3  
+                             Cash  
+                             
+                             
+                             
+                             Equipment (net)  
+                             
+                             
+                             
+                             Stock and other start-up assets  
+                             
+                             
+                             
+                             Total assets  
+                             
+                             
+                             
+                             Loan outstanding  
+                             
+                             
+                             
+                             Owner’s equity  
+                             
+                             
+                             
+                             Total liabilities and equity  
+                             
+                             
+                             
+                               
+                             
+                             
+                             
+       
+              5.6 Break-even analysis  
+              Guidance: Show fixed costs, contribution per unit, break-even units and break-even sales. Explain what the result means.  
+           [Write your text here.]  
+              5.7 Risks and how to reduce them  
+              Guidance: Name the main risks (sales lower than expected, price rises, delays) and what you will do about each.  
+           [Write your text here.]  
+                REFERENCES  
+              Guidance: Use APA style. List only sources you cited and have read.  
+           [Replace with your real references.]  
+                APPENDICES  
+                Appendix A: Project log (Annex 12), completed and signed.  
+                Appendix B: Questionnaire and survey summary.  
+                Appendix C: Price quotes and supplier lists.  
+                Appendix D: Copies of licences or registration requirements.  
+                Appendix E: Financial model printouts.  
+                Appendix F: Photographs, maps and drawings.  
+              Pre-submission checklist  
+                Business idea approved before work started.  
+                Project log complete and signed.  
+                Every chapter present and in the right order.  
+                All figures match across text and tables.  
+                Financial statements balance.  
+                A4, Times New Roman 12, 1.5 spacing, page numbers correct.  
+                Contents updated. References complete.  
+                Both declarations signed.  
+                Two copies bound and labelled.  
+                Grey guidance deleted.  
+         

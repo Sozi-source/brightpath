@@ -157,6 +157,7 @@ export interface ProjectWorkspace {
   course: string;
   title: string | null;
   problem_area: string | null;
+  business_plan_specs?: Record<string, unknown> | null;
   status: WorkspaceStatus;
   approved_at: string | null;
   submitted_at: string | null;

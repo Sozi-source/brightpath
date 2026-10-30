@@ -82,20 +82,49 @@ export function TopicCoach({
     });
   };
 
+  const isBusiness = workspaceType === "business_plan";
+
   const handleAdoptOption = (opt: TopicNarrowingOption) => {
     setSelectedOptionId(opt.id);
     setSelectedTitle(opt.title);
-    setSelectedProblem(
-      `Problem: ${opt.problemSummary}\n\nGeneral Objective: ${opt.generalObjective}\n\nSpecific Objectives:\n1. ${opt.specificObjectives[0] || ""}\n2. ${opt.specificObjectives[1] || ""}\n3. ${opt.specificObjectives[2] || ""}`
-    );
+    if (isBusiness) {
+      const concept = opt.businessConcept || opt.problemSummary;
+      const products = opt.productsServices || "Nutrient-dense food products and dietary consulting services.";
+      const market = opt.targetMarket || "Local households, clinic referrals, and neighborhood retailers.";
+      const capital = opt.startupCapital || "KES 250,000 - 350,000";
+      const goals =
+        opt.commercialGoals && opt.commercialGoals.length > 0
+          ? opt.commercialGoals
+              .map((g, i) => `${i + 1}. ${g.replace(/^\d+\.\s*/, "")}`)
+              .join("\n")
+          : opt.specificObjectives && opt.specificObjectives.length > 0
+          ? opt.specificObjectives
+              .map((o, i) => `${i + 1}. ${o.replace(/^\d+\.\s*/, "")}`)
+              .join("\n")
+          : "1. Achieve operational break-even within the first 6-8 months.\n2. Build a reliable monthly client base and steady sales revenue.\n3. Secure regulatory licensing and county health permits.";
+
+      setSelectedProblem(
+        `Business Concept: ${concept}\n\nProducts & Services Offered: ${products}\n\nTarget Market: ${market}\n\nEstimated Startup Capital: ${capital}\n\nKey Commercial Goals:\n${goals}`
+      );
+    } else {
+      setSelectedProblem(
+        `Problem: ${opt.problemSummary}\n\nGeneral Objective: ${opt.generalObjective}\n\nSpecific Objectives:\n1. ${opt.specificObjectives[0] || ""}\n2. ${opt.specificObjectives[1] || ""}\n3. ${opt.specificObjectives[2] || ""}`
+      );
+    }
   };
 
   const handleAdoptCuratedIdea = (t: TopicBankItem) => {
     setSelectedOptionId(t.id);
     setSelectedTitle(t.title);
-    setSelectedProblem(
-      `Core Area: ${t.area}\n${t.suggested_indicators ? "Key Indicators: " + t.suggested_indicators : ""}`
-    );
+    if (isBusiness) {
+      setSelectedProblem(
+        `Business Sector: ${t.area}\n\nProposed Offerings: ${t.suggested_indicators || "Nutritional products and services"}\n\nForm of Ownership: Sole Proprietorship\n\nCommercial Target: To establish a self-sustaining nutrition and food enterprise in the study area.`
+      );
+    } else {
+      setSelectedProblem(
+        `Core Area: ${t.area}\n${t.suggested_indicators ? "Key Indicators: " + t.suggested_indicators : ""}`
+      );
+    }
   };
 
   const matchingTopics = topics.filter(
@@ -118,7 +147,7 @@ export function TopicCoach({
                 <Sparkles className="h-4 w-4" />
               </span>
               <h2 className="text-sm font-semibold text-slate-900 tracking-tight">
-                Topic Ideas
+                {isBusiness ? "Business Plan Concept" : "Topic Ideas"}
               </h2>
             </div>
 
@@ -172,14 +201,18 @@ export function TopicCoach({
               htmlFor="studentInput"
               className="block text-xs font-semibold text-slate-700"
             >
-              Problem area
+              {isBusiness ? "Business Idea or Enterprise Sector" : "Problem area"}
             </label>
             <textarea
               id="studentInput"
               rows={2}
               value={studentInput}
               onChange={(e) => setStudentInput(e.target.value)}
-              placeholder="e.g. child stunting in Kitui"
+              placeholder={
+                isBusiness
+                  ? "e.g. nutrition consultancy practice, fortified flour milling, natural juice in Kitui"
+                  : "e.g. child stunting in Kitui"
+              }
               className="w-full text-sm bg-white border border-slate-300 rounded-lg p-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 placeholder:text-slate-400"
             />
           </div>
@@ -192,7 +225,13 @@ export function TopicCoach({
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
             >
               <Sparkles className="h-3.5 w-3.5" />
-              <span>{isAiLoading ? "Working..." : "Suggest Topics"}</span>
+              <span>
+                {isAiLoading
+                  ? "Working..."
+                  : isBusiness
+                  ? "Suggest Business Plans"
+                  : "Suggest Topics"}
+              </span>
             </button>
           </div>
         </div>
@@ -217,8 +256,13 @@ export function TopicCoach({
                     {opt.title}
                   </h3>
                   <p className="text-xs text-slate-500 line-clamp-3">
-                    {opt.problemSummary}
+                    {opt.businessConcept || opt.problemSummary}
                   </p>
+                  {isBusiness && opt.startupCapital && (
+                    <div className="pt-1 text-[11px] font-mono text-indigo-700">
+                      Capital: {opt.startupCapital}
+                    </div>
+                  )}
                 </div>
 
                 <button
@@ -236,7 +280,7 @@ export function TopicCoach({
                       <span>Selected</span>
                     </>
                   ) : (
-                    <span>Use Topic</span>
+                    <span>{isBusiness ? "Select Plan" : "Use Topic"}</span>
                   )}
                 </button>
               </div>
@@ -245,10 +289,10 @@ export function TopicCoach({
         </div>
       )}
 
-      {/* 3. Your Topic */}
+      {/* 3. Your Topic / Business Plan Concept */}
       <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-4">
         <h3 className="text-sm font-semibold text-slate-900 tracking-tight">
-          Your Topic
+          {isBusiness ? "Your Business Plan Concept" : "Your Topic"}
         </h3>
 
         {actionError && (
@@ -286,7 +330,8 @@ export function TopicCoach({
               htmlFor="title"
               className="block text-xs font-semibold text-slate-700 mb-1"
             >
-              Title <span className="text-rose-600">*</span>
+              {isBusiness ? "Business Plan Title" : "Title"}{" "}
+              <span className="text-rose-600">*</span>
             </label>
             <textarea
               id="title"
@@ -304,7 +349,7 @@ export function TopicCoach({
               htmlFor="problemArea"
               className="block text-xs font-semibold text-slate-700 mb-1"
             >
-              Problem &amp; Objectives
+              {isBusiness ? "Business Concept & Profile" : "Problem & Objectives"}
             </label>
             <textarea
               id="problemArea"
@@ -312,7 +357,7 @@ export function TopicCoach({
               rows={4}
               value={selectedProblem}
               onChange={(e) => setSelectedProblem(e.target.value)}
-              className="w-full text-sm bg-white border border-slate-300 rounded-lg p-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 leading-relaxed"
+              className="w-full text-sm bg-white border border-slate-300 rounded-lg p-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 leading-relaxed font-sans"
             />
           </div>
 
@@ -322,7 +367,13 @@ export function TopicCoach({
               disabled={!selectedTitle.trim() || isSaving}
               className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
             >
-              <span>{isSaving ? "Submitting..." : "Submit for Approval"}</span>
+              <span>
+                {isSaving
+                  ? "Submitting..."
+                  : isBusiness
+                  ? "Submit Plan for Approval"
+                  : "Submit for Approval"}
+              </span>
               <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -338,7 +389,9 @@ export function TopicCoach({
         >
           <div className="flex items-center gap-2">
             <Lightbulb className="h-4 w-4 text-slate-500" />
-            <span className="text-xs font-semibold text-slate-800">Topic Bank</span>
+            <span className="text-xs font-semibold text-slate-800">
+              {isBusiness ? "Enterprise Idea Bank" : "Topic Bank"}
+            </span>
             <span className="text-[11px] font-mono text-slate-500">
               ({matchingTopics.length})
             </span>

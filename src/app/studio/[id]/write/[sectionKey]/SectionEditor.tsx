@@ -16,8 +16,10 @@ import {
   ExternalLink,
   Copy,
   Check,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
-import type { SectionQuestionGuide } from "@/lib/studio/aiEngine";
+import type { SectionPolishResult, SectionQuestionGuide } from "@/lib/studio/aiEngine";
 import type { NotebookLmPromptItem } from "@/lib/studio/notebookLmHelper";
 
 export interface StepItem {
@@ -54,6 +56,7 @@ interface SectionEditorProps {
   prevStep: { key: string; title: string } | null;
   nextStep: { key: string; title: string } | null;
   saveAction: (formData: FormData) => Promise<void>;
+  polishAction?: (formData: FormData) => Promise<SectionPolishResult>;
 }
 
 export function SectionEditor({
@@ -76,6 +79,7 @@ export function SectionEditor({
   prevStep,
   nextStep,
   saveAction,
+  polishAction,
 }: SectionEditorProps) {
   const [text, setText] = useState(initialText);
   const [isPending, startTransition] = useTransition();
@@ -83,6 +87,8 @@ export function SectionEditor({
   const [errorMessage, setErrorMessage] = useState("");
   const [showNotebookPanel, setShowNotebookPanel] = useState(false);
   const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
+  const [isPolishing, startPolishing] = useTransition();
+  const [polishResult, setPolishResult] = useState<SectionPolishResult | null>(null);
 
   const wordsCount = text.trim() ? text.trim().split(/\s+/).length : 0;
   const isMinMet = wordsCount >= minWords;
@@ -115,6 +121,23 @@ export function SectionEditor({
       } catch (err: unknown) {
         setSaveStatus("error");
         setErrorMessage(err instanceof Error ? err.message : "Failed to save section.");
+      }
+    });
+  };
+
+  const handlePolish = () => {
+    if (!polishAction || isLocked || !text.trim()) return;
+    setErrorMessage("");
+    setPolishResult(null);
+    startPolishing(async () => {
+      try {
+        const formData = new FormData();
+        formData.append("workspaceId", workspaceId);
+        formData.append("sectionKey", sectionKey);
+        formData.append("draftText", text);
+        setPolishResult(await polishAction(formData));
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : "Could not polish this draft.");
       }
     });
   };
@@ -259,6 +282,17 @@ export function SectionEditor({
               </div>
 
               <div className="flex items-center gap-2">
+                {polishAction && (
+                  <button
+                    type="button"
+                    onClick={handlePolish}
+                    disabled={isPolishing || isLocked || !text.trim()}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {isPolishing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                    <span>{isPolishing ? "Polishing..." : "Polish my draft"}</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => setShowNotebookPanel(!showNotebookPanel)}
@@ -285,6 +319,41 @@ export function SectionEditor({
                 </button>
               </div>
             </div>
+
+            {polishResult && (
+              <div className="rounded-lg border border-indigo-200 bg-indigo-50/60 p-4 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-sm font-semibold text-slate-900">Review polished draft</h2>
+                  <span className="text-[11px] text-slate-600">Your current draft is unchanged until you apply this.</span>
+                </div>
+                <div className="max-h-64 overflow-auto rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-800 whitespace-pre-wrap leading-relaxed">
+                  {polishResult.polishedText}
+                </div>
+                {polishResult.warnings.map((warning) => (
+                  <p key={warning} className="text-[11px] text-amber-800">{warning}</p>
+                ))}
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPolishResult(null)}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700"
+                  >
+                    Keep my draft
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setText(polishResult.polishedText);
+                      setPolishResult(null);
+                      setSaveStatus("idle");
+                    }}
+                    className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white"
+                  >
+                    Apply polish
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Expandable Zero-Quota NotebookLM Companion Bar */}
             {showNotebookPanel && (

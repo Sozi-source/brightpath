@@ -88,15 +88,26 @@ export default async function ProblemFinderPage({ params }: ProblemFinderPagePro
     <AppShell
       user={user}
       profile={profile}
-      activeContextTitle={`Topic: ${workspace.title || "Formulation"}`}
+      activeContextTitle={
+        workspace.workspace_type === "business_plan"
+          ? `Business Plan: ${workspace.title || "Concept Formulation"}`
+          : `Topic: ${workspace.title || "Formulation"}`
+      }
     >
       <PageHeaderCard
-        title="Project Topic"
+        title={
+          workspace.workspace_type === "business_plan"
+            ? "Business Plan Concept"
+            : "Project Topic"
+        }
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Project Studio", href: "/studio" },
           { label: workspace.title || "Overview", href: `/studio/${workspaceId}` },
-          { label: "Topic", active: true },
+          {
+            label: workspace.workspace_type === "business_plan" ? "Business Plan Concept" : "Topic",
+            active: true,
+          },
         ]}
         metadata={[
           { label: "Course", value: workspace.course },

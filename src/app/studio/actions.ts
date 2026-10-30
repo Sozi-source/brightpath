@@ -8,12 +8,14 @@ import {
 } from "@/lib/studio/templates";
 import {
   narrowDownTopic,
+  polishAndAlignSection,
   type WorkspaceContext,
   type TopicNarrowingResult,
 } from "@/lib/studio/aiEngine";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { WorkspaceType, WorkspaceLevel } from "@/types/database";
+import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
 
 export async function createWorkspace(formData: FormData) {
   const supabase = await createClient();
@@ -460,6 +462,72 @@ export async function aiNarrowTopicAction(formData: FormData): Promise<TopicNarr
   return result;
 }
 
+export async function polishBusinessPlanSectionAction(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const workspaceId = formData.get("workspaceId")?.toString();
+  const sectionKey = formData.get("sectionKey")?.toString();
+  const draftText = formData.get("draftText")?.toString() || "";
+  if (!workspaceId || !sectionKey) throw new Error("Missing workspace or section.");
+  if (draftText.length > 30_000) throw new Error("This draft is too long to polish at once.");
+  if (!draftText.trim()) throw new Error("Write a draft before asking for a polish.");
+
+  const db = getServerDbClient(supabase);
+  const { data: workspace } = await db
+    .from("project_workspaces")
+    .select("id, student_id, workspace_type, level, course, title, problem_area, status")
+    .eq("id", workspaceId)
+    .single();
+  if (!workspace || workspace.student_id !== user.id) throw new Error("Unauthorized.");
+  if (workspace.workspace_type !== "business_plan") {
+    throw new Error("This writing polish is for business plan sections.");
+  }
+  if (workspace.status !== "approved" && workspace.status !== "submitted") {
+    throw new Error("The business plan must be approved before drafting chapters.");
+  }
+
+  const section = getWorkspaceSections("business_plan", workspace.level).find(
+    (item) => item.key === sectionKey
+  );
+  if (!section) throw new Error("Section is not part of the business plan template.");
+
+  const context: WorkspaceContext = {
+    title: workspace.title,
+    problemArea: workspace.problem_area,
+    course: workspace.course,
+    level: workspace.level,
+    workspaceType: "business_plan",
+  };
+  const result = await polishAndAlignSection({
+    draftText,
+    sectionKey,
+    sectionTitle: section.title,
+    guidance: section.guidance,
+    minWords: section.minWords || 30,
+    context,
+  });
+
+  await db.from("ai_events").insert({
+    workspace_id: workspaceId,
+    user_id: user.id,
+    kind: "language_suggestion",
+    student_input: draftText,
+    response: result as unknown as Record<string, unknown>,
+    suggestions_total: result.polishedText === draftText ? 0 : 1,
+    model: process.env.GEMINI_API_KEY
+      ? process.env.GEMINI_MODEL || "gemini-2.0-flash"
+      : process.env.OPENAI_API_KEY
+      ? "gpt-4o-mini"
+      : "unavailable",
+  });
+
+  return result;
+}
+
 export async function deleteDraftWorkspace(formData: FormData) {
   const supabase = await createClient();
   const {
@@ -506,6 +574,202 @@ export async function deleteDraftWorkspace(formData: FormData) {
   if (redirectAfter) {
     redirect("/studio");
   }
+}
+
+export async function saveBusinessPlanDetailsAction(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const db = getServerDbClient(supabase);
+
+  const workspaceId = formData.get("workspaceId")?.toString();
+  const rawSpecs = formData.get("specs")?.toString();
+
+  if (!workspaceId) throw new Error("Missing workspace ID.");
+  if (!rawSpecs) throw new Error("Missing business plan specifications.");
+
+  let specs: BusinessPlanSpecs;
+  try {
+    specs = JSON.parse(rawSpecs) as BusinessPlanSpecs;
+  } catch {
+    throw new Error("Invalid business plan specifications payload.");
+  }
+
+  // 1. Fetch workspace and ensure ownership.
+  const { data: ws } = await db
+    .from("project_workspaces")
+    .select("id, student_id, supervisor_id, workspace_type, level, course, status")
+    .eq("id", workspaceId)
+    .single();
+
+  if (!ws || ws.student_id !== user.id) {
+    throw new Error("Unauthorized.");
+  }
+
+  if (ws.workspace_type !== "business_plan") {
+    throw new Error("This workspace is not configured as a TVET Business Plan.");
+  }
+
+  if (rawSpecs.length > 100_000) {
+    throw new Error("Business plan details are too large to save.");
+  }
+
+  const requiredText: Array<keyof BusinessPlanSpecs> = [
+    "businessName",
+    "industrySector",
+    "candidateName",
+    "admissionNumber",
+    "institutionName",
+    "course",
+    "county",
+    "townOrMarket",
+    "primaryProduct",
+  ];
+  for (const field of requiredText) {
+    if (typeof specs[field] !== "string" || !String(specs[field]).trim()) {
+      throw new Error(`Complete the required field: ${field}.`);
+    }
+  }
+
+  if (
+    !["Sole Proprietorship", "Partnership", "Private Limited Company"].includes(
+      specs.formOfOwnership
+    )
+  ) {
+    throw new Error("Choose a valid form of ownership.");
+  }
+
+  const numericFields: Array<keyof BusinessPlanSpecs> = [
+    "unitSellingPrice",
+    "unitCostOfProduction",
+    "monthlyProductionUnitsYear1",
+    "annualGrowthRateYear2",
+    "annualGrowthRateYear3",
+    "projectedMarketSharePercentage",
+    "monthlyRent",
+    "preOperationalCosts",
+    "workingCapitalBuffer",
+    "ownerEquityAmount",
+    "loanAmount",
+    "loanInterestRateAnnual",
+    "loanTenureMonths",
+  ];
+  for (const field of numericFields) {
+    const value = specs[field];
+    const lowerBound = field === "annualGrowthRateYear2" || field === "annualGrowthRateYear3" ? -1 : 0;
+    const upperBound = field === "loanInterestRateAnnual" || field === "projectedMarketSharePercentage" ? 100 : 1_000_000_000;
+    if (
+      typeof value !== "number" ||
+      !Number.isFinite(value) ||
+      value < lowerBound ||
+      value > upperBound
+    ) {
+      throw new Error(`Enter a valid value for ${field}.`);
+    }
+  }
+
+  const lists = [specs.competitors, specs.machinery, specs.rawMaterials, specs.staffing];
+  if (lists.some((items) => !Array.isArray(items) || items.length > 100)) {
+    throw new Error("Review the competitor, equipment, materials, and staffing lists.");
+  }
+  const isText = (value: unknown) => typeof value === "string" && value.length <= 2_000;
+  const isAmount = (value: unknown) =>
+    typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 1_000_000_000;
+  if (
+    !specs.competitors.every((item) => item && isText(item.name) && isText(item.location) && isText(item.priceLevel) && isText(item.strengths) && isText(item.weaknesses)) ||
+    !specs.machinery.every((item) => item && isText(item.item) && isText(item.supplier) && Number.isInteger(item.quantity) && item.quantity >= 0 && isAmount(item.unitCost)) ||
+    !specs.rawMaterials.every((item) => item && isText(item.material) && isText(item.monthlyQuantity) && isText(item.supplier) && isAmount(item.monthlyCost)) ||
+    !specs.staffing.every((item) => item && isText(item.position) && isText(item.duties) && isText(item.qualifications) && Number.isInteger(item.count) && item.count >= 0 && isAmount(item.monthlySalary))
+  ) {
+    throw new Error("Check the values in your competitor, equipment, material, and staffing lists.");
+  }
+  if (
+    !specs.monthlyOverheads ||
+    ![specs.monthlyOverheads.rent, specs.monthlyOverheads.electricity, specs.monthlyOverheads.water,
+      specs.monthlyOverheads.transport, specs.monthlyOverheads.marketing, specs.monthlyOverheads.stationeryMisc]
+      .every(isAmount)
+  ) {
+    throw new Error("Enter valid monthly overhead amounts.");
+  }
+
+  // 2. Fetch user profile, institution, supervisor for missing details if any
+  const [{ data: profile }, { data: supervisor }] = await Promise.all([
+    db
+      .from("profiles")
+      .select("full_name, admission_number, institutions(name)")
+      .eq("id", user.id)
+      .maybeSingle(),
+    ws.supervisor_id
+      ? db
+          .from("profiles")
+          .select("full_name")
+          .eq("id", ws.supervisor_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+
+  if (!specs.candidateName && profile?.full_name) {
+    specs.candidateName = profile.full_name;
+  }
+  if (!specs.admissionNumber && profile?.admission_number) {
+    specs.admissionNumber = profile.admission_number;
+  }
+  if (!specs.institutionName) {
+    const instName = (profile?.institutions as unknown as { name?: string })?.name;
+    if (instName) specs.institutionName = instName;
+  }
+  if (!specs.supervisorName && supervisor?.full_name) {
+    specs.supervisorName = supervisor.full_name;
+  }
+  if (!specs.course) {
+    specs.course = ws.course;
+  }
+
+  // Save the candidate's supplied details separately from report prose. The section editor
+  // remains the source of authored text; this action must never overwrite student drafts.
+  const fullTitle = `Business Plan for ${specs.businessName} in ${specs.townOrMarket}, ${specs.county}`;
+  const executiveProfile = [
+    `Business: ${specs.businessName}`,
+    `Ownership: ${specs.formOfOwnership}`,
+    `Location: ${specs.streetOrBuilding}, ${specs.townOrMarket}, ${specs.county}`,
+    `Product or service: ${specs.primaryProduct}`,
+    `Sector: ${specs.industrySector}`,
+  ].join("\n");
+
+  const { error: saveError } = await db
+    .from("project_workspaces")
+    .update({
+      title: fullTitle,
+      problem_area: executiveProfile,
+      business_plan_specs: specs,
+    })
+    .eq("id", workspaceId);
+  if (saveError) throw new Error(saveError.message || "Could not save business plan details.");
+
+  // 6. Project log entry
+  await db.from("project_log_entries").insert({
+    workspace_id: workspaceId,
+    activity: `Saved business plan details for "${specs.businessName}".`,
+    auto_generated: true,
+    student_signed_at: new Date().toISOString(),
+  });
+
+  revalidatePath(`/studio/${workspaceId}`);
+  revalidatePath(`/studio/${workspaceId}/craft`);
+  revalidatePath(`/studio/${workspaceId}/problem`);
+  revalidatePath("/studio");
+  revalidatePath("/supervisor");
+
+  return {
+    success: true,
+    businessName: specs.businessName,
+    sectionsCount: 0,
+    totalWords: 0,
+  };
 }
 
 

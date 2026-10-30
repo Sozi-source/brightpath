@@ -183,17 +183,17 @@ export function generateSecondaryDataTopics(
       options: [
         make(
           "rs-1",
-          `Prevalence of Stunting, Wasting and Underweight among Children Under Five in ${place} Using KDHS 2022`,
-          "Child undernutrition harms growth and learning, and local figures are needed to guide action.",
-          "To describe the nutritional status of children under five years using KDHS 2022 data.",
+          `Determinants of Acute Malnutrition (Wasting) and Stunting among Children Under Five in ${place}: Analysis of KDHS 2022 Data`,
+          "Child undernutrition is driven by maternal education, household sanitation, and feeding practices, requiring an analysis of underlying determinants.",
+          `To assess the socio-demographic and environmental factors associated with child undernutrition in ${place} using KDHS 2022 data.`,
           [
-            "To extract the percentage of stunted, wasted and underweight children from KDHS 2022.",
-            "To compare the results by age group, sex and urban or rural residence.",
+            `To determine the prevalence of wasting, stunting, and underweight among children under five in ${place}.`,
+            `To establish the household socio-demographic, feeding, and WASH characteristics associated with child nutritional status.`,
             isDiploma
-              ? "To evaluate changes between the 2014 and 2022 KDHS and test socio-demographic associations."
-              : "To compare the results with the national average and the 2014 KDHS.",
+              ? "To test the statistical association between maternal education, household wealth, feeding practices, and child wasting using Chi-square tests (p < 0.05)."
+              : "To compare child undernutrition rates across different maternal education levels, feeding practices, and household wealth quintiles.",
           ],
-          `${SURVEY}. KDHS 2022 and 2014 reports and statistical tables, ${statSuffix}`
+          `${SURVEY}. KDHS 2022 dataset/tables, ${statSuffix}`
         ),
         make(
           "rs-2",
@@ -348,15 +348,15 @@ export function generateSecondaryDataTopics(
     options: [
       make(
         "rs-1",
-        `Prevalence of ${subject} in ${place}: Analysis of KDHS and Ministry of Health Data`,
-        `Local figures on ${subject.toLowerCase()} are needed to guide nutrition programmes.`,
-        `To describe ${subject.toLowerCase()} in ${place} using existing national reports.`,
+        `Factors Associated with ${subject} in ${place}: Analysis of KDHS and Ministry of Health Data`,
+        `Identifying the underlying social and dietary determinants of ${subject.toLowerCase()} is essential for targeted nutrition interventions.`,
+        `To examine factors associated with ${subject.toLowerCase()} in ${place} using existing national reports.`,
         [
-          `To identify the indicators for ${subject.toLowerCase()} in existing national reports.`,
-          "To record the figures by age group, sex and residence.",
+          `To establish the baseline indicators and burden of ${subject.toLowerCase()} in ${place}.`,
+          "To identify key socio-demographic, dietary, and healthcare factors across target groups.",
           isDiploma
-            ? "To compare results with the national average and test demographic associations."
-            : "To compare the results with the national average.",
+            ? "To test the statistical association between identified risk factors and nutritional outcomes."
+            : "To compare the distribution of cases across socio-demographic and geographic groups.",
         ],
         `${SURVEY}. KDHS, KNBS and Ministry of Health reports, ${statSuffix}`
       ),

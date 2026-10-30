@@ -33,6 +33,11 @@ export interface TopicNarrowingOption {
   generalObjective: string;
   specificObjectives: string[];
   methodologyHint: string;
+  businessConcept?: string;
+  productsServices?: string;
+  targetMarket?: string;
+  startupCapital?: string;
+  commercialGoals?: string[];
 }
 
 export interface TopicNarrowingResult {
@@ -145,6 +150,31 @@ export async function polishAndAlignSection(params: {
   const rawWords = draftText.trim() ? draftText.trim().split(/\s+/).length : 0;
   const levelSpec = getAcademicLevelSpec(context.level);
 
+  if (context.workspaceType === "business_plan") {
+    const polished = await tryLlmBusinessPlanPolish({
+      draftText,
+      sectionTitle,
+      guidance,
+      context,
+    });
+    const polishedText = polished || draftText;
+    const polishedWords = polishedText.trim() ? polishedText.trim().split(/\s+/).length : 0;
+    return {
+      polishedText,
+      wordsOriginal: rawWords,
+      wordsPolished: polishedWords,
+      wordDiff: polishedWords - rawWords,
+      targetMet: polishedWords >= minWords,
+      improvements: polished
+        ? ["Improved clarity while preserving the candidate's facts and figures."]
+        : ["AI polishing is unavailable; your draft has not been changed."],
+      citations: [],
+      warnings: polished
+        ? ["Check every claim and attach the evidence you collected before submission."]
+        : ["Configure an AI provider to polish this draft. No replacement text was generated."],
+    };
+  }
+
   const evidence = selectEvidence({
     sectionKey,
     text: draftText,
@@ -208,6 +238,73 @@ export async function polishAndAlignSection(params: {
   });
 }
 
+async function tryLlmBusinessPlanPolish(params: {
+  draftText: string;
+  sectionTitle: string;
+  guidance: string;
+  context: WorkspaceContext;
+}): Promise<string | null> {
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
+  if (!geminiKey && !openaiKey) return null;
+
+  const prompt = `You are a writing coach helping a Kenyan TVET student prepare a business plan using the supplied institutional template.
+Polish only the student's draft for clear, concise, well-organized business-plan writing.
+
+Rules:
+- Use only facts and figures present in the candidate draft and the stated workspace context.
+- Do not invent survey results, market sizes, competitor details, prices, quotations, suppliers, licenses, approvals, loan offers, financial results, citations, or sources.
+- Preserve the candidate's meaning, location, units, amounts, dates, and uncertainty.
+- If a useful detail is missing, insert a short bracketed prompt such as [Add your survey sample size] instead of guessing.
+- Treat projections as estimates and label them as assumptions when the student does.
+- Do not claim the business is viable, profitable, compliant, approved, or funded unless the draft provides evidence for that claim.
+- Return only the revised section text. Do not add a title, preamble, references, or a conclusion not supported by the draft.
+
+Workspace: ${params.context.title || "Business plan"}
+Business context: ${params.context.problemArea || "No additional business details supplied"}
+Template section: ${params.sectionTitle}
+Section guidance: ${params.guidance}
+
+Candidate draft:
+${params.draftText}`;
+
+  try {
+    if (geminiKey) {
+      const text = await callGeminiText(prompt, geminiKey, {
+        temperature: 0.2,
+        timeoutMs: 25000,
+      });
+      if (text?.trim()) return text.trim();
+    }
+    if (openaiKey) {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${openaiKey}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: prompt },
+            { role: "user", content: params.draftText },
+          ],
+          temperature: 0.2,
+        }),
+        signal: AbortSignal.timeout(25000),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const text = data?.choices?.[0]?.message?.content;
+        if (typeof text === "string" && text.trim()) return text.trim();
+      }
+    }
+  } catch (error) {
+    console.warn("Business plan section polish failed:", error);
+  }
+  return null;
+}
+
 
 /**
  * 3. Formative Writing Prompts & Open-Ended Guided Questions
@@ -242,8 +339,92 @@ async function tryLlmTopicNarrowing(
 
   if (!geminiKey && !openaiKey) return null;
 
+  const isBusiness = context.workspaceType === "business_plan";
   const isSecondaryResearch = context.workspaceType === "research_secondary";
   const levelSpec = getAcademicLevelSpec(context.level);
+
+  if (isBusiness) {
+    const businessPrompt = `You are a practical TVET Business Plan Advisor for Kenyan Certificate and Diploma students studying ${context.course} (${levelSpec.levelLabel.toUpperCase()} level).
+The student wants to develop a viable KNEC Business Plan for a micro- or small-scale enterprise in nutrition, dietetics, or food processing.
+
+CRITICAL KNEC BUSINESS PLAN RULES:
+1. This is a COMMERCIAL BUSINESS PLAN, NOT an academic research thesis.
+2. DO NOT format this as a research problem with hypotheses, research questions, or secondary data extraction.
+3. Every proposal must follow the official KNEC 5-Chapter Business Plan format:
+   - Chapter 1: Business Description (name, location, form of ownership, products/services, SWOT)
+   - Chapter 2: Marketing Plan (customers, market share, competitor analysis, pricing, promotion, distribution)
+   - Chapter 3: Organization and Management Plan (organogram, management team, staff, licenses/permits)
+   - Chapter 4: Operational and Production Plan (facilities, production workflow, machinery, raw materials)
+   - Chapter 5: Financial Plan (startup capital, cash flow, income statement P&L, balance sheet, break-even)
+4. Titles MUST start with "Business Plan for..." (e.g. "Business Plan for Establishing a Nutrition Consultancy Practice in Nakuru", "Business Plan for a Fortified Porridge Flour Milling Enterprise in Kitui").
+5. Financial figures must be realistic for Kenyan TVET startups (startup capital KES 200,000 to KES 450,000; break-even 6-8 months).
+
+Return strictly valid JSON with this shape:
+{
+  "problemAnalysis": "2 short sentences explaining why this commercial enterprise is viable in the Kenyan market and noting the ${levelSpec.targetPages}+ page ${levelSpec.levelLabel} standard.",
+  "options": [
+    {
+      "id": "bp-1",
+      "title": "Business Plan for [Specific Enterprise Name] in [Location]",
+      "problemSummary": "1-2 sentences summarizing market need and commercial value proposition",
+      "businessConcept": "Clear description of enterprise operations and value proposition",
+      "productsServices": "Specific products or services offered and packaging/pricing formats",
+      "targetMarket": "Primary customer segments (e.g. clinics, households, schools)",
+      "startupCapital": "Estimated startup capital (e.g. KES 280,000)",
+      "commercialGoals": [
+        "1. First operational milestone (e.g. Year 1 production or client target)",
+        "2. Break-even timeline and monthly revenue target",
+        "3. Regulatory/expansion milestone (e.g. KEBS or county permit)"
+      ],
+      "generalObjective": "To prepare a viable business plan for establishing [Enterprise Name] in [Location]",
+      "specificObjectives": [
+        "1. Conduct market and customer demand survey in the target locality",
+        "2. Establish operational, equipment, and production workflow",
+        "3. Formulate 3-year financial projections and break-even analysis"
+      ],
+      "methodologyHint": "Market feasibility survey, supplier quotations, and 3-year pro-forma financial statements for a ${levelSpec.targetPages}+ page report."
+    }
+  ],
+  "followUpQuestion": "Which enterprise model matches your career vision?"
+}`;
+
+    try {
+      if (geminiKey) {
+        const jsonText = await callGeminiText(
+          `${businessPrompt}\n\nStudent Idea: ${query}`,
+          geminiKey,
+          { jsonMode: true, temperature: 0.3, timeoutMs: 18000 }
+        );
+        if (jsonText) return JSON.parse(jsonText);
+      }
+      if (openaiKey) {
+        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${openaiKey}`,
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [
+              { role: "system", content: businessPrompt },
+              { role: "user", content: `Student Idea: ${query}` },
+            ],
+            response_format: { type: "json_object" },
+            temperature: 0.3,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const content = data.choices?.[0]?.message?.content;
+          if (content) return JSON.parse(content);
+        }
+      }
+    } catch {
+      // Fall through to deterministic
+    }
+    return null;
+  }
 
   const designRules = isSecondaryResearch
     ? `CRITICAL RESEARCH DESIGN & LEVEL RULES (${levelSpec.levelLabel.toUpperCase()} LEVEL):
@@ -803,54 +984,324 @@ function generateDeterministicTopics(
     };
   }
 
-  // 2. Business Plan Track
+  // 2. Business Plan Track (Strict KNEC TVET 5-Chapter Commercial Enterprise Standard)
   if (type === "business_plan") {
-    const enterpriseSubject =
-      query.trim().length > 0 && !query.toLowerCase().includes("business plan")
-        ? query.trim()
-        : "Fortified Composite Flour";
+    const isConsulting =
+      q.includes("consult") ||
+      q.includes("clinic") ||
+      q.includes("advis") ||
+      q.includes("counsel") ||
+      q.includes("diet") ||
+      q.includes("service") ||
+      q.includes("therap") ||
+      q.includes("wellness");
 
+    const isMilling =
+      q.includes("mill") ||
+      q.includes("flour") ||
+      q.includes("porridge") ||
+      q.includes("cereal") ||
+      q.includes("grain") ||
+      q.includes("composite") ||
+      q.includes("soy") ||
+      q.includes("sorghum") ||
+      q.includes("millet");
+
+    const isBeverage =
+      q.includes("juice") ||
+      q.includes("fruit") ||
+      q.includes("snack") ||
+      q.includes("bak") ||
+      q.includes("bread") ||
+      q.includes("biscuit") ||
+      q.includes("yogurt") ||
+      q.includes("dairy");
+
+    if (isConsulting) {
+      return {
+        problemAnalysis: `Developing a nutrition advisory practice (${levelSpec.levelLabel} standard: ≥${levelSpec.targetPages} pages) provides vital community wellness services while building a profitable, self-employed enterprise in Kenya.`,
+        options: [
+          {
+            id: "bp-c1",
+            title: `Business Plan for Establishing a Nutrition and Dietetics Consultancy Practice in ${loc}`,
+            problemSummary: `Local residents managing lifestyle conditions like diabetes, hypertension, and obesity lack access to affordable, private nutrition counseling and personalized diet planning.`,
+            businessConcept: `A community-based clinical nutrition and wellness practice offering individualized dietary assessments, medical nutrition therapy, diabetic meal plans, and maternal-child nutrition coaching.`,
+            productsServices: `Clinical dietary consultations, personalized meal planning, diabetic and hypertensive diet management packages, and corporate wellness coaching sessions.`,
+            targetMarket: `Doctor-referred clinic patients, individuals managing chronic lifestyle conditions, pregnant/lactating women, and health-conscious adults.`,
+            startupCapital: `KES 280,000 (Consulting room lease, bioimpedance body composition analyzer, infant & adult scales, ICT equipment, and county permits).`,
+            commercialGoals: [
+              `Onboard 35 regular monthly consultation clients within the first 6 months.`,
+              `Establish referral partnerships with 5 local private clinics and community pharmacies.`,
+              `Achieve operational break-even by month 6 with projected monthly revenue of KES 140,000.`,
+            ],
+            generalObjective: `To prepare a viable commercial business plan for establishing a nutrition consultancy practice in ${loc}.`,
+            specificObjectives: [
+              `1. To assess target client demand and private clinic referral networks across ${loc}.`,
+              `2. To establish clinical consultation workflows, service fees, and professional licensing compliance.`,
+              `3. To develop comprehensive 3-year financial statements demonstrating profitability and capital recovery.`,
+            ],
+            methodologyHint: `Client willingness-to-pay survey, clinic referral interviews, and 3-year pro-forma financial statements for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+          },
+          {
+            id: "bp-c2",
+            title: `Business Plan for a Community Maternal and Child Nutrition Advisory Clinic in ${loc}`,
+            problemSummary: `Young mothers frequently encounter infant feeding difficulties, early weaning challenges, and poor child growth without convenient professional guidance.`,
+            businessConcept: `A specialized pediatric and maternal nutrition center offering growth monitoring, lactation counseling, infant complementary feeding demos, and home visits.`,
+            productsServices: `Growth tracking subscriptions, complementary feeding guidance, lactation support, and nutrient-dense porridge starter packs.`,
+            targetMarket: `Mothers of children under two, pregnant women, daycare centers, and local community health groups.`,
+            startupCapital: `KES 240,000 (Premises fit-out, infant anthropometric equipment, demonstration kitchen tools, and licensing).`,
+            commercialGoals: [
+              `Enroll 50 mother-child pairs in monthly growth tracking and dietary counseling by month 4.`,
+              `Conduct bi-weekly community nutrition education workshops for caregivers.`,
+              `Attain operational break-even within 7 months of operation.`,
+            ],
+            generalObjective: `To prepare a viable commercial business plan for a maternal and child nutrition clinic in ${loc}.`,
+            specificObjectives: [
+              `1. To survey local demand for personalized infant feeding guidance among 40 mothers.`,
+              `2. To outline clinical service protocols, staff requirements, and operational safety.`,
+              `3. To calculate startup capital, pricing tiers, and projected 1-year profit and loss.`,
+            ],
+            methodologyHint: `Target mother interviews, local health facility consultations, and cash flow projections for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+          },
+          {
+            id: "bp-c3",
+            title: `Business Plan for a Lifestyle Diseases Dietary Wellness Hub in ${loc}`,
+            problemSummary: `Patients diagnosed with diabetes and cardiovascular conditions struggle to locate low-glycemic meal options, whole foods, and ongoing diet management.`,
+            businessConcept: `An integrated dietary wellness facility combining dietary counseling with a specialized whole-foods pantry delivering low-glycemic, low-sodium meal solutions.`,
+            productsServices: `Diabetic meal prep guidance, low-sodium pantry products, whole-grain flour blends, and bi-weekly blood sugar/pressure dietary check-ins.`,
+            targetMarket: `Hypertensive and diabetic patients, overweight individuals, and elderly clients requiring specialized nutrition.`,
+            startupCapital: `KES 320,000 (Office lease, display shelving, initial stock of specialized whole-grain foods, and diagnostic equipment).`,
+            commercialGoals: [
+              `Build an active client registry of 60 regular lifestyle-management subscribers in Year 1.`,
+              `Achieve a gross monthly profit margin of 40% on healthy food and consulting packages.`,
+              `Recover initial startup investment within 10 months of launching.`,
+            ],
+            generalObjective: `To develop a viable commercial business plan for a dietary wellness and food hub in ${loc}.`,
+            specificObjectives: [
+              `1. To evaluate market demand for specialized lifestyle meal packages and pantry supplies.`,
+              `2. To define sourcing channels for certified organic grains, equipment layout, and store operations.`,
+              `3. To project 3-year cash flow, break-even sales volume, and return on investment.`,
+            ],
+            methodologyHint: `Market demand questionnaires, distributor price quotes, and 3-year pro-forma balance sheet for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+          },
+        ],
+        followUpQuestion: `Would you prefer to focus on a general clinical nutrition practice, maternal-child nutrition advisory, or a lifestyle disease wellness hub?`,
+      };
+    }
+
+    if (isMilling) {
+      return {
+        problemAnalysis: `Establishing a small-scale composite flour milling enterprise (${levelSpec.levelLabel} standard: ≥${levelSpec.targetPages} pages) addresses community malnutrition while generating steady manufacturing income.`,
+        options: [
+          {
+            id: "bp-m1",
+            title: `Business Plan for Establishing a Fortified Composite Porridge Flour Milling Enterprise in ${loc}`,
+            problemSummary: `Local mothers and families lack access to clean, affordable, and hygienically packaged composite porridge flour within neighborhood retail kiosks.`,
+            businessConcept: `A micro-scale agro-processing mill that procures indigenous grains (sorghum, finger millet, amaranth, and soybean) to produce hygienically blended, nutrient-dense composite flours.`,
+            productsServices: `500g and 1kg branded laminated pouches of infant composite flour, family breakfast porridge flour, and whole-grain diabetic flour.`,
+            targetMarket: `Households with young children, primary school feeding canteens, community health centers, and neighborhood retail kiosks.`,
+            startupCapital: `KES 380,000 (Commercial hammer mill, moisture meter, impulse sealer, initial grain inventory, and KEBS standardization).`,
+            commercialGoals: [
+              `Process and distribute 2,000 kg of packaged composite flour per month in Year 1.`,
+              `Secure retail placement in 30 neighborhood shops and 3 supermarkets across ${loc}.`,
+              `Achieve break-even by month 7 with a Year 1 net profit margin exceeding 22%.`,
+            ],
+            generalObjective: `To prepare a viable business plan for establishing a composite porridge flour milling enterprise in ${loc}.`,
+            specificObjectives: [
+              `1. To conduct a market survey of 40 households and 15 retail kiosks to evaluate flour demand.`,
+              `2. To design the grain cleaning, roasting, milling, packaging workflow, and equipment sourcing.`,
+              `3. To compute total start-up costs, unit break-even volume, and 3-year pro-forma financial statements.`,
+            ],
+            methodologyHint: `Household purchasing survey, supplier quotes for grain and hammer mills, and 3-year financial models for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+          },
+          {
+            id: "bp-m2",
+            title: `Business Plan for a Micro-Scale Infant Weaning Foods Processing Plant in ${loc}`,
+            problemSummary: `Commercial baby cereals in supermarkets are too expensive for low- and middle-income families, while informal cereal blends lack hygiene safeguards.`,
+            businessConcept: `A certified sanitary food processing venture producing precooked, digestible complementary feeding flours fortified with biofortified orange-fleshed sweet potato and roasted pulses.`,
+            productsServices: `250g and 500g moisture-barrier containers of instant complementary baby porridge and nutrient-dense convalescent feeding mixes.`,
+            targetMarket: `Mothers of weaning infants aged 6-24 months, private maternity clinics, daycare centers, and local community pharmacies.`,
+            startupCapital: `KES 350,000 (Grain roasting drum, stainless steel pulverizer, hygienic pouch sealer, and KEBS certification).`,
+            commercialGoals: [
+              `Reach monthly production and sales of 1,200 packaged units by month 4.`,
+              `Partner with 10 maternal-child health clinics for educational product stocking.`,
+              `Break even at 650 units sold per month within the first half-year.`,
+            ],
+            generalObjective: `To develop a business plan for an infant weaning foods processing enterprise in ${loc}.`,
+            specificObjectives: [
+              `1. To assess parental willingness-to-pay and infant feeding preferences in ${loc}.`,
+              `2. To detail factory layout, KEBS hygiene protocols, and raw material procurement contracts.`,
+              `3. To formulate 3-year income statements, cash flow budgets, and balance sheet projections.`,
+            ],
+            methodologyHint: `Maternal consumer survey, machinery quotations, and pro-forma financial schedules for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+          },
+          {
+            id: "bp-m3",
+            title: `Business Plan for a Hygienic Grain Cleaning, Milling, and Packaging Depot in ${loc}`,
+            problemSummary: `Urban consumers and grain producers lose quality and nutritional value due to stone contamination, high moisture, and unhygienic traditional hammer mills.`,
+            businessConcept: `A modern community milling service and retail hub offering mechanical grain destoning, precision moisture testing, custom composite blending, and sealed packaging.`,
+            productsServices: `Grain destoning and toll milling services, custom composite flour blending, and retail supply of clean whole flours.`,
+            targetMarket: `Urban households, small bakeries, boarding schools, and local smallholder grain farmers.`,
+            startupCapital: `KES 310,000 (Electric grain destoner, commercial hammer mill, electronic scales, and shop leasing).`,
+            commercialGoals: [
+              `Serve 30 milling customers daily and process 3,500 kg weekly in Year 1.`,
+              `Generate consistent positive operating cash flow starting from month 2.`,
+              `Pay off initial capital equipment loan within 12 months.`,
+            ],
+            generalObjective: `To prepare a viable commercial business plan for a modern grain milling depot in ${loc}.`,
+            specificObjectives: [
+              `1. To determine daily grain milling traffic and commercial pricing expectations in ${loc}.`,
+              `2. To outline equipment specifications, electricity load requirements, and workshop layout.`,
+              `3. To calculate monthly break-even milling volumes, operational overheads, and annual returns.`,
+            ],
+            methodologyHint: `Market trade survey, equipment energy consumption audit, and 3-year cash flow forecast for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+          },
+        ],
+        followUpQuestion: `Which milling enterprise model do you prefer: fortified composite porridge flours, infant weaning foods, or a modern custom milling depot?`,
+      };
+    }
+
+    if (isBeverage) {
+      return {
+        problemAnalysis: `Developing a value-addition beverage or snack enterprise (${levelSpec.levelLabel} standard: ≥${levelSpec.targetPages} pages) captures high retail margins while addressing demand for healthy, natural products.`,
+        options: [
+          {
+            id: "bp-b1",
+            title: `Business Plan for Small-Scale Natural Fresh Fruit Juice Processing and Bottling in ${loc}`,
+            problemSummary: `Commercial retail shops are filled with sugar-loaded artificial cordials, while fresh seasonal fruits rot at farmgate due to lack of local processing facilities.`,
+            businessConcept: `A hygienic food processing unit that extracts, pasteurizes, and bottles fresh local seasonal fruits into 100% natural juices free from artificial additives.`,
+            productsServices: `300ml and 500ml tamper-proof bottles of fresh mango-passion, pineapple-mint, and citrus fruit juices.`,
+            targetMarket: `School canteens, commercial office workers, hospital cafeterias, gym enthusiasts, and event caterers.`,
+            startupCapital: `KES 320,000 (Commercial cold press extractor, pasteurization tank, stainless steel worktables, bottles, and inventory).`,
+            commercialGoals: [
+              `Process and retail 4,000 bottles of fresh juice per month in Year 1.`,
+              `Establish supply contracts with 8 institutional cafeterias and school canteens.`,
+              `Reach break-even point within 6 months of operations.`,
+            ],
+            generalObjective: `To prepare a commercial business plan for processing and distributing natural fruit juices in ${loc}.`,
+            specificObjectives: [
+              `1. To survey institutional buyer demand and consumer price sensitivity across ${loc}.`,
+              `2. To design cold-chain storage, pasteurization workflow, and public health food handling protocols.`,
+              `3. To compute unit production costs, wholesale/retail margins, and 3-year financial statements.`,
+            ],
+            methodologyHint: `Consumer taste test survey, packaging supplier quotes, and 3-year financial schedules for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+          },
+          {
+            id: "bp-b2",
+            title: `Business Plan for a Healthy High-Fiber Bakery and Snack Enterprise in ${loc}`,
+            problemSummary: `Urban commuters and school children consume high-calorie refined wheat snacks that lack dietary fiber and essential micronutrients.`,
+            businessConcept: `A specialized bakery producing high-fiber cookies, sweet potato buns, and nutrient-enriched muffins utilizing locally sourced composite flours.`,
+            productsServices: `Individual and family packs of biofortified sweet potato muffins, amaranth crackers, and diabetic-friendly pulse biscuits.`,
+            targetMarket: `School students, urban commuters, hospital cafeterias, and health-conscious families.`,
+            startupCapital: `KES 290,000 (Commercial convection oven, dough mixer, stainless steel baking trays, and packaging materials).`,
+            commercialGoals: [
+              `Bake and distribute 500 snack packs daily to local kiosks and schools.`,
+              `Achieve operational break-even by month 5 with steady daily cash collections.`,
+              `Expand supply routes to 3 neighboring towns by month 12.`,
+            ],
+            generalObjective: `To develop a commercial business plan for a healthy high-fiber bakery in ${loc}.`,
+            specificObjectives: [
+              `1. To evaluate retail shop demand and daily snack purchasing patterns across ${loc}.`,
+              `2. To specify kitchen bakery workflow, equipment layout, and food safety standards.`,
+              `3. To prepare 3-year pro-forma income statement, cash flow budget, and balance sheet.`,
+            ],
+            methodologyHint: `Retail vendor survey, baking equipment quotes, and pro-forma financial models for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+          },
+          {
+            id: "bp-b3",
+            title: `Business Plan for a Solar-Dried Fruit and Vegetable Packaging Enterprise in ${loc}`,
+            problemSummary: `Farmers suffer up to 40% post-harvest loss during fruit harvest gluts, while urban markets face severe vegetable shortages during dry seasons.`,
+            businessConcept: `An agribusiness venture utilizing cabinet solar dryers to process surplus mangoes, bananas, and indigenous green vegetables into shelf-stable dried products.`,
+            productsServices: `100g vacuum-sealed bags of dried mango chews, banana chips, and powdered indigenous vegetables (kunde, managu).`,
+            targetMarket: `Supermarkets, travelers, school snackers, and specialty food stores in urban centers.`,
+            startupCapital: `KES 260,000 (Cabinet solar dryer, chamber vacuum sealer, moisture tester, and branded pouch packaging).`,
+            commercialGoals: [
+              `Process 600 kg of fresh seasonal produce monthly into value-added dried packs.`,
+              `Contract 15 local smallholder fruit farmers to eliminate post-harvest gluts.`,
+              `Break even within 6 months with a 35% gross profit margin.`,
+            ],
+            generalObjective: `To prepare a viable commercial business plan for a solar-dried fruit and vegetable enterprise in ${loc}.`,
+            specificObjectives: [
+              `1. To assess supermarket buyer requirements and retail shelf-space opportunities.`,
+              `2. To establish solar drying parameters, packaging moisture barrier specifications, and hygiene protocols.`,
+              `3. To formulate 3-year cash flow projections, break-even unit sales, and return on investment.`,
+            ],
+            methodologyHint: `Supermarket buyer interviews, dryer construction material quotes, and financial forecast models for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+          },
+        ],
+        followUpQuestion: `Would you prefer to launch fresh natural juices, a high-fiber composite bakery, or a solar-dried fruit and vegetable venture?`,
+      };
+    }
+
+    // Default: General TVET Nutrition Enterprises across consulting, milling, and beverages
     return {
-      problemAnalysis: `Establishing a small-scale food enterprise (${levelSpec.levelLabel} standard: ≥${levelSpec.targetPages} pages) provides accessible, nutritious foods to local families while generating viable self-employment in Kenya.`,
+      problemAnalysis: `Launching a nutrition or food enterprise (${levelSpec.levelLabel} standard: ≥${levelSpec.targetPages} pages) provides essential community wellness services while creating sustainable self-employment in Kenya.`,
       options: [
         {
-          id: "bp-1",
-          title: `Business Plan for Establishing a Small-Scale ${enterpriseSubject} Milling Enterprise in ${loc}`,
-          problemSummary: `Local mothers lack access to clean, affordable, and hygienically packaged composite porridge flour within their neighborhood shops.`,
-          generalObjective: `To prepare a viable business plan for a micro-scale milling enterprise producing fortified composite flour in ${loc}.`,
-          specificObjectives: [
-            `1. To conduct a market survey of 30 households and 10 local retail shops to assess customer demand.`,
-            `2. To outline the daily production process, raw material sourcing, and basic machinery requirements.`,
-            `3. To calculate startup capital, product pricing, and 1-year profit and loss projections.`,
+          id: "bp-g1",
+          title: `Business Plan for Establishing a Nutrition and Dietetics Consultancy Practice in ${loc}`,
+          problemSummary: `Community members managing chronic lifestyle diseases (diabetes, hypertension) lack convenient, private dietary guidance and customized meal planning.`,
+          businessConcept: `A community-based clinical nutrition practice offering individualized dietary counseling, medical nutrition therapy, diabetic meal plans, and wellness workshops.`,
+          productsServices: `Dietary consultations, diabetic meal plans, hypertension diet packages, and corporate wellness coaching sessions.`,
+          targetMarket: `Doctor-referred clinic patients, individuals managing chronic lifestyle conditions, pregnant/lactating women, and health-conscious adults.`,
+          startupCapital: `KES 280,000 (Consulting room lease, bioimpedance analyzer, anthropometric scales, ICT equipment, and county permits).`,
+          commercialGoals: [
+            `Onboard 35 regular monthly consultation clients within the first 6 months.`,
+            `Establish referral partnerships with 5 local private clinics and community pharmacies.`,
+            `Achieve operational break-even by month 6 with projected monthly revenue of KES 140,000.`,
           ],
-          methodologyHint: `Local market survey with households and shopkeepers, equipment price quotations, and simple 1-year financial projections.`,
+          generalObjective: `To prepare a viable commercial business plan for establishing a nutrition consultancy practice in ${loc}.`,
+          specificObjectives: [
+            `1. To assess target client demand and clinic referral networks across ${loc}.`,
+            `2. To establish consultation workflows, service fees, and professional licensing compliance.`,
+            `3. To develop comprehensive 3-year financial statements demonstrating profitability and capital recovery.`,
+          ],
+          methodologyHint: `Client willingness-to-pay survey, clinic referral interviews, and 3-year pro-forma financial statements for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
         },
         {
-          id: "bp-2",
-          title: `Business Plan for a Community Nutrition and Healthy Foods Advisory Service in ${loc}`,
-          problemSummary: `Community members managing lifestyle conditions like diabetes and hypertension lack convenient, personalized dietary guidance and healthy meal products.`,
-          generalObjective: `To develop a business plan for an accessible community nutrition counseling practice and healthy food supply service.`,
-          specificObjectives: [
-            `1. To survey local demand for individualized dietary meal plans and healthy snack supplies.`,
-            `2. To establish service packages, consultation pricing, and operational workflows.`,
-            `3. To compute monthly operating costs, break-even targets, and annual revenue projections.`,
+          id: "bp-g2",
+          title: `Business Plan for Establishing a Fortified Composite Porridge Flour Milling Enterprise in ${loc}`,
+          problemSummary: `Local mothers and families lack access to clean, affordable, and hygienically packaged composite porridge flour within neighborhood retail kiosks.`,
+          businessConcept: `A micro-scale agro-processing mill that procures indigenous grains (sorghum, finger millet, amaranth, and soybean) to produce hygienically blended, nutrient-dense composite flours.`,
+          productsServices: `500g and 1kg branded laminated pouches of infant composite flour, family breakfast porridge flour, and whole-grain diabetic flour.`,
+          targetMarket: `Households with young children, primary school feeding canteens, community health centers, and neighborhood retail kiosks.`,
+          startupCapital: `KES 380,000 (Commercial hammer mill, moisture meter, impulse sealer, initial grain inventory, and KEBS standardization).`,
+          commercialGoals: [
+            `Process and distribute 2,000 kg of packaged composite flour per month in Year 1.`,
+            `Secure retail placement in 30 neighborhood shops and 3 supermarkets across ${loc}.`,
+            `Achieve break-even by month 7 with a Year 1 net profit margin exceeding 22%.`,
           ],
-          methodologyHint: `Client demand interviews, local clinic networking, and simple cash flow and break-even calculations.`,
+          generalObjective: `To prepare a viable business plan for establishing a composite porridge flour milling enterprise in ${loc}.`,
+          specificObjectives: [
+            `1. To conduct a market survey of 40 households and 15 retail kiosks to evaluate flour demand.`,
+            `2. To design the grain cleaning, roasting, milling, packaging workflow, and equipment sourcing.`,
+            `3. To compute total start-up costs, unit break-even volume, and 3-year pro-forma financial statements.`,
+          ],
+          methodologyHint: `Household purchasing survey, supplier quotes for grain and hammer mills, and 3-year financial models for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
         },
         {
-          id: "bp-3",
-          title: `Business Plan for Small-Scale Fresh Fruit Juice Processing and Packaging in ${loc}`,
-          problemSummary: `Local markets experience seasonal fruit waste while consumers lack natural, unadulterated fruit juices free from artificial preservatives.`,
-          generalObjective: `To prepare a commercial business plan for processing, packaging, and distributing natural fresh fruit juices in ${loc}.`,
-          specificObjectives: [
-            `1. To determine customer preferences and daily retail demand for natural juices in local commercial centers.`,
-            `2. To identify food-grade extraction machinery, packaging bottles, and hygienic cold-storage equipment.`,
-            `3. To calculate cost per unit, retail price margins, and projected monthly net returns.`,
+          id: "bp-g3",
+          title: `Business Plan for Small-Scale Natural Fresh Fruit Juice Processing and Bottling in ${loc}`,
+          problemSummary: `Commercial retail shops are filled with sugar-loaded artificial cordials, while fresh seasonal fruits rot at farmgate due to lack of local processing facilities.`,
+          businessConcept: `A hygienic food processing unit that extracts, pasteurizes, and bottles fresh local seasonal fruits into 100% natural juices free from artificial additives.`,
+          productsServices: `300ml and 500ml tamper-proof bottles of fresh mango-passion, pineapple-mint, and citrus fruit juices.`,
+          targetMarket: `School canteens, commercial office workers, hospital cafeterias, gym enthusiasts, and event caterers.`,
+          startupCapital: `KES 320,000 (Commercial cold press extractor, pasteurization tank, stainless steel worktables, bottles, and inventory).`,
+          commercialGoals: [
+            `Process and retail 4,000 bottles of fresh juice per month in Year 1.`,
+            `Establish supply contracts with 8 institutional cafeterias and school canteens.`,
+            `Reach break-even point within 6 months of operations.`,
           ],
-          methodologyHint: `Consumer taste preference surveys, supplier cost quotes, and practical 1-year financial forecasting.`,
+          generalObjective: `To prepare a commercial business plan for processing and distributing natural fruit juices in ${loc}.`,
+          specificObjectives: [
+            `1. To survey institutional buyer demand and consumer price sensitivity across ${loc}.`,
+            `2. To design cold-chain storage, pasteurization workflow, and public health food handling protocols.`,
+            `3. To compute unit production costs, wholesale/retail margins, and 3-year financial statements.`,
+          ],
+          methodologyHint: `Consumer taste test survey, packaging supplier quotes, and 3-year financial schedules for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
         },
       ],
-      followUpQuestion: `Which commercial enterprise matches your vision: composite flour milling, community nutrition counseling, or fresh juice processing?`,
+      followUpQuestion: `Which commercial enterprise matches your career path: nutrition consultancy practice, composite flour milling, or natural fruit juice processing?`,
     };
   }
 
