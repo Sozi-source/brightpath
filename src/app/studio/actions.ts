@@ -602,7 +602,7 @@ export async function saveBusinessPlanDetailsAction(formData: FormData) {
   // 1. Fetch workspace and ensure ownership.
   const { data: ws } = await db
     .from("project_workspaces")
-    .select("id, student_id, supervisor_id, workspace_type, level, course, status")
+    .select("id, student_id, supervisor_id, institution_id, workspace_type, level, course, status")
     .eq("id", workspaceId)
     .single();
 
@@ -635,6 +635,17 @@ export async function saveBusinessPlanDetailsAction(formData: FormData) {
       : Promise.resolve({ data: null }),
   ]);
 
+  const profileInstitution = profile?.institutions as
+    | { name?: string }
+    | { name?: string }[]
+    | null;
+  const profileInstitutionName = Array.isArray(profileInstitution)
+    ? profileInstitution[0]?.name
+    : profileInstitution?.name;
+  const { data: workspaceInstitution } = !profileInstitutionName && ws.institution_id
+    ? await db.from("institutions").select("name").eq("id", ws.institution_id).maybeSingle()
+    : { data: null };
+
   if (!specs.candidateName && profile?.full_name) {
     specs.candidateName = profile.full_name;
   }
@@ -642,8 +653,8 @@ export async function saveBusinessPlanDetailsAction(formData: FormData) {
     specs.admissionNumber = profile.admission_number;
   }
   if (!specs.institutionName) {
-    const instName = (profile?.institutions as unknown as { name?: string })?.name;
-    if (instName) specs.institutionName = instName;
+    const institutionName = profileInstitutionName || workspaceInstitution?.name;
+    if (institutionName) specs.institutionName = institutionName;
   }
   if (!specs.supervisorName && supervisor?.full_name) {
     specs.supervisorName = supervisor.full_name;
