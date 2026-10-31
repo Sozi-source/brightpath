@@ -988,8 +988,10 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
     auto_generated: true,
     student_signed_at: new Date().toISOString(),
   });
-  revalidatePath(`/studio/${workspaceId}`);
-  revalidatePath(`/studio/${workspaceId}/write`);
+  // Do not invalidate the active Server Component route after each chapter.
+  // The client builds chapters sequentially; rendering the full page between
+  // commits can fail after a successful save and make the client report a
+  // misleading RSC error. The builder refreshes the page once the run ends.
 
   return { success: true, generatedSections, preservedSections, factReviewWarning };
 }
