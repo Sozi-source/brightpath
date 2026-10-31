@@ -88,6 +88,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
   }
 
   const workspace = workspaceData as unknown as ProjectWorkspace;
+  const isBusiness = workspace.workspace_type === "business_plan";
 
   // Load sections
   const { data: sectionsData } = await db

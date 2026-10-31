@@ -248,7 +248,7 @@ Research local context, reachable customer segments, known competitors or altern
     };
   }> | undefined;
   const chunks = grounding?.[0]?.groundingMetadata?.groundingChunks || [];
-  const sourceCandidates = useGroq
+  const sourceCandidates = provider === "groq"
     ? (Array.isArray(parsed.sources) ? parsed.sources : [])
     : chunks.map((chunk) => ({ title: chunk.web?.title, url: chunk.web?.uri }));
   const sources = sourceCandidates.reduce<BusinessPlanResearchSource[]>((all, source) => {
