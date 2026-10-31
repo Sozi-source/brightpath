@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useMemo } from "react";
+import { useState, useTransition, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Sparkles,
@@ -158,6 +158,13 @@ export function BusinessPlanBuilderModal({
   const [isReviewing, startReviewTransition] = useTransition();
   const [generationStep, setGenerationStep] = useState<string>("");
   const [generationError, setGenerationError] = useState<string | null>(null);
+  // Ref-backed step setter: schedules via setTimeout to avoid updating state
+  // of this component while React is mid-render (React error #441).
+  const stepRef = useRef(setGenerationStep);
+  stepRef.current = setGenerationStep;
+  const scheduleStep = useCallback((msg: string) => {
+    setTimeout(() => stepRef.current(msg), 0);
+  }, []);
   const [documentReviewError, setDocumentReviewError] = useState<string | null>(null);
   const [documentReview, setDocumentReview] = useState<WholeDocumentReview | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<RequiredField, string>>>({});
@@ -256,7 +263,7 @@ export function BusinessPlanBuilderModal({
       return;
     }
     setFieldErrors({});
-    setGenerationStep("Building the draft and checking facts...");
+    scheduleStep("Building the draft and checking facts...");
 
     startGeneratingTransition(async () => {
       try {
@@ -278,7 +285,7 @@ export function BusinessPlanBuilderModal({
             setActiveTab(missingField.tab);
             window.requestAnimationFrame(() => document.getElementById(missingField.key)?.focus());
           }
-          setGenerationStep("");
+          scheduleStep("");
           return;
         }
 
@@ -286,7 +293,7 @@ export function BusinessPlanBuilderModal({
         let preservedSections = res.preservedSectionsCount;
         let factReviewWarning = false;
         for (const [index, chapterKey] of res.chapterKeys.entries()) {
-          setGenerationStep(`Building and fact-checking ${index + 1}/${res.chapterKeys.length}: ${chapterKey}...`);
+          scheduleStep(`Building and fact-checking ${index + 1}/${res.chapterKeys.length}: ${chapterKey}...`);
           const chapterForm = new FormData();
           chapterForm.append("workspaceId", workspaceId);
           chapterForm.append("chapterKey", chapterKey);
@@ -305,7 +312,7 @@ export function BusinessPlanBuilderModal({
           researchSources: res.researchSources,
           factReviewWarning,
         });
-        setGenerationStep("");
+        scheduleStep("");
         if (onPlanGenerated) {
           onPlanGenerated();
         }
@@ -314,7 +321,7 @@ export function BusinessPlanBuilderModal({
         setGenerationError(
           `${err instanceof Error ? err.message : "Could not finish the business plan draft."} Completed sections stay saved; click Build Full Draft again to resume.`
         );
-        setGenerationStep("");
+        scheduleStep("");
       }
     });
   };
