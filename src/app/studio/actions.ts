@@ -618,6 +618,40 @@ export async function saveBusinessPlanDetailsAction(formData: FormData) {
     throw new Error("Business plan details are too large to save.");
   }
 
+  // Resolve profile defaults before validation so required values can be supplied
+  // automatically when they are already present on the student's profile.
+  const [{ data: profile }, { data: supervisor }] = await Promise.all([
+    db
+      .from("profiles")
+      .select("full_name, admission_number, institutions(name)")
+      .eq("id", user.id)
+      .maybeSingle(),
+    ws.supervisor_id
+      ? db
+          .from("profiles")
+          .select("full_name")
+          .eq("id", ws.supervisor_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+
+  if (!specs.candidateName && profile?.full_name) {
+    specs.candidateName = profile.full_name;
+  }
+  if (!specs.admissionNumber && profile?.admission_number) {
+    specs.admissionNumber = profile.admission_number;
+  }
+  if (!specs.institutionName) {
+    const instName = (profile?.institutions as unknown as { name?: string })?.name;
+    if (instName) specs.institutionName = instName;
+  }
+  if (!specs.supervisorName && supervisor?.full_name) {
+    specs.supervisorName = supervisor.full_name;
+  }
+  if (!specs.course) {
+    specs.course = ws.course;
+  }
+
   const requiredText: Array<keyof BusinessPlanSpecs> = [
     "businessName",
     "industrySector",
@@ -694,39 +728,6 @@ export async function saveBusinessPlanDetailsAction(formData: FormData) {
       .every(isAmount)
   ) {
     throw new Error("Enter valid monthly overhead amounts.");
-  }
-
-  // 2. Fetch user profile, institution, supervisor for missing details if any
-  const [{ data: profile }, { data: supervisor }] = await Promise.all([
-    db
-      .from("profiles")
-      .select("full_name, admission_number, institutions(name)")
-      .eq("id", user.id)
-      .maybeSingle(),
-    ws.supervisor_id
-      ? db
-          .from("profiles")
-          .select("full_name")
-          .eq("id", ws.supervisor_id)
-          .maybeSingle()
-      : Promise.resolve({ data: null }),
-  ]);
-
-  if (!specs.candidateName && profile?.full_name) {
-    specs.candidateName = profile.full_name;
-  }
-  if (!specs.admissionNumber && profile?.admission_number) {
-    specs.admissionNumber = profile.admission_number;
-  }
-  if (!specs.institutionName) {
-    const instName = (profile?.institutions as unknown as { name?: string })?.name;
-    if (instName) specs.institutionName = instName;
-  }
-  if (!specs.supervisorName && supervisor?.full_name) {
-    specs.supervisorName = supervisor.full_name;
-  }
-  if (!specs.course) {
-    specs.course = ws.course;
   }
 
   // Save the candidate's supplied details separately from report prose. The section editor

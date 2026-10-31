@@ -491,6 +491,18 @@ export function BusinessPlanBuilderModal({
                     </div>
                   </div>
 
+                  <div>
+                    <label className="text-xs font-medium text-slate-700 block mb-1">
+                      Training Institution *
+                    </label>
+                    <input
+                      type="text"
+                      value={specs.institutionName}
+                      onChange={(e) => setSpecs({ ...specs, institutionName: e.target.value })}
+                      className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      placeholder="Enter your institution name"
+                    />
+                  </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
