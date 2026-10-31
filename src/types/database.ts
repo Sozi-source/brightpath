@@ -185,7 +185,7 @@ export interface SectionVersion {
   id: string;
   section_id: string;
   text: string;
-  source: "student_typed" | "student_accepted_suggestion";
+  source: "student_typed" | "student_accepted_suggestion" | "ai_generated_draft";
   ai_chars_accepted: number;
   created_at: string;
 }

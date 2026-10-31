@@ -34,6 +34,12 @@ export interface BusinessPlanCompetitorItem {
 }
 
 export interface BusinessPlanSpecs {
+  research?: {
+    summary: string;
+    sources: Array<{ title: string; url: string }>;
+    searchedAt: string;
+  };
+
   // 1. Enterprise Identity
   businessName: string;
   tagline: string;

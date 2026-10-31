@@ -142,7 +142,8 @@ export function BusinessPlanBuilderModal({
   const [generationSuccess, setGenerationSuccess] = useState<{
     businessName: string;
     sectionsCount: number;
-    totalWords: number;
+    preservedSectionsCount: number;
+    researchSources: Array<{ title: string; url: string }>;
   } | null>(null);
 
   // Kept out of the report flow until the financial model is reconciled to the supplied template.
@@ -226,7 +227,7 @@ export function BusinessPlanBuilderModal({
       return;
     }
     setFieldErrors({});
-    setGenerationStep("Saving your business details...");
+    setGenerationStep("Researching and building your draft...");
 
     startGeneratingTransition(async () => {
       try {
@@ -301,10 +302,10 @@ export function BusinessPlanBuilderModal({
                 </div>
                 <div>
                   <h3 className="text-base font-semibold text-slate-900 leading-tight">
-                    Business Plan Details
+                    Build Business Plan
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Save your details, then draft each section with the template.
+                    Research sources and build an editable draft.
                   </p>
                 </div>
               </div>
@@ -1228,19 +1229,35 @@ export function BusinessPlanBuilderModal({
                 <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2">
                   <div className="flex items-center gap-2 text-emerald-800 font-semibold text-sm">
                     <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                    <span>Business details saved</span>
+                    <span>Business plan draft built</span>
                   </div>
                   <p className="text-xs text-emerald-950 leading-relaxed">
-                    Saved the details for <strong>{generationSuccess.businessName}</strong>. Continue drafting
-                    each template section with your own evidence and verify all figures before submission.
+                    Added {generationSuccess.sectionsCount} sections. Preserved {generationSuccess.preservedSectionsCount} existing sections.
                   </p>
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold text-emerald-900">
+                      Web sources ({generationSuccess.researchSources.length})
+                    </p>
+                    <ul className="space-y-1">
+                      {generationSuccess.researchSources.slice(0, 5).map((source) => (
+                        <li key={source.url}>
+                          <a href={source.url} target="_blank" rel="noreferrer" className="text-[11px] text-indigo-700 underline underline-offset-2">
+                            {source.title}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                   <div className="pt-2 flex items-center gap-3">
                     <button
                       type="button"
-                      onClick={() => setIsOpen(false)}
+                      onClick={() => {
+                        setIsOpen(false);
+                        router.push(`/studio/${workspaceId}/write/ch1.name`);
+                      }}
                       className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors cursor-pointer"
                     >
-                      Continue Writing
+                      Review Draft
                     </button>
                   </div>
                 </div>
@@ -1251,7 +1268,7 @@ export function BusinessPlanBuilderModal({
             <div className="px-6 py-3.5 border-t border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
               <div className="text-[11px] text-slate-500 flex items-center gap-2">
                 <FileText className="h-3.5 w-3.5 text-slate-400" />
-                <span>Example presets are starting points. Replace them with your own evidence.</span>
+                <span>Review assumptions and verify local evidence.</span>
               </div>
 
               <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
@@ -1277,7 +1294,7 @@ export function BusinessPlanBuilderModal({
                   ) : (
                     <>
                       <Sparkles className="h-3.5 w-3.5" />
-                      <span>Save Details</span>
+                      <span>Build Full Draft</span>
                     </>
                   )}
                 </button>

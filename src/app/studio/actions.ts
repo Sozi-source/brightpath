@@ -6,6 +6,11 @@ import {
   getWorkspaceSections,
   getSectionStarterContent,
 } from "@/lib/studio/templates";
+import { buildCompleteBusinessPlan } from "@/lib/studio/businessPlanBuilder";
+import {
+  draftBusinessPlanSections,
+  researchBusinessPlan,
+} from "@/lib/studio/businessPlanGeneration";
 import {
   narrowDownTopic,
   polishAndAlignSection,
@@ -577,7 +582,13 @@ export async function deleteDraftWorkspace(formData: FormData) {
 }
 
 export async function saveBusinessPlanDetailsAction(formData: FormData): Promise<
-  | { success: true; businessName: string; sectionsCount: number; totalWords: number }
+  | {
+      success: true;
+      businessName: string;
+      sectionsCount: number;
+      preservedSectionsCount: number;
+      researchSources: Array<{ title: string; url: string }>;
+    }
   | { error: string }
 > {
   const supabase = await createClient();
@@ -615,6 +626,9 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
 
   if (ws.workspace_type !== "business_plan") {
     throw new Error("This workspace is not configured as a TVET Business Plan.");
+  }
+  if (ws.status !== "approved" && ws.status !== "submitted") {
+    throw new Error("Your business plan topic must be approved before you build the full draft.");
   }
 
   if (rawSpecs.length > 100_000) {
@@ -755,8 +769,27 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
     throw new Error("Enter valid monthly overhead amounts.");
   }
 
-  // Save the candidate's supplied details separately from report prose. The section editor
-  // remains the source of authored text; this action must never overwrite student drafts.
+  const research = await researchBusinessPlan(specs);
+  const sectionDefinitions = getWorkspaceSections("business_plan", ws.level);
+  const aiDrafts = await draftBusinessPlanSections(specs, sectionDefinitions, research);
+  const scriptedSections = new Map(
+    buildCompleteBusinessPlan(specs).map((section) => [section.section_key, section])
+  );
+  const draftSections = sectionDefinitions.map((definition, index) => {
+    const aiText = aiDrafts.get(definition.key);
+    const scriptedText = scriptedSections.get(definition.key)?.content;
+    const currentText = aiText || scriptedText ||
+      `### ${definition.title}\n\n[Add verified information for this section.]`;
+    return {
+      section_key: definition.key,
+      position: index + 1,
+      current_text: currentText,
+      starter_text: getSectionStarterContent("business_plan", ws.level, definition.key),
+    };
+  });
+
+  // Research is stored with the candidate's details so claims can be checked later.
+  const savedSpecs: BusinessPlanSpecs = { ...specs, research };
   const fullTitle = `Business Plan for ${specs.businessName} in ${specs.townOrMarket}, ${specs.county}`;
   const executiveProfile = [
     `Business: ${specs.businessName}`,
@@ -771,15 +804,35 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
     .update({
       title: fullTitle,
       problem_area: executiveProfile,
-      business_plan_specs: specs,
+      business_plan_specs: savedSpecs,
     })
     .eq("id", workspaceId);
   if (saveError) throw new Error(saveError.message || "Could not save business plan details.");
 
+  const { data: generationStats, error: generationError } = await db.rpc(
+    "fill_empty_business_plan_sections",
+    {
+      p_workspace_id: workspaceId,
+      p_user_id: user.id,
+      p_sections: draftSections.map(({ section_key, position, current_text, starter_text }) => ({
+        section_key,
+        position,
+        current_text,
+        starter_text,
+      })),
+    }
+  );
+  if (generationError) {
+    throw new Error(generationError.message || "Could not save the generated plan sections.");
+  }
+  const stats = Array.isArray(generationStats) ? generationStats[0] : null;
+  const sectionsCount = Number(stats?.generated_sections) || 0;
+  const preservedSectionsCount = Number(stats?.preserved_sections) || 0;
+
   // 6. Project log entry
   await db.from("project_log_entries").insert({
     workspace_id: workspaceId,
-    activity: `Saved business plan details for "${specs.businessName}".`,
+    activity: `Built a sourced business plan draft for "${specs.businessName}" (${sectionsCount} sections added; existing sections preserved).`,
     auto_generated: true,
     student_signed_at: new Date().toISOString(),
   });
@@ -793,8 +846,9 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
   return {
     success: true,
     businessName: specs.businessName,
-    sectionsCount: 0,
-    totalWords: 0,
+    sectionsCount,
+    preservedSectionsCount,
+    researchSources: research.sources,
   };
 }
 
