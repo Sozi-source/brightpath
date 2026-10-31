@@ -349,7 +349,7 @@ export function BusinessPlanBuilderModal({
                     <div
                       onClick={() => loadPreset("milling")}
                       className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
-                        specs.businessName.includes("Porridge")
+                        (specs.businessName || "").includes("Porridge")
                           ? "border-indigo-600 bg-indigo-50/40 shadow-xs ring-1 ring-indigo-600"
                           : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
                       }`}
@@ -373,7 +373,7 @@ export function BusinessPlanBuilderModal({
                     <div
                       onClick={() => loadPreset("consultancy")}
                       className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
-                        specs.businessName.includes("Consultancy")
+                        (specs.businessName || "").includes("Consultancy")
                           ? "border-indigo-600 bg-indigo-50/40 shadow-xs ring-1 ring-indigo-600"
                           : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
                       }`}
@@ -397,7 +397,7 @@ export function BusinessPlanBuilderModal({
                     <div
                       onClick={() => loadPreset("beverages")}
                       className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
-                        specs.businessName.includes("Fruit")
+                        (specs.businessName || "").includes("Fruit")
                           ? "border-indigo-600 bg-indigo-50/40 shadow-xs ring-1 ring-indigo-600"
                           : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
                       }`}
