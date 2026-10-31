@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
@@ -9,6 +10,7 @@ import { BuyButton } from "@/components/BuyButton";
 export const instant = false;
 
 export default async function ProjectsPage() {
+  await connection();
   const supabase = await createClient();
   const {
     data: { user },

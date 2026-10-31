@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import {
   updateCommission,
@@ -37,6 +38,7 @@ import type {
 export const instant = false;
 
 export default async function AdminPage() {
+  await connection();
   const supabase = await createClient();
   const {
     data: { user },

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
 import { getWorkspaceSections, type SectionDefinition } from "@/lib/studio/templates";
@@ -30,6 +31,7 @@ interface SupervisorWorkspacePageProps {
 }
 
 export default async function SupervisorWorkspacePage({ params }: SupervisorWorkspacePageProps) {
+  await connection();
   const { workspaceId } = await params;
   const supabase = await createClient();
 

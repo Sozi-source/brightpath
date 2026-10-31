@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { connection } from "next/server";
 import {
   createProject,
   deleteProject,
@@ -24,6 +25,7 @@ import type { Project, UserProfile } from "@/types/database";
 export const instant = false;
 
 export default async function TrainerPortalPage() {
+  await connection();
   const supabase = await createClient();
   const {
     data: { user },

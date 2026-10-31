@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/(auth)/actions";
 import {
@@ -16,6 +17,7 @@ import {
 export const instant = false;
 
 export default async function HomePage() {
+  await connection();
   const supabase = await createClient();
   const {
     data: { user },

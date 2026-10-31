@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
 import { createWorkspace } from "@/app/studio/actions";
@@ -16,6 +17,7 @@ import {
 export const instant = false;
 
 export default async function NewWorkspacePage() {
+  await connection();
   const supabase = await createClient();
   const {
     data: { user },

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
@@ -13,6 +14,7 @@ interface PurchasedProjectOrder extends Order {
 }
 
 export default async function LibraryPage() {
+  await connection();
   const supabase = await createClient();
   const {
     data: { user },

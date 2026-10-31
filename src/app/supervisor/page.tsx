@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { connection } from "next/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
@@ -20,6 +21,7 @@ import type { ProjectWorkspace, UserProfile } from "@/types/database";
 export const instant = false;
 
 export default async function SupervisorPage() {
+  await connection();
   const supabase = await createClient();
   const {
     data: { user },
