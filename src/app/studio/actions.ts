@@ -674,9 +674,20 @@ export async function saveBusinessPlanDetailsAction(formData: FormData) {
     "townOrMarket",
     "primaryProduct",
   ];
+  const requiredFieldLabels: Partial<Record<keyof BusinessPlanSpecs, string>> = {
+    businessName: "Business name",
+    industrySector: "Industry sector",
+    candidateName: "Candidate name",
+    admissionNumber: "Admission number",
+    institutionName: "Training institution",
+    course: "Course",
+    county: "County",
+    townOrMarket: "Town or market",
+    primaryProduct: "Primary product",
+  };
   for (const field of requiredText) {
     if (typeof specs[field] !== "string" || !String(specs[field]).trim()) {
-      throw new Error(`Complete the required field: ${field}.`);
+      throw new Error(`${requiredFieldLabels[field] ?? "This field"} is required.`);
     }
   }
 
