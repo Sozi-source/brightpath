@@ -41,7 +41,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`/login?redirect=/supervisor/${workspaceId}`);
+    redirect(`/login?portal=faculty&redirect=/supervisor/${workspaceId}`);
   }
 
   const db = getServerDbClient(supabase);

@@ -2,9 +2,35 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import type { UserRole } from "@/types/database";
 
 function fail(path: string, message: string): never {
-  redirect(`${path}?error=${encodeURIComponent(message)}`);
+  const [pathname, query = ""] = path.split("?", 2);
+  const params = new URLSearchParams(query);
+  params.set("error", message);
+  redirect(`${pathname}?${params.toString()}`);
+}
+
+const ROLE_HOME: Record<UserRole, string> = {
+  student: "/studio",
+  trainer: "/trainer",
+  supervisor: "/supervisor",
+  admin: "/admin",
+};
+
+const ROLE_REDIRECT_PREFIXES: Record<UserRole, string[]> = {
+  student: ["/studio", "/learn", "/library", "/projects"],
+  trainer: ["/trainer", "/projects", "/library"],
+  supervisor: ["/supervisor", "/projects", "/library"],
+  admin: ["/admin", "/supervisor", "/trainer", "/studio", "/learn", "/library", "/projects"],
+};
+
+function isAllowedRoleRedirect(role: UserRole, redirectUrl: string | undefined): boolean {
+  if (!redirectUrl || !redirectUrl.startsWith("/") || redirectUrl.startsWith("//") || redirectUrl.includes("\\")) {
+    return false;
+  }
+  const path = redirectUrl.split(/[?#]/, 1)[0];
+  return ROLE_REDIRECT_PREFIXES[role].some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
 }
 
 export async function login(formData: FormData) {
@@ -35,28 +61,28 @@ export async function login(formData: FormData) {
   }
 
   // Redirect based on role and redirect parameter
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", data.user.id)
     .single();
 
-  const role = profile?.role || "student";
+  const role = profile?.role as UserRole | undefined;
+  if (profileError || !role || !(role in ROLE_HOME)) {
+    await supabase.auth.signOut();
+    fail(failPath, "Your account profile is not ready. Contact your college administrator.");
+  }
 
-  // If safe redirect provided and role matches or student
-  if (redirectUrl && redirectUrl.startsWith("/") && !redirectUrl.startsWith("//")) {
+  if (portal === "faculty" && role === "student") {
+    await supabase.auth.signOut();
+    fail(failPath, "This account has student access. Ask your college administrator to enable faculty access.");
+  }
+
+  if (redirectUrl && isAllowedRoleRedirect(role, redirectUrl)) {
     redirect(redirectUrl);
   }
 
-  if (role === "admin") {
-    redirect("/admin");
-  } else if (role === "trainer") {
-    redirect("/trainer");
-  } else if (role === "supervisor") {
-    redirect("/supervisor");
-  } else {
-    redirect("/studio");
-  }
+  redirect(ROLE_HOME[role]);
 }
 
 export async function signup(formData: FormData) {
