@@ -36,19 +36,14 @@ export function buildCompleteBusinessPlan(specs: BusinessPlanSpecs): GeneratedSe
     `### DECLARATION BY CANDIDATE
 I declare that this business plan is my original work and that I personally undertook its preparation in accordance with Kenya National Examinations Council (KNEC) guidelines. It has not been presented to any other institution or examination body for the award of any certificate, diploma, or degree.
 
-Candidate Name: **${specs.candidateName || "Candidate"}**  
-Index Number: **${specs.admissionNumber || "Index No."}**  
-Institution: **${specs.institutionName || "Institution"}**  
-Signature: ____________________________________ Date: ________________________
+Candidate Name: **${specs.candidateName || "[Enter candidate name]"}**<br>Index Number: **${specs.admissionNumber || "[Enter index number]"}**<br>Institution: **${specs.institutionName || "[Enter institution name]"}**<br>Signature: ______________________________<br>Date: ______________________________
 
 ---
 
 ### APPROVAL BY SUPERVISOR
-I confirm that the work reported in this business plan was carried out by the candidate under my supervision and guidance. I have inspected the business premises rationale, market survey evidence, and financial statements and recommend it for submission to the Kenya National Examinations Council.
+I have reviewed this business plan and recommend it for examination.
 
-Supervisor Name: **${specs.supervisorName || "Institutional Supervisor"}**  
-Designation: Department of Human Nutrition & Dietetics / Entrepreneurship  
-Signature: ____________________________________ Date: ________________________`
+Supervisor Name: **${specs.supervisorName || "[Enter supervisor name]"}**<br>Designation: **Project Supervisor**<br>Institution: **${specs.institutionName || "[Enter institution name]"}**<br>Signature: ______________________________<br>Date: ______________________________`
   );
 
   add(
@@ -64,11 +59,11 @@ I specially dedicate this work to my beloved family, whose steadfast moral suppo
     "prelim.acknowledgements",
     "Acknowledgements",
     `### ACKNOWLEDGEMENTS
-I wish to express my deepest appreciation to my project supervisor, **${specs.supervisorName || "my institutional supervisor"}**, whose intellectual critique, patience, and professional guidance were instrumental in refining this business plan into a viable commercial venture.
+I acknowledge my project supervisor, **${specs.supervisorName || "[Supervisor name]"}**, for the guidance provided during preparation of this business plan.
 
-I extend sincere gratitude to the management and faculty of **${specs.institutionName || "our institution"}** for providing the academic facilities, laboratory access, and supportive learning environment that enabled the completion of my course in **${specs.course}**.
+I also thank **${specs.institutionName || "[Institution name]"}** for its academic support during my **${specs.course}** course.
 
-Special thanks are due to the micro-entrepreneurs, agro-processors, health clinic administrators, and local community members in **${specs.townOrMarket}, ${specs.county}** who participated willingly in the field market feasibility survey and provided authentic equipment price quotations. Their practical insights grounded this business plan in real commercial reality. Finally, I thank my fellow classmates for their constructive feedback and camaraderie during project defence rehearsals.`
+`
   );
 
   add(
@@ -80,9 +75,9 @@ Special thanks are due to the micro-entrepreneurs, agro-processors, health clini
 
 The flagship product offered is **${specs.primaryProduct}**, packaged in **${specs.productPackaging}** and retailed at **KES ${formatKES(specs.unitSellingPrice)}** per unit against a production cost of **KES ${formatKES(specs.unitCostOfProduction)}**. In ${specs.townOrMarket}, the total addressable market encompasses approximately **${specs.totalMarketPopulation}**. Market feasibility survey data reveals an unmet consumer deficit driven by high prices of imported commercial brands and hygienic shortcomings of informal, uncertified open-air market vendors. The enterprise projects capturing **${specs.projectedMarketSharePercentage}%** of the local market share within Year 1.
 
-The venture requires a total start-up capital of **KES ${formatKES(fin.totalStartupCapital)}**, consisting of **KES ${formatKES(fin.totalMachineryCost)}** for processing and diagnostic equipment, **KES ${formatKES(fin.totalPreOperationalCost)}** for pre-operational premises renovation and statutory licenses, and **KES ${formatKES(specs.workingCapitalBuffer || 75000)}** for working capital buffer. Financing is structured at **60% owner's equity (KES ${formatKES(Math.round(fin.totalStartupCapital * 0.6))})** sourced from personal savings and family contributions, and **40% debt financing (KES ${formatKES(fin.totalStartupCapital - Math.round(fin.totalStartupCapital * 0.6))})** secured from the Youth Enterprise Development Fund at a concessional interest rate of 12% per annum over a 24-month tenure.
+The venture requires start-up capital of **KES ${formatKES(fin.totalStartupCapital)}**, comprising **KES ${formatKES(fin.totalMachineryCost)}** for equipment, **KES ${formatKES(fin.totalPreOperationalCost)}** for pre-operational costs, and **KES ${formatKES(specs.workingCapitalBuffer || 75000)}** for working capital. The projection assumes **60% owner's equity (KES ${formatKES(Math.round(fin.totalStartupCapital * 0.6))})** and **40% proposed debt financing (KES ${formatKES(fin.totalStartupCapital - Math.round(fin.totalStartupCapital * 0.6))})** at an assumed annual interest rate of ${Number(specs.loanInterestRateAnnual || 0).toFixed(1)}% over ${Math.max(1, Math.floor(specs.loanTenureMonths || 24))} months. The lender and loan terms require confirmation before implementation.
 
-Financial forecasts demonstrate robust commercial viability. First-year gross sales revenue is projected at **KES ${formatKES(fin.annualSalesYear1)}**, yielding a gross profit of **KES ${formatKES(fin.annualGrossProfitYear1)}** (**${fin.grossProfitMarginPercent}% gross margin**). After accounting for operating overheads, annual depreciation of KES ${formatKES(fin.annualDepreciation)}, loan interest, and 30% corporate income tax, Year 1 net profit after tax is projected at **KES ${formatKES(fin.netProfitYear1)}** (**${fin.netProfitMarginPercentYear1}% net margin**), expanding to **KES ${formatKES(fin.netProfitYear2)}** in Year 2 and **KES ${formatKES(fin.netProfitYear3)}** in Year 3. Monthly fixed operating overheads stand at **KES ${formatKES(fin.monthlyFixedCosts)}**, yielding a break-even sales volume of **${formatKES(fin.breakEvenUnitsMonthly)} units per month** (**${fin.breakEvenLevelPercent}% of installed capacity**). Projected return on investment (ROI) is **${fin.returnOnInvestmentYear1}%** and return on equity (ROE) is **${fin.returnOnEquityYear1}%**, confirming that ${specs.businessName} is an economically viable and bankable enterprise.`
+Financial forecasts project first-year gross sales of **KES ${formatKES(fin.annualSalesYear1)}**, gross profit of **KES ${formatKES(fin.annualGrossProfitYear1)}** (**${fin.grossProfitMarginPercent}% gross margin**), and net profit after tax of **KES ${formatKES(fin.netProfitYear1)}** (**${fin.netProfitMarginPercentYear1}% net margin**). Net profit after tax is projected at **KES ${formatKES(fin.netProfitYear2)}** in Year 2 and **KES ${formatKES(fin.netProfitYear3)}** in Year 3, subject to the stated production, pricing, cost, tax, and financing assumptions. ${fin.breakEvenAchievable ? `Monthly break-even is estimated at **${formatKES(fin.breakEvenUnitsMonthly)} units** (**${fin.breakEvenLevelPercent}%** of planned capacity).` : "Break-even cannot be calculated because the unit contribution margin is not positive."} The projected Year 1 return on investment (ROI) is **${fin.returnOnInvestmentYear1}%** and return on equity (ROE) is **${fin.returnOnEquityYear1}%**.`
   );
 
   // =========================================================================
@@ -213,10 +208,10 @@ The strategic trajectory of **${specs.businessName}** is divided into measurable
 1. **Operational Launch**: Complete premises fitting, machinery installation, trial batch testing, and regulatory licensing within the first 60 days of funding.
 2. **Production Throughput**: Achieve a monthly production and sales volume of **${formatKES(specs.monthlyProductionUnitsYear1)} units**, generating **KES ${formatKES(fin.annualSalesYear1)}** in gross annual turnover.
 3. **Retail Distribution Reach**: Establish direct supply contracts with at least **30 retail kiosks, 5 local mini-supermarkets, and 5 clinic canteens** across ${specs.townOrMarket}.
-4. **Financial Break-Even**: Attain commercial break-even by **month 5** and close Year 1 with a net profit after tax of **KES ${formatKES(fin.netProfitYear1)}**.
+4. **Financial Monitoring**: Track monthly sales, contribution margin, operating costs, and cash balances against the Year 1 projections.
 5. **Quality Certification**: Attain the Kenya Bureau of Standards (KEBS) Standardization Mark of Quality (SM) within the first 9 months of active operation.
 
-#### 1.7.2 Long-Term Objectives (Years 2 – 3)
+#### 1.7.2 Long-Term Objectives (Years 2 - 3)
 1. **Market Expansion**: Expand sales distribution channels into three neighboring sub-counties, expanding monthly throughput by **${Math.round((specs.annualGrowthRateYear2 || 0.2) * 100)}%** in Year 2 and **${Math.round((specs.annualGrowthRateYear3 || 0.2) * 100)}%** in Year 3.
 2. **Product Line Diversification**: Introduce specialized formulations including low-glycemic flour for diabetic management and infant weaning porridge mixes.
 3. **Capital Independence**: Fully amortize the commercial loan by month 24, accumulating retained reserves exceeding KES 500,000 to finance automated packaging machinery.`
@@ -265,10 +260,10 @@ A comprehensive analysis of internal enterprise capabilities and external market
 
 | Category | Enterprise Attributes | Strategic Mitigation / Exploitation Action |
 | :--- | :--- | :--- |
-| **STRENGTHS** | • Qualified promoter holding professional nutrition credentials.<br>• Locally formulated product meeting verified clinical standards.<br>• Direct access to low-cost raw material supply chains.<br>• Compact, low-overhead operational cost structure. | Leverage technical expertise to conduct educational consumer marketing; maintain agile delivery schedules. |
-| **WEAKNESSES** | • Brand is new to the market relative to established national brands.<br>• Modest startup marketing budget.<br>• Manual packaging aspects during early pilot phase. | Deploy point-of-sale displays, localized word-of-mouth campaigns, and invest initial cash surpluses into automated band sealers. |
-| **OPPORTUNITIES** | • Rising consumer demand for preventive health and whole-grain foods.<br>• County government prioritization of school feeding programs.<br>• Import substitution driven by high prices of imported infant foods. | Bid for municipal school feeding tenders; forge partnerships with antenatal clinics and child wellness centers. |
-| **THREATS** | • Fluctuations in grain prices due to regional seasonal droughts.<br>• Aggressive promotional discounting by corporate multinationals.<br>• Escalating electricity tariffs and fuel distribution overheads. | Maintain a 60-day buffer stock of dried grains in hermetic storage bags; install energy-efficient motors. |`
+| **STRENGTHS** | - Qualified promoter with nutrition credentials.<br>- Locally formulated product with verified standards.<br>- Direct access to local raw materials.<br>- Compact operating cost structure. | Use technical expertise for consumer education and keep delivery schedules flexible. |
+| **WEAKNESSES** | - New brand competing with established products.<br>- Limited start-up marketing budget.<br>- Manual packaging during the pilot phase. | Use point-of-sale displays, local referrals, and reinvest early cash surplus in suitable packaging equipment. |
+| **OPPORTUNITIES** | - Demand for preventive health and whole-grain foods.<br>- County support for school feeding programmes.<br>- Potential for local products to replace imports. | Pursue suitable school feeding tenders and partnerships with clinics. |
+| **THREATS** | - Seasonal changes in grain prices.<br>- Discounting by large competitors.<br>- Rising electricity and fuel costs. | Monitor input prices, maintain suitable buffer stock, and review energy use. |`
   );
 
   // =========================================================================
@@ -282,7 +277,7 @@ A comprehensive analysis of internal enterprise capabilities and external market
 
 #### 2.1.1 Target Consumer Demographics
 The customer base in **${specs.townOrMarket}** and surrounding sub-counties is segmented into three distinct groups:
-1. **Mothers and Caregivers of Infants (6–59 Months)**: Household purchasers seeking digestible, energy-dense complementary weaning foods that promote child weight gain and mental development.
+1. **Mothers and Caregivers of Infants (6-59 Months)**: Household purchasers seeking digestible, energy-dense complementary weaning foods that promote child weight gain and mental development.
 2. **Adults Managing Lifestyle Non-Communicable Diseases**: Individuals diagnosed with diabetes, hypertension, and obesity who demand low-glycemic, fiber-rich, and sodium-free whole food alternatives.
 3. **Institutional Buyers**: Primary boarding schools, day nurseries, mission hospital canteens, and sports clubs seeking affordable, high-protein bulk nutrition.
 
@@ -346,7 +341,7 @@ The enterprise adopts a **Cost-Plus Competitor-Benchmarked Pricing Model**. This
 - **Direct Processing Labor & Electricity**: KES ${formatKES(Math.round(specs.unitCostOfProduction * 0.10))}
 - **Total Unit Variable Cost**: **KES ${formatKES(specs.unitCostOfProduction)}**
 - **Wholesale Selling Price (To Retailers)**: **KES ${formatKES(Math.round(specs.unitSellingPrice * 0.82))}** (18% retailer margin)
-- **Recommended Maximum Retail Price (RRP)**: **KES ${formatKES(specs.unitSellingPrice)}**
+- **Recommended Retail Price (RRP)**: **KES ${formatKES(specs.unitSellingPrice)}**
 - **Gross Contribution Margin per Unit**: **KES ${formatKES(fin.contributionMarginPerUnit)} (${Math.round((fin.contributionMarginPerUnit / specs.unitSellingPrice) * 100)}%)**
 
 #### 2.4.2 Credit Policy and Terms of Sale
@@ -375,18 +370,14 @@ To achieve commercial recognition across **${specs.county}**, the business will 
     "2.6 Distribution Strategy and Logistics",
     `### 2.6 Distribution Strategy and Logistics
 
-The enterprise utilizes a **Multi-Tier Hybrid Distribution Model** to guarantee rapid product availability across **${specs.townOrMarket}**.
+The enterprise uses a hybrid distribution model to serve customers across **${specs.townOrMarket}**.
 
+\`\`\`channels
+Production Plant
+40% Direct Sales to Consumers and Clinics (M-PESA / Cash)
+45% Wholesale Supply to Kiosks and Retail Supermarkets
+15% Institutional Supply Contracts (Schools, Canteens, Nurseries)
 \`\`\`
-[ Production Plant ]
-       │
-       ├─── (40%) ─── Direct Sales to Consumers & Clinics (M-PESA / Cash)
-       │
-       ├─── (45%) ─── Wholesale Supply to Kiosks & Retail Supermarkets
-       │
-       └─── (15%) ─── Institutional Supply Contracts (Schools, Canteens, Nurseries)
-\`\`\`
-
 - **Primary Channel (Direct Delivery)**: The enterprise will utilize a company cargo motorbike / tricycle to conduct daily morning replenishment runs to 30 contracted retail shops.
 - **Logistics Cost**: Monthly fuel and maintenance budget of **KES ${formatKES(specs.monthlyOverheads.transport)}**, ensuring reliable deliveries and zero stock-outs.
 - **Warehousing**: A clean, rodent-proof palletized stockroom on the premises accommodating up to 2 weeks of buffer stock.`
@@ -416,22 +407,13 @@ Sales volumes are modeled with a conservative initial ramp-up during Months 1 to
     "3.1 Organizational Structure / Organogram",
     `### 3.1 Organizational Structure / Organogram
 
-The business operates a lean, functional hierarchy designed to maintain strict quality standards while minimizing administrative overheads.
+The business operates a lean, functional hierarchy designed to maintain clear accountability while minimizing administrative overheads.
 
+\`\`\`org
+Managing Director (Proprietor / Nutritionist)
+Operations and Quality — Machine Operator
+Sales and Accounts Clerk — Marketing and Records
 \`\`\`
-                ┌──────────────────────────────────────┐
-                │          MANAGING DIRECTOR           │
-                │     (Proprietor / Nutritionist)      │
-                └──────────────────┬───────────────────┘
-                                   │
-         ┌─────────────────────────┴─────────────────────────┐
-         │                                                   │
-┌────────┴──────────────┐                           ┌────────┴──────────────┐
-│  OPERATIONS & QUALITY │                           │ SALES & ACCOUNTS CLERK│
-│    MACHINE OPERATOR   │                           │ (Marketing & Records) │
-└───────────────────────┘                           └───────────────────────┘
-\`\`\`
-
 - **Chain of Command**: The Managing Director has overall executive, fiscal, and regulatory responsibility. All operational and sales personnel report directly to the Managing Director.`
   );
 
@@ -552,12 +534,16 @@ The enterprise will partner with established external professional institutions 
 The production plant occupies a floor area of **${specs.workshopSquareMeters} square meters** at **${specs.streetOrBuilding}**, leased at **KES ${formatKES(specs.monthlyRent)}** per month.
 
 #### 4.1.1 Facility Layout Plan
-The workshop layout is engineered according to linear HACCP workflow principles to eliminate cross-contamination:
-1. **Raw Material Receiving & Storage Bay (15 m²)**: Elevated wooden pallets and hermetic grain silos with moisture testing bench.
-2. **Processing & Formulation Section (20 m²)**: Tiled, washable walls housing the grain roaster, hammer mill, and blending drums.
-3. **Packaging & Quality Testing Station (15 m²)**: Cleanroom environment with positive pressure, ultraviolet air sanitizers, and impulse sealers.
-4. **Finished Goods Warehouse & Dispatch (15 m²)**: Pallet racks holding boxed pouches ready for distribution.
-5. **Administrative Office & Restrooms (15 m²)**: Executive desk, filing cabinets, handwashing sinks, and staff locker facilities.`
+The indicative arrangement separates raw materials, processing, clean packaging, and dispatch. Final room sizes should match the leased premises.
+
+\`\`\`layout
+Raw material receiving and storage
+Processing and formulation
+Packaging and quality testing
+Finished goods storage and dispatch
+Office, staff facilities, and handwashing
+\`\`\`
+`
   );
 
   add(
@@ -565,14 +551,16 @@ The workshop layout is engineered according to linear HACCP workflow principles 
     "4.2 Production Process Workflow",
     `### 4.2 Production Process Workflow
 
-The manufacturing of **${specs.primaryProduct}** follows a calibrated six-step sequential workflow:
+The manufacturing of **${specs.primaryProduct}** follows a sequential workflow designed to protect product quality and traceability:
 
+\`\`\`flow
+Receive, inspect, and destone ingredients
+Roast or pre-cook ingredients
+Mill to the required particle size
+Blend ingredients to the approved formulation
+Inspect quality and seal the pouches
+Pack finished goods and dispatch
 \`\`\`
-[1. Sourcing & Destoning] ──> [2. Roasting / Pre-cooking] ──> [3. Precision Milling]
-                                                                        │
-[6. Box Packing & Dispatch] <── [5. Vacuum Pouch Sealing] <── [4. Nutrient Blending]
-\`\`\`
-
 1. **Grain Intake & Destoning**: Raw grains undergo mechanical sieving, manual destoning, and moisture testing (moisture content must be < 13.0%).
 2. **Roasting / Pre-Cooking**: Grains are gently roasted at 85°C to deactivate antinutritional enzymes, reduce starch viscosity, and enhance nutty aroma.
 3. **Milling**: High-speed hammer milling using a 0.8 mm stainless steel screen to achieve uniform particle size.
@@ -625,8 +613,8 @@ ${specs.rawMaterials
 The plant operates on a 5-day weekly schedule, from 8:00 AM to 5:00 PM (40 hours per week).
 
 #### 4.5.1 Daily Batch Scheduling
-- **Morning Shift (8:00 AM – 12:30 PM)**: Grain sorting, moisture testing, roasting, and hammer milling.
-- **Afternoon Shift (1:30 PM – 4:30 PM)**: Nutrient blending, pouch filling, impulse sealing, batch date stamping, and sanitation.
+- **Morning Shift (8:00 AM - 12:30 PM)**: Grain sorting, moisture testing, roasting, and hammer milling.
+- **Afternoon Shift (1:30 PM - 4:30 PM)**: Nutrient blending, pouch filling, impulse sealing, batch date stamping, and sanitation.
 - **Daily Target**: 125 kg finished product daily, accumulating to **${formatKES(specs.monthlyProductionUnitsYear1)} kg per month**.
 - **Labor Efficiency**: Direct labor cost per unit stands at KES 12, reflecting high productivity per machine operator.`
   );
@@ -697,24 +685,26 @@ ${fin.capitalizationTable}
     `### 5.3 Key Financial and Macroeconomic Assumptions
 
 The financial statements are constructed upon realistic, conservative macroeconomic and operational parameters:
-1. **Sales Ramp-up**: Production and sales operate at 65% capacity during Months 1–2, 80% in Month 3, 90% in Month 4, and 100% capacity from Month 5 onward.
+1. **Sales Ramp-up**: Production and sales operate at 65% capacity during Months 1-2, 80% in Month 3, 90% in Month 4, and 100% capacity from Month 5 onward.
 2. **Sales Expansion**: Gross turnover expands by **${Math.round((specs.annualGrowthRateYear2 || 0.2) * 100)}%** in Year 2 and **${Math.round((specs.annualGrowthRateYear3 || 0.2) * 100)}%** in Year 3.
 3. **Depreciation Policy**: Machinery and tools are depreciated on a straight-line basis at **10% per annum** with zero salvage value.
-4. **Inflation on Operating Costs**: Wages, utilities, and transport increase by a conservative 8–10% annually.
+4. **Inflation on Operating Costs**: Wages, utilities, and transport increase by a conservative 8-10% annually.
 5. **Corporate Taxation**: Corporate tax is computed at the statutory Kenyan corporate rate of **30%** on net taxable profit.`
   );
 
   add(
     "ch5.cashflow",
-    "5.4 Pro-Forma Cash Flow Statement (12 Months Year 1)",
-    `### 5.4 Pro-Forma Cash Flow Statement (12 Months Year 1)
+    "5.4 Pro-Forma Cash Flow Statement (Three Years)",
+    `### 5.4 Pro-Forma Cash Flow Statement (Three Years)
 
-The cash flow statement tracks projected monthly liquidity inflows and operational disbursements, confirming that the enterprise maintains an uninterrupted positive cash balance throughout Year 1.
+The annual summary shows the projected opening and closing cash balances for all three years. The monthly schedule provides the Year 1 detail.
 
+${fin.threeYearCashFlowTable}
+
+#### Year 1 Monthly Cash Flow Detail
 ${fin.monthlyCashFlowTableYear1}
 
-#### 5.4.1 Cash Flow Commentary
-The enterprise commences operations with an opening cash buffer of **KES ${formatKES(fin.totalStartupCapital - fin.totalMachineryCost - fin.totalPreOperationalCost)}**. Net monthly cash flow becomes robustly positive from Month 2 onward, closing Year 1 with a healthy cash surplus of **KES ${formatKES(fin.year1ClosingCash)}**.`
+The model projects a Year 1 closing cash balance of **KES ${formatKES(fin.year1ClosingCash)}**, followed by **KES ${formatKES(fin.year2ClosingCash)}** in Year 2 and **KES ${formatKES(fin.year3ClosingCash)}** in Year 3. These are projections based on the assumptions in this plan.`
   );
 
   add(
@@ -750,15 +740,19 @@ Break-even analysis establishes the margin of safety by determining the minimum 
 ${fin.breakEvenTable}
 
 #### 5.7.1 Interpretation of Break-Even Results
-The enterprise achieves full monthly operational break-even at **${formatKES(fin.breakEvenUnitsMonthly)} units (${formatKES(fin.breakEvenRevenueMonthly)} KES)**, which is only **${fin.breakEvenLevelPercent}% of full monthly capacity**. Because the enterprise produces and sells at least 1,500 units monthly from Month 4 onwards, the firm enjoys a high margin of safety exceeding 40%.`
+${!fin.breakEvenAchievable
+      ? "The current selling price does not exceed variable cost per unit, so the contribution margin is zero or negative. Break-even cannot be calculated until the candidate revises and verifies the price or variable-cost assumptions."
+      : fin.breakEvenLevelPercent > 100
+        ? `Break-even requires **${formatKES(fin.breakEvenUnitsMonthly)} units per month**, or **${fin.breakEvenLevelPercent}%** of the planned capacity. The current capacity assumption is insufficient to reach break-even; review capacity, pricing, variable costs, or fixed costs.`
+        : `Break-even requires **${formatKES(fin.breakEvenUnitsMonthly)} units per month** and monthly sales of **KES ${formatKES(fin.breakEvenRevenueMonthly)}**. This represents **${fin.breakEvenLevelPercent}%** of the planned monthly capacity.`}`
   );
 
   add(
     "ch5.ratios",
-    "5.8 Financial Health and Profitability Ratios",
-    `### 5.8 Financial Health and Profitability Ratios
+    "5.8 Profitability and Financial Health Ratios",
+    `### 5.8 Profitability and Financial Health Ratios
 
-Financial ratio analysis evaluates enterprise liquidity, profitability margins, and capital efficiency against TVET examination benchmarks.
+The ratios below are calculated from the projected income statements and balance sheets. Results depend on the assumptions stated in this plan; no external benchmark is assumed.
 
 ${fin.financialRatiosTable}`
   );
@@ -809,16 +803,20 @@ Wang'ombe, D. (2018). *Financial Accounting for Business in Eastern Africa* (2nd
 
 | Milestone Task / Activity | M1 | M2 | M3 | M4 | M5 | M6 | M7 | M8 | M9 | M10 | M11 | M12 |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Business Name Search & Registration | ■ | | | | | | | | | | | |
-| Premises Lease & Renovation Works | | ■ | | | | | | | | | | |
-| Machinery Procurement & Installation | | ■ | ■ | | | | | | | | | |
-| Single Business Permit & Health Licenses | | | ■ | | | | | | | | | |
-| Raw Material Sourcing & Test Milling | | | ■ | | | | | | | | | |
-| Commercial Launch & Sampling Campaign | | | | ■ | | | | | | | | |
-| Distribution to 30 Retail Outlets | | | | ■ | ■ | ■ | | | | | |
-| Mid-Year Operational Review & KEBS Audit | | | | | | ■ | ■ | | | | |
-| Commercial Loan Amortization (Ongoing) | | | | ■ | ■ | ■ | ■ | ■ | ■ | ■ | ■ | ■ |
-| Expansion into Neighboring Sub-Counties | | | | | | | | | | ■ | ■ | ■ |`
+X marks a month when the activity is scheduled.
+
+| Milestone Task / Activity | M1 | M2 | M3 | M4 | M5 | M6 | M7 | M8 | M9 | M10 | M11 | M12 |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Business Name Search & Registration | X | | | | | | | | | | | |
+| Premises Lease & Renovation Works | | X | | | | | | | | | | |
+| Machinery Procurement & Installation | | X | X | | | | | | | | | |
+| Single Business Permit & Health Licenses | | | X | | | | | | | | | |
+| Raw Material Sourcing & Test Milling | | | X | | | | | | | | | |
+| Commercial Launch & Sampling Campaign | | | | X | | | | | | | | |
+| Distribution to 30 Retail Outlets | | | | X | X | X | | | | | | |
+| Mid-Year Operational Review & KEBS Audit | | | | | | X | X | | | | | |
+| Commercial Loan Amortization (Ongoing) | | | | X | X | X | X | X | X | X | X | X |
+| Expansion into Neighboring Sub-Counties | | | | | | | | | | X | X | X |`
   );
 
   add(
@@ -827,20 +825,20 @@ Wang'ombe, D. (2018). *Financial Accounting for Business in Eastern Africa* (2nd
     `### APPENDIX II: SUPPLIER PRICE QUOTATIONS AND MARKET SURVEY SUMMARY
 
 #### 1. Machinery Quotation Summary
-- **Quotation Ref**: NDL/Q/2026/84 — Ndume Mills Ltd, Gilgil
+- **Quotation Ref**: NDL/Q/2026/84 - Ndume Mills Ltd, Gilgil
   - Equipment: Commercial Stainless Steel Hammer Mill with 15 HP 3-Phase Electric Motor
   - Quotation Value: KES 145,000 (VAT Inclusive)
-- **Quotation Ref**: GPM/2026/102 — General Pack Machinery, Commercial Street, Nairobi
+- **Quotation Ref**: GPM/2026/102 - General Pack Machinery, Commercial Street, Nairobi
   - Equipment: Continuous Band Nitrogen Sealer with Embossing Date Stamper
   - Quotation Value: KES 48,000 (VAT Inclusive)
-- **Quotation Ref**: CLS/INST/2026/45 — Crop Nutrition Laboratory Services, Nairobi
+- **Quotation Ref**: CLS/INST/2026/45 - Crop Nutrition Laboratory Services, Nairobi
   - Equipment: Digital Portable Grain Moisture Tester (Draminski Model)
   - Quotation Value: KES 32,000
 
 #### 2. Market Survey Evidence Summary
 - **Sample Size**: 40 Households with young children and 15 Retail Kiosk Operators in ${specs.townOrMarket}.
 - **Key Survey Finding 1**: 82% of household respondents reported purchasing packaged porridge flour weekly.
-- **Key Survey Finding 2**: 73% of respondents expressed willingness to buy a locally formulated, orange-fleshed sweet potato and amaranth enriched blend at KES 120–130 per kg.
+- **Key Survey Finding 2**: 73% of respondents expressed willingness to buy a locally formulated, orange-fleshed sweet potato and amaranth enriched blend at KES 120-130 per kg.
 - **Key Survey Finding 3**: 100% of retail kiosk owners agreed to stock the product provided introductory margins exceed 15% on sale-or-return terms.`
   );
 

@@ -1,5 +1,7 @@
 import type { BusinessPlanDocxSection } from "./businessPlanDocx";
 import { businessPlanLogoSvg, createBusinessPlanBrand } from "./businessPlanBrand";
+import { getVerifiedBusinessPlanAbbreviations } from "./businessPlanGlossary";
+import { cleanDiagramLines, parseFlowSteps, parseOrgDiagram } from "./businessPlanDiagrams";
 
 export interface BusinessPlanDocumentDetails {
   title: string;
@@ -67,14 +69,25 @@ function markdown(content: string): string {
     const line = lines[i].trim();
     if (!line || /^(---+|\*\*\*+)$/.test(line)) { i += 1; continue; }
 
-    if (line.startsWith("```") ) {
+    if (line.startsWith("```")) {
+      const diagramType = line.slice(3).trim().toLowerCase();
       const code: string[] = [];
       i += 1;
       while (i < lines.length && !lines[i].trim().startsWith("```")) code.push(lines[i++]);
       i += 1;
-      const entries = code.map((value) => value.trim()).filter((value) => value && !/^[│├└─┌┐└┘â”‚â”œâ””â”€\s]+$/.test(value));
-      const flow = entries.map((entry) => entry.replace(/[\u2500-\u257F\u00E2\u201D\u20AC\u0090\u02DC\u0153]/g, " ").replace(/\s+/g, " ").trim()).filter(Boolean);
-      out.push(`<div class="diagram">${flow.map((item, index) => `${index ? '<div class="diagram-arrow">&#8595;</div>' : ""}<div class="diagram-node">${inline(item)}</div>`).join("")}</div>`);
+      const entries = cleanDiagramLines(code);
+      if (diagramType === "org" || diagramType === "channels" || /MANAGING DIRECTOR/i.test(code.join(" "))) {
+        const { manager, reports } = diagramType === "channels"
+          ? { manager: entries[0] || "Distribution", reports: entries.slice(1) }
+          : parseOrgDiagram(code);
+        const branches = reports.length ? reports : entries.filter((item) => item !== manager);
+        out.push(`<div class="org-chart"><div class="org-root">${inline(manager)}</div><div class="org-connector" aria-hidden="true"></div><div class="org-branches">${branches.map((item) => `<div class="org-branch"><span class="org-arrow">&#8595;</span><div class="diagram-node">${inline(item.replace(/^[-*>]+\s*/, ""))}</div></div>`).join("")}</div></div>`);
+      } else if (diagramType === "layout") {
+        out.push(`<div class="layout-grid">${entries.map((item, index) => `<div class="layout-room"><span class="layout-number">${index + 1}</span><strong>${inline(item.replace(/^[-*>]+\s*/, ""))}</strong></div>`).join("")}</div>`);
+      } else {
+        const flowSteps = parseFlowSteps(code);
+        out.push(`<div class="diagram">${flowSteps.map((item, index) => `${index ? '<div class="diagram-arrow" aria-hidden="true">&#8595;</div>' : ""}<div class="diagram-node">${inline(item.replace(/^\[[0-9.\s]*|\]$/g, ""))}</div>`).join("")}</div>`);
+      }
       continue;
     }
 
@@ -121,7 +134,7 @@ function chapterLabel(group: string): string | null {
   return names[group] || null;
 }
 
-function sectionHtml(section: BusinessPlanDocxSection, index: number, firstInGroup = true): string {
+function sectionHtml(section: BusinessPlanDocxSection, index: number, firstInGroup = true, pageClass = "main-page"): string {
   const group = sectionGroup(section.title);
   const chapter = chapterLabel(group);
   const clean = section.content.replace(/^\s*#{1,6}\s+[^\r\n]+\s*(?:\r?\n)?/, "");
@@ -129,45 +142,52 @@ function sectionHtml(section: BusinessPlanDocxSection, index: number, firstInGro
     ? `${firstInGroup ? `<div class="chapter-heading"><span>CHAPTER ${chapter}</span><h1>${escapeHtml(chapterNames[group])}</h1></div>` : ""}<h2 class="subsection-heading">${escapeHtml(section.title)}</h2>`
     : `<h1 class="front-heading">${escapeHtml(section.title.replace(/^\d+(?:\.\d+)*\s*/, ""))}</h1>`;
   const breakClass = (["dedication", "declaration", "acknowledgements", "references", "appendices"].includes(group) || (chapter !== null && firstInGroup)) ? "page-start" : "";
-  return `<section class="section ${breakClass}" data-section="${index}">${heading}<div class="section-content">${markdown(clean)}</div></section>`;
+  return `<section class="section ${pageClass} ${breakClass}" data-section="${index}">${heading}<div class="section-content">${markdown(clean)}</div></section>`;
 }
 
-function renderSections(sections: BusinessPlanDocxSection[]): string {
+function renderSections(sections: BusinessPlanDocxSection[], pageClass = "main-page"): string {
   let previousGroup = "";
   return sections.map((section, index) => {
     const group = sectionGroup(section.title);
     const firstInGroup = group !== previousGroup;
     previousGroup = group;
-    return sectionHtml(section, index, firstInGroup);
+    return sectionHtml(section, index, firstInGroup, pageClass);
   }).join("\n");
-}
-
-function abbreviations(sections: BusinessPlanDocxSection[]): Array<[string, string]> {
-  const found = new Map<string, string>();
-  for (const section of sections) {
-    const text = section.content.replace(/\*+/g, "");
-    for (const match of text.matchAll(/([A-Za-z][A-Za-z &'’,-]{3,80}?)\s+\(([A-Z][A-Z0-9&/-]{1,9})\)/g)) {
-      const term = match[2].trim();
-      if (!found.has(term)) found.set(term, match[1].trim());
-    }
-  }
-  return [...found.entries()].sort((a, b) => a[0].localeCompare(b[0]));
 }
 
 export function createBusinessPlanHtml(params: BusinessPlanDocumentDetails): string {
   const sections = orderBusinessPlanSections(params.sections);
   const chapterSections = sections.filter((section) => /^\s*[1-5]\./.test(section.title));
-  const acronymEntries = abbreviations(sections);
+  const acronymEntries = getVerifiedBusinessPlanAbbreviations(sections);
   const acronymMarkup = acronymEntries.length
     ? `<table><thead><tr><th>Abbreviation</th><th>Meaning</th></tr></thead><tbody>${acronymEntries.map(([term, meaning]) => `<tr><td>${escapeHtml(term)}</td><td>${escapeHtml(meaning)}</td></tr>`).join("")}</tbody></table>`
     : "<p>No abbreviations or acronyms were identified in the supplied plan.</p>";
-  const toc = [
-    ...["dedication", "declaration", "acknowledgements"].flatMap((group) => sections.filter((s) => sectionGroup(s.title) === group)),
-    { title: "Abbreviations and Acronyms", content: "" },
-    ...sections.filter((s) => sectionGroup(s.title) === "executive"),
-    ...chapterSections,
-    ...sections.filter((s) => ["references", "appendices"].includes(sectionGroup(s.title))),
-  ].map((section) => `<li>${escapeHtml(section.title.replace(/^\d+(?:\.\d+)*\s*/, ""))}</li>`).join("");
+  const tocEntries: Array<{ title: string; level: number }> = [
+    ...["dedication", "declaration", "acknowledgements"].flatMap((group) => sections.filter((s) => sectionGroup(s.title) === group).map((section) => ({ title: section.title, level: 0 }))),
+    { title: "Abbreviations and Acronyms", level: 0 },
+    { title: "Table of Contents", level: 0 },
+    ...sections.filter((s) => sectionGroup(s.title) === "executive").map((section) => ({ title: section.title, level: 0 })),
+    ...["ch1", "ch2", "ch3", "ch4", "ch5"].flatMap((group) => {
+      const chapter = chapterSections.filter((section) => sectionGroup(section.title) === group);
+      if (!chapter.length) return [];
+      const number = chapter[0].title.match(/^\s*(\d+)\./)?.[1];
+      return [
+        { title: `${number ? `Chapter ${number}: ` : ""}${chapterNames[group]}`, level: 0 },
+        ...chapter.flatMap((section) => {
+          const sectionNumber = section.title.match(/^\s*(\d+(?:\.\d+)*)\b/)?.[1];
+          const titleKey = (value: string) => value.replace(/^\s*\d+(?:\.\d+)*\s*/, "").trim().toLowerCase();
+          const bodyHeadings = Array.from(section.content.matchAll(/^#{2,6}\s+(.+)$/gm), (match) => match[1].trim())
+            .filter((title) => titleKey(title) !== titleKey(section.title));
+          return [
+            { title: section.title, level: 1 },
+            ...bodyHeadings.map((title) => ({ title: /^\s*\d+(?:\.\d+)+\b/.test(title) || !sectionNumber ? title : `${sectionNumber} ${title}`, level: 2 })),
+          ];
+        }),
+      ];
+    }),
+    ...sections.filter((s) => ["references", "appendices"].includes(sectionGroup(s.title))).map((section) => ({ title: section.title, level: 0 })),
+  ];
+  const toc = tocEntries.map((entry) => `<li class="toc-level-${entry.level}">${escapeHtml(entry.title)}</li>`).join("");
   const frontGroups = ["dedication", "declaration", "acknowledgements"];
   const front = frontGroups.flatMap((group) => sections.filter((s) => sectionGroup(s.title) === group));
   const executive = sections.filter((s) => sectionGroup(s.title) === "executive");
@@ -176,14 +196,17 @@ export function createBusinessPlanHtml(params: BusinessPlanDocumentDetails): str
   const brand = createBusinessPlanBrand({ name: params.businessName || params.title, industry: params.industrySector, product: params.primaryProduct });
   const logo = businessPlanLogoSvg(brand);
   return `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(params.title)}</title><style>
-@page{size:A4;margin:25.4mm 25.4mm 22mm;@bottom-center{content:counter(page);font:10pt "Times New Roman",serif}}
-*{box-sizing:border-box}html{font-family:"Times New Roman",serif;font-size:12pt;color:#111}body{margin:0;line-height:1.5}h1,h2,h3,p,ul,ol{margin-top:0}p{margin-bottom:10pt;text-align:justify}h1,h2,h3{font-size:12pt;line-height:1.5;margin:14pt 0 6pt;font-weight:bold;break-after:avoid}ul,ol{margin:0 0 10pt 25pt;padding:0}li{padding-left:3pt;margin:0 0 3pt}table{width:100%;border-collapse:collapse;margin:10pt 0 14pt;break-inside:auto;font-size:10pt;line-height:1.25}thead{display:table-header-group}tr{break-inside:avoid}th,td{border:1px solid #777;padding:5pt 6pt;vertical-align:top}th{background:#e9eef5;text-align:left}strong{font-weight:bold}code{font-family:"Courier New",monospace;font-size:10pt}.title-page{height:245mm;display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:space-around;break-after:page}.title-page h1{font-size:16pt;margin:0 0 8pt}.title-page .title{max-width:150mm;font-size:16pt;font-weight:bold;text-transform:uppercase}.title-page .statement{max-width:145mm;margin:20pt auto;font-weight:bold;text-transform:none}.title-page .details{line-height:1.7}.page-start{break-before:page}.front-heading{text-align:center;text-transform:uppercase;margin:0 0 18pt}.chapter-heading{text-align:center;break-after:avoid;margin:0 0 20pt}.chapter-heading span{display:block;font-weight:bold}.chapter-heading h1{font-size:14pt;margin:0;text-transform:uppercase}.section{break-inside:auto}.section-content{orphans:3;widows:3}.diagram{display:flex;flex-direction:column;align-items:center;margin:16pt auto 20pt;max-width:150mm;break-inside:avoid}.diagram-node{border:1px solid #3b4d65;border-radius:2pt;padding:7pt 12pt;text-align:center;min-width:75mm;max-width:140mm;background:#f4f7fb}.diagram-arrow{font-size:15pt;line-height:1.2}.toc{break-before:page;break-after:page}.toc h1{text-align:center}.toc ul{list-style:none;margin-left:0}.toc li{border-bottom:1px dotted #aaa;padding:4pt 0}.section-content h2:first-child,.section-content h3:first-child{margin-top:0}
-</style><style>table{font-size:12pt;line-height:1.5}.title-page .title{font-size:12pt}.chapter-heading h1{font-size:12pt}</style></head><body>
+@page{size:A4;margin:25.4mm 25.4mm 22mm}
+@page cover{size:A4;margin:25.4mm 25.4mm 22mm;@bottom-center{content:""}}
+@page prelim{size:A4;margin:25.4mm 25.4mm 22mm;counter-increment:prelimpage 1;@bottom-center{content:counter(prelimpage,lower-roman);font:12pt "Times New Roman",serif}}
+@page main{size:A4;margin:25.4mm 25.4mm 22mm;counter-increment:mainpage 1;@bottom-center{content:counter(mainpage);font:12pt "Times New Roman",serif}}
+*{box-sizing:border-box}html{font-family:"Times New Roman",serif;font-size:12pt;color:#111}body{margin:0;line-height:1.5;counter-reset:prelimpage mainpage}h1,h2,h3,p,ul,ol{margin-top:0}p{margin-bottom:10pt;text-align:justify}h1,h2,h3{font-size:12pt;line-height:1.5;margin:14pt 0 6pt;font-weight:bold;break-after:avoid}ul,ol{margin:0 0 10pt 25pt;padding:0}li{padding-left:3pt;margin:0 0 3pt}table{width:100%;border-collapse:collapse;margin:10pt 0 14pt;break-inside:auto;font-size:10pt;line-height:1.25}thead{display:table-header-group}tr{break-inside:avoid}th,td{border:1px solid #777;padding:5pt 6pt;vertical-align:top}th{background:#e9eef5;text-align:left}strong{font-weight:bold}code{font-family:"Courier New",monospace;font-size:10pt}.title-page{page:cover;height:245mm;display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:space-around;break-after:page}.title-page h1{font-size:16pt;margin:0 0 8pt}.title-page .title{max-width:150mm;font-size:16pt;font-weight:bold;text-transform:uppercase}.title-page .statement{max-width:145mm;margin:20pt auto;font-weight:bold;text-transform:none}.title-page .details{line-height:1.7}.prelim-page{page:prelim}.main-page{page:main}.page-start{break-before:page}.front-heading{text-align:center;text-transform:uppercase;margin:0 0 18pt}.chapter-heading{text-align:center;break-after:avoid;margin:0 0 20pt}.chapter-heading span{display:block;font-weight:bold}.chapter-heading h1{font-size:14pt;margin:0;text-transform:uppercase}.section{break-inside:auto}.section-content{orphans:3;widows:3}.diagram{display:flex;flex-direction:column;align-items:center;margin:16pt auto 20pt;max-width:150mm;break-inside:avoid}.diagram-node{border:1px solid #3b4d65;border-radius:2pt;padding:7pt 12pt;text-align:center;min-width:75mm;max-width:140mm;background:#f4f7fb}.diagram-arrow{font-size:15pt;line-height:1.2}.toc{page:prelim;break-before:page;break-after:page}.toc h1{text-align:center}.toc ul{list-style:none;margin-left:0}.toc li{border-bottom:1px dotted #aaa;padding:4pt 0}.toc .toc-level-1{padding-left:14pt}.toc .toc-level-2{padding-left:28pt;font-size:10pt}.section-content h2:first-child,.section-content h3:first-child{margin-top:0}
+</style><style>table{font-size:12pt;line-height:1.5}.title-page .title{font-size:12pt}.chapter-heading h1{font-size:12pt}.org-chart{max-width:160mm;margin:18pt auto 24pt;text-align:center;break-inside:avoid}.org-root{display:inline-block;min-width:65mm;max-width:100mm;padding:9pt 14pt;border:1.5pt solid #334155;background:#eef2ff;font-weight:bold}.org-connector{height:14pt;width:1.5pt;background:#64748b;margin:0 auto}.org-branches{display:grid;grid-template-columns:repeat(auto-fit,minmax(48mm,1fr));gap:10pt}.org-branch{display:flex;flex-direction:column;align-items:center}.org-arrow{font-size:16pt;line-height:1.1;color:#475569}.org-branch .diagram-node{width:100%;min-width:0}.layout-grid{display:grid;grid-template-columns:1fr 1fr;gap:8pt;margin:14pt 0;break-inside:avoid}.layout-room{position:relative;min-height:34mm;padding:10pt 8pt 8pt 28pt;border:1pt solid #64748b;background:#f8fafc;display:flex;align-items:center}.layout-number{position:absolute;left:8pt;top:8pt;width:16pt;height:16pt;border-radius:50%;background:#e0e7ff;color:#3730a3;text-align:center;font-weight:bold}.org-arrow{font-size:16pt;line-height:1.1;color:#475569}</style></head><body>
 <section class="title-page"><div class="business-logo">${logo}</div>${params.tagline ? `<div class="tagline">${escapeHtml(params.tagline)}</div>` : ""}<div class="title">${escapeHtml(params.title)}</div>${params.candidate ? `<div class="details">Presented by:<br><strong>${escapeHtml(params.candidate)}</strong>${params.admissionNumber ? `<br>Index / Admission Number: ${escapeHtml(params.admissionNumber)}` : ""}</div>` : ""}${params.institution ? `<div class="details">${escapeHtml(params.institution)}</div>` : ""}<div class="statement">Business plan submitted to Kenya National Examinations Council in partial fulfilment for the award of ${escapeHtml(course)}.</div>${params.supervisor ? `<div class="details">Supervisor: ${escapeHtml(params.supervisor)}</div>` : ""}<div class="details">${new Date().toLocaleString("en-GB", { month: "long", year: "numeric", timeZone: "Africa/Nairobi" })}</div></section>
-${renderSections(front)}
-<section class="section page-start"><h1 class="front-heading">Abbreviations and Acronyms</h1>${acronymMarkup}</section>
-<section class="toc"><h1 class="front-heading">Table of Contents</h1><ul>${toc}</ul></section>
-${renderSections(executive)}
-${renderSections(body)}
+${renderSections(front, "prelim-page")}
+<section class="section prelim-page page-start"><h1 class="front-heading">Abbreviations and Acronyms</h1>${acronymMarkup}</section>
+<section class="toc prelim-page"><h1 class="front-heading">Table of Contents</h1><ul>${toc}</ul></section>
+${renderSections(executive, "prelim-page")}
+${renderSections(body, "main-page")}
 </body></html>`;
 }

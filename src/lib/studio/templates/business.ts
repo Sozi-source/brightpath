@@ -318,11 +318,11 @@ export const BUSINESS_PLAN_SECTIONS: SectionDef[] = [
   },
   {
     key: "ch5.cashflow",
-    title: "5.4 Pro-Forma Cash Flow Statement",
+    title: "5.4 Pro-Forma Cash Flow Statement (Three Years)",
     phase: "project",
     chapter: "ch5",
     chapterTitle: "Chapter 5: Financial Plan",
-    guidance: "Monthly cash inflows and cash outflows for 12 months in Year 1, with quarterly summaries for Years 2 and 3 showing net cash balance.",
+    guidance: "Annual opening cash, sales, operating outflows, debt principal, interest, tax, net movement, and closing cash for Years 1–3; include a monthly Year 1 schedule.",
     minWords: 150,
   },
   {
@@ -349,7 +349,7 @@ export const BUSINESS_PLAN_SECTIONS: SectionDef[] = [
     phase: "project",
     chapter: "ch5",
     chapterTitle: "Chapter 5: Financial Plan",
-    guidance: "Mathematical calculation of monthly and annual break-even sales volume in units and KES revenue.",
+    guidance: "Show selling price, variable cost, unit contribution, fixed costs, break-even units and sales. Flag non-positive contribution or capacity shortfall instead of dividing by zero.",
     minWords: 120,
   },
   {
@@ -358,7 +358,7 @@ export const BUSINESS_PLAN_SECTIONS: SectionDef[] = [
     phase: "project",
     chapter: "ch5",
     chapterTitle: "Chapter 5: Financial Plan",
-    guidance: "Compute Return on Investment (ROI), Net Profit Margin, Current Ratio, and Debt-to-Equity ratio.",
+    guidance: "Calculate gross and net margins, ROI, ROE, current ratio and debt-to-equity for Years 1–3 using explicit formulas; mark zero-denominator ratios N/M and never claim unsupported benchmarks.",
     minWords: 100,
   },
   {
@@ -392,7 +392,7 @@ export const BUSINESS_PLAN_SECTIONS: SectionDef[] = [
       "Formal candidate declaration of commercial project originality and supervisor sign-off recommendation.",
     minWords: 60,
     starterTemplate:
-      "DECLARATION BY CANDIDATE\nI declare that this business plan is my original work and has not been presented for examination or credit in any other institution.\n\nCandidate Signature: __________________ Date: ______________\n[Candidate Full Name]\n\nAPPROVAL BY SUPERVISOR\nThis business plan has been presented for examination with my approval as institutional supervisor.\n\nSupervisor Signature: _________________ Date: ______________\n[Supervisor Full Name]",
+      "DECLARATION BY CANDIDATE\nI declare that this business plan is my original work and has not been presented for examination or credit in any other institution.\n\nCandidate Name: [Candidate name]\nIndex Number: [Index or admission number]\nInstitution: [Institution name]\nSignature: __________________ Date: ______________\n\nAPPROVAL BY SUPERVISOR\nI have reviewed this business plan and recommend it for examination.\n\nSupervisor Name: [Supervisor name]\nDesignation: Project Supervisor\nInstitution: [Institution name]\nSignature: _________________ Date: ______________",
   },
   {
     key: "prelim.dedication",

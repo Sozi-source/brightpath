@@ -1,5 +1,7 @@
 import PizZip from "pizzip";
 import { createBusinessPlanBrand } from "./businessPlanBrand";
+import { getVerifiedBusinessPlanAbbreviations } from "./businessPlanGlossary";
+import { cleanDiagramLines, parseFlowSteps, parseOrgDiagram } from "./businessPlanDiagrams";
 
 export interface BusinessPlanDocxSection {
   title: string;
@@ -36,14 +38,37 @@ function chapterHeading(group: string): string | null {
   return labels[group] || null;
 }
 
-function abbreviationRows(sections: BusinessPlanDocxSection[]): Array<[string, string]> {
-  const rows = new Map<string, string>();
-  for (const section of sections) {
-    for (const match of section.content.replace(/\*+/g, "").matchAll(/([A-Za-z][A-Za-z &'’,-]{3,80}?)\s+\(([A-Z][A-Z0-9&/-]{1,9})\)/g)) {
-      if (!rows.has(match[2])) rows.set(match[2], match[1].trim());
+function cachedContentsText(sections: BusinessPlanDocxSection[]): string[] {
+  const sectionKey = (value: string) => value.replace(/^\s*\d+(?:\.\d+)*\s*/, "").trim().toLowerCase();
+  const sectionHeadings = (section: BusinessPlanDocxSection) => {
+    const sectionNumber = section.title.match(/^\s*(\d+(?:\.\d+)*)\b/)?.[1];
+    return Array.from(section.content.matchAll(/^#{2,6}\s+(.+)$/gm), (match) => match[1].trim())
+      .filter((heading) => sectionKey(heading) !== sectionKey(section.title))
+      .map((heading) => `    ${/^\s*\d+(?:\.\d+)+\b/.test(heading) || !sectionNumber ? heading : `${sectionNumber} ${heading}`}`);
+  };
+  const entries = [
+    ...["dedication", "declaration", "acknowledgements"].flatMap((group) => sections.filter((section) => sectionGroup(section.title) === group).flatMap((section) => [section.title, ...sectionHeadings(section)])),
+    "Abbreviations and Acronyms",
+    "Table of Contents",
+    ...sections.filter((section) => sectionGroup(section.title) === "executive").flatMap((section) => [section.title, ...sectionHeadings(section)]),
+  ];
+  for (const group of ["ch1", "ch2", "ch3", "ch4", "ch5"]) {
+    const chapter = sections.filter((section) => sectionGroup(section.title) === group);
+    if (!chapter.length) continue;
+    entries.push(chapterHeading(group) || chapter[0].title);
+    for (const section of chapter) {
+      entries.push(`  ${section.title}`);
+      entries.push(...sectionHeadings(section));
     }
   }
-  return [...rows.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  entries.push(...sections.filter((section) => ["references", "appendices"].includes(sectionGroup(section.title))).map((section) => section.title));
+  return entries;
+}
+
+function tableOfContentsField(sections: BusinessPlanDocxSection[]): string {
+  const entries = cachedContentsText(sections);
+  const lines = entries.map((entry, index) => `${index ? '<w:r><w:br/></w:r>' : ""}${run(entry)}`).join("");
+  return `<w:p><w:pPr><w:spacing w:after="120" w:line="360" w:lineRule="auto"/></w:pPr><w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> TOC \\o &quot;1-3&quot; \\h \\z \\u </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r>${lines}<w:r><w:fldChar w:fldCharType="end"/></w:r></w:p>`;
 }
 
 function xml(value: string): string {
@@ -66,6 +91,12 @@ function paragraph(text: string, style = "Normal", extra = ""): string {
 
 function centeredParagraph(text: string, style = "Normal"): string {
   return paragraph(text, style, '<w:jc w:val="center"/>');
+}
+
+function sectionBreak(pageFormat?: "lowerRoman" | "decimal", numbered = false): string {
+  const pageNumbering = pageFormat ? `<w:pgNumType w:fmt="${pageFormat}" w:start="1"/>` : "";
+  const footer = numbered ? '<w:footerReference w:type="default" r:id="rId3"/>' : "";
+  return `<w:p><w:pPr><w:sectPr>${footer}<w:type w:val="nextPage"/><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1247" w:left="1440"/>${pageNumbering}</w:sectPr></w:pPr><w:r><w:t></w:t></w:r></w:p>`;
 }
 
 function brandMarkParagraph(initials: string, accent: string): string {
@@ -91,14 +122,51 @@ function table(rows: string[][]): string {
   return `<w:tbl><w:tblPr><w:tblW w:w="9000" w:type="dxa"/><w:tblLayout w:type="fixed"/>${borders}</w:tblPr><w:tblGrid>${grid}</w:tblGrid>${body}</w:tbl>`;
 }
 
-function diagram(lines: string[]): string {
-  const labels = lines.map((line) => line
-    .replace(/[\u2500-\u257F\u00E2\u201D\u20AC\u0090\u02DC\u0153]/g, " ")
-    .replace(/\s+/g, " ").trim()).filter((line) => /[A-Za-z0-9]/.test(line));
+function diagramCell(text: string, width: number, options: { fill?: string; span?: number; bold?: boolean } = {}): string {
+  const span = options.span && options.span > 1 ? `<w:gridSpan w:val="${options.span}"/>` : "";
+  const fill = options.fill ? `<w:shd w:fill="${options.fill}"/>` : "";
+  return `<w:tc><w:tcPr><w:tcW w:w="${width}" w:type="dxa"/>${span}${fill}<w:vAlign w:val="center"/></w:tcPr><w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="120" w:line="360" w:lineRule="auto"/></w:pPr>${run(text, options.bold)}</w:p></w:tc>`;
+}
+
+function diagram(lines: string[], mode = "flow"): string {
+  const labels = cleanDiagramLines(lines);
   if (!labels.length) return "";
-  const rows = labels.flatMap((label, index) => [
-    ...(index ? [`<w:tr>${cell(String.fromCharCode(8595), 9000)}</w:tr>`] : []),
-    `<w:tr>${cell(label, 9000).replace("<w:tcPr>", '<w:tcPr><w:shd w:fill="F1F5F9"/>').replace("<w:pPr>", '<w:pPr><w:jc w:val="center"/>')}</w:tr>`,
+  const code = lines.join(" ");
+  const isOrg = mode === "org" || mode === "channels" || /MANAGING DIRECTOR/i.test(code);
+  if (isOrg) {
+    const { manager, reports } = mode === "channels"
+      ? { manager: labels[0] || "Distribution", reports: labels.slice(1) }
+      : parseOrgDiagram(lines);
+    const branches = reports.length ? reports : labels.filter((label) => label !== manager);
+    const columns = Math.max(1, Math.min(3, branches.length || 1));
+    const width = Math.floor(9000 / columns);
+    const parent = `<w:tr>${diagramCell(manager, 9000, { span: columns, fill: "E0E7FF", bold: true })}</w:tr>`;
+    const arrows = `<w:tr>${Array.from({ length: columns }, () => diagramCell(String.fromCharCode(8595), width)).join("")}</w:tr>`;
+    const branchRows: string[] = [];
+    for (let index = 0; index < branches.length; index += columns) {
+      const row = branches.slice(index, index + columns);
+      branchRows.push(`<w:tr>${Array.from({ length: columns }, (_, column) => diagramCell(row[column] || "", width, { fill: row[column] ? "F1F5F9" : undefined })).join("")}</w:tr>`);
+    }
+    const grid = Array.from({ length: columns }, () => `<w:gridCol w:w="${width}"/>`).join("");
+    const borders = `<w:tblBorders><w:top w:val="single" w:sz="6" w:color="718096"/><w:left w:val="single" w:sz="6" w:color="718096"/><w:bottom w:val="single" w:sz="6" w:color="718096"/><w:right w:val="single" w:sz="6" w:color="718096"/><w:insideH w:val="nil"/><w:insideV w:val="nil"/></w:tblBorders>`;
+    return `<w:tbl><w:tblPr><w:tblW w:w="9000" w:type="dxa"/><w:tblLayout w:type="fixed"/>${borders}</w:tblPr><w:tblGrid>${grid}</w:tblGrid>${parent}${arrows}${branchRows.join("")}</w:tbl>`;
+  }
+  if (mode === "layout") {
+    const columns = 2;
+    const width = 4500;
+    const rows: string[] = [];
+    for (let index = 0; index < labels.length; index += columns) {
+      const cells = labels.slice(index, index + columns).map((label, offset) => diagramCell(`${index + offset + 1}. ${label}`, width, { fill: "F1F5F9" }));
+      if (cells.length < columns) cells.push(diagramCell("", width));
+      rows.push(`<w:tr>${cells.join("")}</w:tr>`);
+    }
+    const borders = `<w:tblBorders><w:top w:val="single" w:sz="6" w:color="718096"/><w:left w:val="single" w:sz="6" w:color="718096"/><w:bottom w:val="single" w:sz="6" w:color="718096"/><w:right w:val="single" w:sz="6" w:color="718096"/><w:insideH w:val="single" w:sz="4" w:color="CBD5E1"/><w:insideV w:val="single" w:sz="4" w:color="CBD5E1"/></w:tblBorders>`;
+    return `<w:tbl><w:tblPr><w:tblW w:w="9000" w:type="dxa"/><w:tblLayout w:type="fixed"/>${borders}</w:tblPr><w:tblGrid><w:gridCol w:w="4500"/><w:gridCol w:w="4500"/></w:tblGrid>${rows.join("")}</w:tbl>`;
+  }
+  const flowSteps = parseFlowSteps(lines);
+  const rows = flowSteps.flatMap((label, index) => [
+    ...(index ? [`<w:tr>${diagramCell(String.fromCharCode(8595), 9000)}</w:tr>`] : []),
+    `<w:tr>${diagramCell(label, 9000, { fill: "F1F5F9" })}</w:tr>`,
   ]).join("");
   const borders = `<w:tblBorders><w:top w:val="single" w:sz="6" w:color="718096"/><w:left w:val="single" w:sz="6" w:color="718096"/><w:bottom w:val="single" w:sz="6" w:color="718096"/><w:right w:val="single" w:sz="6" w:color="718096"/><w:insideH w:val="nil"/></w:tblBorders>`;
   return `<w:tbl><w:tblPr><w:tblW w:w="9000" w:type="dxa"/><w:tblLayout w:type="fixed"/>${borders}</w:tblPr><w:tblGrid><w:gridCol w:w="9000"/></w:tblGrid>${rows}</w:tbl>`;
@@ -113,10 +181,11 @@ function markdownToWord(content: string): string {
     if (/^(---+|\*\*\*+)$/.test(line)) continue;
 
     if (line.startsWith("```")) {
+      const diagramType = line.slice(3).trim().toLowerCase();
       const diagramLines: string[] = [];
       index += 1;
       while (index < lines.length && !lines[index].trim().startsWith("```")) diagramLines.push(lines[index++]);
-      output.push(diagram(diagramLines));
+      output.push(diagram(diagramLines, diagramType));
       continue;
     }
 
@@ -191,24 +260,29 @@ export function createBusinessPlanDocx(params: {
     centeredParagraph(`Business plan submitted to Kenya National Examinations Council in partial fulfilment for the award of ${params.level} in ${params.course}.`),
     ...(params.supervisor ? [centeredParagraph(`Supervisor: ${params.supervisor}`)] : []),
     centeredParagraph(new Date().toLocaleString("en-GB", { month: "long", year: "numeric", timeZone: "Africa/Nairobi" })),
-    `<w:p><w:pPr><w:pageBreakBefore w:val="true"/></w:pPr>${run("")}</w:p>`,
+    sectionBreak(),
   ];
 
   let previousGroup = "";
   let hasAbbreviationsPage = false;
   let hasContentsPage = false;
+  let hasMainSection = false;
+  let hasStartedPreliminaryContent = false;
   for (const section of sections) {
     const group = sectionGroup(section.title);
     if (group === "executive" && !hasAbbreviationsPage) {
-      const rows = abbreviationRows(sections);
+      const rows = getVerifiedBusinessPlanAbbreviations(sections);
       content.push(`<w:p><w:pPr><w:pageBreakBefore w:val="true"/></w:pPr>${run("")}</w:p>`, centeredParagraph("Abbreviations and Acronyms", "Heading1"), rows.length ? table([["Abbreviation", "Meaning"], ...rows.map(([abbr, meaning]) => [abbr, meaning])]) : paragraph("No abbreviations or acronyms were identified in the supplied plan."));
       hasAbbreviationsPage = true;
     }
     if (group === "executive" && !hasContentsPage) {
-      content.push(`<w:p><w:pPr><w:pageBreakBefore w:val="true"/></w:pPr>${run("")}</w:p>`, centeredParagraph("Table of Contents", "Title"), `<w:p><w:pPr><w:spacing w:after="120" w:line="360" w:lineRule="auto"/></w:pPr><w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> TOC \\o &quot;1-3&quot; \\h \\z \\u </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r>${run("Open this document in Word and update the table of contents.")}<w:r><w:fldChar w:fldCharType="end"/></w:r></w:p>`);
+      content.push(`<w:p><w:pPr><w:pageBreakBefore w:val="true"/></w:pPr>${run("")}</w:p>`, centeredParagraph("Table of Contents", "Title"), tableOfContentsField(sections));
       hasContentsPage = true;
     }
-    if (["dedication", "declaration", "acknowledgements", "references", "appendices"].includes(group) || (group.startsWith("ch") && group !== previousGroup) || (group === "executive" && previousGroup !== "contents")) {
+    if (group === "ch1" && !hasMainSection) {
+      content.push(sectionBreak("lowerRoman", true));
+      hasMainSection = true;
+    } else if ((["dedication", "declaration", "acknowledgements"].includes(group) && hasStartedPreliminaryContent) || ["references", "appendices"].includes(group) || (group.startsWith("ch") && group !== previousGroup) || (group === "executive" && previousGroup !== "contents")) {
       content.push(`<w:p><w:pPr><w:pageBreakBefore w:val="true"/></w:pPr>${run("")}</w:p>`);
     }
     if (group.startsWith("ch") && group !== previousGroup) {
@@ -216,14 +290,16 @@ export function createBusinessPlanDocx(params: {
     }
     const titleStyle = group.startsWith("ch") ? "Heading2" : "Heading1";
     content.push(paragraph(section.title, titleStyle), markdownToWord(removeDuplicateLeadHeading(section.content, section.title)));
+    if (["dedication", "declaration", "acknowledgements"].includes(group)) hasStartedPreliminaryContent = true;
     previousGroup = group;
   }
   const zip = new PizZip();
-  zip.file("[Content_Types].xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/></Types>`);
+  zip.file("[Content_Types].xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/></Types>`);
   zip.file("_rels/.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`);
-  zip.file("word/_rels/document.xml.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/></Relationships>`);
-  zip.file("word/document.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${content.join("")}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1247" w:left="1440"/></w:sectPr></w:body></w:document>`);
+  zip.file("word/_rels/document.xml.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/></Relationships>`);
+  zip.file("word/document.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:body>${content.join("")}<w:sectPr><w:footerReference w:type="default" r:id="rId3"/><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1247" w:left="1440"/><w:pgNumType w:fmt="decimal" w:start="1"/></w:sectPr></w:body></w:document>`);
   zip.file("word/styles.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:eastAsia="Times New Roman"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:color w:val="000000"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="360" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style><w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:rPr><w:b/><w:sz w:val="24"/><w:color w:val="000000"/></w:rPr></w:style><w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:pPr><w:keepNext/><w:outlineLvl w:val="0"/><w:spacing w:before="240" w:after="120" w:line="360" w:lineRule="auto"/></w:pPr><w:rPr><w:b/><w:sz w:val="24"/><w:color w:val="000000"/></w:rPr></w:style><w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:pPr><w:keepNext/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:b/><w:sz w:val="24"/><w:color w:val="000000"/></w:rPr></w:style></w:styles>`);
   zip.file("word/settings.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:updateFields w:val="true"/></w:settings>`);
+  zip.file("word/footer1.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/></w:rPr><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>1</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r></w:p></w:ftr>`);
   return zip.generate({ type: "uint8array", compression: "DEFLATE" });
 }
