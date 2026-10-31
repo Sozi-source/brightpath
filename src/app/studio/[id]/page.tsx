@@ -13,6 +13,7 @@ import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
 import { DeleteDraftButton } from "../DeleteDraftButton";
 import { BusinessPlanBuilderModal } from "./BusinessPlanBuilderModal";
+import { MarketplacePublishForm } from "./MarketplacePublishForm";
 import {
   CheckCircle2,
   Clock,
@@ -130,6 +131,14 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
   }
 
   const isBusiness = workspace.workspace_type === "business_plan";
+  const hasPlanContent = isBusiness && sections.some((section) => section.current_text.trim());
+  const isPlanComplete = isBusiness && templateDefs.every((definition) => {
+    const text = sectionsMap.get(definition.key)?.current_text || "";
+    return text.trim().split(/\s+/).filter(Boolean).length >= (definition.minWords || 30);
+  });
+  const { data: marketplaceListing } = isBusiness && workspace.student_id === user.id
+    ? await db.from("projects").select("id, status, price_kes").eq("file_path", `workspace-export:${workspaceId}`).maybeSingle()
+    : { data: null };
   const isTopicReady = Boolean(workspace.title && workspace.title.trim().length >= 5);
   const isApproved = workspace.status === "approved" || workspace.status === "submitted";
   const isSubmitted = workspace.status === "submitted";
@@ -183,6 +192,11 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                 defaultLevel={workspace.level}
                 initialSpecs={workspace.business_plan_specs as Partial<BusinessPlanSpecs> | undefined}
               />
+            )}
+            {hasPlanContent && (
+              <Link href={`/api/studio/${workspaceId}/export`} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50">
+                <span>Download Word</span>
+              </Link>
             )}
             {!isApproved && workspace.student_id === user.id && (
               <DeleteDraftButton
@@ -397,6 +411,26 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
               </div>
             )}
           </ContentCard>
+
+          {isBusiness && workspace.student_id === user.id && isPlanComplete && (
+            <ContentCard title="Marketplace listing" icon={CheckCircle2}>
+              {marketplaceListing ? (
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {marketplaceListing.status === "published" ? "Published" : marketplaceListing.status === "rejected" ? "Rejected" : "In review"}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-600">KES {Number(marketplaceListing.price_kes).toLocaleString()} · Business Plan</p>
+                  </div>
+                  {marketplaceListing.status === "published" && <Link href="/projects" className="text-xs font-semibold text-indigo-700 hover:text-indigo-900">View marketplace</Link>}
+                </div>
+              ) : workspace.status === "approved" ? (
+                <MarketplacePublishForm workspaceId={workspaceId} />
+              ) : (
+                <p className="text-xs text-slate-600">Supervisor approval is required before listing.</p>
+              )}
+            </ContentCard>
+          )}
 
 
       </div>

@@ -1,7 +1,7 @@
 # BrightPath — Master Project Context & Architecture
 
-**Document Version:** 1.0.0  
-**Last Updated:** 2026-10-25  
+**Document Version:** 1.1.0
+**Last Updated:** 2026-10-31
 **Platform Status:** Operational / In Active Development  
 
 ---
@@ -15,6 +15,7 @@
    - Access verified, ready-made academic projects, source code packages, diagrams, and business plans.
    - Follow guided revision modules and curriculum lessons (notes, video lectures, and attached downloadable resources).
    - Maintain a personal digital library of purchased projects with secure download links.
+   - Build KNEC project drafts with structured sections, evidence-based review, and supervisor feedback.
 2. **For Trainers:**
    - Author and publish structured revision curricula (modules broken down into lessons).
    - Upload ready-made project packages for sale on the marketplace.
@@ -71,11 +72,25 @@ graph TD
 | `/projects` | Public marketplace of ready-made projects and business plans | Public | Verified |
 | `/learn` | Student curriculum directory with modules and lessons | Public / Students | Verified |
 | `/library` | Personal library of purchased projects and download access | Authenticated (`/proxy.ts`) | Verified |
+| `/studio` | Candidate Project Studio and workspace list | Authenticated students | Verified |
+| `/studio/[id]` | Guided KNEC proposal, chapter drafting, and project review | Workspace owner | Verified |
+| `/supervisor/[workspaceId]` | Continuous candidate document, moderation, and supervisor review | Assigned supervisor or admin | Verified |
 | `/trainer` | Trainer Studio for uploading projects, modules, and bulk import | Authenticated (`trainer` or `admin`) | Verified |
 | `/admin` | Administration hub: KPIs, commission settings, moderation, user roles | Authenticated (`admin` only) | Verified |
 | `/api/paystack/initialize` | Creates Paystack transaction with trainer split code | Authenticated Students | Verified |
 | `/api/paystack/webhook` | Receives Paystack payment success & marks order paid | Server (HMAC verified) | Verified |
 | `/api/download` | Delivers signed URL for project download if paid order exists | Authenticated Student / Owner / Admin | Verified |
+
+### Project Studio and Business Plan Workflow
+
+Business plans follow the required structure, voice, evidence, and formatting rules in [`BUSINESS_PLAN_CONTENT_STANDARD.md`](BUSINESS_PLAN_CONTENT_STANDARD.md).
+
+- `src/lib/studio/templates/business.ts` defines KNEC sections, guidance, and minimum word expectations.
+- `src/lib/studio/businessPlanBuilder.ts` generates the complete structured draft, including itemized steps, lists, and tables.
+- `src/lib/studio/businessPlanMath.ts` is the deterministic source for financial calculations and statements.
+- `src/lib/studio/businessPlanGeneration.ts` uses the selected Gemini or Groq provider for limited fact corrections and whole-document audit findings. AI review cannot silently rewrite financial calculations or the full manuscript.
+- Students keep section-level review and can run a separate whole-document audit. Assigned supervisors and administrators can review the complete business plan and follow findings to the relevant chapter.
+- Normal builds preserve saved text. Replacing existing content requires the explicit confirmed rebuild action.
 
 ---
 
@@ -180,7 +195,7 @@ erDiagram
    - Sessions are validated on the server via `proxy.ts` on protected paths (`/learn`, `/library`, `/trainer`, `/admin`).
    - Granular error diagnostics distinguish between unconfirmed email states and bad passwords.
 2. **Authorization & RBAC:**
-   - Supported Roles: `student`, `trainer`, `admin`.
+   - Supported Roles: `student`, `trainer`, `supervisor`, `admin`.
    - Admin access is verified server-side (`is_admin()` SQL function and `profiles.role === 'admin'`).
    - RLS strictly forbids users from elevating their own `role` in `profiles`.
 3. **Secret Protection:**

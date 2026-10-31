@@ -84,9 +84,25 @@ create table projects (
   price_kes numeric(10,2) not null check (price_kes >= 0),
   file_path text not null,      -- private bucket: project-files
   preview_path text,            -- public or signed preview
+  download_count integer not null default 0 check (download_count >= 0),
   status content_status not null default 'pending_review',
   created_at timestamptz default now()
 );
+
+create unique index projects_workspace_export_file_path_unique
+  on projects(file_path) where file_path like 'workspace-export:%';
+
+create or replace function increment_project_download(p_project_id uuid)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update projects set download_count = download_count + 1 where id = p_project_id;
+$$;
+
+revoke all on function increment_project_download(uuid) from public;
+grant execute on function increment_project_download(uuid) to service_role;
 
 -- Orders: commission and trainer share are fixed at purchase time
 create table orders (
@@ -101,6 +117,26 @@ create table orders (
   status order_status not null default 'pending',
   paid_at timestamptz,
   created_at timestamptz default now()
+);
+
+create table project_reviews (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references projects(id) on delete cascade,
+  student_id uuid not null references profiles(id) on delete cascade,
+  rating smallint not null check (rating between 1 and 5),
+  comment text not null default '' check (char_length(comment) <= 1000),
+  created_at timestamptz not null default now(),
+  unique (project_id, student_id)
+);
+
+create table project_plan_snapshots (
+  project_id uuid primary key references projects(id) on delete cascade,
+  workspace_id uuid not null unique,
+  title text not null,
+  course text not null,
+  level text not null,
+  sections jsonb not null,
+  created_at timestamptz not null default now()
 );
 
 -- Content reports from students
@@ -122,6 +158,8 @@ alter table lesson_resources enable row level security;
 alter table lesson_progress enable row level security;
 alter table projects enable row level security;
 alter table orders enable row level security;
+alter table project_reviews enable row level security;
+alter table project_plan_snapshots enable row level security;
 alter table reports enable row level security;
 
 create or replace function is_admin() returns boolean
@@ -163,6 +201,39 @@ create policy "trainer manages own projects" on projects for all
 -- Inserts and updates happen server-side only (service role) via the Paystack webhook.
 create policy "read own orders" on orders for select
   using (student_id = auth.uid() or trainer_id = auth.uid() or is_admin());
+
+create policy "read marketplace reviews" on project_reviews for select using (
+  student_id = auth.uid() or is_admin() or exists (
+    select 1 from projects p where p.id = project_reviews.project_id and p.trainer_id = auth.uid()
+  )
+);
+create policy "buyers write their own reviews" on project_reviews for insert with check (
+  student_id = auth.uid() and exists (
+    select 1 from orders o where o.project_id = project_reviews.project_id and o.student_id = auth.uid() and o.status = 'paid'
+  )
+);
+create policy "buyers update their own reviews" on project_reviews for update using (student_id = auth.uid()) with check (
+  student_id = auth.uid() and exists (
+    select 1 from orders o where o.project_id = project_reviews.project_id and o.student_id = auth.uid() and o.status = 'paid'
+  )
+);
+
+create policy "buyers read purchased business plan snapshots" on project_plan_snapshots for select using (
+  exists (
+    select 1 from projects p
+    where p.id = project_plan_snapshots.project_id
+      and (p.trainer_id = auth.uid() or is_admin()
+        or exists (select 1 from orders o where o.project_id = p.id and o.student_id = auth.uid() and o.status = 'paid'))
+  )
+);
+
+create or replace view marketplace_project_rating_stats with (security_barrier = true) as
+  select r.project_id, round(avg(r.rating)::numeric, 2) as rating_average, count(*)::integer as review_count
+  from project_reviews r
+  join projects p on p.id = r.project_id
+  where p.status = 'published'
+  group by r.project_id;
+grant select on marketplace_project_rating_stats to anon, authenticated;
 
 -- Reports: anyone signed in can file; admin reads
 create policy "file report" on reports for insert with check (reporter_id = auth.uid());

@@ -6,6 +6,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { Download, Layers, ShieldCheck } from "lucide-react";
 import type { Order, Project, UserProfile } from "@/types/database";
+import { submitProjectReview } from "./actions";
 
 export const instant = false;
 
@@ -35,7 +36,7 @@ export default async function LibraryPage() {
   // Fetch student's paid orders
   const { data: ordersData } = await supabase
     .from("orders")
-    .select("*, projects(*)")
+    .select("*, projects(*, project_reviews(rating, comment))")
     .eq("student_id", user.id)
     .eq("status", "paid")
     .order("paid_at", { ascending: false });
@@ -114,6 +115,20 @@ export default async function LibraryPage() {
                     {project.description || "Complete project archive and technical documentation files."}
                   </p>
                 </div>
+                <form action={submitProjectReview} className="mt-4 grid grid-cols-[100px_1fr_auto] items-end gap-2 border-t border-slate-100 pt-3">
+                  <input type="hidden" name="projectId" value={project.id} />
+                  <label className="grid gap-1 text-[11px] font-medium text-slate-600">
+                    Rating
+                    <select name="rating" defaultValue={project.project_reviews?.[0]?.rating || ""} required className="h-8 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-800">
+                      <option value="" disabled>Choose</option><option value="5">5 stars</option><option value="4">4 stars</option><option value="3">3 stars</option><option value="2">2 stars</option><option value="1">1 star</option>
+                    </select>
+                  </label>
+                  <label className="grid gap-1 text-[11px] font-medium text-slate-600">
+                    Review
+                    <input name="comment" maxLength={1000} defaultValue={project.project_reviews?.[0]?.comment || ""} placeholder="Optional" className="h-8 min-w-0 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-800" />
+                  </label>
+                  <button className="h-8 rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-indigo-700 hover:bg-indigo-50">Save</button>
+                </form>
 
                 <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
                   <span className="text-[11px] font-mono text-slate-500">

@@ -1048,5 +1048,89 @@ export async function reviewBusinessPlanDocumentAction(formData: FormData) {
   };
 }
 
+export async function publishBusinessPlanToMarketplace(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const workspaceId = formData.get("workspaceId")?.toString();
+  const rawPrice = formData.get("priceKes")?.toString().trim() || "";
+  const priceKes = Number(rawPrice);
+  if (!workspaceId || !rawPrice || !Number.isFinite(priceKes) || priceKes < 0 || priceKes > 1000000) {
+    throw new Error("Enter a valid listing price in KES.");
+  }
+
+  const db = getServerDbClient(supabase);
+  const { data: workspace } = await db.from("project_workspaces")
+    .select("id, student_id, workspace_type, level, title, course, problem_area, status, business_plan_specs")
+    .eq("id", workspaceId).maybeSingle();
+  if (!workspace || workspace.student_id !== user.id) throw new Error("This business plan is not yours.");
+  if (workspace.workspace_type !== "business_plan") throw new Error("Only business plans can be submitted from this workspace.");
+  if (workspace.status !== "approved") throw new Error("A supervisor must approve the completed plan before marketplace submission.");
+
+  const definitions = getWorkspaceSections("business_plan", workspace.level);
+  const { data: rows, error: sectionsError } = await db.from("workspace_sections")
+    .select("section_key, current_text").eq("workspace_id", workspaceId);
+  if (sectionsError) throw new Error("Could not verify the plan sections.");
+  const sectionText = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
+  const incomplete = definitions.filter((definition) => {
+    const words = (sectionText.get(definition.key) || "").trim().split(/\s+/).filter(Boolean).length;
+    return words < (definition.minWords || 30);
+  });
+  if (incomplete.length) throw new Error(`Complete all sections before publishing. ${incomplete.length} section(s) need more content.`);
+
+  const { data: existing } = await db.from("project_plan_snapshots").select("project_id")
+    .eq("workspace_id", workspaceId).maybeSingle();
+  if (existing) throw new Error("This business plan has already been submitted to the marketplace.");
+
+  const { data: listing, error } = await db.from("projects").insert({
+    trainer_id: user.id,
+    title: workspace.title || `${workspace.course} Business Plan`,
+    description: workspace.problem_area || `Completed ${workspace.course} business plan.`,
+    category: "Business Plan",
+    price_kes: priceKes,
+    file_path: `workspace-export:${workspaceId}`,
+    status: "pending_review",
+  }).select("id").single();
+  if (error || !listing) throw new Error(error?.message || "Could not submit this plan for marketplace review.");
+
+  const specs = workspace.business_plan_specs as {
+    candidateName?: string;
+    admissionNumber?: string;
+    institutionName?: string;
+    supervisorName?: string;
+  } | null;
+  const redact = (content: string, value: string | undefined, replacement: string) => {
+    if (!value?.trim() || value.trim().length < 2) return content;
+    const escaped = value.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return content.replace(new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, "giu"), replacement);
+  };
+
+  const { error: snapshotError } = await db.from("project_plan_snapshots").insert({
+    project_id: listing.id,
+    workspace_id: workspaceId,
+    title: workspace.title || `${workspace.course} Business Plan`,
+    course: workspace.course,
+    level: workspace.level,
+    sections: definitions.map((definition) => ({
+      title: definition.title,
+      content: [
+        [specs?.candidateName, "Candidate"],
+        [specs?.admissionNumber, "Index number withheld"],
+        [specs?.institutionName, "Institution withheld"],
+        [specs?.supervisorName, "Supervisor"],
+      ].reduce((text, [value, replacement]) => redact(text, value, replacement as string), sectionText.get(definition.key) || ""),
+    })),
+  });
+  if (snapshotError) {
+    await db.from("projects").delete().eq("id", listing.id).eq("trainer_id", user.id);
+    throw new Error(snapshotError.message || "Could not save the private listing document.");
+  }
+
+  revalidatePath(`/studio/${workspaceId}`);
+  revalidatePath("/projects");
+  revalidatePath("/admin");
+}
+
 
 

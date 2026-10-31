@@ -32,3 +32,14 @@ All pages across the application must strictly adhere to the **Kenya Education C
    - Use `StatCard` (`src/components/ui/StatCard.tsx`) across all dashboards (Admin, Supervisor, Studio, Trainer).
    - Features top colored accent stripe (`h-1 bg-indigo-500`, `bg-emerald-500`, `bg-rose-500`, `bg-amber-500`), colored numbers matching the accent stripe, uppercase tracking-wider labels (`text-[11px] font-semibold uppercase text-slate-500`), and rounded-xl tinted icon containers (`p-3.5 rounded-xl`).
 
+## Business Plan Content Standard (Mandatory)
+
+For business-plan generation, review, editing, and export, follow [`docs/BUSINESS_PLAN_CONTENT_STANDARD.md`](docs/BUSINESS_PLAN_CONTENT_STANDARD.md). This is a manuscript standard; the UI's concise-copy rule does not permit thin business-plan sections.
+
+- Deliver substantive, enterprise-specific sections in the KNEC chapter order and meet each template's `minWords` expectation.
+- Use polished professional prose, numbered procedures and objectives, bullets for grouped items, and Markdown tables for comparisons, schedules, budgets, and financial statements.
+- Keep candidate assumptions, verified evidence, and future proposals distinct. Never invent survey results, competitors, supplier quotes, permits, fees, partnerships, or approvals.
+- Build the bulk draft deterministically. AI may make limited evidence-supported corrections; it must not alter deterministic financial calculations.
+- Preserve section-based review and the separate whole-document audit for students and supervisors. Whole-document findings must link to evidence and relevant sections without silently rewriting the document.
+- Preserve saved sections on normal builds. Replacing existing text requires the explicit, confirmed rebuild action.
+

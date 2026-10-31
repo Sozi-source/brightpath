@@ -22,12 +22,18 @@ export async function POST(request: NextRequest) {
   // Fetch project details
   const { data: project, error: projErr } = await supabase
     .from("projects")
-    .select("id, title, price_kes, trainer_id")
+    .select("id, title, price_kes, trainer_id, status")
     .eq("id", projectId)
     .single();
 
   if (projErr || !project) {
     return NextResponse.json({ error: "Project not found." }, { status: 404 });
+  }
+  if (project.status !== "published") {
+    return NextResponse.json({ error: "This project is not available for purchase." }, { status: 404 });
+  }
+  if (project.trainer_id === user.id) {
+    return NextResponse.json({ error: "You cannot purchase your own listing." }, { status: 400 });
   }
 
   // Fetch trainer subaccount code & platform commission

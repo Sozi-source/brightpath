@@ -1,5 +1,13 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Project Guides
+
+- [Repository instructions](AGENTS.md) — required implementation and UI standards.
+- [Project context](docs/PROJECT_CONTEXT.md) — architecture, routes, and workflows.
+- [UI design system](docs/UI_DESIGN_SYSTEM.md) — BrightPath institutional interface standards.
+- [Business plan content standard](docs/BUSINESS_PLAN_CONTENT_STANDARD.md) — approved structure, voice, evidence, formatting, and review expectations for generated plans.
+- [Change log](CHANGES.md) — implementation history and current project notes.
+
 ## Getting Started
 
 First, run the development server:

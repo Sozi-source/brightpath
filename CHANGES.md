@@ -21,6 +21,32 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-10-31] — Feature: KNEC Word Export and Student Marketplace Listings
+
+**Category:** Project Studio, Document Export, Marketplace
+
+**Status:** Implemented; database migration required
+
+**Changes Implemented:**
+1. Added a student Word export for complete business-plan workspaces. It formats the saved sections as A4, Times New Roman 12 pt, 1.5 spacing and preserves headings, lists, and Markdown tables.
+2. Added a marketplace submission flow for complete, supervisor-approved plans. Students set a KES price; submissions enter the existing admin review queue.
+3. Store an immutable, private plan snapshot for marketplace downloads. Candidate admission and institution details are excluded from the public listing copy.
+4. Added marketplace download counts and buyer reviews, with ratings available only to verified purchasers.
+5. Refined marketplace cards to show category, publisher, price, download count, and real review status with concise text.
+6. Added migration `supabase/migrations/20261031000001_marketplace_workspace_publications.sql` for listing snapshots, review access, and download counts.
+
+## [2026-10-31] — Standard: Structured Business Plan Content and Review
+
+**Category:** Project Studio, Generated Manuscript Quality, and Supervisor Review
+
+**Status:** Documentation aligned with the implemented workflow
+
+**Changes Recorded:**
+1. Added `docs/BUSINESS_PLAN_CONTENT_STANDARD.md` as the shared standard for business-plan generation, editing, review, and export. It captures the approved KNEC chapter structure, professional evidence-led voice, substantial narrative, useful lists and tables, and fact and financial integrity.
+2. Documented the script-first drafting model, deterministic financial calculations, optional Gemini/Groq factual review, and separate section-level and whole-document reviews for students and supervisors.
+3. Clarified that saved sections are preserved by default and replacement uses the explicit confirmed rebuild flow.
+4. Linked the standard through `AGENTS.md`, `docs/PROJECT_CONTEXT.md`, and this README so future implementation and content work follow the same expectations. The concise UI-copy rule applies to interface text, not the manuscript itself.
+
 ## [2026-10-26] — Fix: Workspace Sections RLS Policy & Student Portal Text Density Polish
 
 **Category:** Studio Workspace Engine, Database Security (RLS) & UI Text Density Polish

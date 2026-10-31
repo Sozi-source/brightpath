@@ -60,11 +60,13 @@ export interface Project {
   price_kes: number;
   file_path: string;
   preview_path: string | null;
+  download_count?: number;
   status: ContentStatus;
   created_at: string;
   profiles?: {
     full_name: string;
   } | null;
+  project_reviews?: { rating: number; comment?: string }[];
 }
 
 export interface Lesson {

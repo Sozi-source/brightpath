@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createBusinessPlanDocx } from "@/lib/studio/businessPlanDocx";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -61,11 +62,36 @@ export async function GET(request: NextRequest) {
 
   // Attempt to generate signed storage URL using service role client
   const adminClient = createAdminClient();
+  if (project.file_path.startsWith("workspace-export:")) {
+    const { data: snapshot } = await adminClient.from("project_plan_snapshots")
+      .select("title, course, level, sections").eq("project_id", project.id).maybeSingle();
+    if (!snapshot || !Array.isArray(snapshot.sections)) {
+      return NextResponse.json({ error: "The published business plan is unavailable." }, { status: 404 });
+    }
+    const sections = snapshot.sections as { title: string; content: string }[];
+    const docx = createBusinessPlanDocx({
+      title: snapshot.title || project.title,
+      course: snapshot.course,
+      level: snapshot.level === "craft" ? "Certificate" : "Diploma",
+      sections,
+    });
+    await adminClient.rpc("increment_project_download", { p_project_id: project.id });
+    const filename = `${(project.title || "business-plan").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "business-plan"}.docx`;
+    return new Response(docx as unknown as BodyInit, {
+      headers: {
+        "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Cache-Control": "private, no-store",
+      },
+    });
+  }
+
   const { data: signedData } = await adminClient.storage
     .from("project-files")
     .createSignedUrl(project.file_path, 3600, { download: true });
 
   if (signedData?.signedUrl) {
+    await adminClient.rpc("increment_project_download", { p_project_id: project.id });
     return NextResponse.redirect(signedData.signedUrl);
   }
 

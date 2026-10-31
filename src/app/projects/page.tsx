@@ -3,9 +3,9 @@ import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
-import { Layers, Briefcase, Download, ShieldCheck } from "lucide-react";
+import { Layers, Briefcase, Download } from "lucide-react";
 import type { Project, UserProfile } from "@/types/database";
-import { BuyButton } from "@/components/BuyButton";
+import { MarketplaceProjectCard } from "./MarketplaceProjectCard";
 
 export const instant = false;
 
@@ -22,11 +22,14 @@ export default async function ProjectsPage() {
     profile = p as UserProfile | null;
   }
 
-  const { data: projectsData } = await supabase
-    .from("projects")
-    .select("*, profiles:trainer_id(full_name)")
-    .eq("status", "published")
-    .order("created_at", { ascending: false });
+  const [{ data: projectsData }, { data: ratingStats }] = await Promise.all([
+    supabase.from("projects")
+      .select("*, profiles:trainer_id(full_name)")
+      .eq("status", "published")
+      .order("created_at", { ascending: false }),
+    supabase.from("marketplace_project_rating_stats")
+      .select("project_id, rating_average, review_count"),
+  ]);
 
   const projects: Project[] = (projectsData as unknown as Project[]) || [];
 
@@ -40,14 +43,14 @@ export default async function ProjectsPage() {
     >
       <PageHeaderCard
         title="Projects Marketplace"
-        subtitle="Verified technical capstone packages"
+        subtitle="Business plans and technical projects"
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Projects Marketplace", active: true },
         ]}
         metadata={[
           { label: "Available", value: `${projects.length} Projects` },
-          { label: "Delivery", value: "Instant Paystack / M-PESA" },
+          { label: "Format", value: "Digital downloads" },
         ]}
         actions={
           isTrainerOrAdmin ? (
@@ -80,41 +83,15 @@ export default async function ProjectsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((p) => (
-            <div
-              key={p.id}
-              className="bg-white rounded-xl border border-slate-200 p-6 flex flex-col justify-between shadow-xs hover:border-slate-300 transition-colors"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-blue-800 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded">
-                    {p.category || "General Project"}
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700">
-                    <ShieldCheck className="h-3.5 w-3.5" />
-                    Verified
-                  </span>
-                </div>
-                <h3 className="font-bold text-base text-slate-900 leading-snug">{p.title}</h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  By <strong className="text-slate-700">{p.profiles?.full_name || "Verified Faculty"}</strong>
-                </p>
-                <p className="mt-3 text-xs text-slate-600 line-clamp-3 leading-relaxed">
-                  {p.description || "Complete project implementation files and comprehensive documentation."}
-                </p>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] uppercase text-slate-400 font-medium block">Price</span>
-                  <span className="font-mono font-semibold text-base sm:text-lg text-slate-900">
-                    KES {Number(p.price_kes).toLocaleString()}
-                  </span>
-                </div>
-                <BuyButton projectId={p.id} priceKes={p.price_kes} />
-              </div>
-            </div>
-          ))}
+          {projects.map((project) => {
+            const stats = ratingStats?.find((row) => row.project_id === project.id);
+            return <MarketplaceProjectCard
+              key={project.id}
+              project={project}
+              viewerId={user?.id}
+              rating={stats ? { rating_average: Number(stats.rating_average), review_count: Number(stats.review_count) } : undefined}
+            />;
+          })}
         </div>
       )}
     </AppShell>
