@@ -19,7 +19,10 @@ import {
 import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
 import { BUSINESS_PLAN_PRESETS } from "@/lib/studio/businessPlanTypes";
 import { computeBusinessPlanFinancials } from "@/lib/studio/businessPlanMath";
-import { saveBusinessPlanDetailsAction } from "@/app/studio/actions";
+import {
+  buildBusinessPlanChapterAction,
+  saveBusinessPlanDetailsAction,
+} from "@/app/studio/actions";
 
 interface BusinessPlanBuilderModalProps {
   workspaceId: string;
@@ -251,7 +254,24 @@ export function BusinessPlanBuilderModal({
           return;
         }
 
-        setGenerationSuccess(res);
+        let generatedSections = 0;
+        let preservedSections = res.preservedSectionsCount;
+        for (const [index, chapterKey] of res.chapterKeys.entries()) {
+          setGenerationStep(`Drafting ${index + 1}/${res.chapterKeys.length}: ${chapterKey}...`);
+          const chapterForm = new FormData();
+          chapterForm.append("workspaceId", workspaceId);
+          chapterForm.append("chapterKey", chapterKey);
+          const chapterResult = await buildBusinessPlanChapterAction(chapterForm);
+          generatedSections += chapterResult.generatedSections;
+          preservedSections += chapterResult.preservedSections;
+        }
+
+        setGenerationSuccess({
+          businessName: res.businessName,
+          sectionsCount: generatedSections,
+          preservedSectionsCount: preservedSections,
+          researchSources: res.researchSources,
+        });
         setGenerationStep("");
         if (onPlanGenerated) {
           onPlanGenerated();
@@ -259,7 +279,7 @@ export function BusinessPlanBuilderModal({
         router.refresh();
       } catch (err) {
         setGenerationError(
-          err instanceof Error ? err.message : "Could not save business plan details. Check required fields."
+          `${err instanceof Error ? err.message : "Could not finish the business plan draft."} Completed sections stay saved; click Build Full Draft again to resume.`
         );
         setGenerationStep("");
       }

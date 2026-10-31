@@ -20,6 +20,7 @@ export interface BusinessPlanDraftSection {
 }
 
 const GEMINI_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
+const GROQ_DEFAULT_MODEL = "openai/gpt-oss-20b";
 
 function readGeminiText(data: Record<string, unknown>): string {
   const candidates = data.candidates as Array<{
@@ -43,7 +44,7 @@ async function callGemini(
   const models = configuredModel
     ? [configuredModel, ...GEMINI_MODELS.filter((model) => model !== configuredModel)]
     : GEMINI_MODELS;
-  let lastStatus: number | null = null;
+  let lastError = "";
 
   for (const model of models) {
     try {
@@ -64,18 +65,75 @@ async function callGemini(
           signal: AbortSignal.timeout(options.timeoutMs ?? 55000),
         }
       );
-      lastStatus = response.status;
       if (response.ok) return await response.json();
+      const body = await response.json().catch(() => null);
+      const message = body?.error?.message;
+      lastError = typeof message === "string" ? message : `HTTP ${response.status}`;
     } catch {
       // Retry with the next supported Gemini model.
     }
   }
 
-  throw new Error(
-    lastStatus
-      ? `Gemini could not complete business plan generation (HTTP ${lastStatus}). Try again.`
-      : "Gemini could not be reached. Check the connection and try again."
-  );
+  throw new Error(lastError
+    ? `Gemini request failed: ${lastError.slice(0, 300)}`
+    : "Gemini could not be reached. Check the connection and try again.");
+}
+
+async function callGroq(
+  prompt: string,
+  options: { browserSearch?: boolean; json?: boolean; timeoutMs?: number } = {}
+): Promise<Record<string, unknown>> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error("Configure GROQ_API_KEY to use Groq.");
+
+  const model = options.browserSearch
+    ? process.env.GROQ_SEARCH_MODEL?.trim() || GROQ_DEFAULT_MODEL
+    : process.env.GROQ_TEXT_MODEL?.trim() || GROQ_DEFAULT_MODEL;
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: "user", content: prompt }],
+      max_completion_tokens: options.browserSearch ? 4500 : 6000,
+      ...(options.browserSearch
+        ? {
+            tool_choice: "required",
+            tools: [{ type: "browser_search" }],
+            reasoning_effort: "low",
+          }
+        : options.json
+        ? { response_format: { type: "json_object" } }
+        : {}),
+    }),
+    signal: AbortSignal.timeout(options.timeoutMs ?? 55000),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    const message = body?.error?.message;
+    throw new Error(
+      `Groq request failed: ${typeof message === "string" ? message.slice(0, 300) : `HTTP ${response.status}`}`
+    );
+  }
+  return response.json();
+}
+
+function readGroqText(data: Record<string, unknown>): string {
+  const choices = data.choices as Array<{ message?: { content?: unknown } }> | undefined;
+  const content = choices?.[0]?.message?.content;
+  return typeof content === "string" ? content.trim() : "";
+}
+
+async function generateJson(prompt: string): Promise<Record<string, unknown>> {
+  const useGroq = Boolean(process.env.GROQ_API_KEY);
+  const response = useGroq
+    ? await callGroq(prompt, { json: true })
+    : await callGemini(prompt, { json: true, timeoutMs: 55000 });
+  const text = useGroq ? readGroqText(response) : readGeminiText(response);
+  return parseJsonObject(text);
 }
 
 function parseJsonObject(text: string): Record<string, unknown> {
@@ -113,8 +171,14 @@ Use web search. Prioritize official county, national statistics, regulator, and 
 {"summary":"A concise research brief with facts, dates, and uncertainty clearly stated.","sourceUrls":["https://..." ]}
 Research local context, reachable customer segments, known competitors or alternatives, supplier/transport conditions, and permits relevant to this sector. Do not invent local population figures, business names, prices, survey results, supplier quotes, license fees, or regulations. Say when a detail could not be verified. Keep summary under 900 words.`;
 
-  const response = await callGemini(prompt, { googleSearch: true, timeoutMs: 60000 });
-  const resultText = readGeminiText(response);
+  const useGroq = Boolean(process.env.GROQ_API_KEY);
+  const response = useGroq
+    ? await callGroq(
+        `${prompt}\nReturn sources as a JSON array with the exact page title and full HTTPS URL for each source you used. Keep any browser-search citation markers beside researched claims.`,
+        { browserSearch: true, timeoutMs: 60000 }
+      )
+    : await callGemini(prompt, { googleSearch: true, timeoutMs: 60000 });
+  const resultText = useGroq ? readGroqText(response) : readGeminiText(response);
   const parsed = parseJsonObject(resultText);
   const grounding = response.candidates as Array<{
     groundingMetadata?: {
@@ -122,10 +186,9 @@ Research local context, reachable customer segments, known competitors or altern
     };
   }> | undefined;
   const chunks = grounding?.[0]?.groundingMetadata?.groundingChunks || [];
-  const sourceCandidates = chunks.map((chunk) => ({
-    title: chunk.web?.title,
-    url: chunk.web?.uri,
-  }));
+  const sourceCandidates = useGroq
+    ? (Array.isArray(parsed.sources) ? parsed.sources : [])
+    : chunks.map((chunk) => ({ title: chunk.web?.title, url: chunk.web?.uri }));
   const sources = sourceCandidates.reduce<BusinessPlanResearchSource[]>((all, source) => {
     if (!isSafeSourceUrl(source.url) || all.some((item) => item.url === source.url)) return all;
     all.push({
@@ -207,8 +270,7 @@ SECTIONS TO WRITE:\n${sections.map((section) => `${section.key} | ${section.titl
 
 Return JSON only as {"sections":[{"key":"exact section key","content":"Markdown section content"}]} and include every requested key exactly once. Keep each section useful and specific. Do not invent market sizes, competitors, survey results, quotes, supplier prices, regulatory fees, approvals, or partnerships. Distinguish user assumptions from researched facts. Use [Confirm locally] where evidence is missing. Cite researched claims using the supplied [n] source numbers. Do not claim the business is viable or profitable as a fact; describe projections as estimates. Do not write financial tables or change supplied figures.`;
 
-    const response = await callGemini(prompt, { json: true, timeoutMs: 60000 });
-    const parsed = parseJsonObject(readGeminiText(response));
+    const parsed = await generateJson(prompt);
     const rows = Array.isArray(parsed.sections) ? parsed.sections : [];
     for (const row of rows) {
       if (!row || typeof row !== "object") continue;

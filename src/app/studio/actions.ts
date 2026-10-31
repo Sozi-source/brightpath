@@ -10,6 +10,7 @@ import { buildCompleteBusinessPlan } from "@/lib/studio/businessPlanBuilder";
 import {
   draftBusinessPlanSections,
   researchBusinessPlan,
+  type BusinessPlanResearch,
 } from "@/lib/studio/businessPlanGeneration";
 import {
   narrowDownTopic,
@@ -585,9 +586,9 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
   | {
       success: true;
       businessName: string;
-      sectionsCount: number;
       preservedSectionsCount: number;
-      researchSources: Array<{ title: string; url: string }>;
+      chapterKeys: string[];
+      researchSources: BusinessPlanResearch["sources"];
     }
   | { error: string }
 > {
@@ -616,7 +617,7 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
   // 1. Fetch workspace and ensure ownership.
   const { data: ws } = await db
     .from("project_workspaces")
-    .select("id, student_id, supervisor_id, institution_id, workspace_type, level, course, status")
+    .select("id, student_id, supervisor_id, institution_id, workspace_type, level, course, status, business_plan_specs")
     .eq("id", workspaceId)
     .single();
 
@@ -769,24 +770,35 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
     throw new Error("Enter valid monthly overhead amounts.");
   }
 
-  const research = await researchBusinessPlan(specs);
-  const sectionDefinitions = getWorkspaceSections("business_plan", ws.level);
-  const aiDrafts = await draftBusinessPlanSections(specs, sectionDefinitions, research);
-  const scriptedSections = new Map(
-    buildCompleteBusinessPlan(specs).map((section) => [section.section_key, section])
+  const priorSpecs = ws.business_plan_specs as BusinessPlanSpecs | null;
+  const priorResearch = priorSpecs?.research;
+  const canReuseResearch = Boolean(
+    priorResearch?.summary &&
+    priorSpecs?.businessName === specs.businessName &&
+    priorSpecs?.industrySector === specs.industrySector &&
+    priorSpecs?.primaryProduct === specs.primaryProduct &&
+    priorSpecs?.county === specs.county &&
+    priorSpecs?.townOrMarket === specs.townOrMarket
   );
-  const draftSections = sectionDefinitions.map((definition, index) => {
-    const aiText = aiDrafts.get(definition.key);
-    const scriptedText = scriptedSections.get(definition.key)?.content;
-    const currentText = aiText || scriptedText ||
-      `### ${definition.title}\n\n[Add verified information for this section.]`;
-    return {
-      section_key: definition.key,
-      position: index + 1,
-      current_text: currentText,
-      starter_text: getSectionStarterContent("business_plan", ws.level, definition.key),
-    };
+  const research = canReuseResearch
+    ? priorResearch as BusinessPlanResearch
+    : await researchBusinessPlan(specs);
+  const sectionDefinitions = getWorkspaceSections("business_plan", ws.level);
+  const { data: existingSections } = await db
+    .from("workspace_sections")
+    .select("section_key, current_text")
+    .eq("workspace_id", workspaceId);
+  const existingByKey = new Map(
+    (existingSections || []).map((section) => [section.section_key, section.current_text || ""])
+  );
+  const pendingDefinitions = sectionDefinitions.filter((definition) => {
+    const currentText = existingByKey.get(definition.key) || "";
+    const starterText = getSectionStarterContent("business_plan", ws.level, definition.key);
+    return !currentText.trim() || (starterText !== "" && currentText === starterText);
   });
+  const chapterKeys = [...new Set(
+    pendingDefinitions.map((definition) => definition.chapter || definition.phase)
+  )];
 
   // Research is stored with the candidate's details so claims can be checked later.
   const savedSpecs: BusinessPlanSpecs = { ...specs, research };
@@ -809,30 +821,12 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
     .eq("id", workspaceId);
   if (saveError) throw new Error(saveError.message || "Could not save business plan details.");
 
-  const { data: generationStats, error: generationError } = await db.rpc(
-    "fill_empty_business_plan_sections",
-    {
-      p_workspace_id: workspaceId,
-      p_user_id: user.id,
-      p_sections: draftSections.map(({ section_key, position, current_text, starter_text }) => ({
-        section_key,
-        position,
-        current_text,
-        starter_text,
-      })),
-    }
-  );
-  if (generationError) {
-    throw new Error(generationError.message || "Could not save the generated plan sections.");
-  }
-  const stats = Array.isArray(generationStats) ? generationStats[0] : null;
-  const sectionsCount = Number(stats?.generated_sections) || 0;
-  const preservedSectionsCount = Number(stats?.preserved_sections) || 0;
+  const preservedSectionsCount = sectionDefinitions.length - pendingDefinitions.length;
 
   // 6. Project log entry
   await db.from("project_log_entries").insert({
     workspace_id: workspaceId,
-    activity: `Built a sourced business plan draft for "${specs.businessName}" (${sectionsCount} sections added; existing sections preserved).`,
+    activity: `Prepared sourced research for the business plan "${specs.businessName}".`,
     auto_generated: true,
     student_signed_at: new Date().toISOString(),
   });
@@ -846,10 +840,103 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
   return {
     success: true,
     businessName: specs.businessName,
-    sectionsCount,
     preservedSectionsCount,
+    chapterKeys,
     researchSources: research.sources,
   };
+}
+
+export async function buildBusinessPlanChapterAction(formData: FormData): Promise<{
+  success: true;
+  generatedSections: number;
+  preservedSections: number;
+}> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const workspaceId = formData.get("workspaceId")?.toString();
+  const chapterKey = formData.get("chapterKey")?.toString();
+  if (!workspaceId || !chapterKey) throw new Error("Missing workspace or chapter.");
+
+  const db = getServerDbClient(supabase);
+  const { data: workspace } = await db
+    .from("project_workspaces")
+    .select("id, student_id, workspace_type, level, status, business_plan_specs")
+    .eq("id", workspaceId)
+    .single();
+  if (!workspace || workspace.student_id !== user.id) throw new Error("Unauthorized.");
+  if (workspace.workspace_type !== "business_plan") throw new Error("This is not a business plan workspace.");
+  if (workspace.status !== "approved" && workspace.status !== "submitted") {
+    throw new Error("Your business plan topic must be approved before drafting chapters.");
+  }
+
+  const specs = workspace.business_plan_specs as BusinessPlanSpecs | null;
+  const research = specs?.research;
+  if (!specs || !research?.summary || !Array.isArray(research.sources) || research.sources.length === 0) {
+    throw new Error("Run business research before drafting the chapters.");
+  }
+
+  const definitions = getWorkspaceSections("business_plan", workspace.level).filter(
+    (definition) => (definition.chapter || definition.phase) === chapterKey
+  );
+  if (definitions.length === 0) throw new Error("Business plan chapter not found.");
+
+  const { data: rows } = await db
+    .from("workspace_sections")
+    .select("section_key, current_text")
+    .eq("workspace_id", workspaceId);
+  const existingByKey = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
+  const pending = definitions.filter((definition) => {
+    const currentText = existingByKey.get(definition.key) || "";
+    const starterText = getSectionStarterContent("business_plan", workspace.level, definition.key);
+    return !currentText.trim() || (starterText !== "" && currentText === starterText);
+  });
+  if (pending.length === 0) {
+    return { success: true, generatedSections: 0, preservedSections: definitions.length };
+  }
+
+  const aiDrafts = await draftBusinessPlanSections(
+    specs,
+    pending,
+    research as BusinessPlanResearch
+  );
+  const scriptedSections = new Map(
+    buildCompleteBusinessPlan(specs).map((section) => [section.section_key, section.content])
+  );
+  const draftSections = pending.map((definition) => ({
+    section_key: definition.key,
+    position: definitions.findIndex((item) => item.key === definition.key) + 1,
+    current_text:
+      aiDrafts.get(definition.key) ||
+      scriptedSections.get(definition.key) ||
+      `### ${definition.title}\n\n[Add verified information for this section.]`,
+    starter_text: getSectionStarterContent("business_plan", workspace.level, definition.key),
+  }));
+
+  const { data: generationStats, error: generationError } = await db.rpc(
+    "fill_empty_business_plan_sections",
+    {
+      p_workspace_id: workspaceId,
+      p_user_id: user.id,
+      p_sections: draftSections,
+    }
+  );
+  if (generationError) throw new Error(generationError.message || "Could not save this chapter.");
+  const stats = Array.isArray(generationStats) ? generationStats[0] : null;
+  const generatedSections = Number(stats?.generated_sections) || 0;
+  const preservedSections = Number(stats?.preserved_sections) || 0;
+
+  await db.from("project_log_entries").insert({
+    workspace_id: workspaceId,
+    activity: `Drafted ${generatedSections} business plan sections for ${chapterKey}.`,
+    auto_generated: true,
+    student_signed_at: new Date().toISOString(),
+  });
+  revalidatePath(`/studio/${workspaceId}`);
+  revalidatePath(`/studio/${workspaceId}/write`);
+
+  return { success: true, generatedSections, preservedSections };
 }
 
 
