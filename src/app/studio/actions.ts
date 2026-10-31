@@ -842,9 +842,9 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
     student_signed_at: new Date().toISOString(),
   });
 
-  revalidatePath(`/studio/${workspaceId}`);
-  revalidatePath(`/studio/${workspaceId}/craft`);
-  revalidatePath(`/studio/${workspaceId}/problem`);
+  // The active workspace is refreshed by the client after all chapter actions
+  // complete. Invalidating it here would render Server Components in the
+  // middle of the build and can fail after this details save has committed.
   revalidatePath("/studio");
   revalidatePath("/supervisor");
 
