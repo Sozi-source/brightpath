@@ -54,6 +54,7 @@ Do not force a table into reflective prose. Do not invent data to fill one; mark
 - Offer both a print-ready `.pdf` for consistent submission and an editable `.docx` for continued work.
 - Generate PDF from the shared business-plan content using semantic HTML and print CSS; do not expose an HTML page as the final deliverable.
 - Use the same KNEC page order, candidate details, chapter headings, tables, lists, and diagrams in both formats.
+- Build a business-specific logo mark from the enterprise name and sector or product, then place it prominently above the plan title on both title pages; do not use a generic placeholder mark.
 - Use A4 paper, Times New Roman at 12 pt throughout, and 1.5 line spacing, following the KNEC project-guide requirements.
 - Preserve section headings, numbered procedures, bullet lists, and tables when converting the saved Markdown sections to either format.
 - Keep the title page followed by dedication, declaration, acknowledgements, abbreviations and acronyms, table of contents, executive summary, Chapters One to Five, references, and appendices. Start each preliminary page and chapter on a new page.

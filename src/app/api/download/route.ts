@@ -73,6 +73,7 @@ export async function GET(request: NextRequest) {
     const sections = snapshot.sections as { title: string; content: string }[];
     const document = {
       title: snapshot.title || project.title,
+      businessName: snapshot.title || project.title,
       course: snapshot.course,
       level: snapshot.level === "craft" ? "Certificate" : "Diploma",
       sections,

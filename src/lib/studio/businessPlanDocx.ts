@@ -1,4 +1,5 @@
 import PizZip from "pizzip";
+import { createBusinessPlanBrand } from "./businessPlanBrand";
 
 export interface BusinessPlanDocxSection {
   title: string;
@@ -67,12 +68,18 @@ function centeredParagraph(text: string, style = "Normal"): string {
   return paragraph(text, style, '<w:jc w:val="center"/>');
 }
 
+function brandMarkParagraph(initials: string, accent: string): string {
+  return `<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:before="120" w:after="240" w:line="360" w:lineRule="auto"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:b/><w:color w:val="${accent}"/><w:shd w:fill="F1F5F9"/><w:sz w:val="40"/></w:rPr><w:t>${xml(initials)}</w:t></w:r></w:p>`;
+}
+
 function plainMarkdown(text: string): string {
   return text.replace(/\*\*/g, "").replace(/(?<!\*)\*([^*]+)\*/g, "$1");
 }
 
 function cell(text: string, width: number, header = false): string {
-  return `<w:tc><w:tcPr><w:tcW w:w="${width}" w:type="dxa"/>${header ? "<w:shd w:fill=\"DCE6F1\"/>" : ""}<w:vAlign w:val="center"/></w:tcPr><w:p><w:pPr><w:spacing w:after="80" w:line="360" w:lineRule="auto"/></w:pPr>${run(text, header)}</w:p></w:tc>`;
+  const lines = text.split(/<br\s*\/?>/gi);
+  const paragraphs = lines.map((line) => `<w:p><w:pPr><w:spacing w:after="80" w:line="360" w:lineRule="auto"/></w:pPr>${run(line, header)}</w:p>`).join("");
+  return `<w:tc><w:tcPr><w:tcW w:w="${width}" w:type="dxa"/>${header ? "<w:shd w:fill=\"DCE6F1\"/>" : ""}<w:vAlign w:val="center"/></w:tcPr>${paragraphs}</w:tc>`;
 }
 
 function table(rows: string[][]): string {
@@ -98,7 +105,7 @@ function diagram(lines: string[]): string {
 }
 
 function markdownToWord(content: string): string {
-  const lines = content.replace(/\r/g, "").split("\n");
+  const lines = content.replace(/\r/g, "").replace(/<br\s*\/?>/gi, "\n").split("\n");
   const output: string[] = [];
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index].trim();
@@ -163,12 +170,19 @@ export function createBusinessPlanDocx(params: {
   admissionNumber?: string | null;
   institution?: string | null;
   supervisor?: string | null;
+  businessName?: string | null;
+  tagline?: string | null;
+  industrySector?: string | null;
+  primaryProduct?: string | null;
   course: string;
   level: string;
   sections: BusinessPlanDocxSection[];
 }): Uint8Array {
   const sections = orderSections(params.sections);
+  const brand = createBusinessPlanBrand({ name: params.businessName || params.title, industry: params.industrySector, product: params.primaryProduct });
   const content: string[] = [
+    brandMarkParagraph(brand.initials, brand.accent),
+    ...(params.tagline ? [centeredParagraph(params.tagline)] : []),
     centeredParagraph(params.title.toUpperCase(), "Title"),
     centeredParagraph("Presented by:"),
     ...(params.candidate ? [centeredParagraph(params.candidate)] : []),

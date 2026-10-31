@@ -14,7 +14,7 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
   const db = getServerDbClient(supabase);
   const [{ data: workspace }, { data: profile }] = await Promise.all([
     db.from("project_workspaces")
-      .select("id, student_id, supervisor_id, workspace_type, level, course, title, status, student:student_id(full_name, admission_number), supervisor:supervisor_id(full_name), institution:institution_id(name)")
+      .select("id, student_id, supervisor_id, workspace_type, level, course, title, status, business_plan_specs, student:student_id(full_name, admission_number), supervisor:supervisor_id(full_name), institution:institution_id(name)")
       .eq("id", workspaceId).maybeSingle(),
     db.from("profiles").select("role").eq("id", user.id).maybeSingle(),
   ]);
@@ -37,12 +37,17 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
   const student = workspace.student as unknown as { full_name?: string | null; admission_number?: string | null } | null;
   const supervisor = workspace.supervisor as unknown as { full_name?: string | null } | null;
   const institution = workspace.institution as unknown as { name?: string | null } | null;
+  const businessSpecs = workspace.business_plan_specs as { businessName?: string; tagline?: string; industrySector?: string; primaryProduct?: string } | null;
   const document = {
     title: workspace.title || "Business Plan",
     candidate: student?.full_name || "Candidate",
     admissionNumber: student?.admission_number,
     institution: institution?.name,
     supervisor: supervisor?.full_name,
+    businessName: businessSpecs?.businessName || workspace.title,
+    tagline: businessSpecs?.tagline,
+    industrySector: businessSpecs?.industrySector,
+    primaryProduct: businessSpecs?.primaryProduct,
     course: workspace.course,
     level: workspace.level === "craft" ? "Certificate" : "Diploma",
     sections,
