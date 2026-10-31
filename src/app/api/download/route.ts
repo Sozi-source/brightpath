@@ -4,8 +4,6 @@ import { createBusinessPlanDocx } from "@/lib/studio/businessPlanDocx";
 import { createBusinessPlanPdf } from "@/lib/studio/businessPlanPdf";
 import { NextResponse, type NextRequest } from "next/server";
 
-export const runtime = "nodejs";
-
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
   const {
