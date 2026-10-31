@@ -134,13 +134,20 @@ export default async function LibraryPage() {
                   <span className="text-[11px] font-mono text-slate-500">
                     Paid: <strong className="text-slate-800">KES {Number(order.amount_kes).toLocaleString()}</strong>
                   </span>
-                  <a
-                    href={`/api/download?projectId=${project.id}`}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 hover:bg-blue-800 text-white px-3.5 py-2 text-xs font-bold transition-colors shadow-xs"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    <span>Download Package</span>
-                  </a>
+                  {project.file_path?.startsWith("workspace-export:") ? (
+                    <div className="flex gap-2">
+                      <a href={`/api/download?projectId=${project.id}&format=pdf`} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-indigo-700">
+                        <Download className="h-3.5 w-3.5" /><span>PDF</span>
+                      </a>
+                      <a href={`/api/download?projectId=${project.id}&format=docx`} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs transition-colors hover:bg-slate-50">
+                        <Download className="h-3.5 w-3.5" /><span>Word</span>
+                      </a>
+                    </div>
+                  ) : (
+                    <a href={`/api/download?projectId=${project.id}`} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-indigo-700">
+                      <Download className="h-3.5 w-3.5" /><span>Download</span>
+                    </a>
+                  )}
                 </div>
               </div>
             );

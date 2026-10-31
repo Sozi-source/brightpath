@@ -2,7 +2,10 @@ import { createClient } from "@/lib/supabase/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
 import { getWorkspaceSections } from "@/lib/studio/templates";
 import { createBusinessPlanDocx } from "@/lib/studio/businessPlanDocx";
+import { createBusinessPlanPdf } from "@/lib/studio/businessPlanPdf";
 import { NextResponse, type NextRequest } from "next/server";
+
+export const runtime = "nodejs";
 
 export async function GET(_request: NextRequest, context: RouteContext<"/api/studio/[workspaceId]/export">) {
   const { workspaceId } = await context.params;
@@ -13,7 +16,7 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
   const db = getServerDbClient(supabase);
   const [{ data: workspace }, { data: profile }] = await Promise.all([
     db.from("project_workspaces")
-      .select("id, student_id, supervisor_id, workspace_type, level, course, title, status, student:student_id(full_name, admission_number), institution:institution_id(name)")
+      .select("id, student_id, supervisor_id, workspace_type, level, course, title, status, student:student_id(full_name, admission_number), supervisor:supervisor_id(full_name), institution:institution_id(name)")
       .eq("id", workspaceId).maybeSingle(),
     db.from("profiles").select("role").eq("id", user.id).maybeSingle(),
   ]);
@@ -21,7 +24,7 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
   if (!workspace) return NextResponse.json({ error: "Business plan not found." }, { status: 404 });
   const authorized = workspace.student_id === user.id || profile?.role === "admin" || (profile?.role === "supervisor" && workspace.supervisor_id === user.id);
   if (!authorized) return NextResponse.json({ error: "You cannot download this plan." }, { status: 403 });
-  if (workspace.workspace_type !== "business_plan") return NextResponse.json({ error: "Word export is available for business plans." }, { status: 400 });
+  if (workspace.workspace_type !== "business_plan") return NextResponse.json({ error: "Document export is available for business plans." }, { status: 400 });
 
   const { data: rows, error } = await db.from("workspace_sections")
     .select("section_key, current_text").eq("workspace_id", workspaceId);
@@ -34,17 +37,32 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
   if (sections.length === 0) return NextResponse.json({ error: "Build the business plan before downloading." }, { status: 400 });
 
   const student = workspace.student as unknown as { full_name?: string | null; admission_number?: string | null } | null;
+  const supervisor = workspace.supervisor as unknown as { full_name?: string | null } | null;
   const institution = workspace.institution as unknown as { name?: string | null } | null;
-  const docx = createBusinessPlanDocx({
+  const document = {
     title: workspace.title || "Business Plan",
     candidate: student?.full_name || "Candidate",
     admissionNumber: student?.admission_number,
     institution: institution?.name,
+    supervisor: supervisor?.full_name,
     course: workspace.course,
     level: workspace.level === "craft" ? "Certificate" : "Diploma",
     sections,
-  });
-  const filename = `${(workspace.title || "business-plan").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "business-plan"}.docx`;
+  };
+  const stem = (workspace.title || "business-plan").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "business-plan";
+  if (_request.nextUrl.searchParams.get("format") === "pdf") {
+    try {
+      const pdf = await createBusinessPlanPdf(document);
+      return new Response(pdf as unknown as BodyInit, {
+        headers: { "Content-Type": "application/pdf", "Content-Disposition": `attachment; filename="${stem}.pdf"`, "Cache-Control": "private, no-store" },
+      });
+    } catch (error) {
+      console.error("Business plan PDF export failed:", error);
+      return NextResponse.json({ error: "PDF export is temporarily unavailable. Download the Word copy instead." }, { status: 503 });
+    }
+  }
+  const docx = createBusinessPlanDocx(document);
+  const filename = `${stem}.docx`;
   return new Response(docx as unknown as BodyInit, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

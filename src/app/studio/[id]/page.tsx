@@ -194,9 +194,14 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
               />
             )}
             {hasPlanContent && (
-              <Link href={`/api/studio/${workspaceId}/export`} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50">
-                <span>Download Word</span>
-              </Link>
+              <div className="flex flex-wrap gap-2">
+                <Link href={`/api/studio/${workspaceId}/export?format=pdf`} className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-600 bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700">
+                  <span>Download PDF</span>
+                </Link>
+                <Link href={`/api/studio/${workspaceId}/export?format=docx`} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50">
+                  <span>Download Word</span>
+                </Link>
+              </div>
             )}
             {!isApproved && workspace.student_id === user.id && (
               <DeleteDraftButton

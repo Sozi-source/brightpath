@@ -49,11 +49,15 @@ Use Markdown tables for data that readers need to compare or verify. Include a c
 
 Do not force a table into reflective prose. Do not invent data to fill one; mark missing evidence as `[Confirm locally]` or `[Quotation required]`.
 
-## Word export format
+## Document export format
 
-- Export business plans as `.docx` so students can download and continue editing the final file.
+- Offer both a print-ready `.pdf` for consistent submission and an editable `.docx` for continued work.
+- Generate PDF from the shared business-plan content using semantic HTML and print CSS; do not expose an HTML page as the final deliverable.
+- Use the same KNEC page order, candidate details, chapter headings, tables, lists, and diagrams in both formats.
 - Use A4 paper, Times New Roman at 12 pt throughout, and 1.5 line spacing, following the KNEC project-guide requirements.
-- Preserve section headings, numbered procedures, bullet lists, and tables when converting the saved Markdown sections to Word.
+- Preserve section headings, numbered procedures, bullet lists, and tables when converting the saved Markdown sections to either format.
+- Keep the title page followed by dedication, declaration, acknowledgements, abbreviations and acronyms, table of contents, executive summary, Chapters One to Five, references, and appendices. Start each preliminary page and chapter on a new page.
+- Use real tables for Markdown tables and readable diagrams for fenced process or organization charts; do not leave ASCII flowcharts broken across lines.
 - Keep a clean title page with candidate and institution details for the student's private export. Marketplace copies use a saved, reviewed snapshot and omit admission numbers and other candidate-specific identifiers.
 
 ## Evidence and financial integrity

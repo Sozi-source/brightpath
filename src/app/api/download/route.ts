@@ -1,7 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createBusinessPlanDocx } from "@/lib/studio/businessPlanDocx";
+import { createBusinessPlanPdf } from "@/lib/studio/businessPlanPdf";
 import { NextResponse, type NextRequest } from "next/server";
+
+export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
@@ -14,6 +17,7 @@ export async function GET(request: NextRequest) {
   }
 
   const projectId = request.nextUrl.searchParams.get("projectId");
+  const format = request.nextUrl.searchParams.get("format");
   if (!projectId) {
     return NextResponse.json({ error: "Missing projectId parameter." }, { status: 400 });
   }
@@ -69,14 +73,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "The published business plan is unavailable." }, { status: 404 });
     }
     const sections = snapshot.sections as { title: string; content: string }[];
-    const docx = createBusinessPlanDocx({
+    const document = {
       title: snapshot.title || project.title,
       course: snapshot.course,
       level: snapshot.level === "craft" ? "Certificate" : "Diploma",
       sections,
-    });
+    };
+    const stem = (project.title || "business-plan").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "business-plan";
+    if (format === "pdf") {
+      try {
+        const pdf = await createBusinessPlanPdf(document);
+        await adminClient.rpc("increment_project_download", { p_project_id: project.id });
+        return new Response(pdf as unknown as BodyInit, {
+          headers: { "Content-Type": "application/pdf", "Content-Disposition": `attachment; filename="${stem}.pdf"`, "Cache-Control": "private, no-store" },
+        });
+      } catch (error) {
+        console.error("Marketplace business plan PDF export failed:", error);
+        return NextResponse.json({ error: "PDF export is temporarily unavailable. Download the Word copy instead." }, { status: 503 });
+      }
+    }
+    const docx = createBusinessPlanDocx(document);
     await adminClient.rpc("increment_project_download", { p_project_id: project.id });
-    const filename = `${(project.title || "business-plan").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "business-plan"}.docx`;
+    const filename = `${stem}.docx`;
     return new Response(docx as unknown as BodyInit, {
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
