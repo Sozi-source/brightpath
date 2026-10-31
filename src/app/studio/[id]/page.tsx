@@ -193,16 +193,6 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                 initialSpecs={workspace.business_plan_specs as Partial<BusinessPlanSpecs> | undefined}
               />
             )}
-            {hasPlanContent && (
-              <div className="flex flex-wrap gap-2">
-                <Link href={`/api/studio/${workspaceId}/export?format=pdf`} className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-600 bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700">
-                  <span>Download PDF</span>
-                </Link>
-                <Link href={`/api/studio/${workspaceId}/export?format=docx`} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50">
-                  <span>Download Word</span>
-                </Link>
-              </div>
-            )}
             {!isApproved && workspace.student_id === user.id && (
               <DeleteDraftButton
                 workspaceId={workspaceId}
@@ -213,6 +203,16 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
           </div>
         }
       />
+
+      {hasPlanContent && (
+        <section aria-label="Download business plan" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+          <h2 className="text-sm font-semibold tracking-tight text-slate-900">Download business plan</h2>
+          <div className="flex flex-wrap gap-2">
+            <Link href={`/api/studio/${workspaceId}/export?format=pdf`} className="inline-flex items-center rounded-lg border border-indigo-600 bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700">Download PDF</Link>
+            <Link href={`/api/studio/${workspaceId}/export?format=docx`} className="inline-flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50">Download Word</Link>
+          </div>
+        </section>
+      )}
 
       {/* Changes Requested Notification Banner */}
       {hasChangesRequested && latestReview && (

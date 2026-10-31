@@ -134,6 +134,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
   const isApproved = workspace.status === "approved" || workspace.status === "submitted";
   const isSubmitted = workspace.status === "submitted";
   const isPending = workspace.status === "proposal_pending";
+  const hasPlanContent = isBusiness && sections.some((section) => section.current_text.trim());
 
   const levelLabel = workspace.level === "craft" ? "Certificate" : "Diploma";
   const typeLabel =
@@ -173,7 +174,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
           },
         ]}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Link
               href="/supervisor"
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
@@ -203,6 +204,16 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
           </div>
         }
       />
+
+      {hasPlanContent && (
+        <section aria-label="Download business plan" className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+          <h2 className="text-sm font-semibold tracking-tight text-slate-900">Download business plan</h2>
+          <div className="flex flex-wrap gap-2">
+            <Link href={`/api/studio/${workspaceId}/export?format=pdf`} className="inline-flex items-center rounded-lg border border-indigo-600 bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700">Download PDF</Link>
+            <Link href={`/api/studio/${workspaceId}/export?format=docx`} className="inline-flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50">Download Word</Link>
+          </div>
+        </section>
+      )}
 
       <div className="space-y-6">
         {/* 1. Candidate Topic & Moderation Decision Card */}
