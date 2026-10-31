@@ -15,7 +15,6 @@ import {
   ChevronRight,
   FileText,
   Plus,
-  Trash2,
 } from "lucide-react";
 import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
 import { BUSINESS_PLAN_PRESETS } from "@/lib/studio/businessPlanTypes";
@@ -34,6 +33,33 @@ interface BusinessPlanBuilderModalProps {
   onPlanGenerated?: () => void;
   triggerButton?: React.ReactNode;
 }
+
+type RequiredField =
+  | "businessName"
+  | "industrySector"
+  | "candidateName"
+  | "admissionNumber"
+  | "institutionName"
+  | "course"
+  | "county"
+  | "townOrMarket"
+  | "primaryProduct";
+
+const REQUIRED_FIELDS: Array<{
+  key: RequiredField;
+  label: string;
+  tab: "identity" | "products";
+}> = [
+  { key: "businessName", label: "Business name", tab: "identity" },
+  { key: "industrySector", label: "Industry sector", tab: "identity" },
+  { key: "candidateName", label: "Candidate name", tab: "identity" },
+  { key: "admissionNumber", label: "Admission number", tab: "identity" },
+  { key: "institutionName", label: "Training institution", tab: "identity" },
+  { key: "course", label: "Course", tab: "identity" },
+  { key: "county", label: "County", tab: "identity" },
+  { key: "townOrMarket", label: "Town or market", tab: "identity" },
+  { key: "primaryProduct", label: "Primary product or service", tab: "products" },
+];
 
 export function BusinessPlanBuilderModal({
   workspaceId,
@@ -112,6 +138,7 @@ export function BusinessPlanBuilderModal({
   const [isGenerating, startGeneratingTransition] = useTransition();
   const [generationStep, setGenerationStep] = useState<string>("");
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<RequiredField, string>>>({});
   const [generationSuccess, setGenerationSuccess] = useState<{
     businessName: string;
     sectionsCount: number;
@@ -186,6 +213,19 @@ export function BusinessPlanBuilderModal({
   const handleSaveDetails = () => {
     setGenerationError(null);
     setGenerationSuccess(null);
+    const missing = REQUIRED_FIELDS.filter(({ key }) => !String(specs[key] ?? "").trim());
+    if (missing.length > 0) {
+      const errors = Object.fromEntries(
+        missing.map(({ key, label }) => [key, `Enter ${label.toLowerCase()}.`])
+      ) as Partial<Record<RequiredField, string>>;
+      setFieldErrors(errors);
+      setActiveTab(missing[0].tab);
+      setGenerationError("Complete the highlighted required fields.");
+      setGenerationStep("");
+      window.requestAnimationFrame(() => document.getElementById(missing[0].key)?.focus());
+      return;
+    }
+    setFieldErrors({});
     setGenerationStep("Saving your business details...");
 
     startGeneratingTransition(async () => {
@@ -195,6 +235,20 @@ export function BusinessPlanBuilderModal({
         formData.append("specs", JSON.stringify(specs));
 
         const res = await saveBusinessPlanDetailsAction(formData);
+
+        if ("error" in res) {
+          setGenerationError(res.error);
+          const missingField = REQUIRED_FIELDS.find(({ label }) =>
+            res.error.toLowerCase().startsWith(label.toLowerCase())
+          );
+          if (missingField) {
+            setFieldErrors({ [missingField.key]: `Enter ${missingField.label.toLowerCase()}.` });
+            setActiveTab(missingField.tab);
+            window.requestAnimationFrame(() => document.getElementById(missingField.key)?.focus());
+          }
+          setGenerationStep("");
+          return;
+        }
 
         setGenerationSuccess(res);
         setGenerationStep("");
@@ -471,11 +525,18 @@ export function BusinessPlanBuilderModal({
                       </label>
                       <input
                         type="text"
+                        id="businessName"
                         value={specs.businessName}
-                        onChange={(e) => setSpecs({ ...specs, businessName: e.target.value })}
-                        className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        onChange={(e) => {
+                          setSpecs({ ...specs, businessName: e.target.value });
+                          setFieldErrors((previous) => ({ ...previous, businessName: undefined }));
+                        }}
+                        aria-invalid={!!fieldErrors.businessName}
+                        aria-describedby={fieldErrors.businessName ? "businessName-error" : undefined}
+                        className={`w-full text-xs px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 ${fieldErrors.businessName ? "border-rose-500" : "border-slate-300"}`}
                         placeholder="e.g. NutriGrain Mills"
                       />
+                      {fieldErrors.businessName && <p id="businessName-error" className="mt-1 text-xs text-rose-700">{fieldErrors.businessName}</p>}
                     </div>
                     <div>
                       <label className="text-xs font-medium text-slate-700 block mb-1">
@@ -491,6 +552,31 @@ export function BusinessPlanBuilderModal({
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {([
+                      ["candidateName", "Candidate name", specs.candidateName],
+                      ["admissionNumber", "Admission number", specs.admissionNumber],
+                      ["course", "Course", specs.course],
+                    ] as const).map(([field, label, value]) => (
+                      <div key={field}>
+                        <label htmlFor={field} className="text-xs font-medium text-slate-700 block mb-1">{label} *</label>
+                        <input
+                          type="text"
+                          id={field}
+                          value={value}
+                          onChange={(e) => {
+                            setSpecs({ ...specs, [field]: e.target.value });
+                            setFieldErrors((previous) => ({ ...previous, [field]: undefined }));
+                          }}
+                          aria-invalid={!!fieldErrors[field]}
+                          aria-describedby={fieldErrors[field] ? `${field}-error` : undefined}
+                          className={`w-full text-xs px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 ${fieldErrors[field] ? "border-rose-500" : "border-slate-300"}`}
+                        />
+                        {fieldErrors[field] && <p id={`${field}-error`} className="mt-1 text-xs text-rose-700">{fieldErrors[field]}</p>}
+                      </div>
+                    ))}
+                  </div>
+
                   <div>
                     <label htmlFor="institutionName" className="text-xs font-medium text-slate-700 block mb-1">
                       Training Institution *
@@ -499,11 +585,17 @@ export function BusinessPlanBuilderModal({
                       type="text"
                       id="institutionName"
                       value={specs.institutionName}
-                      onChange={(e) => setSpecs({ ...specs, institutionName: e.target.value })}
+                      onChange={(e) => {
+                        setSpecs({ ...specs, institutionName: e.target.value });
+                        setFieldErrors((previous) => ({ ...previous, institutionName: undefined }));
+                      }}
                       required
-                      className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      aria-invalid={!!fieldErrors.institutionName}
+                      aria-describedby={fieldErrors.institutionName ? "institutionName-error" : undefined}
+                      className={`w-full text-xs px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 ${fieldErrors.institutionName ? "border-rose-500" : "border-slate-300"}`}
                       placeholder="Enter your institution name"
                     />
+                    {fieldErrors.institutionName && <p id="institutionName-error" className="mt-1 text-xs text-rose-700">{fieldErrors.institutionName}</p>}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -532,38 +624,59 @@ export function BusinessPlanBuilderModal({
                       </label>
                       <input
                         type="text"
+                        id="industrySector"
                         value={specs.industrySector}
-                        onChange={(e) => setSpecs({ ...specs, industrySector: e.target.value })}
-                        className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        onChange={(e) => {
+                          setSpecs({ ...specs, industrySector: e.target.value });
+                          setFieldErrors((previous) => ({ ...previous, industrySector: undefined }));
+                        }}
+                        aria-invalid={!!fieldErrors.industrySector}
+                        aria-describedby={fieldErrors.industrySector ? "industrySector-error" : undefined}
+                        className={`w-full text-xs px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 ${fieldErrors.industrySector ? "border-rose-500" : "border-slate-300"}`}
                         placeholder="e.g. Agro-processing & Food Manufacturing"
                       />
+                      {fieldErrors.industrySector && <p id="industrySector-error" className="mt-1 text-xs text-rose-700">{fieldErrors.industrySector}</p>}
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                      <label className="text-xs font-medium text-slate-700 block mb-1">
+                      <label htmlFor="county" className="text-xs font-medium text-slate-700 block mb-1">
                         County *
                       </label>
                       <input
                         type="text"
+                        id="county"
                         value={specs.county}
-                        onChange={(e) => setSpecs({ ...specs, county: e.target.value })}
-                        className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        onChange={(e) => {
+                          setSpecs({ ...specs, county: e.target.value });
+                          setFieldErrors((previous) => ({ ...previous, county: undefined }));
+                        }}
+                        aria-invalid={!!fieldErrors.county}
+                        aria-describedby={fieldErrors.county ? "county-error" : undefined}
+                        className={`w-full text-xs px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 ${fieldErrors.county ? "border-rose-500" : "border-slate-300"}`}
                         placeholder="e.g. Kitui"
                       />
+                      {fieldErrors.county && <p id="county-error" className="mt-1 text-xs text-rose-700">{fieldErrors.county}</p>}
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-slate-700 block mb-1">
+                      <label htmlFor="townOrMarket" className="text-xs font-medium text-slate-700 block mb-1">
                         Town / Market Center *
                       </label>
                       <input
                         type="text"
+                        id="townOrMarket"
                         value={specs.townOrMarket}
-                        onChange={(e) => setSpecs({ ...specs, townOrMarket: e.target.value })}
-                        className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        onChange={(e) => {
+                          setSpecs({ ...specs, townOrMarket: e.target.value });
+                          setFieldErrors((previous) => ({ ...previous, townOrMarket: undefined }));
+                        }}
+                        aria-invalid={!!fieldErrors.townOrMarket}
+                        aria-describedby={fieldErrors.townOrMarket ? "townOrMarket-error" : undefined}
+                        className={`w-full text-xs px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 ${fieldErrors.townOrMarket ? "border-rose-500" : "border-slate-300"}`}
                         placeholder="e.g. Kitui Town"
                       />
+                      {fieldErrors.townOrMarket && <p id="townOrMarket-error" className="mt-1 text-xs text-rose-700">{fieldErrors.townOrMarket}</p>}
                     </div>
                     <div>
                       <label className="text-xs font-medium text-slate-700 block mb-1">
@@ -637,16 +750,23 @@ export function BusinessPlanBuilderModal({
               {activeTab === "products" && (
                 <div className="space-y-4">
                   <div>
-                    <label className="text-xs font-medium text-slate-700 block mb-1">
+                    <label htmlFor="primaryProduct" className="text-xs font-medium text-slate-700 block mb-1">
                       Primary Product / Service Name *
                     </label>
                     <input
                       type="text"
+                      id="primaryProduct"
                       value={specs.primaryProduct}
-                      onChange={(e) => setSpecs({ ...specs, primaryProduct: e.target.value })}
-                      className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      onChange={(e) => {
+                        setSpecs({ ...specs, primaryProduct: e.target.value });
+                        setFieldErrors((previous) => ({ ...previous, primaryProduct: undefined }));
+                      }}
+                      aria-invalid={!!fieldErrors.primaryProduct}
+                      aria-describedby={fieldErrors.primaryProduct ? "primaryProduct-error" : undefined}
+                      className={`w-full text-xs px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 ${fieldErrors.primaryProduct ? "border-rose-500" : "border-slate-300"}`}
                       placeholder="e.g. Fortified Composite Porridge Flour"
                     />
+                    {fieldErrors.primaryProduct && <p id="primaryProduct-error" className="mt-1 text-xs text-rose-700">{fieldErrors.primaryProduct}</p>}
                   </div>
 
                   <div>

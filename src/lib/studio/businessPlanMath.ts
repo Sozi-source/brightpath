@@ -113,7 +113,7 @@ export function computeBusinessPlanFinancials(specs: BusinessPlanSpecs): Compute
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
   ];
 
-  let openingCash = totalStartupCapital - totalMachineryCost - totalPreOperationalCost; // Cash buffer
+  const openingCash = totalStartupCapital - totalMachineryCost - totalPreOperationalCost; // Cash buffer
   let cumulativeCash = openingCash;
 
   interface MonthRecord {
@@ -366,7 +366,6 @@ ${makeRow("**Closing Balance c/f**", (m) => m.closing, part2Months)}
   const equityY1 = totalAssetsY1 - loanBalY1 - creditorsY1;
 
   const totalAssetsY2 = year2ClosingCash + machNetY2 + stockY2;
-  const loanBalY2 = 0; // Cleared in year 2
   const creditorsY2 = Math.round(stockY2 * 0.25);
   const equityY2 = totalAssetsY2 - creditorsY2;
 

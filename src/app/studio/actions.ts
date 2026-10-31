@@ -576,7 +576,10 @@ export async function deleteDraftWorkspace(formData: FormData) {
   }
 }
 
-export async function saveBusinessPlanDetailsAction(formData: FormData) {
+export async function saveBusinessPlanDetailsAction(formData: FormData): Promise<
+  | { success: true; businessName: string; sectionsCount: number; totalWords: number }
+  | { error: string }
+> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -687,7 +690,7 @@ export async function saveBusinessPlanDetailsAction(formData: FormData) {
   };
   for (const field of requiredText) {
     if (typeof specs[field] !== "string" || !String(specs[field]).trim()) {
-      throw new Error(`${requiredFieldLabels[field] ?? "This field"} is required.`);
+      return { error: `${requiredFieldLabels[field] ?? "This field"} is required.` };
     }
   }
 
