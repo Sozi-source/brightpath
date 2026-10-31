@@ -2,6 +2,13 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
+import { getWorkspaceSections } from "@/lib/studio/templates";
+import {
+  reviewWholeBusinessPlan,
+  type BusinessPlanAIProvider,
+  type BusinessPlanResearch,
+} from "@/lib/studio/businessPlanGeneration";
+import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -36,7 +43,57 @@ async function verifySupervisorOrAdmin(workspaceId: string) {
 
   if (!workspace) throw new Error("Workspace not found.");
 
-  return { supabase: db, user, workspace };
+  return { supabase: db, user, workspace, role: profile?.role };
+}
+
+export async function reviewSupervisorBusinessPlanDocument(formData: FormData) {
+  const workspaceId = formData.get("workspaceId")?.toString();
+  const providerValue = formData.get("aiProvider")?.toString();
+  const provider: BusinessPlanAIProvider = providerValue === "gemini" || providerValue === "groq"
+    ? providerValue
+    : "gemini";
+  if (!workspaceId) throw new Error("Missing workspace ID.");
+
+  const { supabase, user, workspace, role } = await verifySupervisorOrAdmin(workspaceId);
+  if (role !== "admin" && workspace.supervisor_id !== user.id) {
+    throw new Error("Unauthorized: this workspace is assigned to another supervisor.");
+  }
+
+  const { data: fullWorkspace, error: workspaceError } = await supabase
+    .from("project_workspaces")
+    .select("id, workspace_type, level, business_plan_specs")
+    .eq("id", workspaceId)
+    .single();
+  if (workspaceError || !fullWorkspace) throw new Error(workspaceError?.message || "Workspace not found.");
+  if (fullWorkspace.workspace_type !== "business_plan") {
+    throw new Error("Whole-document AI review is available for business plans only.");
+  }
+
+  const specs = fullWorkspace.business_plan_specs as BusinessPlanSpecs | null;
+  const research = specs?.research;
+  if (!specs || !research?.summary || !Array.isArray(research.sources)) {
+    throw new Error("The candidate must build the business plan before it can be reviewed.");
+  }
+
+  const { data: rows, error: rowsError } = await supabase
+    .from("workspace_sections")
+    .select("section_key, current_text")
+    .eq("workspace_id", workspaceId);
+  if (rowsError) throw new Error(rowsError.message || "Could not load business-plan sections.");
+
+  const contentByKey = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
+  const sections = getWorkspaceSections("business_plan", fullWorkspace.level)
+    .map((definition) => ({
+      key: definition.key,
+      title: definition.title,
+      guidance: definition.guidance,
+      content: contentByKey.get(definition.key) || "",
+    }))
+    .filter((section) => section.content.trim());
+  if (sections.length === 0) throw new Error("No generated sections are available to review.");
+
+  const result = await reviewWholeBusinessPlan(specs, sections, research as BusinessPlanResearch, provider);
+  return { success: true as const, ...result, researchSources: research.sources };
 }
 
 export async function approveProposal(formData: FormData) {

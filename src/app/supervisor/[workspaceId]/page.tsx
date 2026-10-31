@@ -13,6 +13,7 @@ import {
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
+import { WholeDocumentReviewPanel } from "./WholeDocumentReviewPanel";
 import {
   CheckCircle2,
   AlertCircle,
@@ -332,6 +333,8 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
             </div>
           </div>
         </ContentCard>
+
+        {isBusiness && <WholeDocumentReviewPanel workspaceId={workspaceId} />}
 
         {/* 2. Continuous Project Document View (Single Continuous Sheet — Not In Pieces) */}
         <ContentCard

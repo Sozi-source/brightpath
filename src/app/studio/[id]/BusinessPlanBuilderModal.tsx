@@ -21,6 +21,7 @@ import { BUSINESS_PLAN_PRESETS } from "@/lib/studio/businessPlanTypes";
 import { computeBusinessPlanFinancials } from "@/lib/studio/businessPlanMath";
 import {
   buildBusinessPlanChapterAction,
+  reviewBusinessPlanDocumentAction,
   saveBusinessPlanDetailsAction,
 } from "@/app/studio/actions";
 
@@ -47,6 +48,20 @@ type RequiredField =
   | "county"
   | "townOrMarket"
   | "primaryProduct";
+
+type WholeDocumentReview = {
+  findings: Array<{
+    sectionKey: string;
+    severity: "high" | "medium" | "low";
+    category: string;
+    issue: string;
+    recommendation: string;
+    sourceRefs: number[];
+  }>;
+  chaptersReviewed: number;
+  warnings: string[];
+  researchSources: Array<{ title: string; url: string }>;
+};
 
 const REQUIRED_FIELDS: Array<{
   key: RequiredField;
@@ -78,6 +93,7 @@ export function BusinessPlanBuilderModal({
 }: BusinessPlanBuilderModalProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [aiProvider, setAIProvider] = useState<"gemini" | "groq">("groq");
   const [activeTab, setActiveTab] = useState<
     "presets" | "identity" | "products" | "operations" | "financials"
   >("presets");
@@ -139,14 +155,18 @@ export function BusinessPlanBuilderModal({
   }));
 
   const [isGenerating, startGeneratingTransition] = useTransition();
+  const [isReviewing, startReviewTransition] = useTransition();
   const [generationStep, setGenerationStep] = useState<string>("");
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [documentReviewError, setDocumentReviewError] = useState<string | null>(null);
+  const [documentReview, setDocumentReview] = useState<WholeDocumentReview | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<RequiredField, string>>>({});
   const [generationSuccess, setGenerationSuccess] = useState<{
     businessName: string;
     sectionsCount: number;
     preservedSectionsCount: number;
     researchSources: Array<{ title: string; url: string }>;
+    factReviewWarning: boolean;
   } | null>(null);
 
   // Kept out of the report flow until the financial model is reconciled to the supplied template.
@@ -214,9 +234,15 @@ export function BusinessPlanBuilderModal({
     competitors: [...prev.competitors, { name: "", location: "", priceLevel: "", strengths: "", weaknesses: "" }],
   }));
 
-  const handleSaveDetails = () => {
+  const handleSaveDetails = (replaceExisting = false) => {
+    if (
+      replaceExisting &&
+      !window.confirm("Rebuild every business-plan section? This replaces saved section text, including manual edits, with the refreshed script draft.")
+    ) return;
     setGenerationError(null);
     setGenerationSuccess(null);
+    setDocumentReview(null);
+    setDocumentReviewError(null);
     const missing = REQUIRED_FIELDS.filter(({ key }) => !String(specs[key] ?? "").trim());
     if (missing.length > 0) {
       const errors = Object.fromEntries(
@@ -230,13 +256,15 @@ export function BusinessPlanBuilderModal({
       return;
     }
     setFieldErrors({});
-    setGenerationStep("Researching and building your draft...");
+    setGenerationStep("Building the draft and checking facts...");
 
     startGeneratingTransition(async () => {
       try {
         const formData = new FormData();
         formData.append("workspaceId", workspaceId);
         formData.append("specs", JSON.stringify(specs));
+        formData.append("aiProvider", aiProvider);
+        if (replaceExisting) formData.append("replaceExisting", "true");
 
         const res = await saveBusinessPlanDetailsAction(formData);
 
@@ -256,14 +284,18 @@ export function BusinessPlanBuilderModal({
 
         let generatedSections = 0;
         let preservedSections = res.preservedSectionsCount;
+        let factReviewWarning = false;
         for (const [index, chapterKey] of res.chapterKeys.entries()) {
-          setGenerationStep(`Drafting ${index + 1}/${res.chapterKeys.length}: ${chapterKey}...`);
+          setGenerationStep(`Building and fact-checking ${index + 1}/${res.chapterKeys.length}: ${chapterKey}...`);
           const chapterForm = new FormData();
           chapterForm.append("workspaceId", workspaceId);
           chapterForm.append("chapterKey", chapterKey);
+          chapterForm.append("aiProvider", aiProvider);
+          if (replaceExisting) chapterForm.append("replaceExisting", "true");
           const chapterResult = await buildBusinessPlanChapterAction(chapterForm);
           generatedSections += chapterResult.generatedSections;
           preservedSections += chapterResult.preservedSections;
+          factReviewWarning ||= Boolean(chapterResult.factReviewWarning);
         }
 
         setGenerationSuccess({
@@ -271,6 +303,7 @@ export function BusinessPlanBuilderModal({
           sectionsCount: generatedSections,
           preservedSectionsCount: preservedSections,
           researchSources: res.researchSources,
+          factReviewWarning,
         });
         setGenerationStep("");
         if (onPlanGenerated) {
@@ -282,6 +315,24 @@ export function BusinessPlanBuilderModal({
           `${err instanceof Error ? err.message : "Could not finish the business plan draft."} Completed sections stay saved; click Build Full Draft again to resume.`
         );
         setGenerationStep("");
+      }
+    });
+  };
+
+  const handleReviewWholeDocument = () => {
+    setDocumentReview(null);
+    setDocumentReviewError(null);
+    startReviewTransition(async () => {
+      try {
+        const formData = new FormData();
+        formData.append("workspaceId", workspaceId);
+        formData.append("aiProvider", aiProvider);
+        const result = await reviewBusinessPlanDocumentAction(formData);
+        setDocumentReview(result);
+      } catch (error) {
+        setDocumentReviewError(
+          error instanceof Error ? error.message : "Could not review the full business plan."
+        );
       }
     });
   };
@@ -329,13 +380,28 @@ export function BusinessPlanBuilderModal({
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
+                  <span>AI provider</span>
+                  <select
+                    value={aiProvider}
+                    onChange={(event) => setAIProvider(event.target.value as "gemini" | "groq")}
+                    disabled={isGenerating}
+                    className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800"
+                  >
+                    <option value="gemini">Gemini</option>
+                    <option value="groq">Groq</option>
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                  aria-label="Close business plan builder"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
             </div>
 
             {/* Tab Navigation Ribbon */}
@@ -1254,11 +1320,16 @@ export function BusinessPlanBuilderModal({
                   <p className="text-xs text-emerald-950 leading-relaxed">
                     Added {generationSuccess.sectionsCount} sections. Preserved {generationSuccess.preservedSectionsCount} existing sections.
                   </p>
+                  {generationSuccess.factReviewWarning && (
+                    <p className="text-[11px] text-amber-800">AI fact review was unavailable. Verify factual claims before submission.</p>
+                  )}
                   <div className="space-y-1.5">
                     <p className="text-[11px] font-semibold text-emerald-900">
                       Web sources ({generationSuccess.researchSources.length})
                     </p>
-                    <ul className="space-y-1">
+                    {generationSuccess.researchSources.length === 0 ? (
+                      <p className="text-[11px] text-amber-800">No verified web sources. Confirm market details locally.</p>
+                    ) : <ul className="space-y-1">
                       {generationSuccess.researchSources.slice(0, 5).map((source) => (
                         <li key={source.url}>
                           <a href={source.url} target="_blank" rel="noreferrer" className="text-[11px] text-indigo-700 underline underline-offset-2">
@@ -1266,8 +1337,81 @@ export function BusinessPlanBuilderModal({
                           </a>
                         </li>
                       ))}
-                    </ul>
+                    </ul>}
                   </div>
+                  <button
+                    type="button"
+                    onClick={handleReviewWholeDocument}
+                    disabled={isReviewing || isGenerating}
+                    className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-800 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isReviewing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileText className="h-3.5 w-3.5" />}
+                    {isReviewing ? "Reviewing whole document..." : "Review Whole Document"}
+                  </button>
+                  {documentReviewError && (
+                    <p className="rounded-lg border border-rose-200 bg-rose-50 p-2 text-xs text-rose-800">
+                      {documentReviewError}
+                    </p>
+                  )}
+                  {documentReview && (
+                    <div className="max-h-80 space-y-3 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-xs font-semibold text-slate-900">Whole-document review</p>
+                        <span className="text-[11px] text-slate-600">
+                          {documentReview.chaptersReviewed} groups · {documentReview.findings.length} findings
+                        </span>
+                      </div>
+                      {documentReview.warnings.map((warning) => (
+                        <p key={warning} className="text-[11px] text-amber-800">{warning}</p>
+                      ))}
+                      {documentReview.findings.length === 0 ? (
+                        <p className="text-xs text-slate-600">
+                          {documentReview.chaptersReviewed === 0
+                            ? "The whole-document review did not complete. See the provider error above."
+                            : "No substantive issues found. Review cited facts and local evidence before submission."}
+                        </p>
+                      ) : documentReview.findings.map((finding, index) => (
+                        <article key={`${finding.sectionKey}-${index}`} className="rounded-lg border border-slate-200 bg-white p-3">
+                          <div className="mb-1 flex flex-wrap items-center gap-2">
+                            <span className="text-xs font-semibold text-slate-900">{finding.sectionKey.replaceAll(".", " ")}</span>
+                            <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase ${
+                              finding.severity === "high"
+                                ? "bg-rose-100 text-rose-800"
+                                : finding.severity === "medium"
+                                ? "bg-amber-100 text-amber-800"
+                                : "bg-slate-100 text-slate-700"
+                            }`}>
+                              {finding.severity} · {finding.category}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-800">{finding.issue}</p>
+                          <p className="mt-1 text-xs text-slate-600">Action: {finding.recommendation}</p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsOpen(false);
+                              router.push(`/studio/${workspaceId}/write/${finding.sectionKey}`);
+                            }}
+                            className="mt-2 text-[11px] font-semibold text-indigo-700 underline underline-offset-2"
+                          >
+                            Open section review
+                          </button>
+                          {finding.sourceRefs.length > 0 && (
+                            <div className="mt-1 flex flex-wrap gap-2">
+                              {finding.sourceRefs.map((sourceRef) => {
+                                const source = documentReview.researchSources[sourceRef - 1];
+                                return source ? (
+                                  <a key={sourceRef} href={source.url} target="_blank" rel="noreferrer" className="text-[11px] text-indigo-700 underline underline-offset-2">
+                                    [{sourceRef}] {source.title}
+                                  </a>
+                                ) : null;
+                              })}
+                            </div>
+                          )}
+                        </article>
+                      ))}
+                    </div>
+                  )}
                   <div className="pt-2 flex items-center gap-3">
                     <button
                       type="button"
@@ -1291,7 +1435,7 @@ export function BusinessPlanBuilderModal({
                 <span>Review assumptions and verify local evidence.</span>
               </div>
 
-              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
@@ -1302,7 +1446,16 @@ export function BusinessPlanBuilderModal({
                 </button>
                 <button
                   type="button"
-                  onClick={handleSaveDetails}
+                  onClick={() => handleSaveDetails(true)}
+                  disabled={isGenerating}
+                  title="Replaces saved section text, including manual edits"
+                  className="px-3.5 py-2 rounded-lg border border-amber-300 text-xs font-semibold text-amber-800 hover:bg-amber-50 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  Rebuild Existing Draft
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSaveDetails()}
                   disabled={isGenerating}
                   className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 >

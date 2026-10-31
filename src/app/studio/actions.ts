@@ -8,8 +8,10 @@ import {
 } from "@/lib/studio/templates";
 import { buildCompleteBusinessPlan } from "@/lib/studio/businessPlanBuilder";
 import {
-  draftBusinessPlanSections,
+  reviewBusinessPlanFacts,
+  reviewWholeBusinessPlan,
   researchBusinessPlan,
+  type BusinessPlanAIProvider,
   type BusinessPlanResearch,
 } from "@/lib/studio/businessPlanGeneration";
 import {
@@ -22,6 +24,13 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { WorkspaceType, WorkspaceLevel } from "@/types/database";
 import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
+
+function getBusinessPlanAIProvider(formData: FormData): BusinessPlanAIProvider {
+  const value = formData.get("aiProvider")?.toString();
+  if (value === "gemini" || value === "groq") return value;
+  if (value) throw new Error("Choose Gemini or Groq as the AI provider.");
+  return "groq";
+}
 
 export async function createWorkspace(formData: FormData) {
   const supabase = await createClient();
@@ -603,6 +612,8 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
 
   const workspaceId = formData.get("workspaceId")?.toString();
   const rawSpecs = formData.get("specs")?.toString();
+  const replaceExisting = formData.get("replaceExisting") === "true";
+  const aiProvider = getBusinessPlanAIProvider(formData);
 
   if (!workspaceId) throw new Error("Missing workspace ID.");
   if (!rawSpecs) throw new Error("Missing business plan specifications.");
@@ -782,7 +793,7 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
   );
   const research = canReuseResearch
     ? priorResearch as BusinessPlanResearch
-    : await researchBusinessPlan(specs);
+    : await researchBusinessPlan(specs, aiProvider);
   const sectionDefinitions = getWorkspaceSections("business_plan", ws.level);
   const { data: existingSections } = await db
     .from("workspace_sections")
@@ -791,7 +802,7 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
   const existingByKey = new Map(
     (existingSections || []).map((section) => [section.section_key, section.current_text || ""])
   );
-  const pendingDefinitions = sectionDefinitions.filter((definition) => {
+  const pendingDefinitions = replaceExisting ? sectionDefinitions : sectionDefinitions.filter((definition) => {
     const currentText = existingByKey.get(definition.key) || "";
     const starterText = getSectionStarterContent("business_plan", ws.level, definition.key);
     return !currentText.trim() || (starterText !== "" && currentText === starterText);
@@ -840,7 +851,7 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
   return {
     success: true,
     businessName: specs.businessName,
-    preservedSectionsCount,
+    preservedSectionsCount: replaceExisting ? 0 : preservedSectionsCount,
     chapterKeys,
     researchSources: research.sources,
   };
@@ -850,6 +861,7 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
   success: true;
   generatedSections: number;
   preservedSections: number;
+  factReviewWarning?: string;
 }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -857,6 +869,8 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
 
   const workspaceId = formData.get("workspaceId")?.toString();
   const chapterKey = formData.get("chapterKey")?.toString();
+  const replaceExisting = formData.get("replaceExisting") === "true";
+  const aiProvider = getBusinessPlanAIProvider(formData);
   if (!workspaceId || !chapterKey) throw new Error("Missing workspace or chapter.");
 
   const db = getServerDbClient(supabase);
@@ -873,8 +887,8 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
 
   const specs = workspace.business_plan_specs as BusinessPlanSpecs | null;
   const research = specs?.research;
-  if (!specs || !research?.summary || !Array.isArray(research.sources) || research.sources.length === 0) {
-    throw new Error("Run business research before drafting the chapters.");
+  if (!specs || !research?.summary || !Array.isArray(research.sources)) {
+    throw new Error("Save business plan details before drafting the chapters.");
   }
 
   const definitions = getWorkspaceSections("business_plan", workspace.level).filter(
@@ -887,7 +901,7 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
     .select("section_key, current_text")
     .eq("workspace_id", workspaceId);
   const existingByKey = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
-  const pending = definitions.filter((definition) => {
+  const pending = replaceExisting ? definitions : definitions.filter((definition) => {
     const currentText = existingByKey.get(definition.key) || "";
     const starterText = getSectionStarterContent("business_plan", workspace.level, definition.key);
     return !currentText.trim() || (starterText !== "" && currentText === starterText);
@@ -896,36 +910,77 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
     return { success: true, generatedSections: 0, preservedSections: definitions.length };
   }
 
-  const aiDrafts = await draftBusinessPlanSections(
-    specs,
-    pending,
-    research as BusinessPlanResearch
-  );
   const scriptedSections = new Map(
     buildCompleteBusinessPlan(specs).map((section) => [section.section_key, section.content])
   );
+  let aiCorrections = new Map<string, string>();
+  let factReviewWarning: string | undefined;
+  try {
+    aiCorrections = await reviewBusinessPlanFacts(
+      specs,
+      pending,
+      research as BusinessPlanResearch,
+      scriptedSections,
+      aiProvider
+    );
+  } catch {
+    factReviewWarning = "AI fact review was unavailable; the script-generated draft was saved. Verify factual claims before submission.";
+  }
   const draftSections = pending.map((definition) => ({
     section_key: definition.key,
     position: definitions.findIndex((item) => item.key === definition.key) + 1,
     current_text:
-      aiDrafts.get(definition.key) ||
+      aiCorrections.get(definition.key) ||
       scriptedSections.get(definition.key) ||
       `### ${definition.title}\n\n[Add verified information for this section.]`,
     starter_text: getSectionStarterContent("business_plan", workspace.level, definition.key),
   }));
 
-  const { data: generationStats, error: generationError } = await db.rpc(
-    "fill_empty_business_plan_sections",
-    {
-      p_workspace_id: workspaceId,
-      p_user_id: user.id,
-      p_sections: draftSections,
+  let generatedSections = 0;
+  let preservedSections = 0;
+  if (replaceExisting) {
+    for (const section of draftSections) {
+      const { data: savedSection, error: saveSectionError } = await db
+        .from("workspace_sections")
+        .upsert(
+          {
+            workspace_id: workspaceId,
+            section_key: section.section_key,
+            phase: "project",
+            position: section.position,
+            current_text: section.current_text,
+            status: "draft",
+          },
+          { onConflict: "workspace_id,section_key" }
+        )
+        .select("id")
+        .single();
+      if (saveSectionError || !savedSection) {
+        throw new Error(saveSectionError?.message || "Could not save the rebuilt chapter.");
+      }
+      const { error: versionError } = await db.from("section_versions").insert({
+        section_id: savedSection.id,
+        text: section.current_text,
+        source: "ai_generated_draft",
+        ai_chars_accepted: 0,
+      });
+      if (versionError) throw new Error(versionError.message || "Could not save the rebuilt chapter version.");
+      generatedSections += 1;
     }
-  );
-  if (generationError) throw new Error(generationError.message || "Could not save this chapter.");
-  const stats = Array.isArray(generationStats) ? generationStats[0] : null;
-  const generatedSections = Number(stats?.generated_sections) || 0;
-  const preservedSections = Number(stats?.preserved_sections) || 0;
+  } else {
+    const { data: generationStats, error: generationError } = await db.rpc(
+      "fill_empty_business_plan_sections",
+      {
+        p_workspace_id: workspaceId,
+        p_user_id: user.id,
+        p_sections: draftSections,
+      }
+    );
+    if (generationError) throw new Error(generationError.message || "Could not save this chapter.");
+    const stats = Array.isArray(generationStats) ? generationStats[0] : null;
+    generatedSections = Number(stats?.generated_sections) || 0;
+    preservedSections = Number(stats?.preserved_sections) || 0;
+  }
 
   await db.from("project_log_entries").insert({
     workspace_id: workspaceId,
@@ -936,7 +991,61 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
   revalidatePath(`/studio/${workspaceId}`);
   revalidatePath(`/studio/${workspaceId}/write`);
 
-  return { success: true, generatedSections, preservedSections };
+  return { success: true, generatedSections, preservedSections, factReviewWarning };
+}
+
+export async function reviewBusinessPlanDocumentAction(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const workspaceId = formData.get("workspaceId")?.toString();
+  const aiProvider = getBusinessPlanAIProvider(formData);
+  if (!workspaceId) throw new Error("Missing workspace ID.");
+
+  const db = getServerDbClient(supabase);
+  const { data: workspace } = await db
+    .from("project_workspaces")
+    .select("id, student_id, workspace_type, level, business_plan_specs")
+    .eq("id", workspaceId)
+    .single();
+  if (!workspace || workspace.student_id !== user.id) throw new Error("Unauthorized.");
+  if (workspace.workspace_type !== "business_plan") throw new Error("This is not a business plan workspace.");
+
+  const specs = workspace.business_plan_specs as BusinessPlanSpecs | null;
+  const research = specs?.research;
+  if (!specs || !research?.summary || !Array.isArray(research.sources)) {
+    throw new Error("Build the business plan before reviewing the full document.");
+  }
+
+  const { data: rows, error: rowsError } = await db
+    .from("workspace_sections")
+    .select("section_key, current_text")
+    .eq("workspace_id", workspaceId);
+  if (rowsError) throw new Error(rowsError.message || "Could not load the business plan sections.");
+
+  const contentByKey = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
+  const sections = getWorkspaceSections("business_plan", workspace.level)
+    .map((definition) => ({
+      key: definition.key,
+      title: definition.title,
+      guidance: definition.guidance,
+      content: contentByKey.get(definition.key) || "",
+    }))
+    .filter((section) => section.content.trim());
+  if (sections.length === 0) throw new Error("No generated sections are available to review.");
+
+  const result = await reviewWholeBusinessPlan(
+    specs,
+    sections,
+    research as BusinessPlanResearch,
+    aiProvider
+  );
+  return {
+    success: true as const,
+    ...result,
+    researchSources: research.sources,
+  };
 }
 
 
