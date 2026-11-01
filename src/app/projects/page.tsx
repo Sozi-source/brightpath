@@ -131,6 +131,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
           { label: "Available", value: `${resultCount} Materials` },
           { label: "Formats", value: `${MARKETPLACE_MATERIAL_TYPES.length} Types` },
         ]}
+        compact
         actions={isPublisher ? (
           <Link href="/trainer" className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-indigo-900 shadow-xs hover:bg-slate-50"><Briefcase className="h-4 w-4 text-indigo-600" /> Publisher</Link>
         ) : (

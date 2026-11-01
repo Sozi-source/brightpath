@@ -18,6 +18,7 @@ interface PageHeaderCardProps {
   breadcrumbs: BreadcrumbItem[];
   metadata?: MetadataItem[];
   actions?: React.ReactNode;
+  compact?: boolean;
 }
 
 export function PageHeaderCard({
@@ -26,6 +27,7 @@ export function PageHeaderCard({
   breadcrumbs,
   metadata,
   actions,
+  compact = false,
 }: PageHeaderCardProps) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
@@ -35,11 +37,11 @@ export function PageHeaderCard({
         <div className="bg-amber-400 w-[40%]" />
       </div>
 
-      <div className="p-5 sm:p-7 space-y-4">
+      <div className={compact ? "space-y-3 p-4" : "space-y-4 p-5 sm:p-7"}>
         {/* Title & Actions Row */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className={`flex flex-col justify-between sm:flex-row sm:items-center ${compact ? "gap-2" : "gap-4"}`}>
           <div className="space-y-1">
-            <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">
+            <h1 className={`${compact ? "text-xl" : "text-xl sm:text-2xl"} font-semibold tracking-tight text-slate-900`}>
               {title}
             </h1>
             {subtitle && (
@@ -56,7 +58,7 @@ export function PageHeaderCard({
         {breadcrumbs.length > 0 && (
           <nav
             aria-label="Breadcrumb ribbon"
-            className="flex flex-wrap items-center gap-1.5 p-1.5 bg-[#e8f1f8] rounded-lg border border-slate-200 text-xs font-semibold text-slate-700"
+            className={`flex flex-wrap items-center gap-1.5 rounded-lg border border-slate-200 bg-[#e8f1f8] text-xs font-semibold text-slate-700 ${compact ? "p-1" : "p-1.5"}`}
           >
             {breadcrumbs.map((crumb, idx) => {
               const isLast = idx === breadcrumbs.length - 1 || crumb.active;
@@ -70,13 +72,13 @@ export function PageHeaderCard({
                   {crumb.href && !isLast ? (
                     <Link
                       href={crumb.href}
-                      className="px-2.5 py-1 rounded bg-white/80 hover:bg-white text-blue-800 shadow-xs transition-colors"
+                      className={`rounded bg-white/80 px-2.5 text-blue-800 shadow-xs transition-colors hover:bg-white ${compact ? "py-0.5" : "py-1"}`}
                     >
                       {crumb.label}
                     </Link>
                   ) : (
                     <span
-                      className={`px-2.5 py-1 rounded ${
+                      className={`rounded px-2.5 ${compact ? "py-0.5" : "py-1"} ${
                         isLast
                           ? "bg-white text-slate-900 font-semibold shadow-xs"
                           : "text-slate-600"
@@ -93,7 +95,7 @@ export function PageHeaderCard({
 
         {/* 3. Structured Metadata Bar (Matching KEC Metadata Header) */}
         {metadata && metadata.length > 0 && (
-          <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 flex flex-wrap items-center gap-y-2 gap-x-4">
+          <div className={`flex flex-wrap items-center gap-x-4 rounded-lg border border-slate-200 bg-slate-50 text-xs text-slate-800 ${compact ? "p-2" : "gap-y-2 p-3"}`}>
             {metadata.map((item, idx) => (
               <div key={item.label} className="flex items-center gap-1">
                 {idx > 0 && <span className="text-slate-300 mr-3 hidden sm:inline">•</span>}
