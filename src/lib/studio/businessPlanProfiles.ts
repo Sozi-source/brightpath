@@ -217,3 +217,54 @@ export function getBusinessModelConflictFindings(
     ? [{ sectionKey: section.key, issue: "This section contains food-manufacturing language, but the selected venture model is nutrition consultancy." }]
     : []);
 }
+
+const knownKenyanPlaceCoordinates: Record<string, [number, number]> = {
+  juja: [-1.1, 37.01],
+  lodwar: [3.12, 35.6],
+  kitui: [-1.37, 38.01],
+  machakos: [-1.52, 37.26],
+  nairobi: [-1.29, 36.82],
+  mombasa: [-4.04, 39.66],
+  kisumu: [-0.09, 34.77],
+  nakuru: [-0.30, 36.08],
+  eldoret: [0.52, 35.27],
+};
+
+function distanceKm(a: [number, number], b: [number, number]) {
+  const radians = (degrees: number) => degrees * Math.PI / 180;
+  const [lat1, lon1] = a.map(radians);
+  const [lat2, lon2] = b.map(radians);
+  const dLat = lat2 - lat1;
+  const dLon = lon2 - lon1;
+  const arc = 2 * Math.asin(Math.sqrt(
+    Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2
+  ));
+  return 6371 * arc;
+}
+
+export function getBusinessPlanGeographicFindings(
+  specs: BusinessPlanSpecs,
+  sections: Array<{ key: string; content: string }>
+) {
+  const businessPlace = Object.keys(knownKenyanPlaceCoordinates).find((place) =>
+    new RegExp(`\\b${place}\\b`, "i").test(`${specs.townOrMarket} ${specs.county}`)
+  );
+  if (!businessPlace) return [];
+  const businessCoordinates = knownKenyanPlaceCoordinates[businessPlace];
+  return sections.flatMap((section) => {
+    const distantPlaces = Object.entries(knownKenyanPlaceCoordinates)
+      .filter(([place, coordinates]) => place !== businessPlace && distanceKm(businessCoordinates, coordinates) >= 100)
+      .map(([place]) => place);
+    const suspiciousLines = section.content.split(/\r?\n/).filter((line) => {
+      if (section.key !== "ch2.competitors" && !/competitor|alternative|referral|located near|nearby/i.test(line)) return false;
+      return distantPlaces.some((place) => new RegExp(`\\b${place}\\b`, "i").test(line));
+    });
+    return suspiciousLines.length
+      ? [{
+          sectionKey: section.key,
+          issue: `This section names ${distantPlaces.filter((place) => suspiciousLines.some((line) => new RegExp(`\\b${place}\\b`, "i").test(line))).join(", ")} as a competitor or nearby service, but the business is based in ${specs.townOrMarket}, ${specs.county}. These locations are over 100 km apart.`,
+          recommendation: "Remove the out-of-area provider from the local competitor table, or label it as a distant benchmark only if that comparison is relevant and verified. Confirm the provider and fee before retaining the entry.",
+        }]
+      : [];
+  });
+}

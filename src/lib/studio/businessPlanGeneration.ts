@@ -1,6 +1,9 @@
 import type { BusinessPlanSpecs } from "./businessPlanTypes";
 import { resolveBusinessPlanModel } from "./businessPlanTypes";
-import { getBusinessModelConflictFindings } from "./businessPlanProfiles";
+import {
+  getBusinessModelConflictFindings,
+  getBusinessPlanGeographicFindings,
+} from "./businessPlanProfiles";
 import type { SectionDef } from "./templates";
 
 export interface BusinessPlanResearchSource {
@@ -398,6 +401,15 @@ export async function reviewWholeBusinessPlan(
     recommendation: "Revise this section to match the selected business model. Existing text remains saved until the candidate edits it or explicitly confirms a rebuild.",
     sourceRefs: [] as number[],
   }));
+  const geographicFindings = getBusinessPlanGeographicFindings(specs, reviewable).map((finding) => ({
+    sectionKey: finding.sectionKey,
+    severity: "high" as const,
+    category: "consistency",
+    issue: finding.issue,
+    recommendation: finding.recommendation,
+    sourceRefs: [] as number[],
+  }));
+  const deterministicFindings = [...modelConflictFindings, ...geographicFindings];
   const groupCount = new Set(reviewable.map((section) => section.key.match(/^(ch\d+|prelim|app|references)/)?.[1] || "other")).size;
   const sourceList = research.sources
     .map((source, index) => `[${index + 1}] ${source.title} — ${source.url}`)
@@ -446,14 +458,14 @@ Return JSON only as {"findings":[{"sectionKey":"exact section key","severity":"h
       } catch (fallbackError) {
         const fallbackMessage = fallbackError instanceof Error ? fallbackError.message : "Unknown provider error.";
         return {
-          findings: modelConflictFindings,
+          findings: deterministicFindings,
           chaptersReviewed: 0,
           warnings: [`Groq and Gemini could not complete the review. ${fallbackMessage.slice(0, 220)}`],
         };
       }
     } else {
       return {
-        findings: modelConflictFindings,
+        findings: deterministicFindings,
         chaptersReviewed: 0,
         warnings: [`${message.slice(0, 240)}`],
       };
@@ -487,9 +499,9 @@ Return JSON only as {"findings":[{"sectionKey":"exact section key","severity":"h
   }
 
   const combinedFindings = [
-    ...modelConflictFindings,
-    ...findings.filter((finding) => !modelConflictFindings.some(
-      (modelFinding) => modelFinding.sectionKey === finding.sectionKey && modelFinding.category === finding.category
+    ...deterministicFindings,
+    ...findings.filter((finding) => !deterministicFindings.some(
+      (deterministicFinding) => deterministicFinding.sectionKey === finding.sectionKey && deterministicFinding.category === finding.category
     )),
   ].slice(0, 10);
   return { findings: combinedFindings, chaptersReviewed: groupCount, warnings };
