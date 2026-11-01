@@ -16,11 +16,11 @@ import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
 import { WholeDocumentReviewPanel } from "./WholeDocumentReviewPanel";
+import { ManuscriptReader, type ManuscriptChapter } from "./ManuscriptReader";
 import { SupervisorDecisionForm } from "./SupervisorDecisionForm";
 import {
   CheckCircle2,
   AlertCircle,
-  FileText,
   ShieldCheck,
   ChevronLeft,
   History,
@@ -134,6 +134,16 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
     const w = s.current_text ? s.current_text.trim().split(/\s+/).filter(Boolean).length : 0;
     return sum + w;
   }, 0);
+
+  const manuscriptChapters: ManuscriptChapter[] = chapterGroups.map((group) => {
+    const chapterSections = group.defs.map((definition) => ({
+      key: definition.key,
+      title: definition.title,
+      text: sectionsMap.get(definition.key)?.current_text || "",
+    }));
+    const words = chapterSections.reduce((sum, section) => sum + section.text.trim().split(/\s+/).filter(Boolean).length, 0);
+    return { key: group.chapterKey, title: group.chapterTitle, sections: chapterSections, words };
+  });
 
   const isApproved = workspace.status === "approved" || workspace.status === "submitted";
   const isSubmitted = workspace.status === "submitted";
@@ -415,126 +425,26 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
         </ContentCard>
         </div>
 
-        {/* 2. Continuous Project Document View (Single Continuous Sheet — Not In Pieces) */}
-        <ContentCard
-          title="Continuous Project Document"
-          subtitle="Full manuscript view flowing continuously across all KNEC chapters and subsections"
-          icon={FileText}
-          headerRight={
-            <span className="text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">
-              {totalWords.toLocaleString()} Total Words
-            </span>
-          }
-        >
-          <div className="space-y-4">
-            {/* Quick Chapter Anchor Bar */}
-            <div className="flex flex-wrap items-center gap-1.5 pb-2 border-b border-slate-200">
-              {chapterGroups.map((group) => {
-                const chapterWords = group.defs.reduce((acc, d) => {
-                  const sec = sectionsMap.get(d.key);
-                  const w = sec?.current_text
-                    ? sec.current_text.trim().split(/\s+/).filter(Boolean).length
-                    : 0;
-                  return acc + w;
-                }, 0);
-
-                return (
-                  <a
-                    key={group.chapterKey}
-                    href={`#doc-${group.chapterKey}`}
-                    className={`px-2.5 py-1 rounded-md text-xs font-semibold border transition-colors ${
-                      chapterWords > 0
-                        ? "bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
-                        : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100"
-                    }`}
-                  >
-                    <span>{group.chapterTitle.split(":")[0]}</span>
-                    <span className="ml-1.5 text-[10px] font-mono opacity-80">
-                      ({chapterWords}w)
-                    </span>
-                  </a>
-                );
-              })}
+        <section id="manuscript" className="scroll-mt-20" aria-label="Project manuscript">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-semibold tracking-tight text-slate-900">Project Manuscript</h2>
+              <p className="mt-0.5 text-xs text-slate-600">Browse chapters and sections</p>
             </div>
-
-            {/* Single Continuous Academic Document Sheet */}
-            <article className="bg-white rounded-xl border border-slate-200 shadow-xs p-6 sm:p-10 max-w-4xl mx-auto space-y-8">
-              {/* Document Title Block */}
-              <header className="text-center border-b border-slate-200 pb-6 space-y-2">
-                <p className="text-[11px] font-mono uppercase tracking-widest text-slate-500">
-                  {workspace.institution?.name || "Kenya National Examinations Council (KNEC)"}
-                </p>
-                <h1 className="text-base sm:text-xl font-semibold text-slate-900 uppercase tracking-tight leading-snug">
-                  {workspace.title || "Untitled Project"}
-                </h1>
-                <div className="text-xs text-slate-600 space-y-0.5 pt-1">
-                  <p className="font-semibold text-slate-800">
-                    {workspace.student?.full_name || "Candidate"} ({workspace.student?.admission_number || "No Admission No"})
-                  </p>
-                  <p>
-                    {workspace.course} • {levelLabel} Level ({typeLabel})
-                  </p>
-                </div>
-              </header>
-
-              {/* Continuous Chapters Flow */}
-              <div className="space-y-10 divide-y divide-slate-200/80">
-                {chapterGroups.map((group) => {
-                  const chapterWords = group.defs.reduce((acc, d) => {
-                    const sec = sectionsMap.get(d.key);
-                    const w = sec?.current_text
-                      ? sec.current_text.trim().split(/\s+/).filter(Boolean).length
-                      : 0;
-                    return acc + w;
-                  }, 0);
-
-                  return (
-                    <section
-                      key={group.chapterKey}
-                      id={`doc-${group.chapterKey}`}
-                      className="pt-8 first:pt-0 space-y-5 scroll-mt-20"
-                    >
-                      <div className="flex items-baseline justify-between gap-4 border-b border-slate-100 pb-2">
-                        <h2 className="text-sm sm:text-base font-semibold text-slate-900 uppercase tracking-wide">
-                          {group.chapterTitle}
-                        </h2>
-                        <span className="text-[11px] font-mono text-slate-400 shrink-0">
-                          {chapterWords} words
-                        </span>
-                      </div>
-
-                      <div className="space-y-6">
-                        {group.defs.map((def) => {
-                          const s = sectionsMap.get(def.key);
-                          const hasContent = Boolean(
-                            s?.current_text && s.current_text.trim().length > 0
-                          );
-
-                          return (
-                            <div key={def.key} className="space-y-1.5">
-                              <h3 className="text-xs sm:text-sm font-semibold text-slate-900">
-                                {def.title}
-                              </h3>
-                              {hasContent ? (
-                                <div className="text-xs sm:text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">
-                                  {s?.current_text}
-                                </div>
-                              ) : (
-                                <p className="text-xs text-slate-400 italic">
-                                  [Not yet drafted by candidate]
-                                </p>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </section>
-                  );
-                })}
-              </div>
-            </article>
+            <span className="rounded-md border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 font-mono text-[11px] font-semibold text-indigo-800">{totalWords.toLocaleString()} words</span>
           </div>
-        </ContentCard>
+          <ManuscriptReader
+            title={workspace.title || "Untitled Project"}
+            institution={workspace.institution?.name || "Kenya National Examinations Council (KNEC)"}
+            candidate={workspace.student?.full_name || "Candidate"}
+            admissionNumber={workspace.student?.admission_number || "No Admission No"}
+            course={workspace.course}
+            level={levelLabel}
+            planType={typeLabel}
+            totalWords={totalWords}
+            chapters={manuscriptChapters}
+          />
+        </section>
 
         {/* 3. Supervisor Review History Log */}
         {reviews.length > 0 && (
