@@ -58,10 +58,20 @@ function splitMarkdownTables(markdown: string) {
   return parts;
 }
 
+function formatNumberedHeadings(markdown: string) {
+  return markdown.split("\n").map((line) => {
+    const match = line.match(/^\s*(\d+(?:\.\d+){1,3})\s+([^*|].*?)\s*$/);
+    if (!match) return line;
+
+    const headingLevel = Math.min(6, match[1].split(".").length + 2);
+    return `\n${"#".repeat(headingLevel)} ${line.trim()}\n`;
+  }).join("\n");
+}
+
 function ManuscriptText({ text }: { text: string }) {
   return <>
     {splitMarkdownTables(text).map((part, index) => part.type === "markdown" ? (
-      <ReactMarkdown key={index} rehypePlugins={[rehypeSanitize]}>{part.value}</ReactMarkdown>
+      <ReactMarkdown key={index} rehypePlugins={[rehypeSanitize]}>{formatNumberedHeadings(part.value)}</ReactMarkdown>
     ) : (
       <div key={index} className="my-4 overflow-x-auto">
         <table>

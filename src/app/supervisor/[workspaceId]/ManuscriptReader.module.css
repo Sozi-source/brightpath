@@ -1,21 +1,25 @@
 .manuscript {
   color: #334155;
   font-size: 0.9375rem;
-  line-height: 1.9;
+  line-height: 1.85;
   overflow-wrap: anywhere;
 }
 
 .manuscript > :first-child { margin-top: 0; }
 .manuscript > :last-child { margin-bottom: 0; }
-.manuscript p { margin: 0.9rem 0; white-space: pre-wrap; }
+.manuscript p { margin: 0.85rem 0 1.1rem; }
 .manuscript h1,
 .manuscript h2,
 .manuscript h3,
-.manuscript h4 { margin: 1.35rem 0 0.6rem; color: #0f172a; font-weight: 600; line-height: 1.45; }
-.manuscript h1 { font-size: 1.3rem; }
-.manuscript h2 { font-size: 1.125rem; }
-.manuscript h3 { font-size: 1rem; color: #243b63; }
-.manuscript h4 { font-size: 0.9375rem; font-weight: 500; }
+.manuscript h4,
+.manuscript h5,
+.manuscript h6 { color: #0f172a; font-weight: 600; line-height: 1.4; }
+.manuscript h1 { margin: 1.75rem 0 0.75rem; font-size: 1.3rem; }
+.manuscript h2 { margin: 1.6rem 0 0.7rem; font-size: 1.125rem; }
+.manuscript h3 { margin: 1.45rem 0 0.65rem; font-size: 1rem; color: #243b63; }
+.manuscript h4 { margin: 1.5rem 0 0.65rem; border-left: 3px solid #6366f1; padding-left: 0.65rem; font-size: 1rem; }
+.manuscript h5 { margin: 1.2rem 0 0.5rem; font-size: 0.9375rem; color: #334e75; }
+.manuscript h6 { margin: 1rem 0 0.45rem; font-size: 0.875rem; color: #475569; }
 .manuscript ul,
 .manuscript ol { margin: 0.8rem 0; padding-left: 1.65rem; }
 .manuscript ul { list-style: disc; }

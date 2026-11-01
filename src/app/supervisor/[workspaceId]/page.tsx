@@ -225,27 +225,9 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
           </details>
       <PageHeaderCard
         title={workspace.title || "Untitled Project"}
-        subtitle={`${workspace.student?.full_name || "Candidate"} • ${workspace.course} (${levelLabel})`}
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Supervisor", href: "/supervisor" },
-          { label: workspace.student?.full_name || "Review", active: true },
-        ]}
-        metadata={[
-          { label: "Candidate", value: `${workspace.student?.full_name || "Student"} (${workspace.student?.admission_number || "—"})` },
-          { label: "Track", value: `${levelLabel} • ${typeLabel}` },
-          { label: "Total Words", value: `${totalWords.toLocaleString()} words` },
-          {
-            label: "Status",
-            value: isSubmitted
-              ? "Chapters Submitted"
-              : isApproved
-              ? "Topic Approved"
-              : isPending
-              ? "Pending Topic Approval"
-              : "Topic Formulation",
-          },
-        ]}
+        subtitle={`${workspace.student?.full_name || "Candidate"} · ${workspace.course} (${levelLabel})`}
+        breadcrumbs={[]}
+        compact
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <Link
