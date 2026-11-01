@@ -1556,7 +1556,7 @@ export async function publishBusinessPlanToMarketplace(formData: FormData) {
 
   const db = getServerDbClient(supabase);
   const { data: workspace } = await db.from("project_workspaces")
-    .select("id, student_id, workspace_type, level, title, course, problem_area, status, business_plan_specs")
+    .select("id, student_id, supervisor_id, institution_id, workspace_type, level, title, course, problem_area, status, business_plan_specs, student:student_id(full_name, admission_number), supervisor:supervisor_id(full_name), institution:institution_id(name)")
     .eq("id", workspaceId).maybeSingle();
   if (!workspace || workspace.student_id !== user.id) throw new Error("This business plan is not yours.");
   if (workspace.workspace_type !== "business_plan") throw new Error("Only business plans can be submitted from this workspace.");
@@ -1577,10 +1577,40 @@ export async function publishBusinessPlanToMarketplace(formData: FormData) {
     .eq("workspace_id", workspaceId).maybeSingle();
   if (existing) throw new Error("This business plan has already been submitted to the marketplace.");
 
+  const specs = workspace.business_plan_specs as {
+    candidateName?: string;
+    admissionNumber?: string;
+    institutionName?: string;
+    supervisorName?: string;
+  } | null;
+  const student = workspace.student as unknown as { full_name?: string | null; admission_number?: string | null } | null;
+  const supervisor = workspace.supervisor as unknown as { full_name?: string | null } | null;
+  const institution = workspace.institution as unknown as { name?: string | null } | null;
+  const redact = (content: string, value: string | null | undefined, replacement: string) => {
+    const normalized = value?.trim();
+    if (!normalized || normalized.length < 2) return content;
+    const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return content.replace(new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, "giu"), replacement);
+  };
+  const redactPrivateDetails = (content: string) => [
+    [specs?.candidateName, "[Candidate]"],
+    [student?.full_name, "[Candidate]"],
+    [specs?.admissionNumber, "[Admission number withheld]"],
+    [student?.admission_number, "[Admission number withheld]"],
+    [specs?.institutionName, "[Institution]"],
+    [institution?.name, "[Institution]"],
+    [specs?.supervisorName, "[Supervisor]"],
+    [supervisor?.full_name, "[Supervisor]"],
+  ].reduce((text, [value, replacement]) => redact(text, value, replacement as string), content);
+
+  const listingTitle = redactPrivateDetails(workspace.title || `${workspace.course} Business Plan`);
+  const listingDescription = redactPrivateDetails(
+    workspace.problem_area || `Completed ${workspace.course} business plan.`
+  );
   const { data: listing, error } = await db.from("projects").insert({
     trainer_id: user.id,
-    title: workspace.title || `${workspace.course} Business Plan`,
-    description: workspace.problem_area || `Completed ${workspace.course} business plan.`,
+    title: listingTitle,
+    description: listingDescription,
     category: "Business Plan",
     price_kes: priceKes,
     file_path: `workspace-export:${workspaceId}`,
@@ -1588,32 +1618,15 @@ export async function publishBusinessPlanToMarketplace(formData: FormData) {
   }).select("id").single();
   if (error || !listing) throw new Error(error?.message || "Could not submit this plan for marketplace review.");
 
-  const specs = workspace.business_plan_specs as {
-    candidateName?: string;
-    admissionNumber?: string;
-    institutionName?: string;
-    supervisorName?: string;
-  } | null;
-  const redact = (content: string, value: string | undefined, replacement: string) => {
-    if (!value?.trim() || value.trim().length < 2) return content;
-    const escaped = value.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    return content.replace(new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, "giu"), replacement);
-  };
-
   const { error: snapshotError } = await db.from("project_plan_snapshots").insert({
     project_id: listing.id,
     workspace_id: workspaceId,
-    title: workspace.title || `${workspace.course} Business Plan`,
+    title: listingTitle,
     course: workspace.course,
     level: workspace.level,
     sections: definitions.map((definition) => ({
       title: definition.title,
-      content: [
-        [specs?.candidateName, "Candidate"],
-        [specs?.admissionNumber, "Index number withheld"],
-        [specs?.institutionName, "Institution withheld"],
-        [specs?.supervisorName, "Supervisor"],
-      ].reduce((text, [value, replacement]) => redact(text, value, replacement as string), sectionText.get(definition.key) || ""),
+      content: redactPrivateDetails(sectionText.get(definition.key) || ""),
     })),
   });
   if (snapshotError) {

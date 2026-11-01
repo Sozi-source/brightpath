@@ -24,7 +24,7 @@ export default async function ProjectsPage() {
 
   const [{ data: projectsData }, { data: ratingStats }] = await Promise.all([
     supabase.from("projects")
-      .select("*, profiles:trainer_id(full_name)")
+      .select("*")
       .eq("status", "published")
       .order("created_at", { ascending: false }),
     supabase.from("marketplace_project_rating_stats")
