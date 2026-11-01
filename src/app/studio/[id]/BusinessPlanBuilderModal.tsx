@@ -23,6 +23,7 @@ import {
   getConsultancyLocationRationaleCorrection,
 } from "@/lib/studio/businessPlanProfiles";
 import { computeBusinessPlanFinancials } from "@/lib/studio/businessPlanMath";
+import { BusinessPlanCorrectionChat } from "@/components/business-plan/BusinessPlanCorrectionChat";
 import {
   buildCompleteBusinessPlanAction,
   correctBusinessPlanLocationClaimsAction,
@@ -1452,6 +1453,14 @@ export function BusinessPlanBuilderModal({
                           </div>
                           <p className="text-xs text-slate-800">{finding.issue}</p>
                           <p className="mt-1 text-xs text-slate-600">Action: {finding.recommendation}</p>
+                          <BusinessPlanCorrectionChat
+                            workspaceId={workspaceId}
+                            sectionKey={finding.sectionKey}
+                            sectionTitle={finding.sectionKey.replaceAll(".", " ")}
+                            issue={finding.issue}
+                            recommendation={finding.recommendation}
+                            provider={aiProvider}
+                          />
                           <button
                             type="button"
                             onClick={() => {

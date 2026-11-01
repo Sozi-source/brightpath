@@ -32,6 +32,11 @@ export interface BusinessPlanReviewFinding {
   sourceRefs: number[];
 }
 
+export interface BusinessPlanCorrectionChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export interface BusinessPlanDocumentReview {
   findings: BusinessPlanReviewFinding[];
   chaptersReviewed: number;
@@ -488,4 +493,60 @@ Return JSON only as {"findings":[{"sectionKey":"exact section key","severity":"h
     )),
   ].slice(0, 10);
   return { findings: combinedFindings, chaptersReviewed: groupCount, warnings };
+}
+
+export async function respondToBusinessPlanCorrectionChat(args: {
+  provider: BusinessPlanAIProvider;
+  specs: BusinessPlanSpecs;
+  sectionKey: string;
+  sectionTitle: string;
+  sectionText: string;
+  issue: string;
+  recommendation: string;
+  messages: BusinessPlanCorrectionChatMessage[];
+  currentProposal?: string;
+}) {
+  if (args.sectionKey.startsWith("ch5.")) {
+    return {
+      reply: "Financial statements and calculated totals are protected from AI edits. Discuss the assumptions with your supervisor and update them through the business-plan financial inputs.",
+      proposedText: "",
+    };
+  }
+  const messages = args.messages.slice(-8).map((message) => ({
+    role: message.role,
+    content: message.content.slice(0, 2000),
+  }));
+  const prompt = `You are helping a student and supervisor resolve one specific business-plan review finding. This is a focused correction chat, not permission to rewrite unrelated material.
+
+SECTION: ${args.sectionTitle} (${args.sectionKey})
+REVIEW ISSUE: ${args.issue}
+RECOMMENDED ACTION: ${args.recommendation}
+BUSINESS DETAILS (candidate-supplied; treat as assumptions): ${JSON.stringify({
+    model: resolveBusinessPlanModel(args.specs),
+    business: args.specs.businessName,
+    location: `${args.specs.townOrMarket}, ${args.specs.county}`,
+    serviceOrProduct: args.specs.primaryProduct,
+  })}
+SECTION TEXT:
+${args.sectionText.slice(0, 30000)}
+
+CURRENT PROPOSAL:
+${(args.currentProposal || "None yet").slice(0, 30000)}
+
+CHAT:
+${JSON.stringify(messages)}
+
+Rules: Explain the finding plainly and answer the latest question. If enough information exists, provide a proposed replacement for this section only, preserving unrelated points and structure. Do not invent evidence, local facilities, survey results, permissions, prices, or partnerships. If a fact is missing, use concise [Confirm locally] wording or ask one targeted question and leave proposedText empty. Never change financial calculations or numerical assumptions. Return JSON only as {"reply":"short response","proposedText":"complete proposed section text, or empty string if clarification is needed"}.`;
+  const parsed = await generateJson(prompt, args.provider, { maxTokens: 5000 });
+  const reply = typeof parsed.reply === "string" ? parsed.reply.trim().slice(0, 3000) : "I could not prepare a correction. Please clarify what should change.";
+  const proposedText = typeof parsed.proposedText === "string" && parsed.proposedText.trim().length <= 30000
+    ? parsed.proposedText.trim()
+    : "";
+  if (proposedText && getBusinessModelConflictFindings(args.specs, [{ key: args.sectionKey, content: proposedText }]).length) {
+    return {
+      reply: "That suggestion conflicts with the selected business model, so I did not prepare it. Please clarify the correction or revise the business details first.",
+      proposedText: "",
+    };
+  }
+  return { reply, proposedText };
 }

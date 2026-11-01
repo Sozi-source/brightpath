@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { AlertCircle, FileText, Loader2, SearchCheck } from "lucide-react";
 import { reviewSupervisorBusinessPlanDocument } from "@/app/supervisor/actions";
+import { BusinessPlanCorrectionChat } from "@/components/business-plan/BusinessPlanCorrectionChat";
 
 type ReviewReport = {
   findings: Array<{
@@ -120,6 +121,14 @@ export function WholeDocumentReviewPanel({ workspaceId }: { workspaceId: string 
               </div>
               <p className="text-xs text-slate-800">{finding.issue}</p>
               <p className="mt-1 text-xs text-slate-600">Action: {finding.recommendation}</p>
+              <BusinessPlanCorrectionChat
+                workspaceId={workspaceId}
+                sectionKey={finding.sectionKey}
+                sectionTitle={finding.sectionKey.replaceAll(".", " ")}
+                issue={finding.issue}
+                recommendation={finding.recommendation}
+                provider={provider}
+              />
               <Link
                 href={`/supervisor/${workspaceId}#section-${sectionAnchor(finding.sectionKey)}`}
                 className="mt-2 inline-block text-[11px] font-semibold text-indigo-700 underline underline-offset-2"

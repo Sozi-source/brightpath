@@ -10,8 +10,10 @@ import { buildCompleteBusinessPlan } from "@/lib/studio/businessPlanBuilder";
 import {
   reviewBusinessPlanFacts,
   reviewWholeBusinessPlan,
+  respondToBusinessPlanCorrectionChat,
   researchBusinessPlan,
   type BusinessPlanAIProvider,
+  type BusinessPlanCorrectionChatMessage,
   type BusinessPlanResearch,
 } from "@/lib/studio/businessPlanGeneration";
 import {
@@ -1673,6 +1675,135 @@ async function runCompleteBusinessPlanBuild(
   };
 }
 
+
+async function getBusinessPlanCorrectionActor(workspaceId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Sign in to use the correction chat.");
+  const db = getServerDbClient(supabase);
+  const [{ data: profile }, { data: workspace }] = await Promise.all([
+    db.from("profiles").select("role").eq("id", user.id).single(),
+    db.from("project_workspaces")
+      .select("id, student_id, supervisor_id, status, final_project_status, workspace_type, level, business_plan_specs")
+      .eq("id", workspaceId).maybeSingle(),
+  ]);
+  if (!workspace || workspace.workspace_type !== "business_plan") throw new Error("Business plan not found.");
+  const role = profile?.role;
+  const isAllowed = role === "admin" ||
+    (role === "supervisor" && workspace.supervisor_id === user.id) ||
+    (role === "student" && workspace.student_id === user.id);
+  if (!isAllowed) throw new Error("You do not have access to this business plan.");
+  if (workspace.status === "closed" || ["pending_review", "approved"].includes(workspace.final_project_status || "")) {
+    throw new Error("This project is locked during or after final review.");
+  }
+  if (workspace.status !== "approved" && workspace.status !== "submitted") {
+    throw new Error("The topic must be approved before correcting project chapters.");
+  }
+  return { db, user, workspace };
+}
+
+export async function chatAboutBusinessPlanFindingAction(formData: FormData) {
+  const workspaceId = formData.get("workspaceId")?.toString() || "";
+  const sectionKey = formData.get("sectionKey")?.toString() || "";
+  const issue = formData.get("issue")?.toString().trim() || "";
+  const recommendation = formData.get("recommendation")?.toString().trim() || "";
+  const providerValue = formData.get("provider")?.toString();
+  const provider: BusinessPlanAIProvider = providerValue === "gemini" ? "gemini" : "groq";
+  if (providerValue !== "gemini" && providerValue !== "groq") throw new Error("Choose Gemini or Groq.");
+  if (!workspaceId || !sectionKey || !issue || !recommendation || issue.length > 1500 || recommendation.length > 1500) {
+    throw new Error("The review finding is incomplete or too long.");
+  }
+  if (sectionKey.startsWith("ch5.")) throw new Error("AI correction chat is disabled for financial statements and calculated totals.");
+
+  let messages: BusinessPlanCorrectionChatMessage[];
+  try {
+    const value = JSON.parse(formData.get("messages")?.toString() || "[]");
+    if (!Array.isArray(value) || value.length > 10 || value.some((item) =>
+      !item || !["user", "assistant"].includes(item.role) || typeof item.content !== "string" || item.content.length > 2000
+    )) throw new Error();
+    messages = value as BusinessPlanCorrectionChatMessage[];
+  } catch {
+    throw new Error("The chat history is invalid. Start a new correction chat.");
+  }
+  if (!messages.length || messages[messages.length - 1].role !== "user") throw new Error("Enter a correction question first.");
+
+  const { db, workspace } = await getBusinessPlanCorrectionActor(workspaceId);
+  const specs = workspace.business_plan_specs as BusinessPlanSpecs | null;
+  if (!specs) throw new Error("Business plan details are missing.");
+  const definitions = getWorkspaceSections("business_plan", workspace.level, resolveBusinessPlanModel(specs));
+  const definition = definitions.find((item) => item.key === sectionKey);
+  if (!definition) throw new Error("Choose a valid business-plan section.");
+  const { data: section } = await db.from("workspace_sections")
+    .select("id, current_text, updated_at").eq("workspace_id", workspaceId).eq("section_key", sectionKey).maybeSingle();
+  if (!section) throw new Error("The section could not be found.");
+
+  const currentProposal = formData.get("currentProposal")?.toString().slice(0, 30000) || "";
+  const result = await respondToBusinessPlanCorrectionChat({
+    provider,
+    specs,
+    sectionKey,
+    sectionTitle: definition.title,
+    sectionText: section.current_text || "",
+    issue,
+    recommendation,
+    messages,
+    currentProposal,
+  });
+  return {
+    ...result,
+    baseText: section.current_text || "",
+    baseUpdatedAt: section.updated_at,
+  };
+}
+
+export async function applyBusinessPlanCorrectionProposalAction(formData: FormData) {
+  const workspaceId = formData.get("workspaceId")?.toString() || "";
+  const sectionKey = formData.get("sectionKey")?.toString() || "";
+  const proposedText = formData.get("proposedText")?.toString() || "";
+  const baseText = formData.get("baseText")?.toString() || "";
+  const baseUpdatedAt = formData.get("baseUpdatedAt")?.toString() || "";
+  if (!workspaceId || !sectionKey || !proposedText.trim() || proposedText.length > 30000 || !baseUpdatedAt) {
+    throw new Error("The correction proposal is invalid.");
+  }
+  if (sectionKey.startsWith("ch5.")) throw new Error("AI correction cannot edit financial calculations.");
+  const { db, user, workspace } = await getBusinessPlanCorrectionActor(workspaceId);
+  const specs = workspace.business_plan_specs as BusinessPlanSpecs | null;
+  if (!specs) throw new Error("Business plan details are missing.");
+  if (getBusinessModelConflictFindings(specs, [{ key: sectionKey, content: proposedText }]).length) {
+    throw new Error("This proposal conflicts with the selected business model. Refine it before applying.");
+  }
+  const { data: section } = await db.from("workspace_sections")
+    .select("id, current_text, status, updated_at").eq("workspace_id", workspaceId).eq("section_key", sectionKey).maybeSingle();
+  if (!section) throw new Error("The section could not be found.");
+  if (section.updated_at !== baseUpdatedAt || section.current_text !== baseText) {
+    throw new Error("This section changed after the proposal was prepared. Refresh the review and request a new proposal.");
+  }
+  if (proposedText === section.current_text) throw new Error("The proposal does not change this section.");
+
+  const { error } = await db.from("workspace_sections").update({
+    current_text: proposedText,
+    status: section.status === "empty" ? "draft" : section.status,
+  }).eq("id", section.id).eq("workspace_id", workspaceId);
+  if (error) throw new Error(error.message || "Could not apply the correction.");
+  const { error: versionError } = await db.from("section_versions").insert({
+    section_id: section.id,
+    text: proposedText,
+    source: "ai_generated_draft",
+    ai_chars_accepted: proposedText.length,
+  });
+  if (versionError) throw new Error(versionError.message || "The correction was saved, but version history could not be updated.");
+  await db.from("project_log_entries").insert({
+    workspace_id: workspaceId,
+    activity: `Applied an AI-assisted correction to ${sectionKey} after review.`,
+    auto_generated: true,
+    student_signed_at: workspace.student_id === user.id ? new Date().toISOString() : null,
+    supervisor_signed_at: workspace.supervisor_id === user.id ? new Date().toISOString() : null,
+  });
+  revalidatePath(`/studio/${workspaceId}`);
+  revalidatePath(`/supervisor/${workspaceId}`);
+  revalidatePath(`/studio/${workspaceId}/write/${encodeURIComponent(sectionKey)}`);
+  return { success: true };
+}
 
 export async function reviewBusinessPlanDocumentAction(formData: FormData) {
   const supabase = await createClient();
