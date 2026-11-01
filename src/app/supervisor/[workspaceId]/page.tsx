@@ -331,7 +331,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
                 Topic and chapter decisions are locked during final project review and after approval.
                 {isFinalReviewPending && <a href="#final-project-approval" className="ml-1 font-semibold underline">Go to final review</a>}
               </div>
-            ) : isPending || isSubmitted ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ) : (isPending || isSubmitted) ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Form 1: Approve Topic / Chapters */}
               <div className="p-4 rounded-lg border border-emerald-200 bg-emerald-50/40 space-y-2.5">
                 <div className="flex items-center gap-2 text-emerald-800 font-semibold text-xs">
@@ -547,6 +547,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
             </div>
           </ContentCard>
         )}
+      </div>
       </div>
       </div>
     </AppShell>
