@@ -330,7 +330,11 @@ ${sourceList}
 SCRIPTED SECTIONS:
 ${JSON.stringify(sectionDrafts)}
 
-Return JSON only: {"edits":[{"key":"section key","find":"exact existing sentence or phrase","replace":"corrected sentence or phrase"}]}. Use only these sections. Do not rewrite style, add unsupported facts, alter candidate-supplied numbers or financial calculations, or claim surveys, contracts, licenses, approvals, or partnerships exist unless supported by supplied evidence. Cite supported claims with [n]. If no source supports a factual claim, replace only that claim with cautious wording and [Confirm locally]. Return an empty edits array when no correction is justified.`;
+Return JSON only: {"edits":[{"key":"section key","find":"exact existing sentence or phrase","replace":"corrected sentence or phrase"}]}. Use only these sections. Do not rewrite style, add unsupported facts, alter candidate-supplied numbers or financial calculations, or claim surveys, contracts, licenses, approvals, or partnerships exist unless supported by supplied evidence. Cite supported claims with [n].
+
+GEOGRAPHIC CONSISTENCY CHECK (required): Compare every named town, county, sub-county, ward, road, and health facility in the draft with the candidate's stated business location and the supplied research. Flag claims that describe a distant or differently located facility as nearby, or place it in the wrong county. Do not guess a replacement facility. If the mismatch is clear from the supplied sources, correct only that claim; if no local facility is verified, use cautious wording such as "health facilities serving [town]" and add [Confirm locally].
+
+If no source supports another factual claim, replace only that claim with cautious wording and [Confirm locally]. Return an empty edits array when no correction is justified.`;
 
   const parsed = await generateJson(prompt, provider, { maxTokens: 1800 });
   const edits = Array.isArray(parsed.edits) ? parsed.edits : [];
@@ -364,9 +368,9 @@ export async function reviewWholeBusinessPlan(
   const extractEvidence = (content: string) => {
     const lines = content.split(/\r?\n/).filter((line) =>
       /^\s*(#{1,4}\s|\|\s|[-*]\s|\d+[.)]\s)/.test(line) ||
-      /\b(KES|according to|survey|permit|licen[cs]e|approval|registered|approved|contract|percentage|market share)\b|\d|%/.test(line)
+      /\b(KES|according to|survey|permit|licen[cs]e|approval|registered|approved|contract|percentage|market share|location|located|near|proximity|county|town|hospital|clinic|health facilit|road|kilomet|within|based in|ward|sub.county|municipal)\b|\d|%/i.test(line)
     );
-    return (lines.join(" ") || content).replace(/\s+/g, " ").slice(0, 420);
+    return (lines.join(" ") || content).replace(/\s+/g, " ").slice(0, 900);
   };
   const documentContent = reviewable.map((section) => ({
     key: section.key,
@@ -390,6 +394,8 @@ export async function reviewWholeBusinessPlan(
     competitors: specs.competitors.map(({ name, location, priceLevel }) => ({ name, location, priceLevel })),
   };
   const prompt = `Review this complete business plan across all chapters. Check factual support, cross-section consistency, completeness against requirements, repetition, and whether the extracted content has suitable lists or tables. This is an audit only; do not rewrite or apply edits.
+
+GEOGRAPHIC CONSISTENCY CHECK (required): Compare every named town, county, sub-county, ward, road, and health facility in the manuscript with the candidate's stated business location and the supplied research. Flag claims that describe a distant or differently located facility as nearby, or place it in the wrong county. Use only the supplied sources for factual conclusions; if they do not resolve the issue, recommend local verification rather than guessing a replacement facility. Include the finding under the section containing the mismatch.
 
 CANDIDATE DETAILS (assumptions, not independent evidence):
 ${JSON.stringify(candidateFacts)}
