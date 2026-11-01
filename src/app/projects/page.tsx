@@ -161,17 +161,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
         </section>
       )}
 
-      <section className="mb-5 rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-        <form action="/projects" className="flex flex-col gap-2 sm:flex-row">
-          <label htmlFor="marketplace-search" className="sr-only">Search learning materials</label>
-          <div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" /><input id="marketplace-search" name="q" defaultValue={filters.q || ""} placeholder="Search notes, projects, or subjects" className="h-11 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100" /></div>
-          {selectedCategory && <input type="hidden" name="category" value={selectedCategory} />}
-          {selectedType && <input type="hidden" name="type" value={selectedType} />}
-          <button className="h-11 rounded-lg bg-indigo-600 px-5 text-sm font-semibold text-white hover:bg-indigo-700">Search</button>
-        </form>
-      </section>
-
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[190px_1fr]">
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[210px_minmax(0,1fr)]">
         <aside className="h-fit rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
           <div className="mb-3 hidden items-center gap-2 lg:flex"><Layers className="h-4 w-4 text-indigo-700" /><h2 className="text-xs font-semibold uppercase tracking-wider text-slate-800">Browse</h2></div>
           <details className="group lg:hidden">
@@ -184,6 +174,13 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
         </aside>
 
         <section>
+          <form action="/projects" className="mb-4 flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-xs sm:flex-row">
+            <label htmlFor="marketplace-search" className="sr-only">Search learning materials</label>
+            <div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" /><input id="marketplace-search" name="q" defaultValue={filters.q || ""} placeholder="Search notes, projects, or subjects" className="h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100" /></div>
+            {selectedCategory && <input type="hidden" name="category" value={selectedCategory} />}
+            {selectedType && <input type="hidden" name="type" value={selectedType} />}
+            <button className="h-10 rounded-lg bg-indigo-600 px-5 text-sm font-semibold text-white hover:bg-indigo-700">Search</button>
+          </form>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div><h2 className="text-base font-semibold tracking-tight text-slate-900">{selectedType ? getMaterialTypeLabel(selectedType) : selectedCategory || "Explore materials"}</h2><p className="text-xs text-slate-600">{resultCount} results</p></div>
             <form action="/projects" className="flex items-center gap-2">
