@@ -19,10 +19,8 @@ type ReviewReport = {
   researchSources: Array<{ title: string; url: string }>;
 };
 
-function chapterAnchor(sectionKey: string) {
-  if (sectionKey.startsWith("app.")) return "appendices";
-  if (sectionKey.startsWith("prelim.")) return "preliminary";
-  return sectionKey.split(".")[0];
+function sectionAnchor(sectionKey: string) {
+  return sectionKey.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
 export function WholeDocumentReviewPanel({ workspaceId }: { workspaceId: string }) {
@@ -123,7 +121,7 @@ export function WholeDocumentReviewPanel({ workspaceId }: { workspaceId: string 
               <p className="text-xs text-slate-800">{finding.issue}</p>
               <p className="mt-1 text-xs text-slate-600">Action: {finding.recommendation}</p>
               <Link
-                href={`/supervisor/${workspaceId}#doc-${chapterAnchor(finding.sectionKey)}`}
+                href={`/supervisor/${workspaceId}#section-${sectionAnchor(finding.sectionKey)}`}
                 className="mt-2 inline-block text-[11px] font-semibold text-indigo-700 underline underline-offset-2"
               >
                 Open chapter

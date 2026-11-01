@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
 import { getWorkspaceSections, type SectionDefinition } from "@/lib/studio/templates";
+import { getSectionReviewThreads } from "@/lib/studio/sectionReviewData";
 import {
   submitProposalForApproval,
   submitChaptersForReview,
@@ -113,6 +114,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
 
   const reviews = (reviewsData as SupervisorReview[]) || [];
   const latestReview = reviews[0] || null;
+  const sectionReviewThreads = await getSectionReviewThreads(db, workspaceId);
 
   // Template definitions & KNEC Rubric
   const templateDefs = getWorkspaceSections(workspace.workspace_type, workspace.level);
@@ -376,6 +378,8 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                             ? s.current_text.trim().split(/\s+/).length
                             : 0;
                           const isDone = wordCount >= (def.minWords || 30);
+                          const sectionThreads = sectionReviewThreads.filter((thread) => thread.section_key === def.key);
+                          const openComments = sectionThreads.filter((thread) => thread.status !== "resolved").length;
 
                           return (
                             <div
@@ -395,6 +399,11 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                                   {def.rubricMarks !== undefined && (
                                     <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
                                       {def.rubricMarks}m
+                                    </span>
+                                  )}
+                                  {sectionThreads.length > 0 && (
+                                    <span className={`rounded-md border px-1.5 py-0.5 text-[10px] font-medium ${openComments ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>
+                                      {openComments ? `${openComments} comment${openComments === 1 ? "" : "s"} open` : `${sectionThreads.length} resolved`}
                                     </span>
                                   )}
                                 </div>

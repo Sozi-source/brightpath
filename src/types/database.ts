@@ -255,3 +255,38 @@ export interface SupervisorReview {
   comment: string;
   created_at: string;
 }
+
+export type SectionReviewKind = "correction" | "evidence" | "question" | "structure";
+export type SectionReviewStatus = "open" | "answered" | "resolved";
+
+export interface SectionReviewReply {
+  id: string;
+  thread_id: string;
+  author_id: string;
+  author_name: string;
+  author_role: UserRole;
+  body: string;
+  created_at: string;
+}
+
+export interface SectionReviewThread {
+  id: string;
+  workspace_id: string;
+  section_id: string;
+  section_key: string;
+  author_id: string;
+  author_name: string;
+  author_role: UserRole;
+  quoted_text: string;
+  context_before: string;
+  context_after: string;
+  section_updated_at: string;
+  kind: SectionReviewKind;
+  body: string;
+  suggested_text: string | null;
+  status: SectionReviewStatus;
+  resolved_by: string | null;
+  resolved_at: string | null;
+  created_at: string;
+  replies: SectionReviewReply[];
+}

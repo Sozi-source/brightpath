@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import type { SectionPolishResult, SectionQuestionGuide } from "@/lib/studio/aiEngine";
 import type { NotebookLmPromptItem } from "@/lib/studio/notebookLmHelper";
+import { SectionReviewThreads } from "@/app/supervisor/[workspaceId]/SectionReviewThreads";
+import type { SectionReviewThread, UserRole } from "@/types/database";
 
 export interface StepItem {
   key: string;
@@ -47,6 +49,11 @@ interface SectionEditorProps {
   phase: "proposal" | "project";
   isLocked: boolean;
   currentText: string;
+  reviewThreads: SectionReviewThread[];
+  currentSectionUpdatedAt: string;
+  viewerRole: UserRole;
+  canReview: boolean;
+  canReply: boolean;
   questionGuide?: SectionQuestionGuide;
   notebookUrl: string;
   notebookTrackName: string;
@@ -70,6 +77,11 @@ export function SectionEditor({
   minWords = 30,
   isLocked,
   currentText: initialText,
+  reviewThreads,
+  currentSectionUpdatedAt,
+  viewerRole,
+  canReview,
+  canReply,
   questionGuide,
   notebookUrl,
   notebookTrackName,
@@ -475,6 +487,29 @@ export function SectionEditor({
                 <span className="truncate">{guidance}</span>
               </div>
             </div>
+
+            <section aria-label="Supervisor comments" className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+              <div className="mb-3">
+                <h2 className="text-sm font-semibold tracking-tight text-slate-900">Section feedback</h2>
+                <p className="mt-0.5 text-xs text-slate-600">Reply to comments on selected text.</p>
+              </div>
+              <SectionReviewThreads
+                workspaceId={workspaceId}
+                sectionKey={sectionKey}
+                threads={reviewThreads}
+                viewerRole={viewerRole}
+                canReview={canReview}
+                canReply={canReply}
+                currentSectionUpdatedAt={currentSectionUpdatedAt}
+                onApplySuggestion={(quotedText, suggestedText) => {
+                  const occurrences = text.split(quotedText).length - 1;
+                  if (occurrences !== 1) return false;
+                  setText(text.replace(quotedText, suggestedText));
+                  setSaveStatus("idle");
+                  return true;
+                }}
+              />
+            </section>
 
             {/* Editor Textarea */}
             <div>

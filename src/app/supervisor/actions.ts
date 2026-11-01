@@ -10,6 +10,8 @@ import {
   type BusinessPlanResearch,
 } from "@/lib/studio/businessPlanGeneration";
 import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SectionReviewKind, SectionReviewStatus } from "@/types/database";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -47,6 +49,15 @@ async function verifySupervisorOrAdmin(workspaceId: string) {
   return { supabase: db, user, workspace, role: profile?.role };
 }
 
+async function assertSectionCommentsResolved(db: SupabaseClient, workspaceId: string) {
+  const { count, error } = await db.from("section_review_threads")
+    .select("id", { count: "exact", head: true })
+    .eq("workspace_id", workspaceId)
+    .in("status", ["open", "answered"]);
+  if (error) throw new Error(error.message || "Could not verify section comments.");
+  if ((count || 0) > 0) throw new Error("Resolve every open section comment before approving this project.");
+}
+
 export async function approveCompletedProjectForMarketplace(formData: FormData) {
   const workspaceId = formData.get("workspaceId")?.toString();
   const comment = formData.get("comment")?.toString().trim() || "Completed project reviewed and approved for marketplace consideration.";
@@ -56,6 +67,7 @@ export async function approveCompletedProjectForMarketplace(formData: FormData) 
   if (workspace.status !== "approved" || workspace.final_project_status !== "pending_review") {
     throw new Error("This project is not awaiting final review.");
   }
+  await assertSectionCommentsResolved(db, workspaceId);
 
   const { data: fullWorkspace } = await db.from("project_workspaces")
     .select("workspace_type, level").eq("id", workspaceId).single();
@@ -203,6 +215,7 @@ export async function approveProposal(formData: FormData) {
   if (workspace.final_project_status === "pending_review" || workspace.final_project_status === "approved") {
     throw new Error("Topic and chapter decisions are locked during or after final project review.");
   }
+  await assertSectionCommentsResolved(supabase, workspaceId);
 
   // 1. Insert supervisor review record
   const { error: revErr } = await supabase.from("supervisor_reviews").insert({
@@ -317,6 +330,124 @@ export async function updateProposalTitle(formData: FormData) {
 
   revalidatePath(`/supervisor/${workspaceId}`);
   revalidatePath(`/studio/${workspaceId}`);
+}
+
+async function getSectionReviewActor(workspaceId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Sign in to use section review comments.");
+  const db = getServerDbClient(supabase);
+  const [{ data: profile }, { data: workspace }] = await Promise.all([
+    db.from("profiles").select("role").eq("id", user.id).single(),
+    db.from("project_workspaces").select("id, student_id, supervisor_id, status, final_project_status").eq("id", workspaceId).single(),
+  ]);
+  if (!workspace) throw new Error("Project workspace not found.");
+  const role = profile?.role;
+  const isSupervisor = role === "admin" || (role === "supervisor" && workspace.supervisor_id === user.id);
+  const isStudent = role === "student" && workspace.student_id === user.id;
+  if (!isSupervisor && !isStudent) throw new Error("You do not have access to this project review.");
+  if (workspace.status === "closed" || workspace.final_project_status === "approved") {
+    throw new Error("This project review is closed to new comments.");
+  }
+  return { db, user, workspace, role, isSupervisor, isStudent };
+}
+
+function requiredFormValue(formData: FormData, key: string, maxLength: number) {
+  const value = formData.get(key)?.toString().trim() || "";
+  if (!value || value.length > maxLength) throw new Error(`Enter a valid ${key.replaceAll(/([A-Z])/g, " $1").toLowerCase()}.`);
+  return value;
+}
+
+export async function createSectionReviewThread(formData: FormData) {
+  const workspaceId = requiredFormValue(formData, "workspaceId", 80);
+  const sectionKey = requiredFormValue(formData, "sectionKey", 160);
+  const quotedText = requiredFormValue(formData, "quotedText", 1000);
+  const sectionUpdatedAt = requiredFormValue(formData, "sectionUpdatedAt", 80);
+  const body = requiredFormValue(formData, "body", 2000);
+  const kindValue = formData.get("kind")?.toString();
+  const allowedKinds: SectionReviewKind[] = ["correction", "evidence", "question", "structure"];
+  if (!kindValue || !allowedKinds.includes(kindValue as SectionReviewKind)) throw new Error("Choose a feedback type.");
+  const contextBefore = formData.get("contextBefore")?.toString().slice(-160) || "";
+  const contextAfter = formData.get("contextAfter")?.toString().slice(0, 160) || "";
+  const suggestedText = formData.get("suggestedText")?.toString().trim() || null;
+  if (suggestedText && suggestedText.length > 5000) throw new Error("Suggested replacement is too long.");
+
+  const { db, user, isSupervisor } = await getSectionReviewActor(workspaceId);
+  if (!isSupervisor) throw new Error("Only the assigned supervisor can create review comments.");
+  const { data: section } = await db.from("workspace_sections")
+    .select("id, current_text, updated_at").eq("workspace_id", workspaceId).eq("section_key", sectionKey).single();
+  if (!section) throw new Error("Section not found.");
+  if (section.updated_at !== sectionUpdatedAt) {
+    throw new Error("This section changed after it was opened. Refresh the review and select the text again.");
+  }
+  const normalizedText = section.current_text.replace(/\s+/g, " ").trim();
+  const normalizedQuote = quotedText.replace(/\s+/g, " ").trim();
+  if (!normalizedText.includes(normalizedQuote)) {
+    throw new Error("The selected text no longer matches this section. Refresh and try again.");
+  }
+
+  const { error } = await db.from("section_review_threads").insert({
+    workspace_id: workspaceId,
+    section_id: section.id,
+    section_key: sectionKey,
+    author_id: user.id,
+    quoted_text: quotedText,
+    context_before: contextBefore,
+    context_after: contextAfter,
+    section_updated_at: section.updated_at,
+    kind: kindValue,
+    body,
+    suggested_text: suggestedText,
+  });
+  if (error) throw new Error(error.message || "Could not save the review comment.");
+  revalidatePath(`/supervisor/${workspaceId}`);
+  revalidatePath(`/studio/${workspaceId}`);
+  revalidatePath(`/studio/${workspaceId}/write/${encodeURIComponent(sectionKey)}`);
+}
+
+export async function replyToSectionReviewThread(formData: FormData) {
+  const workspaceId = requiredFormValue(formData, "workspaceId", 80);
+  const threadId = requiredFormValue(formData, "threadId", 80);
+  const body = requiredFormValue(formData, "body", 2000);
+  const { db, user, isSupervisor, isStudent } = await getSectionReviewActor(workspaceId);
+  const { data: thread } = await db.from("section_review_threads")
+    .select("id, workspace_id, status").eq("id", threadId).eq("workspace_id", workspaceId).single();
+  if (!thread) throw new Error("Review comment not found.");
+  if (thread.status === "resolved") throw new Error("Reopen this comment before replying.");
+  if (!isSupervisor && !isStudent) throw new Error("You cannot reply to this review comment.");
+
+  const { error } = await db.from("section_review_replies").insert({ thread_id: threadId, author_id: user.id, body });
+  if (error) throw new Error(error.message || "Could not save your reply.");
+  const nextStatus: SectionReviewStatus = isStudent ? "answered" : "open";
+  const update: { status: SectionReviewStatus; resolved_by: string | null; resolved_at: string | null } = {
+    status: nextStatus,
+    resolved_by: null,
+    resolved_at: null,
+  };
+  const { error: statusError } = await db.from("section_review_threads").update(update).eq("id", threadId);
+  if (statusError) throw new Error(statusError.message || "Your reply was saved, but the comment status could not be updated.");
+  revalidatePath(`/supervisor/${workspaceId}`);
+  revalidatePath(`/studio/${workspaceId}`);
+  revalidatePath(`/studio/${workspaceId}/write/[sectionKey]`, "page");
+}
+
+export async function setSectionReviewThreadStatus(formData: FormData) {
+  const workspaceId = requiredFormValue(formData, "workspaceId", 80);
+  const threadId = requiredFormValue(formData, "threadId", 80);
+  const statusValue = formData.get("status")?.toString();
+  if (statusValue !== "open" && statusValue !== "resolved") throw new Error("Choose a valid comment status.");
+  const { db, user, isSupervisor } = await getSectionReviewActor(workspaceId);
+  if (!isSupervisor) throw new Error("Only the assigned supervisor can change comment status.");
+  const resolved = statusValue === "resolved";
+  const { error } = await db.from("section_review_threads").update({
+    status: statusValue,
+    resolved_by: resolved ? user.id : null,
+    resolved_at: resolved ? new Date().toISOString() : null,
+  }).eq("id", threadId).eq("workspace_id", workspaceId);
+  if (error) throw new Error(error.message || "Could not update comment status.");
+  revalidatePath(`/supervisor/${workspaceId}`);
+  revalidatePath(`/studio/${workspaceId}`);
+  revalidatePath(`/studio/${workspaceId}/write/[sectionKey]`, "page");
 }
 
 export async function saveNotebookLmLinks(formData: FormData) {

@@ -11,18 +11,18 @@
 .manuscript h1,
 .manuscript h2,
 .manuscript h3,
-.manuscript h4 { margin: 1.25rem 0 0.5rem; color: #0f172a; font-weight: 600; line-height: 1.4; }
-.manuscript h1 { font-size: 1.125rem; }
-.manuscript h2 { font-size: 1rem; }
-.manuscript h3,
-.manuscript h4 { font-size: 0.9rem; }
+.manuscript h4 { margin: 1.35rem 0 0.6rem; color: #0f172a; font-weight: 600; line-height: 1.45; }
+.manuscript h1 { font-size: 1.3rem; }
+.manuscript h2 { font-size: 1.125rem; }
+.manuscript h3 { font-size: 1rem; color: #243b63; }
+.manuscript h4 { font-size: 0.9375rem; font-weight: 500; }
 .manuscript ul,
 .manuscript ol { margin: 0.8rem 0; padding-left: 1.65rem; }
 .manuscript ul { list-style: disc; }
 .manuscript ol { list-style: decimal; }
 .manuscript li { margin: 0.35rem 0; padding-left: 0.25rem; }
 .manuscript li > p { margin: 0.25rem 0; }
-.manuscript strong { color: #1e293b; font-weight: 600; }
+.manuscript strong { color: #1e293b; font-weight: 500; }
 .manuscript em { color: #475569; }
 .manuscript blockquote { margin: 0.85rem 0; border-left: 3px solid #cbd5e1; padding-left: 1rem; color: #475569; }
 .manuscript hr { margin: 1.25rem 0; border: 0; border-top: 1px solid #e2e8f0; }

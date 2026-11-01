@@ -17,6 +17,7 @@ import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
 import { WholeDocumentReviewPanel } from "./WholeDocumentReviewPanel";
 import { ManuscriptReader, type ManuscriptChapter } from "./ManuscriptReader";
+import { getSectionReviewThreads } from "@/lib/studio/sectionReviewData";
 import { SupervisorDecisionForm } from "./SupervisorDecisionForm";
 import {
   CheckCircle2,
@@ -111,6 +112,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
     .order("created_at", { ascending: false });
 
   const reviews = (reviewsData as SupervisorReview[]) || [];
+  const sectionReviewThreads = await getSectionReviewThreads(db, workspaceId);
 
   const templateDefs = getWorkspaceSections(workspace.workspace_type, workspace.level);
   const rubric = getRubricForWorkspace(workspace.workspace_type, workspace.level);
@@ -140,6 +142,8 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
       key: definition.key,
       title: definition.title,
       text: sectionsMap.get(definition.key)?.current_text || "",
+      updatedAt: sectionsMap.get(definition.key)?.updated_at || "",
+      threads: sectionReviewThreads.filter((thread) => thread.section_key === definition.key),
     }));
     const words = chapterSections.reduce((sum, section) => sum + section.text.trim().split(/\s+/).filter(Boolean).length, 0);
     return { key: group.chapterKey, title: group.chapterTitle, sections: chapterSections, words };
@@ -434,6 +438,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
             <span className="rounded-md border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 font-mono text-[11px] font-semibold text-indigo-800">{totalWords.toLocaleString()} words</span>
           </div>
           <ManuscriptReader
+            workspaceId={workspaceId}
             title={workspace.title || "Untitled Project"}
             institution={workspace.institution?.name || "Kenya National Examinations Council (KNEC)"}
             candidate={workspace.student?.full_name || "Candidate"}
@@ -443,6 +448,9 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
             planType={typeLabel}
             totalWords={totalWords}
             chapters={manuscriptChapters}
+            viewerRole={profile.role}
+            canReview={(profile.role === "admin" || workspace.supervisor_id === user.id) && workspace.status !== "closed" && workspace.final_project_status !== "approved"}
+            canReply={workspace.status !== "closed" && workspace.final_project_status !== "approved"}
           />
         </section>
 

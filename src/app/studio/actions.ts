@@ -374,6 +374,12 @@ export async function submitCompletedProjectForFinalReview(formData: FormData) {
   if (!["not_submitted", "changes_requested"].includes(workspace.final_project_status)) {
     throw new Error("This project is already in or past final review.");
   }
+  const { count: unresolvedCommentCount, error: commentsError } = await db.from("section_review_threads")
+    .select("id", { count: "exact", head: true })
+    .eq("workspace_id", workspaceId)
+    .in("status", ["open", "answered"]);
+  if (commentsError) throw new Error(commentsError.message || "Could not verify section comments.");
+  if ((unresolvedCommentCount || 0) > 0) throw new Error("Ask your supervisor to resolve every section comment before final submission.");
 
   let priceKes: number | null = null;
   if (workspace.workspace_type === "business_plan") {

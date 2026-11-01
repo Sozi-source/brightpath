@@ -4,12 +4,16 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 import { ChevronDown, ChevronRight, FileText, ListTree, X } from "lucide-react";
+import { SectionReviewThreads, type ReviewSelection } from "./SectionReviewThreads";
 import styles from "./ManuscriptReader.module.css";
+import type { SectionReviewThread, UserRole } from "@/types/database";
 
 export interface ManuscriptSection {
   key: string;
   title: string;
   text: string;
+  updatedAt: string;
+  threads: SectionReviewThread[];
 }
 
 export interface ManuscriptChapter {
@@ -70,6 +74,7 @@ function ManuscriptText({ text }: { text: string }) {
 }
 
 export function ManuscriptReader({
+  workspaceId,
   title,
   institution,
   candidate,
@@ -79,7 +84,11 @@ export function ManuscriptReader({
   planType,
   totalWords,
   chapters,
+  viewerRole,
+  canReview,
+  canReply,
 }: {
+  workspaceId: string;
   title: string;
   institution: string;
   candidate: string;
@@ -89,9 +98,43 @@ export function ManuscriptReader({
   planType: string;
   totalWords: number;
   chapters: ManuscriptChapter[];
+  viewerRole: UserRole;
+  canReview: boolean;
+  canReply: boolean;
 }) {
   const [openChapters, setOpenChapters] = useState(() => new Set(chapters.map((chapter) => chapter.key)));
   const [contentsOpen, setContentsOpen] = useState(false);
+  const [selection, setSelection] = useState<ReviewSelection | null>(null);
+
+  function captureSelection(article: HTMLElement) {
+    const current = window.getSelection();
+    const quotedText = current?.toString().trim() || "";
+    const range = current?.rangeCount ? current.getRangeAt(0) : null;
+    const parent = range?.commonAncestorContainer.parentElement;
+    const section = parent?.closest<HTMLElement>("[data-section-key]");
+    if (!quotedText) return;
+    if (!range || !section || !article.contains(section) || quotedText.length > 1000) {
+      setSelection(null);
+      return;
+    }
+    try {
+      const before = document.createRange();
+      before.selectNodeContents(section);
+      before.setEnd(range.startContainer, range.startOffset);
+      const after = document.createRange();
+      after.selectNodeContents(section);
+      after.setStart(range.endContainer, range.endOffset);
+      setSelection({
+        sectionKey: section.dataset.sectionKey || "",
+        sectionUpdatedAt: section.dataset.sectionUpdatedAt || "",
+        quotedText,
+        contextBefore: before.toString().slice(-160),
+        contextAfter: after.toString().slice(0, 160),
+      });
+    } catch {
+      setSelection(null);
+    }
+  }
 
   function toggleChapter(key: string) {
     setOpenChapters((current) => {
@@ -107,12 +150,13 @@ export function ManuscriptReader({
       <div className="flex h-1.5 w-full overflow-hidden rounded-t-xl"><div className="w-[60%] bg-blue-600" /><div className="w-[40%] bg-amber-400" /></div>
       <div className="min-w-0 bg-[#f4f7fb] p-3 sm:p-6">
         <div className="mx-auto max-w-5xl">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <button type="button" onClick={() => setContentsOpen(true)} aria-expanded={contentsOpen} aria-controls="manuscript-contents" className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 shadow-xs transition-colors hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600">
-              <ListTree className="h-4 w-4" />Contents
-            </button>
+          <div className="mb-3 flex items-center justify-end gap-3">
             <span className="text-[11px] font-medium text-slate-500">{chapters.length} chapters <span aria-hidden="true">·</span> {totalWords.toLocaleString()} words</span>
           </div>
+
+          <button type="button" onClick={() => setContentsOpen(true)} aria-expanded={contentsOpen} aria-haspopup="dialog" aria-controls="manuscript-contents" className="fixed bottom-5 right-5 z-40 inline-flex h-10 items-center gap-2 rounded-lg border border-indigo-700 bg-indigo-600 px-3.5 text-xs font-semibold text-white shadow-lg transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2">
+            <ListTree className="h-4 w-4" />Contents
+          </button>
 
           {contentsOpen && <div className="fixed inset-0 z-[60]">
             <button type="button" aria-label="Close manuscript contents" onClick={() => setContentsOpen(false)} className="absolute inset-0 h-full w-full cursor-default bg-slate-950/30" />
@@ -148,7 +192,7 @@ export function ManuscriptReader({
             </aside>
           </div>}
 
-          <article className="rounded-lg border border-slate-200 bg-white px-5 py-7 shadow-xs sm:px-10 sm:py-10">
+          <article onMouseUp={(event) => captureSelection(event.currentTarget)} onKeyUp={(event) => captureSelection(event.currentTarget)} className="rounded-lg border border-slate-200 bg-white px-5 py-7 shadow-xs sm:px-10 sm:py-10">
             <header className="mb-8 border-b-2 border-slate-200 pb-6">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">{institution}</p>
               <h1 className="mt-3 text-xl font-semibold leading-snug tracking-tight text-slate-900 sm:text-2xl">{title}</h1>
@@ -163,13 +207,26 @@ export function ManuscriptReader({
             <div className="space-y-10">
               {chapters.map((chapter, chapterIndex) => <section key={chapter.key} id={`chapter-${anchor(chapter.key)}`} className="scroll-mt-24">
                 <div className="mb-5 flex items-baseline justify-between gap-3 border-b border-slate-300 pb-2">
-                  <h2 className="text-lg font-semibold tracking-tight text-slate-900">{chapter.title}</h2>
+                  <h2 className="border-l-[3px] border-indigo-600 pl-3 text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">{chapter.title}</h2>
                   <span className="shrink-0 font-mono text-[10px] text-slate-500">{chapter.words} words</span>
                 </div>
                 <div className="space-y-7">
-                  {chapter.sections.map((section) => <section key={section.key} id={`section-${anchor(section.key)}`} className="scroll-mt-24">
-                    <h3 className="mb-2 text-sm font-semibold text-slate-900">{section.title}</h3>
+                  {chapter.sections.map((section) => <section key={section.key} id={`section-${anchor(section.key)}`} data-section-key={section.key} data-section-updated-at={section.updatedAt} className="scroll-mt-24">
+                    <h3 className="mb-3 border-b border-slate-200 pb-2 text-base font-semibold tracking-tight text-indigo-900 sm:text-lg">{section.title}</h3>
                     {section.text.trim() ? <div className={styles.manuscript}><ManuscriptText text={section.text} /></div> : <p className="flex items-center gap-2 rounded-md border border-dashed border-slate-300 bg-slate-50 px-3 py-3 text-xs text-slate-500"><FileText className="h-4 w-4" />Not yet drafted by candidate</p>}
+                    <div className="mt-4 border-t border-slate-100 pt-3">
+                      <SectionReviewThreads
+                        workspaceId={workspaceId}
+                        sectionKey={section.key}
+                        threads={section.threads}
+                        viewerRole={viewerRole}
+                        canReview={canReview}
+                        canReply={canReply}
+                        currentSectionUpdatedAt={section.updatedAt}
+                        selection={selection}
+                        onClearSelection={() => { setSelection(null); window.getSelection()?.removeAllRanges(); }}
+                      />
+                    </div>
                   </section>)}
                 </div>
                 {chapterIndex < chapters.length - 1 && <div className="mt-8 border-b border-slate-200" />}

@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
 import { getWorkspaceSections } from "@/lib/studio/templates";
+import { getSectionReviewThreads } from "@/lib/studio/sectionReviewData";
 import {
   polishBusinessPlanSectionAction,
   saveSectionText,
@@ -57,7 +58,9 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
       level,
       course,
       status,
-      student_id
+      student_id,
+      supervisor_id,
+      final_project_status
     `)
     .eq("id", workspaceId)
     .single();
@@ -68,6 +71,8 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
   if (workspace.student_id !== user.id && profile?.role !== "admin" && profile?.role !== "supervisor") {
     redirect("/studio");
   }
+
+  const sectionReviewThreads = await getSectionReviewThreads(db, workspaceId);
 
   // Find section definitions from template
   const sectionDefs = getWorkspaceSections(workspace.workspace_type, workspace.level);
@@ -82,7 +87,7 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
   // Load all existing sections to build the live step tracker
   const { data: allSectionsData } = await db
     .from("workspace_sections")
-    .select("id, section_key, phase, position, current_text, status")
+    .select("id, section_key, phase, position, current_text, status, updated_at")
     .eq("workspace_id", workspaceId)
     .order("position", { ascending: true });
 
@@ -170,6 +175,11 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
         phase={sectionDef.phase}
         isLocked={isLocked}
         currentText={textMap.get(sectionDef.key) || ""}
+        reviewThreads={sectionReviewThreads.filter((thread) => thread.section_key === sectionDef.key)}
+        currentSectionUpdatedAt={allSections.find((section) => section.section_key === sectionDef.key)?.updated_at || ""}
+        viewerRole={profile?.role || "student"}
+        canReview={(profile?.role === "admin" || (profile?.role === "supervisor" && workspace.supervisor_id === user.id)) && workspace.status !== "closed" && workspace.final_project_status !== "approved"}
+        canReply={workspace.status !== "closed" && workspace.final_project_status !== "approved"}
         questionGuide={questionGuide}
         notebookUrl={notebookUrl}
         notebookTrackName={notebookTrackName}
