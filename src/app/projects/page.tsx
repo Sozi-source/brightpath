@@ -103,6 +103,25 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
     return `/projects${params.size ? `?${params.toString()}` : ""}`;
   }
 
+  function BrowseFilters() {
+    return <>
+      <div>
+        <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Material type</h3>
+        <ul className="space-y-1">
+          <li><Link href={filterHref({ type: "" })} className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-xs ${!selectedType ? "bg-indigo-50 font-semibold text-indigo-800" : "text-slate-700 hover:bg-slate-50"}`}><span>All materials</span><span className="text-slate-500">{projects.length}</span></Link></li>
+          {MARKETPLACE_MATERIAL_TYPES.map((type) => <li key={type.value}><Link href={filterHref({ type: type.value })} className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-xs ${selectedType === type.value ? "bg-indigo-50 font-semibold text-indigo-800" : "text-slate-700 hover:bg-slate-50"}`}><span>{type.label}</span><span className="text-slate-500">{projects.filter((project) => project.material_type === type.value).length}</span></Link></li>)}
+        </ul>
+      </div>
+      <div>
+        <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Subject</h3>
+        <ul className="space-y-1">
+          <li><Link href={filterHref({ category: "" })} className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-xs ${!selectedCategory ? "bg-indigo-50 font-semibold text-indigo-800" : "text-slate-700 hover:bg-slate-50"}`}><span>All subjects</span><span className="text-slate-500">{projects.length}</span></Link></li>
+          {categories.map((category) => <li key={category}><Link href={filterHref({ category })} className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-xs ${selectedCategory === category ? "bg-indigo-50 font-semibold text-indigo-800" : "text-slate-700 hover:bg-slate-50"}`}><span>{category}</span><span className="text-slate-500">{projects.filter((project) => (project.category || "General") === category).length}</span></Link></li>)}
+        </ul>
+      </div>
+    </>;
+  }
+
   return (
     <AppShell user={user} profile={profile} activeContextTitle="Learning Resource Marketplace">
       <PageHeaderCard
@@ -150,19 +169,18 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
           {selectedType && <input type="hidden" name="type" value={selectedType} />}
           <button className="h-11 rounded-lg bg-indigo-600 px-5 text-sm font-semibold text-white hover:bg-indigo-700">Search</button>
         </form>
-        <nav aria-label="Resource types" className="mt-3 flex gap-2 overflow-x-auto pb-1">
-          <Link href={filterHref({ type: "" })} className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-semibold ${!selectedType ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"}`}>All materials</Link>
-          {MARKETPLACE_MATERIAL_TYPES.map((type) => <Link key={type.value} href={filterHref({ type: type.value })} className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-semibold ${selectedType === type.value ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"}`}>{type.label}</Link>)}
-        </nav>
       </section>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[190px_1fr]">
         <aside className="h-fit rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-          <div className="mb-3 flex items-center gap-2"><Layers className="h-4 w-4 text-indigo-700" /><h2 className="text-xs font-semibold uppercase tracking-wider text-slate-800">Subjects</h2></div>
-          <ul className="space-y-1">
-            <li><Link href={filterHref({ category: "" })} className={`block rounded-lg px-2.5 py-2 text-xs ${!selectedCategory ? "bg-indigo-50 font-semibold text-indigo-800" : "text-slate-700 hover:bg-slate-50"}`}>All subjects <span className="float-right text-slate-500">{projects.length}</span></Link></li>
-            {categories.map((category) => <li key={category}><Link href={filterHref({ category })} className={`block rounded-lg px-2.5 py-2 text-xs ${selectedCategory === category ? "bg-indigo-50 font-semibold text-indigo-800" : "text-slate-700 hover:bg-slate-50"}`}>{category} <span className="float-right text-slate-500">{projects.filter((project) => (project.category || "General") === category).length}</span></Link></li>)}
-          </ul>
+          <div className="mb-3 hidden items-center gap-2 lg:flex"><Layers className="h-4 w-4 text-indigo-700" /><h2 className="text-xs font-semibold uppercase tracking-wider text-slate-800">Browse</h2></div>
+          <details className="group lg:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold text-slate-900"><span className="flex items-center gap-2"><Layers className="h-4 w-4 text-indigo-700" />Browse materials</span><span className="text-xs font-medium text-slate-600">{selectedType || selectedCategory ? "Filtered" : "Filters"}</span></summary>
+            <div className="mt-4 space-y-4">
+              <BrowseFilters />
+            </div>
+          </details>
+          <div className="hidden lg:block"><BrowseFilters /></div>
         </aside>
 
         <section>
