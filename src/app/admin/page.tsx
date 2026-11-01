@@ -25,6 +25,8 @@ import {
   Coins,
   Building,
   Users,
+  Download,
+  FileText,
 } from "lucide-react";
 import type {
   UserProfile,
@@ -34,6 +36,7 @@ import type {
   ContentReport,
   Institution,
 } from "@/types/database";
+import { getWorkspaceSections } from "@/lib/studio/templates";
 
 export const instant = false;
 
@@ -67,6 +70,7 @@ export default async function AdminPage() {
     { data: allReports },
     { data: settingsData },
     { data: institutionsData },
+    { data: approvedBusinessPlans },
   ] = await Promise.all([
     supabase.from("profiles").select("*").order("created_at", { ascending: false }),
     supabase.from("trainer_profiles").select("*, profiles(*)"),
@@ -75,7 +79,28 @@ export default async function AdminPage() {
     supabase.from("reports").select("*").order("created_at", { ascending: false }),
     supabase.from("platform_settings").select("*").eq("id", 1).single(),
     supabase.from("institutions").select("*").order("name"),
+    supabase.from("project_workspaces")
+      .select("id, title, course, level, student_id, student:student_id(full_name, admission_number)")
+      .eq("workspace_type", "business_plan")
+      .eq("status", "approved")
+      .order("updated_at", { ascending: false }),
   ]);
+
+  const readyPlanIds = (approvedBusinessPlans || []).map((workspace) => workspace.id);
+  const { data: approvedPlanSections } = readyPlanIds.length
+    ? await supabase.from("workspace_sections").select("workspace_id, section_key, current_text").in("workspace_id", readyPlanIds)
+    : { data: [] };
+  const sectionsByWorkspace = new Map<string, Map<string, string>>();
+  for (const section of approvedPlanSections || []) {
+    if (!sectionsByWorkspace.has(section.workspace_id)) sectionsByWorkspace.set(section.workspace_id, new Map());
+    sectionsByWorkspace.get(section.workspace_id)!.set(section.section_key, section.current_text || "");
+  }
+  const readyPlans = (approvedBusinessPlans || []).filter((workspace) => {
+    const sectionText = sectionsByWorkspace.get(workspace.id);
+    return getWorkspaceSections("business_plan", workspace.level).every((definition) =>
+      (sectionText?.get(definition.key) || "").trim().split(/\s+/).filter(Boolean).length >= (definition.minWords || 30)
+    );
+  });
 
   const profilesList: UserProfile[] = (allProfiles as unknown as UserProfile[]) || [];
   const trainersList: TrainerProfile[] = (trainerProfiles as unknown as TrainerProfile[]) || [];
@@ -264,7 +289,23 @@ export default async function AdminPage() {
                           Trainer: {p.profiles?.full_name || "Unknown"} • Price: KES {Number(p.price_kes).toLocaleString()} • Category: {p.category || "General"}
                         </p>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center justify-end gap-2">
+                        {p.file_path?.startsWith("workspace-export:") && (
+                          <>
+                            <Link
+                              href={`/api/download?projectId=${encodeURIComponent(p.id)}&format=pdf`}
+                              className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                            >
+                              <Download className="h-3.5 w-3.5" /> PDF
+                            </Link>
+                            <Link
+                              href={`/api/download?projectId=${encodeURIComponent(p.id)}&format=docx`}
+                              className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                            >
+                              <Download className="h-3.5 w-3.5" /> Word
+                            </Link>
+                          </>
+                        )}
                         <form action={updateProjectStatus}>
                           <input type="hidden" name="projectId" value={p.id} />
                           <input type="hidden" name="status" value="published" />
@@ -297,6 +338,38 @@ export default async function AdminPage() {
         </ContentCard>
         </div>
       )}
+
+      {/* Projects Section */}
+      <div id="ready-plans" className="scroll-mt-20">
+        <ContentCard
+          title="Approved Student Plans"
+          subtitle="Complete plans ready for admin download"
+          icon={FileText}
+          headerRight={<span className="text-[11px] font-semibold px-2.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">{readyPlans.length} Ready</span>}
+        >
+          {readyPlans.length === 0 ? (
+            <p className="py-6 text-center text-xs text-slate-600">No approved plans are ready yet.</p>
+          ) : (
+            <div className="divide-y divide-slate-200 border border-slate-200 rounded-lg overflow-hidden">
+              {readyPlans.map((workspace) => {
+                const student = workspace.student as unknown as { full_name?: string | null; admission_number?: string | null } | null;
+                return (
+                  <div key={workspace.id} className="flex flex-wrap items-center justify-between gap-3 p-3.5">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{workspace.title || "Business Plan"}</p>
+                      <p className="text-xs text-slate-600">{student?.full_name || "Student"}{student?.admission_number ? ` · ${student.admission_number}` : ""} · {workspace.course || "Business Plan"}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Link href={`/api/studio/${encodeURIComponent(workspace.id)}/export?format=pdf`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-3.5 w-3.5" /> PDF</Link>
+                      <Link href={`/api/studio/${encodeURIComponent(workspace.id)}/export?format=docx`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-3.5 w-3.5" /> Word</Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </ContentCard>
+      </div>
 
       {/* Projects Section */}
       <div id="projects" className="scroll-mt-20">
@@ -356,6 +429,22 @@ export default async function AdminPage() {
                         </span>
                       </td>
                       <td className="py-3 px-3 text-right space-x-2">
+                        {p.file_path?.startsWith("workspace-export:") && (
+                          <>
+                            <Link
+                              href={`/api/download?projectId=${encodeURIComponent(p.id)}&format=pdf`}
+                              className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                            >
+                              <Download className="h-3.5 w-3.5" /> PDF
+                            </Link>
+                            <Link
+                              href={`/api/download?projectId=${encodeURIComponent(p.id)}&format=docx`}
+                              className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                            >
+                              <Download className="h-3.5 w-3.5" /> Word
+                            </Link>
+                          </>
+                        )}
                         {p.status !== "published" && (
                           <form action={updateProjectStatus} className="inline-block">
                             <input type="hidden" name="projectId" value={p.id} />
