@@ -18,41 +18,29 @@ export function MarketplaceProjectCard({
   const average = Number(rating?.rating_average || 0);
 
   return (
-    <article className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs transition-colors hover:border-indigo-300">
-      <div className="h-1 bg-gradient-to-r from-blue-600 via-blue-600 to-amber-400" />
-      <Link href={`/projects/${project.id}`} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-600" aria-label={`View ${project.title}`}>
-        <div className="grid grid-cols-[104px_1fr] gap-4 p-4">
-          <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-slate-200 bg-gradient-to-br from-blue-50 via-white to-amber-50">
-            {project.cover_path ? (
-              <Image src={`/api/projects/${project.id}/cover`} alt={`${project.title} cover`} fill unoptimized sizes="104px" className="object-cover" />
-            ) : (
-              <div className="flex h-full flex-col items-center justify-center gap-2 p-2 text-center text-blue-800">
-                <BookOpen className="h-7 w-7" />
-                <span className="text-[9px] font-semibold uppercase tracking-wide">{getMaterialTypeLabel(project.material_type)}</span>
-              </div>
-            )}
-          </div>
-          <div className="min-w-0 py-1">
-            <span className="inline-flex rounded-md border border-indigo-100 bg-indigo-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-indigo-800">
-              {getMaterialTypeLabel(project.material_type)}
-            </span>
-            <h2 className="mt-2 line-clamp-2 text-sm font-semibold leading-snug tracking-tight text-slate-900 group-hover:text-indigo-700">{project.title}</h2>
-            <p className="mt-1 text-xs text-slate-600">{project.category || "General"}</p>
-            <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-600">{project.description || "Digital learning material."}</p>
-            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600">
-              {reviewCount ? <span className="inline-flex items-center gap-1 font-semibold text-slate-800"><Star className="h-3.5 w-3.5 fill-amber-400 text-amber-500" />{average.toFixed(1)} <span className="font-normal text-slate-500">({reviewCount})</span></span> : <span className="text-slate-500">New listing</span>}
-              <span className="inline-flex items-center gap-1"><Download className="h-3.5 w-3.5" />{Number(project.download_count || 0).toLocaleString()}</span>
-              {project.preview_path && <span className="inline-flex items-center gap-1 text-blue-700"><Eye className="h-3.5 w-3.5" />Sample</span>}
+    <article className="group w-[168px] shrink-0">
+      <Link href={`/projects/${project.id}`} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600" aria-label={`View ${project.title}`}>
+        <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-slate-200 bg-gradient-to-br from-blue-50 via-white to-amber-50 shadow-xs transition group-hover:-translate-y-0.5 group-hover:shadow-md">
+          {project.cover_path ? (
+            <Image src={`/api/projects/${project.id}/cover`} alt={`${project.title} cover`} fill unoptimized sizes="168px" className="object-cover" />
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-blue-50 via-white to-amber-50 p-4 text-center text-blue-800">
+              <BookOpen className="h-9 w-9" />
+              <span className="text-[10px] font-semibold uppercase tracking-wide">{getMaterialTypeLabel(project.material_type)}</span>
             </div>
-          </div>
+          )}
+          {project.preview_path && <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-md bg-white/95 px-2 py-1 text-[10px] font-semibold text-blue-800 shadow-xs"><Eye className="h-3 w-3" />Preview</span>}
         </div>
+        <h2 className="mt-2 line-clamp-2 min-h-9 text-xs font-semibold leading-4 text-slate-900 group-hover:text-indigo-700">{project.title}</h2>
       </Link>
-      <div className="flex items-center justify-between gap-3 border-t border-slate-100 px-4 py-3">
-        <span className="font-mono text-base font-semibold tracking-tight text-indigo-700">KES {Number(project.price_kes).toLocaleString()}</span>
-        <div className="flex items-center gap-2">
-          <Link href={`/projects/${project.id}`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Eye className="h-3.5 w-3.5" /> Details</Link>
-          <BuyButton projectId={project.id} isOwner={viewerId === project.trainer_id} />
-        </div>
+      <p className="mt-0.5 truncate text-[11px] text-slate-600">{project.category || getMaterialTypeLabel(project.material_type)}</p>
+      <div className="mt-1 flex items-center justify-between gap-2 text-[10px] text-slate-600">
+        {reviewCount ? <span className="inline-flex items-center gap-1 font-semibold text-slate-800"><Star className="h-3 w-3 fill-amber-400 text-amber-500" />{average.toFixed(1)} <span className="font-normal text-slate-500">({reviewCount})</span></span> : <span className="text-slate-500">New</span>}
+        <span className="inline-flex items-center gap-1"><Download className="h-3 w-3" />{Number(project.download_count || 0).toLocaleString()}</span>
+      </div>
+      <div className="mt-2 flex items-center justify-between gap-1">
+        <span className="font-mono text-xs font-semibold text-indigo-700">KES {Number(project.price_kes).toLocaleString()}</span>
+        <BuyButton projectId={project.id} isOwner={viewerId === project.trainer_id} />
       </div>
     </article>
   );

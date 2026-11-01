@@ -120,6 +120,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
     count: projects.filter((project) => !category.types || category.types.includes(project.material_type || "")).length,
     active: selectedType === category.value,
   }));
+  const showShelves = !query && !selectedType && !selectedCategory;
 
   return (
     <AppShell user={user} profile={profile} activeContextTitle="Learning Resource Marketplace" marketplaceCategories={sidebarCategories}>
@@ -162,26 +163,37 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
       )}
 
       <section>
-          <form action="/projects" className="mb-4 flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-xs sm:flex-row">
-            <label htmlFor="marketplace-search" className="sr-only">Search learning materials</label>
-            <div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" /><input id="marketplace-search" name="q" defaultValue={filters.q || ""} placeholder="Search notes, projects, or subjects" className="h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100" /></div>
-            {selectedCategory && <input type="hidden" name="category" value={selectedCategory} />}
-            {selectedType && <input type="hidden" name="type" value={selectedType} />}
-            <button className="h-10 rounded-lg bg-indigo-600 px-5 text-sm font-semibold text-white hover:bg-indigo-700">Search</button>
-          </form>
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <div><h2 className="text-base font-semibold tracking-tight text-slate-900">{selectedType ? selectedTypeLabel : selectedCategory || "Explore materials"}</h2><p className="text-xs text-slate-600">{resultCount} results</p></div>
-            <form action="/projects" className="flex items-center gap-2">
-              {filters.q && <input type="hidden" name="q" value={filters.q} />}{selectedCategory && <input type="hidden" name="category" value={selectedCategory} />}{selectedType && <input type="hidden" name="type" value={selectedType} />}
-              <label htmlFor="marketplace-sort" className="text-xs font-medium text-slate-700">Sort</label>
-              <select id="marketplace-sort" name="sort" defaultValue={sort} className="h-9 rounded-lg border border-slate-300 bg-white px-2 text-xs text-slate-800"><option value="newest">Latest</option><option value="rating">Top rated</option><option value="downloads">Most downloaded</option><option value="price_low">Price: low to high</option><option value="price_high">Price: high to low</option></select>
-              <button className="h-9 rounded-lg border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50">Apply</button>
-            </form>
-          </div>
-          {visibleProjects.length ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3">
-            {pageProjects.map((project) => <MarketplaceProjectCard key={project.id} project={project} viewerId={user?.id} rating={ratingByProject.get(project.id)} />)}
-          </div> : <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-16 text-center"><Layers className="mx-auto mb-3 h-9 w-9 text-slate-400" /><h3 className="text-sm font-semibold text-slate-900">No matching materials</h3><p className="mt-1 text-xs text-slate-600">Try a different search or subject.</p><Link href="/projects" className="mt-4 inline-flex rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Clear filters</Link></div>}
+        <form action="/projects" className="mb-5 flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-xs sm:flex-row">
+          <label htmlFor="marketplace-search" className="sr-only">Search learning materials</label>
+          <div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" /><input id="marketplace-search" name="q" defaultValue={filters.q || ""} placeholder="Search materials, subjects, or authors" className="h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100" /></div>
+          {selectedCategory && <input type="hidden" name="category" value={selectedCategory} />}
+          {selectedType && <input type="hidden" name="type" value={selectedType} />}
+          <label htmlFor="marketplace-sort" className="sr-only">Sort materials</label>
+          <select id="marketplace-sort" name="sort" defaultValue={sort} className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-xs text-slate-800"><option value="newest">Latest</option><option value="rating">Top rated</option><option value="downloads">Most downloaded</option><option value="price_low">Price: low to high</option><option value="price_high">Price: high to low</option></select>
+          <button className="h-10 rounded-lg bg-indigo-600 px-5 text-sm font-semibold text-white hover:bg-indigo-700">Search</button>
+        </form>
+
+        {showShelves ? (
+          visibleProjects.length ? <div className="space-y-7">
+            {browseCategories.filter((category) => category.value).map((category) => {
+              const shelfProjects = visibleProjects.filter((project) => category.types?.includes(project.material_type || ""));
+              if (!shelfProjects.length) return null;
+              return <section key={category.value} aria-labelledby={`shelf-${category.value}`}>
+                <div className="mb-3 flex items-center justify-between border-b border-slate-200 pb-2">
+                  <div><h2 id={`shelf-${category.value}`} className="text-base font-semibold tracking-tight text-slate-900">{category.label}</h2><p className="text-[11px] text-slate-600">{shelfProjects.length} materials</p></div>
+                  <Link href={filterHref({ type: category.value, category: "" })} className="text-xs font-semibold text-indigo-700 hover:text-indigo-900">See all <span aria-hidden="true">→</span></Link>
+                </div>
+                <div className="flex gap-4 overflow-x-auto pb-2">
+                  {shelfProjects.slice(0, 8).map((project) => <MarketplaceProjectCard key={project.id} project={project} viewerId={user?.id} rating={ratingByProject.get(project.id)} />)}
+                </div>
+              </section>;
+            })}
+          </div> : <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-16 text-center"><Layers className="mx-auto mb-3 h-9 w-9 text-slate-400" /><h3 className="text-sm font-semibold text-slate-900">Marketplace is ready</h3><p className="mt-1 text-xs text-slate-600">Published learning materials will appear here.</p></div>
+        ) : <>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-base font-semibold tracking-tight text-slate-900">{selectedType ? selectedTypeLabel : selectedCategory || "Search results"}</h2><p className="text-xs text-slate-600">{resultCount} results</p></div><Link href="/projects" className="text-xs font-semibold text-indigo-700 hover:text-indigo-900">Browse all</Link></div>
+          {visibleProjects.length ? <div className="flex flex-wrap gap-x-4 gap-y-6">{pageProjects.map((project) => <MarketplaceProjectCard key={project.id} project={project} viewerId={user?.id} rating={ratingByProject.get(project.id)} />)}</div> : <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-16 text-center"><Layers className="mx-auto mb-3 h-9 w-9 text-slate-400" /><h3 className="text-sm font-semibold text-slate-900">No matching materials</h3><p className="mt-1 text-xs text-slate-600">Try another search or browse a different category.</p><Link href="/projects" className="mt-4 inline-flex rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Clear filters</Link></div>}
           {resultCount > pageSize && <nav aria-label="Marketplace pages" className="mt-5 flex items-center justify-between rounded-lg border border-slate-200 bg-white p-3"><span className="text-xs text-slate-600">Page {pageNumber} of {pageCount}</span><div className="flex gap-2">{pageNumber > 1 && <Link href={filterHref({ page: String(pageNumber - 1) })} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Previous</Link>}{pageNumber < pageCount && <Link href={filterHref({ page: String(pageNumber + 1) })} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Next</Link>}</div></nav>}
+        </>}
       </section>
     </AppShell>
   );
