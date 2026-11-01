@@ -172,7 +172,7 @@ export default async function SupervisorPage() {
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100 border border-slate-200 rounded-lg overflow-hidden bg-white">
+          <div className="space-y-3">
             {workspaces.map((ws) => {
               const typeLabel =
                 ws.workspace_type === "trade_fabrication"
@@ -184,66 +184,53 @@ export default async function SupervisorPage() {
               return (
                 <div
                   key={ws.id}
-                  className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors"
+                  className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs transition-colors hover:border-slate-300 sm:p-5"
                 >
-                  <div className="space-y-1.5 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-bold text-xs sm:text-sm text-slate-900">
-                        {ws.student?.full_name || "Unknown Student"}
-                      </span>
-                      {ws.student?.admission_number && (
-                        <span className="text-[11px] font-mono text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
-                          {ws.student.admission_number}
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0 flex-1 space-y-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-sm font-semibold tracking-tight text-slate-900 sm:text-base">
+                          {ws.student?.full_name || "Unknown Student"}
+                        </h3>
+                        {ws.student?.admission_number && <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 font-mono text-[11px] text-slate-700">{ws.student.admission_number}</span>}
+                        <span className="rounded-md border border-indigo-100 bg-indigo-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-indigo-800">
+                          {ws.level === "craft" ? "Certificate" : "Diploma"}
                         </span>
-                      )}
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                        {ws.level === "craft" ? "Certificate" : "Diploma"}
-                      </span>
+                      </div>
+
+                      <div className="border-l-2 border-indigo-500 pl-3">
+                        <p className="text-sm font-semibold leading-snug text-slate-900">
+                          {ws.title || ws.problem_area || "Topic under ideation"}
+                        </p>
+                      </div>
+
+                      <dl className="flex flex-wrap gap-x-5 gap-y-2 text-[11px] text-slate-600">
+                        <div className="flex gap-1"><dt className="font-medium text-slate-500">Course</dt><dd className="font-medium text-slate-800">{ws.course}</dd></div>
+                        <div className="flex gap-1"><dt className="font-medium text-slate-500">Project</dt><dd className="font-medium text-slate-800">{typeLabel}</dd></div>
+                        <div className="flex gap-1"><dt className="font-medium text-slate-500">Updated</dt><dd>{new Date(ws.updated_at).toLocaleDateString()}</dd></div>
+                      </dl>
                     </div>
 
-                    <p className="text-xs font-semibold text-slate-700">
-                      {ws.title || ws.problem_area || "Topic under ideation"}
-                    </p>
-
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
-                      <span>Course: <strong className="text-slate-700">{ws.course}</strong></span>
-                      <span>•</span>
-                      <span>Type: <strong className="text-slate-700">{typeLabel}</strong></span>
-                      <span>•</span>
-                      <span>
-                        Updated: {new Date(ws.updated_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span
-                      className={`text-xs font-bold px-2.5 py-1 rounded-md ${
+                    <div className="flex shrink-0 flex-row items-center justify-between gap-3 border-t border-slate-100 pt-3 sm:flex-col sm:items-end sm:border-0 sm:pt-0">
+                      <span className={`rounded-md border px-2.5 py-1 text-[11px] font-semibold ${
                         ws.status === "approved"
-                          ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                          ? "border-emerald-200 bg-emerald-50 text-emerald-800"
                           : ws.status === "proposal_pending"
-                          ? "bg-amber-50 text-amber-800 border border-amber-200"
+                          ? "border-amber-200 bg-amber-50 text-amber-900"
                           : ws.status === "submitted"
-                          ? "bg-blue-50 text-blue-800 border border-blue-200"
-                          : "bg-slate-100 text-slate-700 border border-slate-200"
-                      }`}
-                    >
-                      {ws.status === "proposal_pending"
-                        ? "Needs Review"
-                        : ws.status === "approved"
-                        ? "Approved"
-                        : ws.status === "submitted"
-                        ? "Final Submitted"
-                        : "Ideation"}
-                    </span>
-
-                    <Link
-                      href={`/supervisor/${ws.id}`}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white transition-colors cursor-pointer"
-                    >
-                      <span>Review</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
+                          ? "border-blue-200 bg-blue-50 text-blue-800"
+                          : "border-slate-200 bg-slate-50 text-slate-700"
+                      }`}>
+                        {ws.status === "proposal_pending" ? "Needs Review" : ws.status === "approved" ? "Approved" : ws.status === "submitted" ? "Final Submitted" : "Ideation"}
+                      </span>
+                      <Link
+                        href={`/supervisor/${ws.id}`}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-indigo-700"
+                      >
+                        <span>Review</span>
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </Link>
+                    </div>
                   </div>
                 </div>
               );
