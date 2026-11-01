@@ -2,11 +2,10 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
-import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { FileText, Briefcase, Download, Search, Layers } from "lucide-react";
 import type { Project, UserProfile } from "@/types/database";
 import { MarketplaceProjectCard } from "./MarketplaceProjectCard";
-import { MARKETPLACE_MATERIAL_TYPES, getMaterialTypeLabel } from "@/lib/marketplace";
+import { getMaterialTypeLabel } from "@/lib/marketplace";
 import { getWorkspaceSections } from "@/lib/studio/templates";
 
 export const instant = false;
@@ -124,46 +123,8 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
 
   return (
     <AppShell user={user} profile={profile} activeContextTitle="Learning Resource Marketplace" marketplaceCategories={sidebarCategories}>
-      <PageHeaderCard
-        title="Resource Marketplace"
-        subtitle="Study materials, notes, and projects"
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Marketplace", active: true }]}
-        metadata={[
-          { label: "Available", value: `${resultCount} Materials` },
-          { label: "Formats", value: `${MARKETPLACE_MATERIAL_TYPES.length} Types` },
-        ]}
-        compact
-        actions={isPublisher ? (
-          <Link href="/trainer" className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-indigo-900 shadow-xs hover:bg-slate-50"><Briefcase className="h-4 w-4 text-indigo-600" /> Publisher</Link>
-        ) : (
-          <Link href="/library" className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50"><Download className="h-4 w-4 text-indigo-600" /> My Library</Link>
-        )}
-      />
-
-      {profile?.role === "admin" && (
-        <section className="mb-5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
-          <div className="h-1 bg-gradient-to-r from-blue-600 via-blue-600 to-amber-400" />
-          <div className="p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3"><span className="rounded-lg bg-blue-50 p-2 text-blue-700"><FileText className="h-4 w-4" /></span><div><h2 className="text-sm font-semibold text-slate-900">Approved Student Plans</h2><p className="text-xs text-slate-600">Final review downloads</p></div></div>
-              <span className="text-xs font-semibold text-slate-600">{approvedPlans?.length || 0} Approved</span>
-            </div>
-            {approvedPlans?.length ? <div className="divide-y divide-slate-200 rounded-lg border border-slate-200">
-              {approvedPlans.map((plan) => {
-                const student = plan.student as unknown as { full_name?: string | null; admission_number?: string | null } | null;
-                const listingId = listingByWorkspace.get(plan.id);
-                return <div key={plan.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
-                  <div><p className="text-sm font-semibold text-slate-900">{plan.title || "Business Plan"}</p><p className="text-xs text-slate-600">{student?.full_name || "Student"}{student?.admission_number ? ` · ${student.admission_number}` : ""} · {plan.course || "Business Plan"} · {readyPlanIds.has(plan.id) ? "Ready" : "Incomplete"}</p></div>
-                  {listingId && readyPlanIds.has(plan.id) && <div className="flex gap-2"><Link href={`/api/download?projectId=${encodeURIComponent(listingId)}&format=pdf`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-3.5 w-3.5" /> PDF</Link><Link href={`/api/download?projectId=${encodeURIComponent(listingId)}&format=docx`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-3.5 w-3.5" /> Word</Link></div>}
-                </div>;
-              })}
-            </div> : <p className="rounded-lg border border-dashed border-slate-200 py-4 text-center text-xs text-slate-600">No final approvals yet.</p>}
-          </div>
-        </section>
-      )}
-
       <section>
-        <form action="/projects" className="mb-5 flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-xs sm:flex-row">
+        <form action="/projects" className="mb-4 flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-xs sm:flex-row">
           <label htmlFor="marketplace-search" className="sr-only">Search learning materials</label>
           <div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" /><input id="marketplace-search" name="q" defaultValue={filters.q || ""} placeholder="Search materials, subjects, or authors" className="h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100" /></div>
           {selectedCategory && <input type="hidden" name="category" value={selectedCategory} />}
@@ -171,6 +132,8 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
           <label htmlFor="marketplace-sort" className="sr-only">Sort materials</label>
           <select id="marketplace-sort" name="sort" defaultValue={sort} className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-xs text-slate-800"><option value="newest">Latest</option><option value="rating">Top rated</option><option value="downloads">Most downloaded</option><option value="price_low">Price: low to high</option><option value="price_high">Price: high to low</option></select>
           <button className="h-10 rounded-lg bg-indigo-600 px-5 text-sm font-semibold text-white hover:bg-indigo-700">Search</button>
+          {isPublisher ? <Link href="/trainer" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-indigo-900 hover:bg-slate-50"><Briefcase className="h-4 w-4 text-indigo-600" />Publisher</Link> : <Link href="/library" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-4 w-4 text-indigo-600" />My Library</Link>}
+          {profile?.role === "admin" && <a href="#approved-student-plans" className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Approved plans ({approvedPlans?.length || 0})</a>}
         </form>
 
         {showShelves ? (
@@ -195,6 +158,28 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
           {resultCount > pageSize && <nav aria-label="Marketplace pages" className="mt-5 flex items-center justify-between rounded-lg border border-slate-200 bg-white p-3"><span className="text-xs text-slate-600">Page {pageNumber} of {pageCount}</span><div className="flex gap-2">{pageNumber > 1 && <Link href={filterHref({ page: String(pageNumber - 1) })} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Previous</Link>}{pageNumber < pageCount && <Link href={filterHref({ page: String(pageNumber + 1) })} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Next</Link>}</div></nav>}
         </>}
       </section>
+      {profile?.role === "admin" && (
+        <section id="approved-student-plans" className="mb-5 scroll-mt-20 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+          <div className="h-1 bg-gradient-to-r from-blue-600 via-blue-600 to-amber-400" />
+          <div className="p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3"><span className="rounded-lg bg-blue-50 p-2 text-blue-700"><FileText className="h-4 w-4" /></span><div><h2 className="text-sm font-semibold text-slate-900">Approved Student Plans</h2><p className="text-xs text-slate-600">Final review downloads</p></div></div>
+              <span className="text-xs font-semibold text-slate-600">{approvedPlans?.length || 0} Approved</span>
+            </div>
+            {approvedPlans?.length ? <div className="divide-y divide-slate-200 rounded-lg border border-slate-200">
+              {approvedPlans.map((plan) => {
+                const student = plan.student as unknown as { full_name?: string | null; admission_number?: string | null } | null;
+                const listingId = listingByWorkspace.get(plan.id);
+                return <div key={plan.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
+                  <div><p className="text-sm font-semibold text-slate-900">{plan.title || "Business Plan"}</p><p className="text-xs text-slate-600">{student?.full_name || "Student"}{student?.admission_number ? ` · ${student.admission_number}` : ""} · {plan.course || "Business Plan"} · {readyPlanIds.has(plan.id) ? "Ready" : "Incomplete"}</p></div>
+                  {listingId && readyPlanIds.has(plan.id) && <div className="flex gap-2"><Link href={`/api/download?projectId=${encodeURIComponent(listingId)}&format=pdf`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-3.5 w-3.5" /> PDF</Link><Link href={`/api/download?projectId=${encodeURIComponent(listingId)}&format=docx`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-3.5 w-3.5" /> Word</Link></div>}
+                </div>;
+              })}
+            </div> : <p className="rounded-lg border border-dashed border-slate-200 py-4 text-center text-xs text-slate-600">No final approvals yet.</p>}
+          </div>
+        </section>
+      )}
+
     </AppShell>
   );
 }
