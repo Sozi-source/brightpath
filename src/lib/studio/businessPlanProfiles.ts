@@ -71,6 +71,24 @@ export function getConsultancyLocationRationaleCorrection(specs: BusinessPlanSpe
   return `The practice will serve clients in ${specs.townOrMarket}, ${specs.county}. Confirm accessibility, privacy, transport options, and any nearby health facilities through a local site visit; no referral arrangements are assumed.`;
 }
 
+export function correctConsultancyLocationClaims(content: string, specs: BusinessPlanSpecs) {
+  if (resolveBusinessPlanModel(specs) !== "consultancy") return content;
+  const town = specs.townOrMarket.trim();
+  const county = specs.county.trim();
+  const correctedLocationSentence = `The practice will serve clients in ${town}, ${county}; confirm local facilities and referral routes before describing them as nearby or established.`;
+  const proximityPattern = /\b(?:near|nearby|close to|referral from|referrals from|direct\s+\w*\s*referral)\b/i;
+  return content.replace(/[^.!?\n]+(?:[.!?]+(?=\s|$)|$)/g, (sentence) => {
+    const placeMatches = sentence.match(/\b(?:Lodwar|Kitui|Machakos|Nairobi|Mombasa|Kisumu|Nakuru|Eldoret)\b/gi) || [];
+    if (!placeMatches.length || !proximityPattern.test(sentence)) return sentence;
+    const foreignPlace = placeMatches.some((place) => place.toLowerCase() !== town.toLowerCase());
+    if (!foreignPlace) return sentence;
+    const leadingSpace = sentence.match(/^\s*/)?.[0] || "";
+    const trailingSpace = sentence.match(/\s*$/)?.[0] || "";
+    const prefix = sentence.slice(leadingSpace.length).match(/^(?:\*\*[^*]+\*\*\s*)/);
+    return `${leadingSpace}${prefix?.[0] || ""}${correctedLocationSentence}${trailingSpace}`;
+  });
+}
+
 const serviceEvidenceNote = `Service volumes, client demand, prices, operating costs, and referral arrangements are planning assumptions unless supported by saved evidence. Confirm local access, professional scope, supplier quotations, and applicable requirements before committing funds. Keep client information confidential, obtain consent before assessments, and review bookings, costs, and feedback monthly.`;
 
 const consultancyBodies: Record<string, string> = {

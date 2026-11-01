@@ -25,6 +25,7 @@ import {
 import { computeBusinessPlanFinancials } from "@/lib/studio/businessPlanMath";
 import {
   buildCompleteBusinessPlanAction,
+  correctBusinessPlanLocationClaimsAction,
   reviewBusinessPlanDocumentAction,
 } from "@/app/studio/actions";
 
@@ -162,6 +163,8 @@ export function BusinessPlanBuilderModal({
   const [isReviewing, startReviewTransition] = useTransition();
   const [generationStep, setGenerationStep] = useState<string>("");
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [isCorrectingLocation, setIsCorrectingLocation] = useState(false);
+  const [locationCorrectionMessage, setLocationCorrectionMessage] = useState<string | null>(null);
   const [documentReviewError, setDocumentReviewError] = useState<string | null>(null);
   const [documentReview, setDocumentReview] = useState<WholeDocumentReview | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<RequiredField, string>>>({});
@@ -1339,16 +1342,37 @@ export function BusinessPlanBuilderModal({
                   {locationRationaleCorrection && /location rationale|proximity claim/i.test(generationError) && (
                     <button
                       type="button"
-                      onClick={() => {
-                        setSpecs((previous) => ({ ...previous, locationRationale: locationRationaleCorrection }));
-                        setActiveTab("identity");
-                        setGenerationError(null);
+                      disabled={isCorrectingLocation}
+                      onClick={async () => {
+                        setIsCorrectingLocation(true);
+                        try {
+                          const result = await correctBusinessPlanLocationClaimsAction(workspaceId);
+                          setSpecs((previous) => ({ ...previous, locationRationale: locationRationaleCorrection }));
+                          setLocationCorrectionMessage(
+                            result.correctedSections.length
+                              ? `Corrected the location claim in ${result.correctedSections.length} saved section(s) and updated the location rationale.`
+                              : "Updated the location rationale. No saved section contained the unsupported proximity claim."
+                          );
+                          setActiveTab("identity");
+                          setGenerationError(null);
+                          router.refresh();
+                        } catch (error) {
+                          setGenerationError(error instanceof Error ? error.message : "Could not correct the saved location claim.");
+                        } finally {
+                          setIsCorrectingLocation(false);
+                        }
                       }}
-                      className="mt-2 block font-semibold text-indigo-700 hover:text-indigo-800"
+                      className="mt-2 block font-semibold text-indigo-700 hover:text-indigo-800 disabled:opacity-60"
                     >
-                      Apply a location-safe correction
+                      {isCorrectingLocation ? "Correcting saved plan…" : "Fix the saved location claim"}
                     </button>
                   )}
+                </div>
+              )}
+
+              {locationCorrectionMessage && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800">
+                  {locationCorrectionMessage}
                 </div>
               )}
 

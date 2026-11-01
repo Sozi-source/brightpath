@@ -26,6 +26,8 @@ import type { WorkspaceType, WorkspaceLevel } from "@/types/database";
 import { resolveBusinessPlanModel } from "@/lib/studio/businessPlanTypes";
 import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
 import {
+  correctConsultancyLocationClaims,
+  getConsultancyLocationRationaleCorrection,
   getBusinessModelConflictFindings,
   validateBusinessPlanModelSpecs,
 } from "@/lib/studio/businessPlanProfiles";
@@ -512,6 +514,68 @@ export async function saveSectionText(formData: FormData) {
   revalidatePath(`/studio/${workspaceId}`);
   revalidatePath(`/studio/${workspaceId}/write/${sectionKey}`);
   revalidatePath(`/supervisor/${workspaceId}`);
+}
+
+export async function correctBusinessPlanLocationClaimsAction(workspaceId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  if (!workspaceId) throw new Error("Missing workspace ID.");
+
+  const db = getServerDbClient(supabase);
+  const { data: workspace, error: workspaceError } = await db.from("project_workspaces")
+    .select("student_id, status, final_project_status, business_plan_specs")
+    .eq("id", workspaceId).maybeSingle();
+  if (workspaceError || !workspace || workspace.student_id !== user.id) throw new Error("This project is not yours.");
+  if (workspace.final_project_status === "pending_review" || workspace.final_project_status === "approved") {
+    throw new Error("The project is locked during or after final review.");
+  }
+  if (workspace.status !== "approved" && workspace.status !== "submitted") {
+    throw new Error("The supervisor must approve the topic before correcting project chapters.");
+  }
+
+  const specs = workspace.business_plan_specs as BusinessPlanSpecs | null;
+  if (!specs || resolveBusinessPlanModel(specs) !== "consultancy") {
+    throw new Error("This correction applies only to nutrition consultancy plans.");
+  }
+  const locationCorrection = getConsultancyLocationRationaleCorrection(specs);
+  if (locationCorrection) specs.locationRationale = locationCorrection;
+
+  const { data: sections, error: sectionsError } = await db.from("workspace_sections")
+    .select("id, section_key, current_text").eq("workspace_id", workspaceId);
+  if (sectionsError) throw new Error(sectionsError.message || "Could not load the plan sections.");
+
+  const corrected = (sections || []).flatMap((section) => {
+    const currentText = section.current_text || "";
+    const nextText = correctConsultancyLocationClaims(currentText, specs);
+    return nextText !== currentText ? [{ ...section, nextText }] : [];
+  });
+  for (const section of corrected) {
+    const { error } = await db.from("workspace_sections").update({ current_text: section.nextText })
+      .eq("id", section.id).eq("workspace_id", workspaceId);
+    if (error) throw new Error(error.message || `Could not correct ${section.section_key}.`);
+    await db.from("section_versions").insert({
+      section_id: section.id,
+      text: section.nextText,
+      source: "student_typed",
+      ai_chars_accepted: 0,
+    });
+  }
+
+  const { error: specsError } = await db.from("project_workspaces")
+    .update({ business_plan_specs: specs }).eq("id", workspaceId).eq("student_id", user.id);
+  if (specsError) throw new Error(specsError.message || "Could not save the corrected location details.");
+  await db.from("project_log_entries").insert({
+    workspace_id: workspaceId,
+    activity: `Corrected unsupported location-proximity claims in ${corrected.length} business plan section(s).`,
+    auto_generated: true,
+    student_signed_at: new Date().toISOString(),
+  });
+
+  revalidatePath(`/studio/${workspaceId}`);
+  revalidatePath(`/supervisor/${workspaceId}`);
+  revalidatePath("/supervisor");
+  return { correctedSections: corrected.map((section) => section.section_key), correctedRationale: Boolean(locationCorrection) };
 }
 
 export async function aiNarrowTopicAction(formData: FormData): Promise<TopicNarrowingResult> {
