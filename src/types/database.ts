@@ -7,6 +7,7 @@ export type AiMode = "off" | "feedback_only" | "feedback_and_polish";
 export type WorkspaceType = "trade_fabrication" | "research_secondary" | "business_plan";
 export type WorkspaceLevel = "craft" | "diploma";
 export type WorkspaceStatus = "ideation" | "proposal_pending" | "approved" | "submitted" | "closed";
+export type FinalProjectStatus = "not_submitted" | "pending_review" | "approved" | "changes_requested";
 export type SectionPhase = "proposal" | "project";
 export type SectionStatus = "empty" | "draft" | "reviewed" | "final";
 export type AiEventKind =
@@ -161,6 +162,10 @@ export interface ProjectWorkspace {
   problem_area: string | null;
   business_plan_specs?: Record<string, unknown> | null;
   status: WorkspaceStatus;
+  final_project_status: FinalProjectStatus;
+  final_project_submitted_at: string | null;
+  final_project_approved_at: string | null;
+  marketplace_price_kes: number | null;
   approved_at: string | null;
   submitted_at: string | null;
   created_at: string;
@@ -243,6 +248,7 @@ export interface SupervisorReview {
   section_id: string | null;
   supervisor_id: string;
   status: ReviewStatus;
+  review_stage: "topic_or_chapters" | "final_project";
   comment: string;
   created_at: string;
 }

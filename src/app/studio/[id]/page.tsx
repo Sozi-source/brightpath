@@ -13,7 +13,7 @@ import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
 import { DeleteDraftButton } from "../DeleteDraftButton";
 import { BusinessPlanBuilderModal } from "./BusinessPlanBuilderModal";
-import { MarketplacePublishForm } from "./MarketplacePublishForm";
+import { FinalProjectSubmissionForm } from "./FinalProjectSubmissionForm";
 import {
   CheckCircle2,
   Clock,
@@ -69,6 +69,8 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
       problem_area,
       business_plan_specs,
       status,
+      final_project_status,
+      marketplace_price_kes,
       approved_at,
       submitted_at,
       created_at,
@@ -105,7 +107,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
   // Fetch recent supervisor reviews
   const { data: reviewsData } = await db
     .from("supervisor_reviews")
-    .select("id, status, comment, created_at")
+    .select("id, status, review_stage, comment, created_at")
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: false });
 
@@ -132,10 +134,14 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
 
   const isBusiness = workspace.workspace_type === "business_plan";
   const hasPlanContent = isBusiness && sections.some((section) => section.current_text.trim());
-  const isPlanComplete = isBusiness && templateDefs.every((definition) => {
+  const isProjectComplete = templateDefs.every((definition) => {
     const text = sectionsMap.get(definition.key)?.current_text || "";
     return text.trim().split(/\s+/).filter(Boolean).length >= (definition.minWords || 30);
   });
+  const incompleteProjectSections = templateDefs.filter((definition) => {
+    const text = sectionsMap.get(definition.key)?.current_text || "";
+    return text.trim().split(/\s+/).filter(Boolean).length < (definition.minWords || 30);
+  }).length;
   const { data: marketplaceListing } = isBusiness && workspace.student_id === user.id
     ? await db.from("projects").select("id, status, price_kes").eq("file_path", `workspace-export:${workspaceId}`).maybeSingle()
     : { data: null };
@@ -311,10 +317,10 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                   <Lock className="h-3 w-3" />
                   <span>Locked</span>
                 </span>
-              ) : isSubmitted ? (
+              ) : isSubmitted || workspace.final_project_status === "pending_review" || workspace.final_project_status === "approved" || workspace.final_project_status === "changes_requested" ? (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-800 border border-indigo-200">
                   <CheckCircle2 className="h-3.5 w-3.5 text-indigo-600" />
-                  <span>Submitted for Review</span>
+                  <span>{workspace.final_project_status === "approved" ? "Finally Approved" : workspace.final_project_status === "pending_review" ? "Final Review Pending" : workspace.final_project_status === "changes_requested" ? "Final Changes Requested" : "Submitted for Review"}</span>
                 </span>
               ) : (
                 <form action={submitChaptersForReview}>
@@ -417,22 +423,32 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
             )}
           </ContentCard>
 
-          {isBusiness && workspace.student_id === user.id && isPlanComplete && (
-            <ContentCard title="Marketplace listing" icon={CheckCircle2}>
-              {marketplaceListing ? (
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+          {workspace.student_id === user.id && (isProjectComplete || workspace.final_project_status !== "not_submitted") && (
+            <ContentCard title="Final Project Approval" icon={CheckCircle2}>
+              {workspace.final_project_status === "approved" ? (
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50/60 p-4">
                   <div>
-                    <p className="text-sm font-semibold text-slate-900">
-                      {marketplaceListing.status === "published" ? "Published" : marketplaceListing.status === "rejected" ? "Rejected" : "In review"}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-600">KES {Number(marketplaceListing.price_kes).toLocaleString()} · Business Plan</p>
+                    <p className="text-sm font-semibold text-emerald-900">Final supervisor approval recorded</p>
+                    {isBusiness && marketplaceListing && <p className="mt-1 text-xs text-slate-700">Marketplace listing: {marketplaceListing.status.replaceAll("_", " ")} · KES {Number(marketplaceListing.price_kes).toLocaleString()}</p>}
+                    {isBusiness && !marketplaceListing && <p className="mt-1 text-xs text-slate-700">Marketplace listing is being prepared for admin review.</p>}
                   </div>
-                  {marketplaceListing.status === "published" && <Link href="/projects" className="text-xs font-semibold text-indigo-700 hover:text-indigo-900">View marketplace</Link>}
+                  {marketplaceListing?.status === "published" && <Link href="/projects" className="text-xs font-semibold text-indigo-700 hover:text-indigo-900">View marketplace</Link>}
                 </div>
-              ) : workspace.status === "approved" ? (
-                <MarketplacePublishForm workspaceId={workspaceId} />
+              ) : workspace.final_project_status === "pending_review" ? (
+                <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">Completed project submitted. Waiting for final supervisor review.</p>
+              ) : workspace.status !== "approved" ? (
+                <p className="text-xs text-slate-700">Supervisor approval of the submitted chapters is required before final review.</p>
               ) : (
-                <p className="text-xs text-slate-600">Supervisor approval is required before listing.</p>
+                <div className="space-y-3">
+                  {workspace.final_project_status === "changes_requested" && latestReview?.review_stage === "final_project" && (
+                    <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-900">
+                      <p className="font-semibold">Final changes requested</p>
+                      <p className="mt-1">{latestReview.comment}</p>
+                    </div>
+                  )}
+                  <p className="text-xs text-slate-700">{isProjectComplete ? "Your completed project is ready for a separate final supervisor review." : `${incompleteProjectSections} section(s) still need content before final review.`}</p>
+                  {isProjectComplete && <FinalProjectSubmissionForm workspaceId={workspaceId} isBusinessPlan={isBusiness} defaultPrice={workspace.marketplace_price_kes} />}
+                </div>
               )}
             </ContentCard>
           )}

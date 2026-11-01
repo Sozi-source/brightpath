@@ -78,6 +78,19 @@ export async function updateProjectStatus(formData: FormData) {
 
   if (!projectId || !status) throw new Error("Missing projectId or status");
 
+  if (status === "published") {
+    const { data: project } = await supabase.from("projects").select("file_path").eq("id", projectId).maybeSingle();
+    if (project?.file_path?.startsWith("workspace-export:")) {
+      const { data: snapshot } = await supabase.from("project_plan_snapshots").select("workspace_id").eq("project_id", projectId).maybeSingle();
+      const { data: workspace } = snapshot
+        ? await supabase.from("project_workspaces").select("final_project_status").eq("id", snapshot.workspace_id).maybeSingle()
+        : { data: null };
+      if (workspace?.final_project_status !== "approved") {
+        throw new Error("Supervisor final project approval is required before marketplace publication.");
+      }
+    }
+  }
+
   const { error } = await supabase
     .from("projects")
     .update({ status })

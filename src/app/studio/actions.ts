@@ -164,12 +164,15 @@ export async function updateWorkspaceTopic(formData: FormData) {
 
   const { data: existingWs } = await db
     .from("project_workspaces")
-    .select("id, student_id, status")
+    .select("id, student_id, status, final_project_status")
     .eq("id", workspaceId)
     .single();
 
   if (!existingWs || existingWs.student_id !== user.id) {
     throw new Error("Unauthorized.");
+  }
+  if (existingWs.final_project_status === "pending_review" || existingWs.final_project_status === "approved") {
+    throw new Error("Project topic details are locked during or after final review.");
   }
 
   const nextStatus =
@@ -317,7 +320,7 @@ export async function submitChaptersForReview(formData: FormData) {
 
   const { data: ws } = await db
     .from("project_workspaces")
-    .select("id, student_id, status")
+    .select("id, student_id, status, final_project_status")
     .eq("id", workspaceId)
     .single();
 
@@ -327,6 +330,9 @@ export async function submitChaptersForReview(formData: FormData) {
 
   if (ws.status !== "approved" && ws.status !== "submitted") {
     throw new Error("Your project topic must be approved by your supervisor first.");
+  }
+  if (ws.final_project_status === "pending_review" || ws.final_project_status === "approved") {
+    throw new Error("Your project is locked during or after final supervisor approval.");
   }
 
   const { error } = await db
@@ -347,6 +353,62 @@ export async function submitChaptersForReview(formData: FormData) {
     student_signed_at: new Date().toISOString(),
   });
 
+  revalidatePath(`/studio/${workspaceId}`);
+  revalidatePath(`/supervisor/${workspaceId}`);
+  revalidatePath("/supervisor");
+}
+
+export async function submitCompletedProjectForFinalReview(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const workspaceId = formData.get("workspaceId")?.toString();
+  if (!workspaceId) throw new Error("Missing workspace ID.");
+  const db = getServerDbClient(supabase);
+  const { data: workspace } = await db.from("project_workspaces")
+    .select("id, student_id, workspace_type, level, status, final_project_status")
+    .eq("id", workspaceId).maybeSingle();
+  if (!workspace || workspace.student_id !== user.id) throw new Error("This project is not yours.");
+  if (workspace.status !== "approved") throw new Error("Supervisor approval of the submitted chapters is required first.");
+  if (!["not_submitted", "changes_requested"].includes(workspace.final_project_status)) {
+    throw new Error("This project is already in or past final review.");
+  }
+
+  let priceKes: number | null = null;
+  if (workspace.workspace_type === "business_plan") {
+    const rawPrice = formData.get("priceKes")?.toString().trim() || "";
+    priceKes = Number(rawPrice);
+    if (!rawPrice || !Number.isFinite(priceKes) || priceKes < 0 || priceKes > 1_000_000) {
+      throw new Error("Enter a valid marketplace price in KES.");
+    }
+  }
+
+  const definitions = getWorkspaceSections(workspace.workspace_type, workspace.level);
+  const { data: sections, error: sectionsError } = await db.from("workspace_sections")
+    .select("section_key, current_text").eq("workspace_id", workspaceId);
+  if (sectionsError) throw new Error(sectionsError.message || "Could not verify project sections.");
+  const contentByKey = new Map((sections || []).map((section) => [section.section_key, section.current_text || ""]));
+  const incomplete = definitions.filter((definition) => {
+    const words = (contentByKey.get(definition.key) || "").trim().split(/\s+/).filter(Boolean).length;
+    return words < (definition.minWords || 30);
+  });
+  if (incomplete.length) throw new Error(`Complete every section before final review. ${incomplete.length} section(s) need more content.`);
+
+  const { error } = await db.from("project_workspaces").update({
+    final_project_status: "pending_review",
+    final_project_submitted_at: new Date().toISOString(),
+    final_project_approved_at: null,
+    marketplace_price_kes: priceKes,
+  }).eq("id", workspaceId).eq("student_id", user.id);
+  if (error) throw new Error(error.message || "Could not submit the project for final review.");
+
+  await db.from("project_log_entries").insert({
+    workspace_id: workspaceId,
+    activity: "Submitted the completed project for final supervisor approval.",
+    auto_generated: true,
+    student_signed_at: new Date().toISOString(),
+  });
   revalidatePath(`/studio/${workspaceId}`);
   revalidatePath(`/supervisor/${workspaceId}`);
   revalidatePath("/supervisor");
@@ -380,12 +442,15 @@ export async function saveSectionText(formData: FormData) {
 
   const { data: workspace } = await db
     .from("project_workspaces")
-    .select("status, student_id")
+    .select("status, student_id, final_project_status")
     .eq("id", workspaceId)
     .single();
 
   if (!workspace || workspace.student_id !== user.id) {
     throw new Error("Unauthorized.");
+  }
+  if (workspace.final_project_status === "pending_review" || workspace.final_project_status === "approved") {
+    throw new Error("Project sections are locked during or after final review.");
   }
 
   // Enforce KNEC Rule 6: project chapters locked before proposal approval
@@ -629,12 +694,16 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
   // 1. Fetch workspace and ensure ownership.
   const { data: ws } = await db
     .from("project_workspaces")
-    .select("id, student_id, supervisor_id, institution_id, workspace_type, level, course, status, business_plan_specs")
+    .select("id, student_id, supervisor_id, institution_id, workspace_type, level, course, status, final_project_status, business_plan_specs")
     .eq("id", workspaceId)
     .single();
 
   if (!ws || ws.student_id !== user.id) {
     throw new Error("Unauthorized.");
+  }
+
+  if (ws.final_project_status === "pending_review" || ws.final_project_status === "approved") {
+    throw new Error("Business plan details are locked during or after final review.");
   }
 
   if (ws.workspace_type !== "business_plan") {
@@ -881,13 +950,16 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
   const db = getServerDbClient(supabase);
   const { data: workspace } = await db
     .from("project_workspaces")
-    .select("id, student_id, workspace_type, level, status, business_plan_specs")
+    .select("id, student_id, workspace_type, level, status, final_project_status, business_plan_specs")
     .eq("id", workspaceId)
     .single();
   if (!workspace || workspace.student_id !== user.id) throw new Error("Unauthorized.");
   if (workspace.workspace_type !== "business_plan") throw new Error("This is not a business plan workspace.");
   if (workspace.status !== "approved" && workspace.status !== "submitted") {
     throw new Error("Your business plan topic must be approved before drafting chapters.");
+  }
+  if (workspace.final_project_status === "pending_review" || workspace.final_project_status === "approved") {
+    throw new Error("Business plan chapters are locked during or after final review.");
   }
 
   const specs = workspace.business_plan_specs as BusinessPlanSpecs | null;
@@ -1092,13 +1164,16 @@ async function runCompleteBusinessPlanBuild(
   const { data: ws } = await db
     .from("project_workspaces")
     .select(
-      "id, student_id, supervisor_id, institution_id, workspace_type, level, course, status, business_plan_specs"
+      "id, student_id, supervisor_id, institution_id, workspace_type, level, course, status, final_project_status, business_plan_specs"
     )
     .eq("id", workspaceId)
     .single();
 
   if (!ws || ws.student_id !== user.id) {
     return { success: false, error: "Unauthorized." };
+  }
+  if (ws.final_project_status === "pending_review" || ws.final_project_status === "approved") {
+    return { success: false, error: "Business plan details are locked during or after final review." };
   }
   if (ws.workspace_type !== "business_plan") {
     return { success: false, error: "This workspace is not configured as a TVET Business Plan." };
@@ -1557,11 +1632,11 @@ export async function publishBusinessPlanToMarketplace(formData: FormData) {
 
   const db = getServerDbClient(supabase);
   const { data: workspace } = await db.from("project_workspaces")
-    .select("id, student_id, supervisor_id, institution_id, workspace_type, level, title, course, problem_area, status, business_plan_specs, student:student_id(full_name, admission_number), supervisor:supervisor_id(full_name), institution:institution_id(name)")
+    .select("id, student_id, supervisor_id, institution_id, workspace_type, level, title, course, problem_area, status, final_project_status, business_plan_specs, student:student_id(full_name, admission_number), supervisor:supervisor_id(full_name), institution:institution_id(name)")
     .eq("id", workspaceId).maybeSingle();
   if (!workspace || workspace.student_id !== user.id) throw new Error("This business plan is not yours.");
   if (workspace.workspace_type !== "business_plan") throw new Error("Only business plans can be submitted from this workspace.");
-  if (workspace.status !== "approved") throw new Error("A supervisor must approve the completed plan before marketplace submission.");
+  if (workspace.final_project_status !== "approved") throw new Error("A supervisor must approve the complete project before marketplace submission.");
 
   const definitions = getWorkspaceSections("business_plan", workspace.level);
   const { data: rows, error: sectionsError } = await db.from("workspace_sections")

@@ -37,13 +37,17 @@ export default async function ProjectsPage() {
     ? await supabase.from("project_workspaces")
         .select("id, title, course, level, student:student_id(full_name, admission_number)")
         .eq("workspace_type", "business_plan")
-        .in("status", ["approved", "submitted"])
+        .eq("final_project_status", "approved")
         .order("updated_at", { ascending: false })
     : { data: [] };
   const planIds = (approvedPlans || []).map((plan) => plan.id);
   const { data: planSections } = planIds.length
     ? await supabase.from("workspace_sections").select("workspace_id, section_key, current_text").in("workspace_id", planIds)
     : { data: [] };
+  const { data: planListings } = planIds.length
+    ? await supabase.from("projects").select("id, file_path").in("file_path", planIds.map((id) => `workspace-export:${id}`))
+    : { data: [] };
+  const listingByWorkspace = new Map((planListings || []).map((listing) => [listing.file_path.replace("workspace-export:", ""), listing.id]));
   const sectionsByPlan = new Map<string, Map<string, string>>();
   for (const section of planSections || []) {
     if (!sectionsByPlan.has(section.workspace_id)) sectionsByPlan.set(section.workspace_id, new Map());
@@ -108,28 +112,29 @@ export default async function ProjectsPage() {
                   <p className="text-xs text-slate-600">Complete plans ready to download</p>
                 </div>
               </div>
-              <span className="text-xs font-semibold text-slate-600">{approvedPlans?.length || 0} Approved / submitted</span>
+              <span className="text-xs font-semibold text-slate-600">{approvedPlans?.length || 0} Final approved</span>
             </div>
             {approvedPlans?.length ? (
               <div className="divide-y divide-slate-200 rounded-lg border border-slate-200">
                 {approvedPlans.map((plan) => {
                   const student = plan.student as unknown as { full_name?: string | null; admission_number?: string | null } | null;
                   const ready = readyPlanIds.has(plan.id);
+                  const listingId = listingByWorkspace.get(plan.id);
                   return (
                     <div key={plan.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
                       <div>
                         <p className="text-sm font-semibold text-slate-900">{plan.title || "Business Plan"}</p>
                         <p className="text-xs text-slate-600">{student?.full_name || "Student"}{student?.admission_number ? ` · ${student.admission_number}` : ""} · {plan.course || "Business Plan"} · {ready ? "Ready to download" : "Approved · sections incomplete"}</p>
                       </div>
-                      {ready && <div className="flex gap-2">
-                        <Link href={`/api/studio/${encodeURIComponent(plan.id)}/export?format=pdf`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-3.5 w-3.5" /> PDF</Link>
-                        <Link href={`/api/studio/${encodeURIComponent(plan.id)}/export?format=docx`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-3.5 w-3.5" /> Word</Link>
-                      </div>}
+                      {ready && listingId ? <div className="flex gap-2">
+                        <Link href={`/api/download?projectId=${encodeURIComponent(listingId)}&format=pdf`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-3.5 w-3.5" /> PDF</Link>
+                        <Link href={`/api/download?projectId=${encodeURIComponent(listingId)}&format=docx`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-3.5 w-3.5" /> Word</Link>
+                      </div> : ready ? <span className="text-xs text-amber-800">Marketplace listing is being prepared</span> : null}
                     </div>
                   );
                 })}
               </div>
-            ) : <p className="rounded-lg border border-dashed border-slate-200 py-5 text-center text-xs text-slate-600">No supervisor-approved student plans yet.</p>}
+            ) : <p className="rounded-lg border border-dashed border-slate-200 py-5 text-center text-xs text-slate-600">No finally approved student plans are in review yet.</p>}
           </div>
         </section>
       )}

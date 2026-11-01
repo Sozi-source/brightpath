@@ -82,7 +82,7 @@ export default async function AdminPage() {
     supabase.from("project_workspaces")
       .select("id, title, course, level, student_id, student:student_id(full_name, admission_number)")
       .eq("workspace_type", "business_plan")
-      .in("status", ["approved", "submitted"])
+      .eq("final_project_status", "approved")
       .order("updated_at", { ascending: false }),
   ]);
 
@@ -343,7 +343,7 @@ export default async function AdminPage() {
       <div id="ready-plans" className="scroll-mt-20">
         <ContentCard
           title="Approved Student Plans"
-          subtitle="Complete plans ready for admin download"
+          subtitle="Final approved plans ready for download"
           icon={FileText}
           headerRight={<span className="text-[11px] font-semibold px-2.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">{readyPlans.length} Ready</span>}
         >
@@ -353,16 +353,17 @@ export default async function AdminPage() {
             <div className="divide-y divide-slate-200 border border-slate-200 rounded-lg overflow-hidden">
               {readyPlans.map((workspace) => {
                 const student = workspace.student as unknown as { full_name?: string | null; admission_number?: string | null } | null;
+                const listing = projectsList.find((project) => project.file_path === `workspace-export:${workspace.id}`);
                 return (
                   <div key={workspace.id} className="flex flex-wrap items-center justify-between gap-3 p-3.5">
                     <div>
                       <p className="text-sm font-semibold text-slate-900">{workspace.title || "Business Plan"}</p>
                       <p className="text-xs text-slate-600">{student?.full_name || "Student"}{student?.admission_number ? ` · ${student.admission_number}` : ""} · {workspace.course || "Business Plan"}</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Link href={`/api/studio/${encodeURIComponent(workspace.id)}/export?format=pdf`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-3.5 w-3.5" /> PDF</Link>
-                      <Link href={`/api/studio/${encodeURIComponent(workspace.id)}/export?format=docx`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-3.5 w-3.5" /> Word</Link>
-                    </div>
+                    {listing ? <div className="flex items-center gap-2">
+                      <Link href={`/api/download?projectId=${encodeURIComponent(listing.id)}&format=pdf`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-3.5 w-3.5" /> PDF</Link>
+                      <Link href={`/api/download?projectId=${encodeURIComponent(listing.id)}&format=docx`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-3.5 w-3.5" /> Word</Link>
+                    </div> : <span className="text-xs text-amber-800">Marketplace listing is being prepared</span>}
                   </div>
                 );
               })}
