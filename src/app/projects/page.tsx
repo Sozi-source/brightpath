@@ -105,32 +105,24 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
     return `/projects${params.size ? `?${params.toString()}` : ""}`;
   }
 
-  function BrowseFilters() {
-    const browseCategories = [
-      { value: "", label: "All materials", types: null as string[] | null },
-      { value: "lecture_notes", label: "Lecture notes", types: ["lecture_notes"] },
-      { value: "past_paper", label: "Past papers", types: ["past_paper"] },
-      { value: "study_resources", label: "Study resources", types: ["study_guide", "reference_book", "other"] },
-      { value: "business_plan", label: "Business plans", types: ["business_plan"] },
-      { value: "technical_project", label: "Technical projects", types: ["technical_project"] },
-      { value: "research_project", label: "Research projects", types: ["research_project"] },
-    ];
-    return <>
-      <div>
-        <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Categories</h3>
-        <ul className="space-y-1">
-          {browseCategories.map((category) => {
-            const count = projects.filter((project) => !category.types || category.types.includes(project.material_type || "")).length;
-            const active = selectedType === category.value;
-            return <li key={category.value || "all"}><Link href={filterHref({ type: category.value, category: "" })} aria-current={active ? "page" : undefined} className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-xs ${active ? "bg-indigo-50 font-semibold text-indigo-800" : "text-slate-700 hover:bg-slate-50"}`}><span>{category.label}</span><span className="text-slate-500">{count}</span></Link></li>;
-          })}
-        </ul>
-      </div>
-    </>;
-  }
+  const browseCategories = [
+    { value: "", label: "All materials", types: null as string[] | null },
+    { value: "lecture_notes", label: "Lecture notes", types: ["lecture_notes"] },
+    { value: "past_paper", label: "Past papers", types: ["past_paper"] },
+    { value: "study_resources", label: "Study resources", types: ["study_guide", "reference_book", "other"] },
+    { value: "business_plan", label: "Business plans", types: ["business_plan"] },
+    { value: "technical_project", label: "Technical projects", types: ["technical_project"] },
+    { value: "research_project", label: "Research projects", types: ["research_project"] },
+  ];
+  const sidebarCategories = browseCategories.map((category) => ({
+    label: category.label,
+    href: filterHref({ type: category.value, category: "" }),
+    count: projects.filter((project) => !category.types || category.types.includes(project.material_type || "")).length,
+    active: selectedType === category.value,
+  }));
 
   return (
-    <AppShell user={user} profile={profile} activeContextTitle="Learning Resource Marketplace">
+    <AppShell user={user} profile={profile} activeContextTitle="Learning Resource Marketplace" marketplaceCategories={sidebarCategories}>
       <PageHeaderCard
         title="Resource Marketplace"
         subtitle="Study materials, notes, and projects"
@@ -168,19 +160,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
         </section>
       )}
 
-      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[210px_minmax(0,1fr)]">
-        <aside className="h-fit rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-          <div className="mb-3 hidden items-center gap-2 lg:flex"><Layers className="h-4 w-4 text-indigo-700" /><h2 className="text-xs font-semibold uppercase tracking-wider text-slate-800">Browse</h2></div>
-          <details className="group lg:hidden">
-            <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold text-slate-900"><span className="flex items-center gap-2"><Layers className="h-4 w-4 text-indigo-700" />Browse materials</span><span className="text-xs font-medium text-slate-600">{selectedType ? selectedTypeLabel : selectedCategory ? selectedCategory : "Filters"}</span></summary>
-            <div className="mt-4 space-y-4">
-              <BrowseFilters />
-            </div>
-          </details>
-          <div className="hidden lg:block"><BrowseFilters /></div>
-        </aside>
-
-        <section>
+      <section>
           <form action="/projects" className="mb-4 flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-xs sm:flex-row">
             <label htmlFor="marketplace-search" className="sr-only">Search learning materials</label>
             <div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" /><input id="marketplace-search" name="q" defaultValue={filters.q || ""} placeholder="Search notes, projects, or subjects" className="h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100" /></div>
@@ -201,8 +181,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
             {pageProjects.map((project) => <MarketplaceProjectCard key={project.id} project={project} viewerId={user?.id} rating={ratingByProject.get(project.id)} />)}
           </div> : <div className="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-16 text-center"><Layers className="mx-auto mb-3 h-9 w-9 text-slate-400" /><h3 className="text-sm font-semibold text-slate-900">No matching materials</h3><p className="mt-1 text-xs text-slate-600">Try a different search or subject.</p><Link href="/projects" className="mt-4 inline-flex rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Clear filters</Link></div>}
           {resultCount > pageSize && <nav aria-label="Marketplace pages" className="mt-5 flex items-center justify-between rounded-lg border border-slate-200 bg-white p-3"><span className="text-xs text-slate-600">Page {pageNumber} of {pageCount}</span><div className="flex gap-2">{pageNumber > 1 && <Link href={filterHref({ page: String(pageNumber - 1) })} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Previous</Link>}{pageNumber < pageCount && <Link href={filterHref({ page: String(pageNumber + 1) })} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Next</Link>}</div></nav>}
-        </section>
-      </div>
+      </section>
     </AppShell>
   );
 }

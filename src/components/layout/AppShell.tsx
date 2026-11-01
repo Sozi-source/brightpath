@@ -31,6 +31,7 @@ interface AppShellProps {
     level?: string | null;
   } | null;
   activeContextTitle?: string | null;
+  marketplaceCategories?: { label: string; href: string; count: number; active: boolean }[];
   children: React.ReactNode;
 }
 
@@ -38,6 +39,7 @@ export function AppShell({
   user,
   profile,
   activeContextTitle,
+  marketplaceCategories,
   children,
 }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -235,6 +237,28 @@ export function AppShell({
                 );
               })}
             </div>
+
+            {pathname.startsWith("/projects") && marketplaceCategories?.length ? (
+              <nav aria-label="Marketplace categories" className="space-y-1 border-t border-slate-100 px-3 pt-4">
+                <div className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Marketplace</div>
+                {marketplaceCategories.map((category) => (
+                  <Link
+                    key={category.label}
+                    href={category.href}
+                    onClick={() => setSidebarOpen(false)}
+                    aria-current={category.active ? "page" : undefined}
+                    className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs transition-colors ${
+                      category.active
+                        ? "bg-indigo-600 font-semibold text-white shadow-xs"
+                        : "font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    }`}
+                  >
+                    <span>{category.label}</span>
+                    <span className={category.active ? "text-indigo-100" : "text-slate-500"}>{category.count}</span>
+                  </Link>
+                ))}
+              </nav>
+            ) : null}
 
             {/* Faculty / Supervisor / Governance Portals */}
             {(isRoleSupervisor || isRoleTrainer) && (
