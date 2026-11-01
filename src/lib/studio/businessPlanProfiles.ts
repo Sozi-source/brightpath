@@ -61,6 +61,16 @@ export function validateBusinessPlanModelSpecs(specs: BusinessPlanSpecs): string
   return issues;
 }
 
+export function getConsultancyLocationRationaleCorrection(specs: BusinessPlanSpecs): string | null {
+  if (resolveBusinessPlanModel(specs) !== "consultancy") return null;
+  const rationale = (specs.locationRationale || "").toLowerCase();
+  if (!/located near|nearby|referral from|referrals from/.test(rationale)) return null;
+  const placeMatches = rationale.match(/\b(?:Lodwar|Kitui|Machakos|Nairobi|Mombasa|Kisumu|Nakuru|Eldoret)\b/gi) || [];
+  const foreignPlace = placeMatches.find((place) => place.toLowerCase() !== specs.townOrMarket.trim().toLowerCase());
+  if (!foreignPlace) return null;
+  return `The practice will serve clients in ${specs.townOrMarket}, ${specs.county}. Confirm accessibility, privacy, transport options, and any nearby health facilities through a local site visit; no referral arrangements are assumed.`;
+}
+
 const serviceEvidenceNote = `Service volumes, client demand, prices, operating costs, and referral arrangements are planning assumptions unless supported by saved evidence. Confirm local access, professional scope, supplier quotations, and applicable requirements before committing funds. Keep client information confidential, obtain consent before assessments, and review bookings, costs, and feedback monthly.`;
 
 const consultancyBodies: Record<string, string> = {

@@ -18,7 +18,10 @@ import {
 } from "lucide-react";
 import { BUSINESS_PLAN_PRESETS, resolveBusinessPlanModel } from "@/lib/studio/businessPlanTypes";
 import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
-import { getBusinessPlanModelGuidance } from "@/lib/studio/businessPlanProfiles";
+import {
+  getBusinessPlanModelGuidance,
+  getConsultancyLocationRationaleCorrection,
+} from "@/lib/studio/businessPlanProfiles";
 import { computeBusinessPlanFinancials } from "@/lib/studio/businessPlanMath";
 import {
   buildCompleteBusinessPlanAction,
@@ -172,6 +175,7 @@ export function BusinessPlanBuilderModal({
 
   const modelGuidance = getBusinessPlanModelGuidance(resolveBusinessPlanModel(specs));
   const isConsultancy = resolveBusinessPlanModel(specs) === "consultancy";
+  const locationRationaleCorrection = getConsultancyLocationRationaleCorrection(specs);
 
   // Kept out of the report flow until the financial model is reconciled to the supplied template.
   const financials = useMemo(() => computeBusinessPlanFinancials(specs), [specs]);
@@ -657,6 +661,36 @@ export function BusinessPlanBuilderModal({
                         {fieldErrors[field] && <p id={`${field}-error`} className="mt-1 text-xs text-rose-700">{fieldErrors[field]}</p>}
                       </div>
                     ))}
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between gap-3 mb-1">
+                      <label htmlFor="locationRationale" className="text-xs font-medium text-slate-700">
+                        Why this location?
+                      </label>
+                      {locationRationaleCorrection && (
+                        <button
+                          type="button"
+                          onClick={() => setSpecs((previous) => ({ ...previous, locationRationale: locationRationaleCorrection }))}
+                          className="text-xs font-semibold text-indigo-700 hover:text-indigo-800"
+                        >
+                          Apply location correction
+                        </button>
+                      )}
+                    </div>
+                    <textarea
+                      id="locationRationale"
+                      rows={2}
+                      value={specs.locationRationale || ""}
+                      onChange={(event) => setSpecs((previous) => ({ ...previous, locationRationale: event.target.value }))}
+                      className={`w-full text-xs px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 ${locationRationaleCorrection ? "border-rose-300 bg-rose-50/40" : "border-slate-300"}`}
+                      placeholder="Describe local access and site features you have confirmed."
+                    />
+                    {locationRationaleCorrection && (
+                      <p className="mt-1 text-xs text-rose-700">
+                        This rationale names a distant town as nearby. Apply the correction, then verify site details locally.
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -1302,6 +1336,19 @@ export function BusinessPlanBuilderModal({
               {generationError && (
                 <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-800">
                   {generationError}
+                  {locationRationaleCorrection && /location rationale|proximity claim/i.test(generationError) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSpecs((previous) => ({ ...previous, locationRationale: locationRationaleCorrection }));
+                        setActiveTab("identity");
+                        setGenerationError(null);
+                      }}
+                      className="mt-2 block font-semibold text-indigo-700 hover:text-indigo-800"
+                    >
+                      Apply a location-safe correction
+                    </button>
+                  )}
                 </div>
               )}
 
