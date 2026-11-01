@@ -599,6 +599,7 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
       chapterKeys: string[];
       researchSources: BusinessPlanResearch["sources"];
     }
+  | { success: false; error: string }
   | { error: string }
 > {
   const supabase = await createClient();
