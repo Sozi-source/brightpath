@@ -32,6 +32,7 @@ interface AppShellProps {
   } | null;
   activeContextTitle?: string | null;
   marketplaceCategories?: { label: string; href: string; count: number; active: boolean }[];
+  fullScreenWorkspace?: boolean;
   children: React.ReactNode;
 }
 
@@ -40,6 +41,7 @@ export function AppShell({
   profile,
   activeContextTitle,
   marketplaceCategories,
+  fullScreenWorkspace = false,
   children,
 }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -63,14 +65,14 @@ export function AppShell({
       <header className="h-16 bg-white border-b border-slate-200 sticky top-0 z-40 px-4 sm:px-6 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-3 sm:gap-4">
           {/* Mobile Menu Toggle */}
-          <button
+          {!fullScreenWorkspace && <button
             type="button"
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
             aria-label="Toggle navigation menu"
           >
             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          </button>}
 
           {/* 9-Dot Matrix App Launcher (KEC Benchmark) */}
           <div className="relative">
@@ -191,6 +193,7 @@ export function AppShell({
 
       {/* 2. Main Portal Shell: Persistent Left Sidebar + Main Content Stage */}
       <div className="flex-1 flex w-full">
+        {!fullScreenWorkspace && <>
         {/* Left Persistent Navigation Sidebar */}
         <aside
           className={`fixed inset-y-0 left-0 top-16 z-30 w-64 bg-white border-r border-slate-200/80 text-slate-800 flex flex-col justify-between transition-transform duration-200 ease-in-out md:sticky md:top-16 md:h-[calc(100vh-4rem)] md:shrink-0 md:self-start md:translate-x-0 ${
@@ -368,9 +371,12 @@ export function AppShell({
             onClick={() => setSidebarOpen(false)}
           />
         )}
+        </>}
 
         {/* 3. Main Content Stage */}
-        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6">
+        <main className={fullScreenWorkspace
+          ? "h-[calc(100vh-4rem)] min-w-0 flex-1 overflow-y-auto"
+          : "flex-1 min-w-0 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6"}>
           {children}
         </main>
       </div>

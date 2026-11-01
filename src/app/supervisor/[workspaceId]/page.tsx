@@ -26,6 +26,7 @@ import {
   ChevronLeft,
   History,
   Lightbulb,
+  ListTree,
 } from "lucide-react";
 import type { ProjectWorkspace, WorkspaceSection, SupervisorReview, UserProfile } from "@/types/database";
 
@@ -33,6 +34,26 @@ export const instant = false;
 
 interface SupervisorWorkspacePageProps {
   params: Promise<{ workspaceId: string }>;
+}
+
+function reviewAnchor(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+function ReviewContentsLinks({ chapters }: { chapters: ManuscriptChapter[] }) {
+  return <nav aria-label="Project chapters and sections" className="space-y-3">
+    {chapters.map((chapter, index) => <section key={chapter.key}>
+      <a href={`#chapter-${reviewAnchor(chapter.key)}`} className="flex items-start gap-2 rounded-md px-2 py-1.5 text-xs font-semibold leading-snug text-slate-800 hover:bg-indigo-50 hover:text-indigo-800">
+        <span className="mt-0.5 font-mono text-[10px] text-slate-400">{String(index + 1).padStart(2, "0")}</span>
+        <span>{chapter.title}</span>
+      </a>
+      <ul className="ml-4 space-y-0.5 border-l border-slate-200 pl-2.5">
+        {chapter.sections.map((section) => <li key={section.key}>
+          <a href={`#section-${reviewAnchor(section.key)}`} title={section.title} className="block rounded-md px-2 py-1.5 text-[11px] leading-snug text-slate-600 hover:bg-indigo-50 hover:text-indigo-800">{section.title}</a>
+        </li>)}
+      </ul>
+    </section>)}
+  </nav>;
 }
 
 export default async function SupervisorWorkspacePage({ params }: SupervisorWorkspacePageProps) {
@@ -174,7 +195,33 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
       user={user}
       profile={profile}
       activeContextTitle={`Review: ${workspace.student?.full_name || "Candidate"}`}
+      fullScreenWorkspace
     >
+      <div className="flex min-h-full bg-[#f4f7fb]">
+        <aside className="sticky top-0 hidden h-[calc(100vh-4rem)] w-72 shrink-0 flex-col border-r border-slate-200 bg-white lg:flex">
+          <div className="border-b border-slate-200 px-4 py-4">
+            <Link href="/supervisor" className="text-[11px] font-semibold text-indigo-700 hover:underline">← Supervisor queue</Link>
+            <div className="mt-3 flex items-center gap-2 text-slate-800">
+              <span className="rounded-lg bg-indigo-50 p-2 text-indigo-700"><ListTree className="h-4 w-4" /></span>
+              <div><h2 className="text-sm font-semibold tracking-tight">Review outline</h2><p className="text-[10px] text-slate-500">Chapters and sections</p></div>
+            </div>
+            <p className="mt-3 line-clamp-2 text-xs font-medium leading-snug text-slate-700">{workspace.title || "Untitled project"}</p>
+          </div>
+          <div className="flex-1 overflow-y-auto p-2.5">
+            <ReviewContentsLinks chapters={manuscriptChapters} />
+          </div>
+        </aside>
+
+        <div className="min-w-0 flex-1 space-y-6 p-3 sm:p-5 lg:p-6">
+          <details className="mb-4 rounded-lg border border-slate-200 bg-white p-3 shadow-xs lg:hidden">
+            <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-semibold text-slate-900">
+              <ListTree className="h-4 w-4 text-indigo-700" />Project contents
+              <span className="ml-auto text-[10px] font-medium text-slate-500">{chapterGroups.length} chapters</span>
+            </summary>
+            <div className="mt-3 max-h-[55vh] overflow-y-auto border-t border-slate-100 pt-2">
+              <ReviewContentsLinks chapters={manuscriptChapters} />
+            </div>
+          </details>
       <PageHeaderCard
         title={workspace.title || "Untitled Project"}
         subtitle={`${workspace.student?.full_name || "Candidate"} • ${workspace.course} (${levelLabel})`}
@@ -488,6 +535,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
             </div>
           </ContentCard>
         )}
+      </div>
       </div>
     </AppShell>
   );

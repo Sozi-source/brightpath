@@ -3,7 +3,7 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
-import { FileText, ListTree } from "lucide-react";
+import { FileText } from "lucide-react";
 import { SectionReviewThreads, type ReviewSelection } from "./SectionReviewThreads";
 import styles from "./ManuscriptReader.module.css";
 import type { SectionReviewThread, UserRole } from "@/types/database";
@@ -65,12 +65,19 @@ function ManuscriptText({ text }: { text: string }) {
     ) : (
       <div key={index} className="my-4 overflow-x-auto">
         <table>
-          <thead><tr>{part.rows[0].map((cell, cellIndex) => <th key={cellIndex}>{cell}</th>)}</tr></thead>
-          <tbody>{part.rows.slice(1).map((row, rowIndex) => <tr key={rowIndex}>{part.rows[0].map((_, cellIndex) => <td key={cellIndex}>{row[cellIndex] || ""}</td>)}</tr>)}</tbody>
+          <thead><tr>{part.rows[0].map((cell, cellIndex) => <th key={cellIndex}><InlineMarkdown text={cell} /></th>)}</tr></thead>
+          <tbody>{part.rows.slice(1).map((row, rowIndex) => <tr key={rowIndex}>{part.rows[0].map((_, cellIndex) => <td key={cellIndex}><InlineMarkdown text={row[cellIndex] || ""} /></td>)}</tr>)}</tbody>
         </table>
       </div>
     ))}
   </>;
+}
+
+function InlineMarkdown({ text }: { text: string }) {
+  return <ReactMarkdown
+    rehypePlugins={[rehypeSanitize]}
+    components={{ p: ({ children }) => <>{children}</> }}
+  >{text}</ReactMarkdown>;
 }
 
 export function ManuscriptReader({
@@ -138,28 +145,10 @@ export function ManuscriptReader({
     <div className="relative rounded-xl border border-slate-200 bg-white shadow-xs">
       <div className="flex h-1.5 w-full overflow-hidden rounded-t-xl"><div className="w-[60%] bg-blue-600" /><div className="w-[40%] bg-amber-400" /></div>
       <div className="min-w-0 bg-[#f4f7fb] p-3 sm:p-6">
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-6xl">
           <div className="mb-3 flex items-center justify-end gap-3">
             <span className="text-[11px] font-medium text-slate-500">{chapters.length} chapters <span aria-hidden="true">·</span> {totalWords.toLocaleString()} words</span>
           </div>
-
-          <nav aria-label="Manuscript table of contents" className="sticky top-16 z-30 mb-4 rounded-lg border border-slate-200 bg-white/95 p-3 shadow-sm backdrop-blur-sm sm:p-4">
-            <div className="mb-2 flex items-center gap-2 border-b border-slate-200 pb-2">
-              <span className="rounded-md bg-indigo-50 p-1.5 text-indigo-700"><ListTree className="h-4 w-4" /></span>
-              <h2 className="text-xs font-semibold text-slate-900">Contents</h2>
-              <span className="text-[10px] text-slate-500">All chapters and sections</span>
-            </div>
-            <div className="max-h-[38vh] space-y-2 overflow-y-auto pr-1">
-              {chapters.map((chapter, index) => <div key={chapter.key} className="flex flex-wrap items-start gap-x-3 gap-y-1 border-b border-slate-100 pb-2 last:border-0 last:pb-0">
-                <a href={`#chapter-${anchor(chapter.key)}`} className="min-w-44 max-w-full rounded-md bg-slate-50 px-2 py-1 text-[11px] font-semibold text-slate-800 hover:bg-indigo-50 hover:text-indigo-700 sm:w-52">
-                  <span className="mr-1.5 font-mono text-[10px] text-slate-400">{String(index + 1).padStart(2, "0")}</span>{chapter.title}
-                </a>
-                <div className="flex min-w-0 flex-1 flex-wrap gap-1">
-                  {chapter.sections.map((section) => <a key={section.key} href={`#section-${anchor(section.key)}`} title={section.title} className="max-w-full truncate rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] text-slate-600 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-800 sm:max-w-56">{section.title}</a>)}
-                </div>
-              </div>)}
-            </div>
-          </nav>
 
           <article onMouseUp={(event) => captureSelection(event.currentTarget)} onKeyUp={(event) => captureSelection(event.currentTarget)} className="rounded-lg border border-slate-200 bg-white px-5 py-7 shadow-xs sm:px-10 sm:py-10">
             <header className="mb-8 border-b-2 border-slate-200 pb-6">
@@ -174,13 +163,13 @@ export function ManuscriptReader({
             </header>
 
             <div className="space-y-10">
-              {chapters.map((chapter, chapterIndex) => <section key={chapter.key} id={`chapter-${anchor(chapter.key)}`} className="scroll-mt-24">
+              {chapters.map((chapter, chapterIndex) => <section key={chapter.key} id={`chapter-${anchor(chapter.key)}`} className="scroll-mt-4">
                 <div className="mb-5 flex items-baseline justify-between gap-3 border-b border-slate-300 pb-2">
                   <h2 className="border-l-[3px] border-indigo-600 pl-3 text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">{chapter.title}</h2>
                   <span className="shrink-0 font-mono text-[10px] text-slate-500">{chapter.words} words</span>
                 </div>
                 <div className="space-y-7">
-                  {chapter.sections.map((section) => <section key={section.key} id={`section-${anchor(section.key)}`} data-section-key={section.key} data-section-updated-at={section.updatedAt} className="scroll-mt-24">
+                  {chapter.sections.map((section) => <section key={section.key} id={`section-${anchor(section.key)}`} data-section-key={section.key} data-section-updated-at={section.updatedAt} className="scroll-mt-4">
                     <h3 className="mb-3 border-b border-slate-200 pb-2 text-base font-semibold tracking-tight text-indigo-900 sm:text-lg">{section.title}</h3>
                     {section.text.trim() ? <div className={styles.manuscript}><ManuscriptText text={section.text} /></div> : <p className="flex items-center gap-2 rounded-md border border-dashed border-slate-300 bg-slate-50 px-3 py-3 text-xs text-slate-500"><FileText className="h-4 w-4" />Not yet drafted by candidate</p>}
                     <div className="mt-4 border-t border-slate-100 pt-3">
