@@ -800,7 +800,7 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
     .select("section_key, current_text")
     .eq("workspace_id", workspaceId);
   if (existingSectionsError) {
-    return { success: false, error: "Could not check the saved sections. Retry the build." };
+    return { error: "Could not check the saved sections. Retry the build." };
   }
   const existingByKey = new Map(
     (existingSections || []).map((section) => [section.section_key, section.current_text || ""])
