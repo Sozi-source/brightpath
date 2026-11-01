@@ -21,6 +21,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
   const query = (filters.q || "").trim().toLowerCase();
   const selectedCategory = filters.category || "";
   const selectedType = filters.type || "";
+  const selectedTypeLabel = selectedType === "study_resources" ? "Study resources" : getMaterialTypeLabel(selectedType);
   const sort = filters.sort || "newest";
   const pageSize = 12;
   const supabase = await createClient();
@@ -45,7 +46,9 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
     const matchesText = !query || [project.title, project.description, project.category, getMaterialTypeLabel(project.material_type)]
       .some((value) => value?.toLowerCase().includes(query));
     const matchesCategory = !selectedCategory || (project.category || "General") === selectedCategory;
-    const matchesType = !selectedType || project.material_type === selectedType;
+    const matchesType = !selectedType
+      || (selectedType === "study_resources" && ["study_guide", "reference_book", "other"].includes(project.material_type || ""))
+      || project.material_type === selectedType;
     return matchesText && matchesCategory && matchesType;
   });
   visibleProjects = [...visibleProjects].sort((a, b) => {
@@ -60,7 +63,6 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
   const pageNumber = Math.min(pageCount, Math.max(1, Number.parseInt(filters.page || "1", 10) || 1));
   const pageProjects = visibleProjects.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
-  const categories = [...new Set(projects.map((project) => project.category || "General"))].sort((a, b) => a.localeCompare(b));
   const isPublisher = profile?.role === "trainer" || profile?.role === "admin";
 
   const { data: approvedPlans } = profile?.role === "admin"
@@ -104,19 +106,24 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
   }
 
   function BrowseFilters() {
+    const browseCategories = [
+      { value: "", label: "All materials", types: null as string[] | null },
+      { value: "lecture_notes", label: "Lecture notes", types: ["lecture_notes"] },
+      { value: "past_paper", label: "Past papers", types: ["past_paper"] },
+      { value: "study_resources", label: "Study resources", types: ["study_guide", "reference_book", "other"] },
+      { value: "business_plan", label: "Business plans", types: ["business_plan"] },
+      { value: "technical_project", label: "Technical projects", types: ["technical_project"] },
+      { value: "research_project", label: "Research projects", types: ["research_project"] },
+    ];
     return <>
       <div>
-        <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Material type</h3>
+        <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Categories</h3>
         <ul className="space-y-1">
-          <li><Link href={filterHref({ type: "" })} className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-xs ${!selectedType ? "bg-indigo-50 font-semibold text-indigo-800" : "text-slate-700 hover:bg-slate-50"}`}><span>All materials</span><span className="text-slate-500">{projects.length}</span></Link></li>
-          {MARKETPLACE_MATERIAL_TYPES.map((type) => <li key={type.value}><Link href={filterHref({ type: type.value })} className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-xs ${selectedType === type.value ? "bg-indigo-50 font-semibold text-indigo-800" : "text-slate-700 hover:bg-slate-50"}`}><span>{type.label}</span><span className="text-slate-500">{projects.filter((project) => project.material_type === type.value).length}</span></Link></li>)}
-        </ul>
-      </div>
-      <div>
-        <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Subject</h3>
-        <ul className="space-y-1">
-          <li><Link href={filterHref({ category: "" })} className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-xs ${!selectedCategory ? "bg-indigo-50 font-semibold text-indigo-800" : "text-slate-700 hover:bg-slate-50"}`}><span>All subjects</span><span className="text-slate-500">{projects.length}</span></Link></li>
-          {categories.map((category) => <li key={category}><Link href={filterHref({ category })} className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-xs ${selectedCategory === category ? "bg-indigo-50 font-semibold text-indigo-800" : "text-slate-700 hover:bg-slate-50"}`}><span>{category}</span><span className="text-slate-500">{projects.filter((project) => (project.category || "General") === category).length}</span></Link></li>)}
+          {browseCategories.map((category) => {
+            const count = projects.filter((project) => !category.types || category.types.includes(project.material_type || "")).length;
+            const active = selectedType === category.value;
+            return <li key={category.value || "all"}><Link href={filterHref({ type: category.value, category: "" })} aria-current={active ? "page" : undefined} className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-xs ${active ? "bg-indigo-50 font-semibold text-indigo-800" : "text-slate-700 hover:bg-slate-50"}`}><span>{category.label}</span><span className="text-slate-500">{count}</span></Link></li>;
+          })}
         </ul>
       </div>
     </>;
@@ -130,7 +137,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Marketplace", active: true }]}
         metadata={[
           { label: "Available", value: `${resultCount} Materials` },
-          { label: "Types", value: `${MARKETPLACE_MATERIAL_TYPES.length} Categories` },
+          { label: "Formats", value: `${MARKETPLACE_MATERIAL_TYPES.length} Types` },
         ]}
         actions={isPublisher ? (
           <Link href="/trainer" className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-indigo-900 shadow-xs hover:bg-slate-50"><Briefcase className="h-4 w-4 text-indigo-600" /> Publisher</Link>
@@ -165,7 +172,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
         <aside className="h-fit rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
           <div className="mb-3 hidden items-center gap-2 lg:flex"><Layers className="h-4 w-4 text-indigo-700" /><h2 className="text-xs font-semibold uppercase tracking-wider text-slate-800">Browse</h2></div>
           <details className="group lg:hidden">
-            <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold text-slate-900"><span className="flex items-center gap-2"><Layers className="h-4 w-4 text-indigo-700" />Browse materials</span><span className="text-xs font-medium text-slate-600">{selectedType || selectedCategory ? "Filtered" : "Filters"}</span></summary>
+            <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold text-slate-900"><span className="flex items-center gap-2"><Layers className="h-4 w-4 text-indigo-700" />Browse materials</span><span className="text-xs font-medium text-slate-600">{selectedType ? selectedTypeLabel : selectedCategory ? selectedCategory : "Filters"}</span></summary>
             <div className="mt-4 space-y-4">
               <BrowseFilters />
             </div>
@@ -182,7 +189,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
             <button className="h-10 rounded-lg bg-indigo-600 px-5 text-sm font-semibold text-white hover:bg-indigo-700">Search</button>
           </form>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <div><h2 className="text-base font-semibold tracking-tight text-slate-900">{selectedType ? getMaterialTypeLabel(selectedType) : selectedCategory || "Explore materials"}</h2><p className="text-xs text-slate-600">{resultCount} results</p></div>
+            <div><h2 className="text-base font-semibold tracking-tight text-slate-900">{selectedType ? selectedTypeLabel : selectedCategory || "Explore materials"}</h2><p className="text-xs text-slate-600">{resultCount} results</p></div>
             <form action="/projects" className="flex items-center gap-2">
               {filters.q && <input type="hidden" name="q" value={filters.q} />}{selectedCategory && <input type="hidden" name="category" value={selectedCategory} />}{selectedType && <input type="hidden" name="type" value={selectedType} />}
               <label htmlFor="marketplace-sort" className="text-xs font-medium text-slate-700">Sort</label>
