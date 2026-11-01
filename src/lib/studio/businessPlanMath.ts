@@ -8,6 +8,7 @@
  */
 
 import type { BusinessPlanSpecs } from "./businessPlanTypes";
+import { resolveBusinessPlanModel } from "./businessPlanTypes";
 
 export interface ComputedFinancialModel {
   totalMachineryCost: number;
@@ -61,6 +62,11 @@ export interface ComputedFinancialModel {
 }
 
 export function computeBusinessPlanFinancials(specs: BusinessPlanSpecs): ComputedFinancialModel {
+  const isConsultancy = resolveBusinessPlanModel(specs) === "consultancy";
+  const unitLabel = isConsultancy ? "consultation sessions" : "units";
+  const variableCostLabel = isConsultancy ? "Consultation Delivery Costs" : "Raw Material Purchases";
+  const assetLabel = isConsultancy ? "Clinical & Office Equipment" : "Machinery & Tools";
+  const serviceLabel = isConsultancy ? "Cost of Services Delivered" : "Cost of Goods Sold (Raw Materials)";
   const formatKES = (n: number) => Math.round(n).toLocaleString("en-KE");
   const projectionYear = new Date().getFullYear();
   const yearLabels = [1, 2, 3].map((offset) => `Year ${offset} (${projectionYear + offset - 1})`);
@@ -302,18 +308,18 @@ export function computeBusinessPlanFinancials(specs: BusinessPlanSpecs): Compute
   const preOperationalTable = `
 | Pre-Operational Item | Description / Supplier | Cost (KES) |
 | :--- | :--- | :--- |
-| **Premises Rent Deposit** | 1 month refundable lease deposit | ${formatKES(rentDeposit)} |
-| **Workshop Renovation & Partitioning** | Hygiene painting, electrical wiring & counter fitting | ${formatKES(installationRenovation)} |
-| **Utility Deposits (Water & Electricity)** | County Water & KPLC 3-phase meter deposit | ${formatKES(waterElectricityDeposit)} |
-| **Statutory Licenses & Health Permits** | Single Business Permit & Public Health Certificates | ${formatKES(licensesPermits)} |
-| **Initial Pre-Launch Marketing** | Signage board, promotional banners, flyers & sampling | ${formatKES(initialMarketing)} |
+| **Premises Rent Deposit** | 1 month refundable lease deposit (assumption) | ${formatKES(rentDeposit)} |
+| **Premises Setup & Accessibility** | ${isConsultancy ? "Consultation-room privacy, furniture and basic setup (budget assumption)" : "Site setup and fitting (budget assumption)"} | ${formatKES(installationRenovation)} |
+| **Utility Deposits (Water & Electricity)** | Utility connection deposits (confirm locally) | ${formatKES(waterElectricityDeposit)} |
+| **Statutory Licenses & Permits** | Provisional allowance; confirm applicable requirements and fees | ${formatKES(licensesPermits)} |
+| **Initial Pre-Launch Marketing** | Basic launch communication (budget assumption) | ${formatKES(initialMarketing)} |
 | **Total Pre-Operational Expenses** | **All pre-opening setup costs** | **${formatKES(totalPreOperationalCost)}** |
 `.trim();
 
   const capitalizationTable = `
 | Capital Requirement | Amount (KES) | Percentage (%) | Proposed Funding Source |
 | :--- | :--- | :--- | :--- |
-| **Fixed Assets (Machinery & Tools)** | ${formatKES(totalMachineryCost)} | ${Math.round((totalMachineryCost / totalStartupCapital) * 100)}% | Owner Equity & Youth Enterprise Fund |
+| **Fixed Assets (${assetLabel})** | ${formatKES(totalMachineryCost)} | ${Math.round((totalMachineryCost / totalStartupCapital) * 100)}% | Proposed funding; confirm source |
 | **Pre-Operational Setup Costs** | ${formatKES(totalPreOperationalCost)} | ${Math.round((totalPreOperationalCost / totalStartupCapital) * 100)}% | Owner Personal Savings |
 | **Working Capital Reserve (Buffer)** | ${formatKES(workingCapitalBuffer)} | ${Math.round((workingCapitalBuffer / totalStartupCapital) * 100)}% | Commercial Bank Loan / Microfinance |
 | **Total Startup Capital Required** | **${formatKES(totalStartupCapital)}** | **100%** | **Total Enterprise Financing** |
@@ -335,7 +341,7 @@ export function computeBusinessPlanFinancials(specs: BusinessPlanSpecs): Compute
 ${makeRow("**Opening Balance b/f**", (m) => m.opening, part1Months)}
 ${makeRow("Cash Sales Revenue", (m) => m.sales, part1Months)}
 ${makeRow("**Total Cash Inflows**", (m) => m.inflowsTotal, part1Months)}
-${makeRow("Raw Material Purchases", (m) => m.materialPurchases, part1Months)}
+${makeRow(variableCostLabel, (m) => m.materialPurchases, part1Months)}
 ${makeRow("Wages & Salaries", (m) => m.wages, part1Months)}
 ${makeRow("Premises Rent", (m) => m.rent, part1Months)}
 ${makeRow("Utilities (Water & Power)", (m) => m.utilities, part1Months)}
@@ -356,7 +362,7 @@ ${makeRow("**Closing Balance c/f**", (m) => m.closing, part1Months)}
 ${makeRow("**Opening Balance b/f**", (m) => m.opening, part2Months)}
 ${makeRow("Cash Sales Revenue", (m) => m.sales, part2Months)}
 ${makeRow("**Total Cash Inflows**", (m) => m.inflowsTotal, part2Months)}
-${makeRow("Raw Material Purchases", (m) => m.materialPurchases, part2Months)}
+${makeRow(variableCostLabel, (m) => m.materialPurchases, part2Months)}
 ${makeRow("Wages & Salaries", (m) => m.wages, part2Months)}
 ${makeRow("Premises Rent", (m) => m.rent, part2Months)}
 ${makeRow("Utilities (Water & Power)", (m) => m.utilities, part2Months)}
@@ -378,7 +384,7 @@ ${makeRow("**Closing Balance c/f**", (m) => m.closing, part2Months)}
 | :--- | ---: | ---: | ---: |
 | **Opening Cash Balance** | ${formatKES(openingCash)} | ${formatKES(year1ClosingCash)} | ${formatKES(year2ClosingCash)} |
 | Cash Sales | ${formatKES(annualSalesYear1)} | ${formatKES(annualSalesYear2)} | ${formatKES(annualSalesYear3)} |
-| Raw Materials and Packaging | (${formatKES(annualCogsYear1)}) | (${formatKES(annualCogsYear2)}) | (${formatKES(annualCogsYear3)}) |
+| ${isConsultancy ? "Variable Consultation Costs" : "Raw Materials and Packaging"} | (${formatKES(annualCogsYear1)}) | (${formatKES(annualCogsYear2)}) | (${formatKES(annualCogsYear3)}) |
 | Operating Expenses | (${formatKES(annualOperatingExpensesYear1)}) | (${formatKES(annualOperatingExpensesYear2)}) | (${formatKES(annualOperatingExpensesYear3)}) |
 | Loan Principal Repaid | (${formatKES(principalYear1)}) | (${formatKES(loanYear2.principal)}) | (${formatKES(loanYear3.principal)}) |
 | Loan Interest Paid | (${formatKES(totalLoanInterestYear1)}) | (${formatKES(annualLoanInterestYear2)}) | (${formatKES(annualLoanInterestYear3)}) |
@@ -391,7 +397,7 @@ ${makeRow("**Closing Balance c/f**", (m) => m.closing, part2Months)}
 | Financial Line Item | ${yearLabels[0]} (KES) | ${yearLabels[1]} (KES) | ${yearLabels[2]} (KES) |
 | :--- | :--- | :--- | :--- |
 | **Gross Sales Revenue** | ${formatKES(annualSalesYear1)} | ${formatKES(annualSalesYear2)} | ${formatKES(annualSalesYear3)} |
-| Less: Cost of Goods Sold (Raw Materials) | (${formatKES(annualCogsYear1)}) | (${formatKES(annualCogsYear2)}) | (${formatKES(annualCogsYear3)}) |
+| Less: ${serviceLabel} | (${formatKES(annualCogsYear1)}) | (${formatKES(annualCogsYear2)}) | (${formatKES(annualCogsYear3)}) |
 | **Gross Profit** | **${formatKES(annualGrossProfitYear1)}** | **${formatKES(annualGrossProfitYear2)}** | **${formatKES(annualGrossProfitYear3)}** |
 | *Gross Profit Margin (%)* | *${grossProfitMarginPercent}%* | *${percent(annualGrossProfitYear2, annualSalesYear2) ?? "N/M"}%* | *${percent(annualGrossProfitYear3, annualSalesYear3) ?? "N/M"}%* |
 | **Operating Overheads & Expenses:** | | | |
@@ -402,7 +408,7 @@ ${makeRow("**Closing Balance c/f**", (m) => m.closing, part2Months)}
 | - Advertising, Promotion & Public Relations | ${formatKES(monthlyMarketing * 12)} | ${formatKES(Math.round(monthlyMarketing * 12 * 1.05))} | ${formatKES(Math.round(monthlyMarketing * 12 * 1.05))} |
 | - Stationery, Licenses & Incidentals | ${formatKES(monthlyMisc * 12)} | ${formatKES(Math.round(monthlyMisc * 12 * 1.05))} | ${formatKES(Math.round(monthlyMisc * 12 * 1.05))} |
 | **Total Operating Expenses** | **(${formatKES(annualOperatingExpensesYear1)})** | **(${formatKES(annualOperatingExpensesYear2)})** | **(${formatKES(annualOperatingExpensesYear3)})** |
-| Less: Depreciation (10% on Machinery) | (${formatKES(annualDepreciation)}) | (${formatKES(annualDepreciation)}) | (${formatKES(annualDepreciation)}) |
+| Less: Depreciation (10% on ${isConsultancy ? "Equipment" : "Machinery"}) | (${formatKES(annualDepreciation)}) | (${formatKES(annualDepreciation)}) | (${formatKES(annualDepreciation)}) |
 | **Operating Profit before Interest & Tax (EBIT)** | **${formatKES(ebitYear1)}** | **${formatKES(ebitYear2)}** | **${formatKES(ebitYear3)}** |
 | Less: Loan Interest Expense | (${formatKES(totalLoanInterestYear1)}) | (${formatKES(annualLoanInterestYear2)}) | (${formatKES(annualLoanInterestYear3)}) |
 | **Net Profit Before Tax (EBT)** | **${formatKES(ebtYear1)}** | **${formatKES(ebtYear2)}** | **${formatKES(ebtYear3)}** |
@@ -451,10 +457,10 @@ ${makeRow("**Closing Balance c/f**", (m) => m.closing, part2Months)}
 | :--- | :--- | :--- | :--- | :--- |
 | **CURRENT ASSETS:** | | | | |
 | - Cash at Hand & in Bank | ${formatKES(openingCash)} | ${formatKES(year1ClosingCash)} | ${formatKES(year2ClosingCash)} | ${formatKES(year3ClosingCash)} |
-| - Inventory / Stock of Goods | 0 | ${formatKES(stockY1)} | ${formatKES(stockY2)} | ${formatKES(stockY3)} |
+| - ${isConsultancy ? "Consultation Supplies" : "Inventory / Stock of Goods"} | 0 | ${formatKES(isConsultancy ? 0 : stockY1)} | ${formatKES(isConsultancy ? 0 : stockY2)} | ${formatKES(isConsultancy ? 0 : stockY3)} |
 | **Total Current Assets** | **${formatKES(openingCash)}** | **${formatKES(year1ClosingCash + stockY1)}** | **${formatKES(year2ClosingCash + stockY2)}** | **${formatKES(year3ClosingCash + stockY3)}** |
 | **FIXED ASSETS:** | | | | |
-| - Machinery, Plant & Equipment (At Cost) | ${formatKES(totalMachineryCost)} | ${formatKES(totalMachineryCost)} | ${formatKES(totalMachineryCost)} | ${formatKES(totalMachineryCost)} |
+| - ${assetLabel} (At Cost) | ${formatKES(totalMachineryCost)} | ${formatKES(totalMachineryCost)} | ${formatKES(totalMachineryCost)} | ${formatKES(totalMachineryCost)} |
 | - Less: Accumulated Depreciation | (0) | (${formatKES(annualDepreciation)}) | (${formatKES(annualDepreciation * 2)}) | (${formatKES(annualDepreciation * 3)}) |
 | **Net Fixed Assets** | **${formatKES(totalMachineryCost)}** | **${formatKES(machNetY1)}** | **${formatKES(machNetY2)}** | **${formatKES(machNetY3)}** |
 | **TOTAL ASSETS** | **${formatKES(totalStartupCapital)}** | **${formatKES(totalAssetsY1)}** | **${formatKES(totalAssetsY2)}** | **${formatKES(totalAssetsY3)}** |
@@ -474,11 +480,11 @@ ${makeRow("**Closing Balance c/f**", (m) => m.closing, part2Months)}
   const breakEvenTable = `
 | Break-Even Parameter | Formula / Basis | Value |
 | :--- | :--- | :--- |
-| **Unit Selling Price (P)** | Market retail price per unit/pack | **KES ${formatKES(unitPrice)}** |
-| **Unit Variable Cost (V)** | Direct raw material & packaging cost per unit | **KES ${formatKES(unitCost)}** |
+| **${isConsultancy ? "Consultation Fee (P)" : "Unit Selling Price (P)"}** | ${isConsultancy ? "Fee per consultation session" : "Market price per unit/pack"} | **KES ${formatKES(unitPrice)}** |
+| **${isConsultancy ? "Variable Cost per Session (V)" : "Unit Variable Cost (V)"}** | ${isConsultancy ? "Direct cost of delivering one session" : "Direct raw material and packaging cost per unit"} | **KES ${formatKES(unitCost)}** |
 | **Unit Contribution Margin (CM)** | Selling price minus variable cost per unit | **KES ${formatKES(contributionMarginPerUnit)}** |
 | **Total Monthly Fixed Costs (FC)** | Rent + Wages + Utilities + Transport + Marketing + Depreciation | **KES ${formatKES(monthlyFixedCosts)}** |
-| **Monthly Break-Even Units** | Fixed costs divided by unit contribution margin | **${breakEvenAchievable ? `${formatKES(breakEvenUnitsMonthly)} units/month` : "Not achievable at this price and unit cost"}** |
+| **Monthly Break-Even ${isConsultancy ? "Sessions" : "Units"}** | Fixed costs divided by unit contribution margin | **${breakEvenAchievable ? `${formatKES(breakEvenUnitsMonthly)} ${unitLabel}/month` : "Not achievable at this price and unit cost"}** |
 | **Monthly Break-Even Revenue** | Break-even units multiplied by selling price | **${breakEvenAchievable ? `KES ${formatKES(breakEvenRevenueMonthly)}/month` : "N/M"}** |
 | **Annual Break-Even Revenue** | Monthly break-even revenue multiplied by 12 | **${breakEvenAchievable ? `KES ${formatKES(breakEvenRevenueMonthly * 12)}/year` : "N/M"}** |
 | **Break-Even Capacity Utilization** | Break-even units divided by planned monthly capacity | **${breakEvenAchievable && fullMonthlyUnits > 0 ? `${breakEvenLevelPercent}%` : "N/M"}** |

@@ -9,7 +9,8 @@ import {
   type BusinessPlanAIProvider,
   type BusinessPlanResearch,
 } from "@/lib/studio/businessPlanGeneration";
-import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
+import { resolveBusinessPlanModel, type BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
+import { getBusinessModelConflictFindings } from "@/lib/studio/businessPlanProfiles";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { SectionReviewKind, SectionReviewStatus } from "@/types/database";
 import { revalidatePath } from "next/cache";
@@ -70,12 +71,21 @@ export async function approveCompletedProjectForMarketplace(formData: FormData) 
   await assertSectionCommentsResolved(db, workspaceId);
 
   const { data: fullWorkspace } = await db.from("project_workspaces")
-    .select("workspace_type, level").eq("id", workspaceId).single();
+    .select("workspace_type, level, business_plan_specs").eq("id", workspaceId).single();
   if (!fullWorkspace) throw new Error("Project not found.");
-  const definitions = getWorkspaceSections(fullWorkspace.workspace_type, fullWorkspace.level);
+  const specs = fullWorkspace.business_plan_specs as BusinessPlanSpecs | null;
+  const model = fullWorkspace.workspace_type === "business_plan" ? resolveBusinessPlanModel(specs) : undefined;
+  const definitions = getWorkspaceSections(fullWorkspace.workspace_type, fullWorkspace.level, model);
   const { data: rows, error: rowsError } = await db.from("workspace_sections")
     .select("section_key, current_text").eq("workspace_id", workspaceId);
   if (rowsError) throw new Error(rowsError.message || "Could not verify project sections.");
+  if (fullWorkspace.workspace_type === "business_plan" && specs) {
+    const conflicts = getBusinessModelConflictFindings(specs, (rows || []).map((row) => ({
+      key: row.section_key,
+      content: row.current_text || "",
+    })));
+    if (conflicts.length) throw new Error(`Resolve the business-model mismatch in ${conflicts.map((item) => item.sectionKey).join(", ")} before final approval.`);
+  }
   const contentByKey = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
   const incomplete = definitions.filter((definition) => {
     const words = (contentByKey.get(definition.key) || "").trim().split(/\s+/).filter(Boolean).length;

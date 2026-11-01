@@ -33,7 +33,27 @@ export interface BusinessPlanCompetitorItem {
   weaknesses: string;
 }
 
+export type BusinessPlanModel = "consultancy" | "milling" | "beverages" | "custom";
+
+export function resolveBusinessPlanModel(
+  specs: Partial<BusinessPlanSpecs> | null | undefined
+): BusinessPlanModel {
+  if (
+    specs?.businessModel === "consultancy" || specs?.businessModel === "milling" ||
+    specs?.businessModel === "beverages" || specs?.businessModel === "custom"
+  ) return specs.businessModel;
+
+  const identity = [specs?.businessName, specs?.industrySector, specs?.primaryProduct]
+    .filter(Boolean).join(" ").toLowerCase();
+  if (/consult|clinical nutrition|dietary meal|nutrition therap/.test(identity)) return "consultancy";
+  if (/juice|beverage|puree/.test(identity)) return "beverages";
+  if (/mill|flour|food manufactur|porridge/.test(identity)) return "milling";
+  return "custom";
+}
+
 export interface BusinessPlanSpecs {
+  /** The selected venture model controls business-plan language and labels. */
+  businessModel?: BusinessPlanModel;
   research?: {
     summary: string;
     sources: Array<{ title: string; url: string }>;
@@ -108,16 +128,17 @@ export interface BusinessPlanSpecs {
   };
 }
 
-/** Pre-configured templates based on Kenya Nutrition & Food Science sectors */
+/** Example starting points. Candidate-specific facts and quotations must be verified. */
 export const BUSINESS_PLAN_PRESETS: Record<string, Partial<BusinessPlanSpecs>> = {
   consultancy: {
+    businessModel: "consultancy",
     businessName: "Afya Bora Nutrition & Dietetics Consultancy Practice",
     tagline: "Personalized Nutrition for Vibrant Living",
     industrySector: "Clinical Healthcare & Community Nutrition Services",
     formOfOwnership: "Sole Proprietorship",
     registrationType: "Business Names Registration Act (Cap 499, Laws of Kenya)",
-    ownerQualifications: "Diploma in Human Nutrition and Dietetics with 2 years clinical hospital internship and KNDI registration.",
-    locationRationale: "Located near Lodwar Sub-County Hospital and private clinics, ensuring direct patient doctor referrals and central accessibility.",
+    ownerQualifications: "Enter the candidate's verified nutrition qualification and current professional registration status.",
+    locationRationale: "Describe access to intended clients and any nearby health facilities after confirming them locally.",
     primaryProduct: "Individualized Clinical Nutrition Therapy & Dietary Meal Plans",
     productDescription: "Comprehensive nutritional assessment, body composition analysis, diabetic diet management packages, and corporate wellness coaching.",
     productPackaging: "Individual 45-minute clinical consultation sessions with customized digital and printed meal guides",
@@ -127,36 +148,21 @@ export const BUSINESS_PLAN_PRESETS: Record<string, Partial<BusinessPlanSpecs>> =
     annualGrowthRateYear2: 0.25,
     annualGrowthRateYear3: 0.2,
     targetCustomersDescription: "Patients referred with diabetes, hypertension, and gout; pregnant and lactating mothers; weight management and fitness clients.",
-    totalMarketPopulation: "Approximately 35,000 residents within the town center and surrounding residential estates.",
-    projectedMarketSharePercentage: 18,
-    competitors: [
-      {
-        name: "Lodwar Sub-County Referral Hospital Outpatient Clinic",
-        location: "Hospital Road",
-        priceLevel: "KES 500 (Subsidized)",
-        strengths: "High foot traffic and government brand recognition",
-        weaknesses: "Long patient queues, brief 10-minute consults, no follow-up meal planning",
-      },
-      {
-        name: "Wellness Life Pharmacy Dietary Corner",
-        location: "Kenyatta Way",
-        priceLevel: "KES 1,200",
-        strengths: "Convenient pharmacy location",
-        weaknesses: "Lacks specialized diagnostic body composition equipment",
-      },
-    ],
+    totalMarketPopulation: "Enter a source-based estimate for the selected town or service catchment.",
+    projectedMarketSharePercentage: 0,
+    competitors: [],
     marketingPromotionBudgetMonthly: 12000,
     machinery: [
-      { item: "Bioimpedance Body Composition Analyzer", quantity: 1, unitCost: 65000, supplier: "Biomedical Scientific Ltd, Nairobi" },
-      { item: "Medical Grade Digital Weighing Scale & Stadiometer", quantity: 1, unitCost: 28000, supplier: "Crown Healthcare Ltd" },
-      { item: "Infant Length Board & Electronic Baby Scale", quantity: 1, unitCost: 22000, supplier: "UNICEF approved local vendor" },
-      { item: "Office Laptop, Color Printer, and Nutrition Software", quantity: 1, unitCost: 55000, supplier: "Computer Land Ltd" },
-      { item: "Executive Consultation Desk, Chairs & Examination Couch", quantity: 1, unitCost: 40000, supplier: "Eldoret Furniture Mart" },
+      { item: "Body composition analyzer (if required)", quantity: 1, unitCost: 65000, supplier: "[Quotation required]" },
+      { item: "Digital weighing scale and stadiometer", quantity: 1, unitCost: 28000, supplier: "[Quotation required]" },
+      { item: "Infant length board and baby scale (if required)", quantity: 1, unitCost: 22000, supplier: "[Quotation required]" },
+      { item: "Laptop, printer, and licensed nutrition software", quantity: 1, unitCost: 55000, supplier: "[Quotation required]" },
+      { item: "Consultation desk, chairs, and examination couch", quantity: 1, unitCost: 40000, supplier: "[Quotation required]" },
     ],
     rawMaterials: [
-      { material: "Disposable examination sheets & sanitary wipes", monthlyQuantity: "10 packs", monthlyCost: 3500, supplier: "Lodwar Chemists" },
-      { material: "Printed branded diet diaries & educational brochures", monthlyQuantity: "150 booklets", monthlyCost: 6000, supplier: "Highland Printers" },
-      { material: "Dietary demo models & portion measuring cups", monthlyQuantity: "1 set", monthlyCost: 2500, supplier: "KNDI supplies" },
+      { material: "Disposable examination sheets and sanitation supplies", monthlyQuantity: "[Confirm monthly usage]", monthlyCost: 3500, supplier: "[Quotation required]" },
+      { material: "Printed diet diaries and client education materials", monthlyQuantity: "[Confirm monthly usage]", monthlyCost: 6000, supplier: "[Quotation required]" },
+      { material: "Dietary demonstration models and portion measuring cups", monthlyQuantity: "[Confirm requirement]", monthlyCost: 2500, supplier: "[Quotation required]" },
     ],
     workshopSquareMeters: 45,
     monthlyRent: 22000,
@@ -193,6 +199,7 @@ export const BUSINESS_PLAN_PRESETS: Record<string, Partial<BusinessPlanSpecs>> =
   },
 
   milling: {
+    businessModel: "milling",
     businessName: "NutriGrain Biofortified Porridge Mills",
     tagline: "Wholesome Nutrition for Thriving Families",
     industrySector: "Agro-processing & Nutrient-Dense Food Manufacturing",
@@ -283,6 +290,7 @@ export const BUSINESS_PLAN_PRESETS: Record<string, Partial<BusinessPlanSpecs>> =
   },
 
   beverages: {
+    businessModel: "beverages",
     businessName: "NatureFresh Fruit Juices & Purees",
     tagline: "100% Pure Fruit Goodness, No Preservatives",
     industrySector: "Beverage Processing & Agribusiness Value Addition",

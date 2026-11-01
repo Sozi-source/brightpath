@@ -1,6 +1,8 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getWorkspaceSections } from "@/lib/studio/templates";
+import { resolveBusinessPlanModel, type BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
+import { getBusinessModelConflictFindings } from "@/lib/studio/businessPlanProfiles";
 
 export async function queueApprovedBusinessPlanListing(workspaceId: string) {
   const db = createAdminClient();
@@ -16,10 +18,18 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
     throw new Error("The student’s marketplace price is invalid.");
   }
 
-  const definitions = getWorkspaceSections("business_plan", workspace.level);
+  const planSpecs = workspace.business_plan_specs as BusinessPlanSpecs | null;
+  const definitions = getWorkspaceSections("business_plan", workspace.level, resolveBusinessPlanModel(planSpecs));
   const { data: rows, error: sectionsError } = await db.from("workspace_sections")
     .select("section_key, current_text").eq("workspace_id", workspaceId);
   if (sectionsError) throw new Error(sectionsError.message || "Could not load approved plan sections.");
+  if (planSpecs) {
+    const conflicts = getBusinessModelConflictFindings(planSpecs, (rows || []).map((row) => ({
+      key: row.section_key,
+      content: row.current_text || "",
+    })));
+    if (conflicts.length) throw new Error(`Resolve the business-model mismatch in ${conflicts.map((item) => item.sectionKey).join(", ")} before marketplace review.`);
+  }
   const sectionText = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
   const incomplete = definitions.filter((definition) => {
     const words = (sectionText.get(definition.key) || "").trim().split(/\s+/).filter(Boolean).length;

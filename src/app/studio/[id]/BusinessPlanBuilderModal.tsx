@@ -16,8 +16,9 @@ import {
   FileText,
   Plus,
 } from "lucide-react";
+import { BUSINESS_PLAN_PRESETS, resolveBusinessPlanModel } from "@/lib/studio/businessPlanTypes";
 import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
-import { BUSINESS_PLAN_PRESETS } from "@/lib/studio/businessPlanTypes";
+import { getBusinessPlanModelGuidance } from "@/lib/studio/businessPlanProfiles";
 import { computeBusinessPlanFinancials } from "@/lib/studio/businessPlanMath";
 import {
   buildCompleteBusinessPlanAction,
@@ -99,6 +100,7 @@ export function BusinessPlanBuilderModal({
 
   // Presets are optional examples; a new plan starts with candidate-owned values.
   const [specs, setSpecs] = useState<BusinessPlanSpecs>(() => ({
+      businessModel: resolveBusinessPlanModel(initialSpecs),
       businessName: "",
       tagline: "",
       industrySector: "",
@@ -168,6 +170,9 @@ export function BusinessPlanBuilderModal({
     factReviewWarning: boolean;
   } | null>(null);
 
+  const modelGuidance = getBusinessPlanModelGuidance(resolveBusinessPlanModel(specs));
+  const isConsultancy = resolveBusinessPlanModel(specs) === "consultancy";
+
   // Kept out of the report flow until the financial model is reconciled to the supplied template.
   const financials = useMemo(() => computeBusinessPlanFinancials(specs), [specs]);
 
@@ -177,6 +182,7 @@ export function BusinessPlanBuilderModal({
 
     setSpecs((prev) => ({
       ...prev,
+      businessModel: presetKey,
       businessName: preset.businessName || prev.businessName,
       tagline: preset.tagline || prev.tagline,
       industrySector: preset.industrySector || prev.industrySector,
@@ -441,7 +447,7 @@ export function BusinessPlanBuilderModal({
                 }`}
               >
                 <Wrench className="h-3.5 w-3.5" />
-                <span>Machinery & Staff</span>
+                <span>{isConsultancy ? "Practice & Staff" : "Machinery & Staff"}</span>
               </button>
               <button
                 type="button"
@@ -470,7 +476,7 @@ export function BusinessPlanBuilderModal({
                       Select an approved curriculum preset or customize your own venture
                     </h4>
                     <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
-                      Each preset populates complete machinery quotations, staff salary schedules, raw material costs, and financial forecasts compliant with KNEC marking criteria.
+                      Presets are editable planning examples. Verify local facts, prices, suppliers, and requirements before using them.
                     </p>
                   </div>
 
@@ -479,7 +485,7 @@ export function BusinessPlanBuilderModal({
                     <div
                       onClick={() => loadPreset("milling")}
                       className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
-                        (specs.businessName || "").includes("Porridge")
+                        specs.businessModel === "milling"
                           ? "border-indigo-600 bg-indigo-50/40 shadow-xs ring-1 ring-indigo-600"
                           : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
                       }`}
@@ -503,7 +509,7 @@ export function BusinessPlanBuilderModal({
                     <div
                       onClick={() => loadPreset("consultancy")}
                       className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
-                        (specs.businessName || "").includes("Consultancy")
+                        specs.businessModel === "consultancy"
                           ? "border-indigo-600 bg-indigo-50/40 shadow-xs ring-1 ring-indigo-600"
                           : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
                       }`}
@@ -514,7 +520,7 @@ export function BusinessPlanBuilderModal({
                           Clinical Nutrition Practice
                         </h5>
                         <p className="text-[11px] text-slate-500 leading-normal">
-                          Outpatient dietary therapy and metabolic counseling clinic in Lodwar Town.
+                          Nutrition assessment and counselling practice. Set the location and verify local service information.
                         </p>
                       </div>
                       <div className="pt-3 mt-3 border-t border-slate-200 flex items-center justify-between text-[11px] font-mono text-slate-600">
@@ -527,7 +533,7 @@ export function BusinessPlanBuilderModal({
                     <div
                       onClick={() => loadPreset("beverages")}
                       className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
-                        (specs.businessName || "").includes("Fruit")
+                        specs.businessModel === "beverages"
                           ? "border-indigo-600 bg-indigo-50/40 shadow-xs ring-1 ring-indigo-600"
                           : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
                       }`}
@@ -899,7 +905,7 @@ export function BusinessPlanBuilderModal({
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                       <label className="text-xs font-medium text-slate-700 block mb-1">
-                        Unit Selling Price (KES) *
+                        {isConsultancy ? "Fee per Consultation (KES) *" : "Unit Selling Price (KES) *"}
                       </label>
                       <input
                         type="number"
@@ -913,7 +919,7 @@ export function BusinessPlanBuilderModal({
                     </div>
                     <div>
                       <label className="text-xs font-medium text-slate-700 block mb-1">
-                        Unit Cost of Production (KES) *
+                        {isConsultancy ? "Variable Cost per Consultation (KES) *" : "Unit Cost of Production (KES) *"}
                       </label>
                       <input
                         type="number"
@@ -927,7 +933,7 @@ export function BusinessPlanBuilderModal({
                     </div>
                     <div>
                       <label className="text-xs font-medium text-slate-700 block mb-1">
-                        Monthly Production (Units) *
+                        {isConsultancy ? "Consultations per Month *" : "Monthly Production (Units) *"}
                       </label>
                       <input
                         type="number"
@@ -947,7 +953,7 @@ export function BusinessPlanBuilderModal({
                   {/* Pricing Margin Metric Box */}
                   <div className="p-3 bg-indigo-50/60 border border-indigo-200 rounded-lg flex items-center justify-between text-xs">
                     <div>
-                      <span className="text-slate-600">Gross Margin per Unit: </span>
+                      <span className="text-slate-600">{isConsultancy ? "Contribution per Consultation: " : "Gross Margin per Unit: "}</span>
                       <span className="font-semibold text-slate-900 font-mono">
                         KES {formatKES(specs.unitSellingPrice - specs.unitCostOfProduction)} (
                         {specs.unitSellingPrice > 0
@@ -961,7 +967,7 @@ export function BusinessPlanBuilderModal({
                       </span>
                     </div>
                     <div>
-                      <span className="text-slate-600">Sales at stated monthly output: </span>
+                      <span className="text-slate-600">{isConsultancy ? "Revenue at stated monthly capacity: " : "Sales at stated monthly output: "}</span>
                       <span className="font-semibold text-indigo-700 font-mono">
                         KES {formatKES(specs.unitSellingPrice * specs.monthlyProductionUnitsYear1 * 12)}
                       </span>
@@ -995,7 +1001,7 @@ export function BusinessPlanBuilderModal({
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-semibold text-slate-800">
-                        Operational Machinery & Tools (KNEC Chapter 4.3)
+                        {modelGuidance.equipment} (KNEC Chapter 4.3)
                       </label>
                       <button type="button" onClick={addEquipment} className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-[11px] font-semibold text-indigo-700">
                         <Plus className="h-3 w-3" /> Add item
@@ -1028,7 +1034,7 @@ export function BusinessPlanBuilderModal({
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs font-semibold text-slate-800">Materials and suppliers</label>
+                      <label className="text-xs font-semibold text-slate-800">{isConsultancy ? "Consumables and suppliers" : "Materials and suppliers"}</label>
                       <button type="button" onClick={addRawMaterial} className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-[11px] font-semibold text-indigo-700">
                         <Plus className="h-3 w-3" /> Add material
                       </button>

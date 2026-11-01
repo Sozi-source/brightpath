@@ -23,7 +23,12 @@ import {
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { WorkspaceType, WorkspaceLevel } from "@/types/database";
+import { resolveBusinessPlanModel } from "@/lib/studio/businessPlanTypes";
 import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
+import {
+  getBusinessModelConflictFindings,
+  validateBusinessPlanModelSpecs,
+} from "@/lib/studio/businessPlanProfiles";
 
 function getBusinessPlanAIProvider(formData: FormData): BusinessPlanAIProvider {
   const value = formData.get("aiProvider")?.toString();
@@ -367,7 +372,7 @@ export async function submitCompletedProjectForFinalReview(formData: FormData) {
   if (!workspaceId) throw new Error("Missing workspace ID.");
   const db = getServerDbClient(supabase);
   const { data: workspace } = await db.from("project_workspaces")
-    .select("id, student_id, workspace_type, level, status, final_project_status")
+    .select("id, student_id, workspace_type, level, status, final_project_status, business_plan_specs")
     .eq("id", workspaceId).maybeSingle();
   if (!workspace || workspace.student_id !== user.id) throw new Error("This project is not yours.");
   if (workspace.status !== "approved") throw new Error("Supervisor approval of the submitted chapters is required first.");
@@ -390,11 +395,20 @@ export async function submitCompletedProjectForFinalReview(formData: FormData) {
     }
   }
 
-  const definitions = getWorkspaceSections(workspace.workspace_type, workspace.level);
+  const planSpecs = workspace.business_plan_specs as BusinessPlanSpecs | null;
+  const businessModel = workspace.workspace_type === "business_plan" ? resolveBusinessPlanModel(planSpecs) : undefined;
+  const definitions = getWorkspaceSections(workspace.workspace_type, workspace.level, businessModel);
   const { data: sections, error: sectionsError } = await db.from("workspace_sections")
     .select("section_key, current_text").eq("workspace_id", workspaceId);
   if (sectionsError) throw new Error(sectionsError.message || "Could not verify project sections.");
   const contentByKey = new Map((sections || []).map((section) => [section.section_key, section.current_text || ""]));
+  if (workspace.workspace_type === "business_plan" && planSpecs) {
+    const conflicts = getBusinessModelConflictFindings(planSpecs, (sections || []).map((section) => ({
+      key: section.section_key,
+      content: section.current_text || "",
+    })));
+    if (conflicts.length) throw new Error(`Resolve the business-model mismatch in ${conflicts.map((item) => item.sectionKey).join(", ")} before final submission.`);
+  }
   const incomplete = definitions.filter((definition) => {
     const words = (contentByKey.get(definition.key) || "").trim().split(/\s+/).filter(Boolean).length;
     return words < (definition.minWords || 30);
@@ -696,6 +710,9 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
   } catch {
     throw new Error("Invalid business plan specifications payload.");
   }
+  specs.businessModel = resolveBusinessPlanModel(specs);
+  const modelIssues = validateBusinessPlanModelSpecs(specs);
+  if (modelIssues.length) throw new Error(modelIssues.join(" "));
 
   // 1. Fetch workspace and ensure ownership.
   const { data: ws } = await db
@@ -861,6 +878,7 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
   const priorResearch = priorSpecs?.research;
   const canReuseResearch = Boolean(
     priorResearch?.summary &&
+    resolveBusinessPlanModel(priorSpecs) === specs.businessModel &&
     priorSpecs?.businessName === specs.businessName &&
     priorSpecs?.industrySector === specs.industrySector &&
     priorSpecs?.primaryProduct === specs.primaryProduct &&
@@ -870,7 +888,7 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
   const research = canReuseResearch
     ? priorResearch as BusinessPlanResearch
     : await researchBusinessPlan(specs, aiProvider);
-  const sectionDefinitions = getWorkspaceSections("business_plan", ws.level);
+  const sectionDefinitions = getWorkspaceSections("business_plan", ws.level, specs.businessModel);
   const { data: existingSections, error: existingSectionsError } = await db
     .from("workspace_sections")
     .select("section_key, current_text")
@@ -974,7 +992,7 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
     throw new Error("Save business plan details before drafting the chapters.");
   }
 
-  const definitions = getWorkspaceSections("business_plan", workspace.level).filter(
+  const definitions = getWorkspaceSections("business_plan", workspace.level, resolveBusinessPlanModel(specs)).filter(
     (definition) => (definition.chapter || definition.phase) === chapterKey
   );
   if (definitions.length === 0) throw new Error("Business plan chapter not found.");
@@ -1018,6 +1036,13 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
       `### ${definition.title}\n\n[Add verified information for this section.]`,
     starter_text: getSectionStarterContent("business_plan", workspace.level, definition.key),
   }));
+  const modelConflicts = getBusinessModelConflictFindings(
+    specs,
+    draftSections.map((section) => ({ key: section.section_key, content: section.current_text }))
+  );
+  if (modelConflicts.length) {
+    throw new Error(`Generated text conflicts with the selected business model in ${modelConflicts.map((item) => item.sectionKey).join(", ")}. Review the model-specific template before saving.`);
+  }
 
   let generatedSections = 0;
   let preservedSections = 0;
@@ -1162,9 +1187,13 @@ async function runCompleteBusinessPlanBuild(
   } catch {
     return { success: false, error: "Invalid business plan specifications payload." };
   }
+  specs.businessModel = resolveBusinessPlanModel(specs);
   if (!specs || typeof specs !== "object" || Array.isArray(specs)) {
     return { success: false, error: "Invalid business plan specifications payload." };
   }
+  specs.businessModel = resolveBusinessPlanModel(specs);
+  const modelIssues = validateBusinessPlanModelSpecs(specs);
+  if (modelIssues.length) return { success: false, error: modelIssues.join(" ") };
 
   // ── Workspace ownership & status ──────────────────────────────────────────
   const { data: ws } = await db
@@ -1329,6 +1358,7 @@ async function runCompleteBusinessPlanBuild(
   const canReuseResearch = Boolean(
     priorResearch?.summary &&
       Array.isArray(priorResearch.sources) &&
+      resolveBusinessPlanModel(priorSpecs) === specs.businessModel &&
       priorSpecs?.businessName === specs.businessName &&
       priorSpecs?.industrySector === specs.industrySector &&
       priorSpecs?.primaryProduct === specs.primaryProduct &&
@@ -1357,7 +1387,7 @@ async function runCompleteBusinessPlanBuild(
   }
 
   // ── Determine pending chapters ────────────────────────────────────────────
-  const sectionDefinitions = getWorkspaceSections("business_plan", ws.level);
+  const sectionDefinitions = getWorkspaceSections("business_plan", ws.level, specs.businessModel);
   const { data: existingSections, error: existingSectionsError } = await db
     .from("workspace_sections")
     .select("section_key, current_text")
@@ -1455,6 +1485,16 @@ async function runCompleteBusinessPlanBuild(
         `### ${def.title}\n\n[Add verified information for this section.]`,
       starter_text: getSectionStarterContent("business_plan", ws.level, def.key),
     }));
+    const modelConflicts = getBusinessModelConflictFindings(
+      specs,
+      draftSections.map((section) => ({ key: section.section_key, content: section.current_text }))
+    );
+    if (modelConflicts.length) {
+      return {
+        success: false,
+        error: `Generated text conflicts with the selected business model in ${modelConflicts.map((item) => item.sectionKey).join(", ")}. Review the model-specific template before saving.`,
+      };
+    }
 
     if (replaceExisting) {
       for (const section of draftSections) {
@@ -1601,7 +1641,7 @@ export async function reviewBusinessPlanDocumentAction(formData: FormData) {
   if (rowsError) throw new Error(rowsError.message || "Could not load the business plan sections.");
 
   const contentByKey = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
-  const sections = getWorkspaceSections("business_plan", workspace.level)
+  const sections = getWorkspaceSections("business_plan", workspace.level, resolveBusinessPlanModel(specs))
     .map((definition) => ({
       key: definition.key,
       title: definition.title,
@@ -1644,10 +1684,18 @@ export async function publishBusinessPlanToMarketplace(formData: FormData) {
   if (workspace.workspace_type !== "business_plan") throw new Error("Only business plans can be submitted from this workspace.");
   if (workspace.final_project_status !== "approved") throw new Error("A supervisor must approve the complete project before marketplace submission.");
 
-  const definitions = getWorkspaceSections("business_plan", workspace.level);
+  const definitions = getWorkspaceSections("business_plan", workspace.level, resolveBusinessPlanModel(workspace.business_plan_specs as BusinessPlanSpecs | null));
   const { data: rows, error: sectionsError } = await db.from("workspace_sections")
     .select("section_key, current_text").eq("workspace_id", workspaceId);
   if (sectionsError) throw new Error("Could not verify the plan sections.");
+  const planSpecs = workspace.business_plan_specs as BusinessPlanSpecs | null;
+  if (planSpecs) {
+    const conflicts = getBusinessModelConflictFindings(planSpecs, (rows || []).map((row) => ({
+      key: row.section_key,
+      content: row.current_text || "",
+    })));
+    if (conflicts.length) throw new Error(`Resolve the business-model mismatch in ${conflicts.map((item) => item.sectionKey).join(", ")} before publishing.`);
+  }
   const sectionText = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
   const incomplete = definitions.filter((definition) => {
     const words = (sectionText.get(definition.key) || "").trim().split(/\s+/).filter(Boolean).length;

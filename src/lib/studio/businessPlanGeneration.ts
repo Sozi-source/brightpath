@@ -1,4 +1,6 @@
 import type { BusinessPlanSpecs } from "./businessPlanTypes";
+import { resolveBusinessPlanModel } from "./businessPlanTypes";
+import { getBusinessModelConflictFindings } from "./businessPlanProfiles";
 import type { SectionDef } from "./templates";
 
 export interface BusinessPlanResearchSource {
@@ -295,6 +297,7 @@ export async function reviewBusinessPlanFacts(
   if (reviewable.length === 0) return new Map();
 
   const candidateEvidence = {
+    businessModel: resolveBusinessPlanModel(specs),
     businessName: specs.businessName,
     sector: specs.industrySector,
     county: specs.county,
@@ -318,6 +321,8 @@ export async function reviewBusinessPlanFacts(
     text: scriptedSections.get(section.key),
   }));
   const prompt = `Review the scripted business-plan sections for factual accuracy. Return only minimal corrections as exact text replacements.
+
+BUSINESS MODEL LOCK: The selected model is ${resolveBusinessPlanModel(specs)}. Do not add activities, customers, equipment, regulations, or financial language belonging to another model. For nutrition consultancy, describe appointment-based assessment and counselling services only; do not introduce food manufacturing, milling, grain, packaged products, or factory processes.
 
 CANDIDATE-SUPPLIED DETAILS (treat these as assumptions, not independently verified facts):
 ${JSON.stringify(candidateEvidence)}
@@ -349,7 +354,9 @@ If no source supports another factual claim, replace only that claim with cautio
     ) continue;
     const original = updated.get(item.key) ?? scriptedSections.get(item.key);
     if (!original?.includes(item.find)) continue;
-    updated.set(item.key, original.replace(item.find, item.replace).slice(0, 30_000));
+    const correctedText = original.replace(item.find, item.replace).slice(0, 30_000);
+    if (getBusinessModelConflictFindings(specs, [{ key: item.key, content: correctedText }]).length) continue;
+    updated.set(item.key, correctedText);
   }
   return updated;
 }
@@ -378,11 +385,20 @@ export async function reviewWholeBusinessPlan(
     requirement: section.guidance,
     evidenceAndStructure: extractEvidence(section.content),
   }));
+  const modelConflictFindings = getBusinessModelConflictFindings(specs, reviewable).map((finding) => ({
+    sectionKey: finding.sectionKey,
+    severity: "high" as const,
+    category: "consistency",
+    issue: finding.issue,
+    recommendation: "Revise this section to match the selected business model. Existing text remains saved until the candidate edits it or explicitly confirms a rebuild.",
+    sourceRefs: [] as number[],
+  }));
   const groupCount = new Set(reviewable.map((section) => section.key.match(/^(ch\d+|prelim|app|references)/)?.[1] || "other")).size;
   const sourceList = research.sources
     .map((source, index) => `[${index + 1}] ${source.title} — ${source.url}`)
     .join("\n").slice(0, 1800) || "No independently verified web sources are attached.";
   const candidateFacts = {
+    businessModel: resolveBusinessPlanModel(specs),
     businessName: specs.businessName,
     sector: specs.industrySector,
     location: `${specs.townOrMarket}, ${specs.county}`,
@@ -394,6 +410,8 @@ export async function reviewWholeBusinessPlan(
     competitors: specs.competitors.map(({ name, location, priceLevel }) => ({ name, location, priceLevel })),
   };
   const prompt = `Review this complete business plan across all chapters. Check factual support, cross-section consistency, completeness against requirements, repetition, and whether the extracted content has suitable lists or tables. This is an audit only; do not rewrite or apply edits.
+
+BUSINESS MODEL LOCK (required): The selected model is ${resolveBusinessPlanModel(specs)}. Check each section against it. For nutrition consultancy, the core offer is appointment-based nutrition assessment, counselling, and meal planning; flag manufacturing, milling, grain purchasing, packaged food sales, factory roles, and food-production workflows as model conflicts. Do not treat a nutrition consultancy as a food manufacturer.
 
 GEOGRAPHIC CONSISTENCY CHECK (required): Compare every named town, county, sub-county, ward, road, and health facility in the manuscript with the candidate's stated business location and the supplied research. Flag claims that describe a distant or differently located facility as nearby, or place it in the wrong county. Use only the supplied sources for factual conclusions; if they do not resolve the issue, recommend local verification rather than guessing a replacement facility. Include the finding under the section containing the mismatch.
 
@@ -423,14 +441,14 @@ Return JSON only as {"findings":[{"sectionKey":"exact section key","severity":"h
       } catch (fallbackError) {
         const fallbackMessage = fallbackError instanceof Error ? fallbackError.message : "Unknown provider error.";
         return {
-          findings: [],
+          findings: modelConflictFindings,
           chaptersReviewed: 0,
           warnings: [`Groq and Gemini could not complete the review. ${fallbackMessage.slice(0, 220)}`],
         };
       }
     } else {
       return {
-        findings: [],
+        findings: modelConflictFindings,
         chaptersReviewed: 0,
         warnings: [`${message.slice(0, 240)}`],
       };
@@ -463,5 +481,11 @@ Return JSON only as {"findings":[{"sectionKey":"exact section key","severity":"h
     });
   }
 
-  return { findings, chaptersReviewed: groupCount, warnings };
+  const combinedFindings = [
+    ...modelConflictFindings,
+    ...findings.filter((finding) => !modelConflictFindings.some(
+      (modelFinding) => modelFinding.sectionKey === finding.sectionKey && modelFinding.category === finding.category
+    )),
+  ].slice(0, 10);
+  return { findings: combinedFindings, chaptersReviewed: groupCount, warnings };
 }

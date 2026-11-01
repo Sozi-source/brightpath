@@ -5,7 +5,10 @@
  */
 
 import type { BusinessPlanSpecs } from "./businessPlanTypes";
+import { resolveBusinessPlanModel } from "./businessPlanTypes";
 import { computeBusinessPlanFinancials } from "./businessPlanMath";
+import { getConsultancySectionContent } from "./businessPlanProfiles";
+import { getWorkspaceSections } from "./templates";
 
 export interface GeneratedSectionPayload {
   section_key: string;
@@ -841,6 +844,24 @@ X marks a month when the activity is scheduled.
 - **Key Survey Finding 2**: 73% of respondents expressed willingness to buy a locally formulated, orange-fleshed sweet potato and amaranth enriched blend at KES 120-130 per kg.
 - **Key Survey Finding 3**: 100% of retail kiosk owners agreed to stock the product provided introductory margins exceed 15% on sale-or-return terms.`
   );
+
+  if (resolveBusinessPlanModel(specs) === "consultancy") {
+    const definitions = new Map(
+      getWorkspaceSections("business_plan", specs.level, "consultancy").map((definition) => [definition.key, definition])
+    );
+    return results.map((section) => {
+      const definition = definitions.get(section.section_key);
+      const title = definition?.title || section.title;
+      const content = getConsultancySectionContent(section.section_key, title, specs);
+      if (!content) return section;
+      return {
+        ...section,
+        title,
+        content,
+        wordCount: content.trim().split(/\s+/).filter(Boolean).length,
+      };
+    });
+  }
 
   return results;
 }
