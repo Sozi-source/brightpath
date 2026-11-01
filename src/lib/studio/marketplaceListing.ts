@@ -59,14 +59,14 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
     if (existing.status !== "published") {
       const { error } = await db.from("projects").update({
         title: listingTitle, description: listingDescription, category: "Business Plan",
-        price_kes: priceKes, status: "pending_review",
+        material_type: "business_plan", price_kes: priceKes, status: "pending_review",
       }).eq("id", existing.id);
       if (error) throw new Error(error.message || "Could not update the marketplace listing.");
     }
   } else {
     const { data: listing, error } = await db.from("projects").insert({
       trainer_id: workspace.student_id, title: listingTitle, description: listingDescription,
-      category: "Business Plan", price_kes: priceKes, file_path: filePath, status: "pending_review",
+      category: "Business Plan", material_type: "business_plan", price_kes: priceKes, file_path: filePath, status: "pending_review",
     }).select("id").single();
     if (error || !listing) throw new Error(error?.message || "Could not submit the plan for marketplace review.");
     projectId = listing.id;

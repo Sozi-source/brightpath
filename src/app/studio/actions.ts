@@ -1688,6 +1688,7 @@ export async function publishBusinessPlanToMarketplace(formData: FormData) {
     title: listingTitle,
     description: listingDescription,
     category: "Business Plan",
+    material_type: "business_plan",
     price_kes: priceKes,
     file_path: `workspace-export:${workspaceId}`,
     status: "pending_review",

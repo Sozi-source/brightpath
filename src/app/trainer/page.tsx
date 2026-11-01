@@ -21,6 +21,7 @@ import {
   Clock,
 } from "lucide-react";
 import type { Project, UserProfile } from "@/types/database";
+import { MARKETPLACE_MATERIAL_TYPES, getMaterialTypeLabel } from "@/lib/marketplace";
 
 export const instant = false;
 
@@ -147,9 +148,9 @@ export default async function TrainerPortalPage() {
               <textarea
                 name="rawText"
                 rows={4}
-                placeholder={`title,category,price_kes,description,file_path
-"IoT Smart Irrigation System","Computer Science",2500,"Full source code, circuit schematic, and 4-chapter report","projects/irrigation.zip"
-"Commercial Poultry Production Business Plan","Business",1800,"Complete 5-year financial model with cash flow projections","projects/poultry.pdf"`}
+                placeholder={`title,material_type,category,price_kes,description,file_path
+"IoT Smart Irrigation System","technical_project","Computer Science",2500,"Source code and circuit schematic","projects/irrigation.zip"
+"Commercial Poultry Plan","business_plan","Agriculture",1800,"Five-year financial model","projects/poultry.pdf"`}
                 className="w-full font-mono rounded-lg border border-slate-300 bg-white p-3 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600"
               />
             </div>
@@ -160,7 +161,7 @@ export default async function TrainerPortalPage() {
               </summary>
               <div className="mt-1 p-2 rounded bg-white border border-slate-200 font-mono text-[10px] space-y-1">
                 <p><strong>Required:</strong> title</p>
-                <p><strong>Optional:</strong> category, price_kes, description, file_path, preview_path</p>
+                <p><strong>Optional:</strong> material_type, category, price_kes, description, file_path, preview_path, cover_path</p>
               </div>
             </details>
 
@@ -198,14 +199,20 @@ export default async function TrainerPortalPage() {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                Category
+                Material type <span className="text-rose-600">*</span>
               </label>
-              <input
-                name="category"
-                type="text"
-                placeholder="e.g. Computer Science, Agriculture, Business Plan"
+              <select
+                name="materialType"
+                required
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              />
+              >
+                <option value="">Choose a resource type</option>
+                {MARKETPLACE_MATERIAL_TYPES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Subject / course</label>
+              <input name="category" type="text" maxLength={100} placeholder="e.g. Computer Science" className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600" />
             </div>
           </div>
 
@@ -227,17 +234,25 @@ export default async function TrainerPortalPage() {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                Project Storage File Path / Key <span className="text-rose-600">*</span>
+                Material file <span className="text-rose-600">*</span>
               </label>
-              <input
-                name="filePath"
-                type="text"
-                required
-                defaultValue="projects/source-code-and-doc.zip"
-                placeholder="e.g. projects/source-code.zip"
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              />
+              <input name="productFile" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xlsx,.zip" className="w-full text-xs text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-white" />
+              <p className="mt-1 text-[11px] text-slate-600">PDF, Office, or ZIP · up to 8 MB</p>
+              <input name="filePath" type="text" placeholder="Or existing private storage path" className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600" />
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <label className="grid gap-1 text-xs font-bold text-slate-700">
+              Sample preview PDF
+              <input name="previewFile" type="file" accept="application/pdf,.pdf" className="w-full text-xs text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-blue-800" />
+              <span className="font-normal text-slate-500">Upload a short excerpt, up to 2 MB.</span>
+            </label>
+            <label className="grid gap-1 text-xs font-bold text-slate-700">
+              Cover image
+              <input name="coverFile" type="file" accept="image/jpeg,image/png,image/webp" className="w-full text-xs text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-blue-800" />
+              <span className="font-normal text-slate-500">JPG, PNG, or WebP up to 1 MB.</span>
+            </label>
           </div>
 
           <div>
@@ -257,7 +272,7 @@ export default async function TrainerPortalPage() {
             className="inline-flex items-center gap-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white px-5 py-2.5 text-xs sm:text-sm font-bold transition-colors shadow-xs cursor-pointer"
           >
             <PlusCircle className="h-4 w-4" />
-            <span>Publish Project to Marketplace</span>
+            <span>{isAdmin ? "Publish listing" : "Submit for review"}</span>
           </button>
         </form>
 
@@ -283,9 +298,7 @@ export default async function TrainerPortalPage() {
                 >
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200">
-                        {p.category || "General"}
-                      </span>
+                      <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200">{getMaterialTypeLabel(p.material_type)}</span>
                       <span className="text-xs font-mono font-bold text-slate-900">
                         KES {Number(p.price_kes).toLocaleString()}
                       </span>

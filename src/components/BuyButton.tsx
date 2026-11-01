@@ -60,7 +60,7 @@ export function BuyButton({ projectId, isOwner = false }: BuyButtonProps) {
       ) : (
         <>
           <ShoppingBag className="h-3.5 w-3.5" />
-          {isOwner ? "Your listing" : "Buy"}
+          {isOwner ? "Your listing" : "Buy now"}
         </>
       )}
     </button>

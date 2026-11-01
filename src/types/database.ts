@@ -1,6 +1,7 @@
 export type UserRole = "student" | "trainer" | "admin" | "supervisor";
 export type TrainerStatus = "pending" | "approved" | "suspended";
 export type ContentStatus = "draft" | "pending_review" | "published" | "rejected";
+export type MarketplaceMaterialType = "lecture_notes" | "past_paper" | "study_guide" | "reference_book" | "business_plan" | "technical_project" | "research_project" | "other";
 export type OrderStatus = "pending" | "paid" | "failed";
 
 export type AiMode = "off" | "feedback_only" | "feedback_and_polish";
@@ -58,6 +59,8 @@ export interface Project {
   title: string;
   description: string | null;
   category: string | null;
+  material_type: MarketplaceMaterialType;
+  cover_path: string | null;
   price_kes: number;
   file_path: string;
   preview_path: string | null;
