@@ -1,13 +1,13 @@
 .manuscript {
   color: #334155;
-  font-size: 0.875rem;
-  line-height: 1.8;
+  font-size: 0.9375rem;
+  line-height: 1.9;
   overflow-wrap: anywhere;
 }
 
 .manuscript > :first-child { margin-top: 0; }
 .manuscript > :last-child { margin-bottom: 0; }
-.manuscript p { margin: 0.75rem 0; white-space: pre-wrap; }
+.manuscript p { margin: 0.9rem 0; white-space: pre-wrap; }
 .manuscript h1,
 .manuscript h2,
 .manuscript h3,
@@ -17,23 +17,22 @@
 .manuscript h3,
 .manuscript h4 { font-size: 0.9rem; }
 .manuscript ul,
-.manuscript ol { margin: 0.65rem 0; padding-left: 1.5rem; }
+.manuscript ol { margin: 0.8rem 0; padding-left: 1.65rem; }
 .manuscript ul { list-style: disc; }
 .manuscript ol { list-style: decimal; }
-.manuscript li { margin: 0.25rem 0; padding-left: 0.2rem; }
+.manuscript li { margin: 0.35rem 0; padding-left: 0.25rem; }
 .manuscript li > p { margin: 0.25rem 0; }
 .manuscript strong { color: #1e293b; font-weight: 600; }
 .manuscript em { color: #475569; }
 .manuscript blockquote { margin: 0.85rem 0; border-left: 3px solid #cbd5e1; padding-left: 1rem; color: #475569; }
 .manuscript hr { margin: 1.25rem 0; border: 0; border-top: 1px solid #e2e8f0; }
-.manuscript table { width: 100%; margin: 1rem 0; border-collapse: collapse; font-size: 0.8rem; }
+.manuscript table { width: 100%; min-width: 36rem; margin: 0; border-collapse: collapse; font-size: 0.8125rem; line-height: 1.6; }
 .manuscript th,
-.manuscript td { border: 1px solid #cbd5e1; padding: 0.5rem 0.6rem; text-align: left; vertical-align: top; }
-.manuscript th { background: #f1f5f9; color: #0f172a; font-weight: 600; }
+.manuscript td { border: 1px solid #cbd5e1; padding: 0.7rem 0.8rem; text-align: left; vertical-align: top; white-space: normal; overflow-wrap: anywhere; }
+.manuscript th { background: #eaf1f8; color: #0f172a; font-weight: 600; }
 .manuscript tr:nth-child(even) td { background: #f8fafc; }
 .manuscript code { border-radius: 0.25rem; background: #f1f5f9; padding: 0.1rem 0.3rem; color: #334155; font-family: var(--font-mono); font-size: 0.85em; }
 
 @media (max-width: 639px) {
-  .manuscript { font-size: 0.8125rem; }
-  .manuscript table { display: block; overflow-x: auto; white-space: nowrap; }
+  .manuscript { font-size: 0.875rem; }
 }
