@@ -133,6 +133,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
     .order("created_at", { ascending: false });
 
   const reviews = (reviewsData as SupervisorReview[]) || [];
+  const latestTopicChapterReview = reviews.find((review) => review.review_stage !== "final_project") || null;
   const sectionReviewThreads = await getSectionReviewThreads(db, workspaceId);
 
   const templateDefs = getWorkspaceSections(workspace.workspace_type, workspace.level);
@@ -330,7 +331,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
                 Topic and chapter decisions are locked during final project review and after approval.
                 {isFinalReviewPending && <a href="#final-project-approval" className="ml-1 font-semibold underline">Go to final review</a>}
               </div>
-            ) : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ) : isPending || isSubmitted ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Form 1: Approve Topic / Chapters */}
               <div className="p-4 rounded-lg border border-emerald-200 bg-emerald-50/40 space-y-2.5">
                 <div className="flex items-center gap-2 text-emerald-800 font-semibold text-xs">
@@ -390,10 +391,21 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
                   />
                 </SupervisorDecisionForm>
               </div>
-            </div>}
+            </div> : (
+              <div className={`rounded-lg border px-4 py-3 ${latestTopicChapterReview?.status === "changes_requested" ? "border-amber-200 bg-amber-50/70" : "border-emerald-200 bg-emerald-50/60"}`}>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`rounded-md border px-2 py-1 text-[11px] font-semibold ${latestTopicChapterReview?.status === "changes_requested" ? "border-amber-200 bg-white text-amber-900" : "border-emerald-200 bg-white text-emerald-800"}`}>
+                    {latestTopicChapterReview?.status === "changes_requested" ? "Revisions requested" : latestTopicChapterReview ? "Decision recorded" : isApproved ? "Approved" : "Awaiting candidate submission"}
+                  </span>
+                  {latestTopicChapterReview && <span className="text-[10px] text-slate-500">{new Date(latestTopicChapterReview.created_at).toLocaleString()}</span>}
+                </div>
+                {latestTopicChapterReview?.comment && <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-slate-700">{latestTopicChapterReview.comment}</p>}
+                {!latestTopicChapterReview && <p className="mt-1 text-xs text-slate-600">Supervisor actions will appear when a topic or chapter submission is ready for review.</p>}
+              </div>
+            )}
 
             {/* Title Refinement Form */}
-            <div className="pt-3 border-t border-slate-200">
+            {isPending && !topicChapterReviewLocked && <div className="pt-3 border-t border-slate-200">
               <form action={updateProposalTitle} className="space-y-1.5">
                 <input type="hidden" name="workspaceId" value={workspaceId} />
                 <label
@@ -420,7 +432,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
                   </button>
                 </div>
               </form>
-            </div>
+            </div>}
           </div>
         </ContentCard>
 
