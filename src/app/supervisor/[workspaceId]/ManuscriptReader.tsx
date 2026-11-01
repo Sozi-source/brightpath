@@ -3,7 +3,7 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
-import { ChevronDown, ChevronRight, FileText, ListTree, X } from "lucide-react";
+import { FileText, ListTree } from "lucide-react";
 import { SectionReviewThreads, type ReviewSelection } from "./SectionReviewThreads";
 import styles from "./ManuscriptReader.module.css";
 import type { SectionReviewThread, UserRole } from "@/types/database";
@@ -102,8 +102,6 @@ export function ManuscriptReader({
   canReview: boolean;
   canReply: boolean;
 }) {
-  const [openChapters, setOpenChapters] = useState(() => new Set(chapters.map((chapter) => chapter.key)));
-  const [contentsOpen, setContentsOpen] = useState(false);
   const [selection, setSelection] = useState<ReviewSelection | null>(null);
 
   function captureSelection(article: HTMLElement) {
@@ -136,15 +134,6 @@ export function ManuscriptReader({
     }
   }
 
-  function toggleChapter(key: string) {
-    setOpenChapters((current) => {
-      const next = new Set(current);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  }
-
   return (
     <div className="relative rounded-xl border border-slate-200 bg-white shadow-xs">
       <div className="flex h-1.5 w-full overflow-hidden rounded-t-xl"><div className="w-[60%] bg-blue-600" /><div className="w-[40%] bg-amber-400" /></div>
@@ -154,43 +143,23 @@ export function ManuscriptReader({
             <span className="text-[11px] font-medium text-slate-500">{chapters.length} chapters <span aria-hidden="true">·</span> {totalWords.toLocaleString()} words</span>
           </div>
 
-          <button type="button" onClick={() => setContentsOpen(true)} aria-expanded={contentsOpen} aria-haspopup="dialog" aria-controls="manuscript-contents" className="fixed bottom-5 right-5 z-40 inline-flex h-10 items-center gap-2 rounded-lg border border-indigo-700 bg-indigo-600 px-3.5 text-xs font-semibold text-white shadow-lg transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2">
-            <ListTree className="h-4 w-4" />Contents
-          </button>
-
-          {contentsOpen && <div className="fixed inset-0 z-[60]">
-            <button type="button" aria-label="Close manuscript contents" onClick={() => setContentsOpen(false)} className="absolute inset-0 h-full w-full cursor-default bg-slate-950/30" />
-            <aside id="manuscript-contents" role="dialog" aria-modal="true" aria-label="Manuscript contents" className="absolute inset-y-0 left-0 flex w-[min(21rem,calc(100vw-2rem))] flex-col border-r border-slate-200 bg-white shadow-xl">
-              <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-                <div><p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Manuscript</p><p className="mt-1 text-sm font-semibold text-slate-900">Contents</p></div>
-                <button type="button" aria-label="Close contents" onClick={() => setContentsOpen(false)} className="rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600"><X className="h-4 w-4" /></button>
-              </div>
-              <nav className="flex-1 space-y-1 overflow-y-auto p-2">
-            {chapters.map((chapter, index) => {
-              const isOpen = openChapters.has(chapter.key);
-              const chapterId = `chapter-${anchor(chapter.key)}`;
-              return (
-                <div key={chapter.key}>
-                  <div className="flex items-center gap-1">
-                    <button type="button" onClick={() => toggleChapter(chapter.key)} aria-expanded={isOpen} aria-label={`${isOpen ? "Collapse" : "Expand"} ${chapter.title}`} className="flex h-8 w-7 shrink-0 items-center justify-center rounded-md text-slate-500 hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                      {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                    </button>
-                    <a href={`#${chapterId}`} onClick={() => setContentsOpen(false)} className="min-w-0 flex-1 truncate rounded-md px-2 py-1.5 text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700">
-                      <span className="mr-1.5 font-mono text-[10px] text-slate-400">{String(index + 1).padStart(2, "0")}</span>{chapter.title}
-                    </a>
-                    <span className="pr-2 font-mono text-[10px] text-slate-500">{chapter.words}</span>
-                  </div>
-                  {isOpen && <ul className="ml-8 border-l border-slate-200 py-0.5 pl-2">
-                    {chapter.sections.map((section) => <li key={section.key}>
-                      <a href={`#section-${anchor(section.key)}`} onClick={() => setContentsOpen(false)} className="block truncate rounded-md px-2 py-1.5 text-[11px] text-slate-600 hover:bg-indigo-50 hover:text-indigo-700">{section.title}</a>
-                    </li>)}
-                  </ul>}
+          <nav aria-label="Manuscript table of contents" className="sticky top-16 z-30 mb-4 rounded-lg border border-slate-200 bg-white/95 p-3 shadow-sm backdrop-blur-sm sm:p-4">
+            <div className="mb-2 flex items-center gap-2 border-b border-slate-200 pb-2">
+              <span className="rounded-md bg-indigo-50 p-1.5 text-indigo-700"><ListTree className="h-4 w-4" /></span>
+              <h2 className="text-xs font-semibold text-slate-900">Contents</h2>
+              <span className="text-[10px] text-slate-500">All chapters and sections</span>
+            </div>
+            <div className="max-h-[38vh] space-y-2 overflow-y-auto pr-1">
+              {chapters.map((chapter, index) => <div key={chapter.key} className="flex flex-wrap items-start gap-x-3 gap-y-1 border-b border-slate-100 pb-2 last:border-0 last:pb-0">
+                <a href={`#chapter-${anchor(chapter.key)}`} className="min-w-44 max-w-full rounded-md bg-slate-50 px-2 py-1 text-[11px] font-semibold text-slate-800 hover:bg-indigo-50 hover:text-indigo-700 sm:w-52">
+                  <span className="mr-1.5 font-mono text-[10px] text-slate-400">{String(index + 1).padStart(2, "0")}</span>{chapter.title}
+                </a>
+                <div className="flex min-w-0 flex-1 flex-wrap gap-1">
+                  {chapter.sections.map((section) => <a key={section.key} href={`#section-${anchor(section.key)}`} title={section.title} className="max-w-full truncate rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] text-slate-600 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-800 sm:max-w-56">{section.title}</a>)}
                 </div>
-              );
-            })}
-              </nav>
-            </aside>
-          </div>}
+              </div>)}
+            </div>
+          </nav>
 
           <article onMouseUp={(event) => captureSelection(event.currentTarget)} onKeyUp={(event) => captureSelection(event.currentTarget)} className="rounded-lg border border-slate-200 bg-white px-5 py-7 shadow-xs sm:px-10 sm:py-10">
             <header className="mb-8 border-b-2 border-slate-200 pb-6">
