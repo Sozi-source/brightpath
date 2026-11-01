@@ -16,6 +16,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
 import { WholeDocumentReviewPanel } from "./WholeDocumentReviewPanel";
+import { SupervisorDecisionForm } from "./SupervisorDecisionForm";
 import {
   CheckCircle2,
   AlertCircle,
@@ -144,6 +145,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
   });
   const isFinalProjectReady = finalProjectIncomplete.length === 0;
   const isFinalReviewPending = workspace.final_project_status === "pending_review";
+  const topicChapterReviewLocked = isFinalReviewPending || workspace.final_project_status === "approved";
 
   const levelLabel = workspace.level === "craft" ? "Certificate" : "Diploma";
   const typeLabel =
@@ -242,7 +244,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
                   </span>
                 </div>
                 <span className="text-[11px] font-mono text-slate-500">
-                  Stage 1 Topic
+                  {isFinalReviewPending ? "Final Project Review" : isSubmitted ? "Chapter Review" : isApproved ? "Chapter Stage" : "Stage 1 Topic"}
                 </span>
               </div>
 
@@ -262,7 +264,12 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
             </div>
 
             {/* Moderation Action Forms */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {topicChapterReviewLocked ? (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
+                Topic and chapter decisions are locked during final project review and after approval.
+                {isFinalReviewPending && <a href="#final-project-approval" className="ml-1 font-semibold underline">Go to final review</a>}
+              </div>
+            ) : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Form 1: Approve Topic / Chapters */}
               <div className="p-4 rounded-lg border border-emerald-200 bg-emerald-50/40 space-y-2.5">
                 <div className="flex items-center gap-2 text-emerald-800 font-semibold text-xs">
@@ -275,7 +282,13 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
                     : "Approves the candidate's project topic and unlocks Chapter 1 for guided writing."}
                 </p>
 
-                <form action={approveProposal} className="space-y-2">
+                <SupervisorDecisionForm
+                  action={approveProposal}
+                  successMessage={isApproved ? "Chapter submission approved." : "Project topic approved; Chapter 1 is unlocked."}
+                  submitLabel={isApproved ? "Approve Submitted Chapters" : "Approve Topic & Unlock Chapter 1"}
+                  pendingLabel="Saving approval..."
+                  className="space-y-2"
+                >
                   <input type="hidden" name="workspaceId" value={workspaceId} />
                   <textarea
                     name="comment"
@@ -283,13 +296,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
                     placeholder="Optional supervisor approval notes..."
                     className="w-full text-xs bg-white border border-emerald-300 rounded-md p-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600"
                   />
-                  <button
-                    type="submit"
-                    className="w-full py-2 px-3 rounded-md text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white transition-colors cursor-pointer"
-                  >
-                    {isApproved ? "Approve Submitted Chapters" : "Approve Topic & Unlock Chapter 1"}
-                  </button>
-                </form>
+                </SupervisorDecisionForm>
               </div>
 
               {/* Form 2: Request Revisions */}
@@ -304,7 +311,14 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
                     : "Returns topic to candidate for refinement before unlocking chapters."}
                 </p>
 
-                <form action={requestProposalChanges} className="space-y-2">
+                <SupervisorDecisionForm
+                  action={requestProposalChanges}
+                  successMessage="Revision request sent to the candidate."
+                  submitLabel="Request Revisions"
+                  pendingLabel="Sending request..."
+                  tone="danger"
+                  className="space-y-2"
+                >
                   <input type="hidden" name="workspaceId" value={workspaceId} />
                   <textarea
                     name="comment"
@@ -313,15 +327,9 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
                     placeholder="Specify required revisions..."
                     className="w-full text-xs bg-white border border-rose-300 rounded-md p-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-600"
                   />
-                  <button
-                    type="submit"
-                    className="w-full py-2 px-3 rounded-md text-xs font-semibold bg-rose-700 hover:bg-rose-800 text-white transition-colors cursor-pointer"
-                  >
-                    Request Revisions
-                  </button>
-                </form>
+                </SupervisorDecisionForm>
               </div>
-            </div>
+            </div>}
 
             {/* Title Refinement Form */}
             <div className="pt-3 border-t border-slate-200">
@@ -357,6 +365,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
 
         {isBusiness && <WholeDocumentReviewPanel workspaceId={workspaceId} />}
 
+        <div id="final-project-approval" className="scroll-mt-20">
         <ContentCard
           title="Final Project Approval"
           subtitle="Separate from topic and chapter approval"
@@ -367,16 +376,27 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
             <div className="space-y-3">
               <p className="text-xs text-slate-700">All {templateDefs.length} required sections meet their minimums. Review the manuscript and record a final decision.</p>
               <div className="grid gap-3 md:grid-cols-2">
-                <form action={approveCompletedProjectForMarketplace} className="space-y-2 rounded-lg border border-emerald-200 bg-emerald-50/50 p-3">
+                <SupervisorDecisionForm
+                  action={approveCompletedProjectForMarketplace}
+                  successMessage="Completed project approved and queued for marketplace review."
+                  submitLabel="Approve completed project"
+                  pendingLabel="Saving final approval..."
+                  className="space-y-2 rounded-lg border border-emerald-200 bg-emerald-50/50 p-3"
+                >
                   <input type="hidden" name="workspaceId" value={workspaceId} />
                   <label className="grid gap-1 text-xs font-medium text-slate-700">Approval note<input name="comment" defaultValue="Completed project reviewed and approved." className="h-9 rounded-lg border border-slate-300 bg-white px-3 text-xs" /></label>
-                  <button type="submit" className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-800">Approve completed project</button>
-                </form>
-                <form action={requestFinalProjectChanges} className="space-y-2 rounded-lg border border-rose-200 bg-rose-50/50 p-3">
+                </SupervisorDecisionForm>
+                <SupervisorDecisionForm
+                  action={requestFinalProjectChanges}
+                  successMessage="Final review changes sent to the candidate."
+                  submitLabel="Request final changes"
+                  pendingLabel="Sending request..."
+                  tone="danger"
+                  className="space-y-2 rounded-lg border border-rose-200 bg-rose-50/50 p-3"
+                >
                   <input type="hidden" name="workspaceId" value={workspaceId} />
                   <label className="grid gap-1 text-xs font-medium text-slate-700">Required changes<textarea name="comment" required rows={2} className="rounded-lg border border-slate-300 bg-white p-2 text-xs" /></label>
-                  <button type="submit" className="rounded-lg bg-rose-700 px-3 py-2 text-xs font-semibold text-white hover:bg-rose-800">Request final changes</button>
-                </form>
+                </SupervisorDecisionForm>
               </div>
             </div>
           ) : (
@@ -393,6 +413,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
             </p>
           )}
         </ContentCard>
+        </div>
 
         {/* 2. Continuous Project Document View (Single Continuous Sheet — Not In Pieces) */}
         <ContentCard
