@@ -179,7 +179,7 @@ export function ManuscriptReader({
                   <span className="shrink-0 font-mono text-[10px] text-slate-500">{chapter.words} words</span>
                 </div>
                 <div className="space-y-7">
-                  {chapter.sections.map((section) => <section key={section.key} id={`section-${anchor(section.key)}`} data-section-key={section.key} data-section-updated-at={section.updatedAt} className="scroll-mt-4">
+                  {chapter.sections.map((section) => <section key={section.key} id={`section-${anchor(section.key)}`} data-section-key={section.key} data-section-updated-at={section.updatedAt} className="scroll-mt-4 pt-2">
                     <h3 className="mb-3 border-b border-slate-200 pb-2 text-base font-semibold tracking-tight text-indigo-900 sm:text-lg">{section.title}</h3>
                     {section.text.trim() ? <div className={styles.manuscript}><ManuscriptText text={section.text} /></div> : <p className="flex items-center gap-2 rounded-md border border-dashed border-slate-300 bg-slate-50 px-3 py-3 text-xs text-slate-500"><FileText className="h-4 w-4" />Not yet drafted by candidate</p>}
                     <div className="mt-4 border-t border-slate-100 pt-3">
