@@ -37,7 +37,7 @@ export default async function ProjectsPage() {
     ? await supabase.from("project_workspaces")
         .select("id, title, course, level, student:student_id(full_name, admission_number)")
         .eq("workspace_type", "business_plan")
-        .eq("status", "approved")
+        .in("status", ["approved", "submitted"])
         .order("updated_at", { ascending: false })
     : { data: [] };
   const planIds = (approvedPlans || []).map((plan) => plan.id);
@@ -108,7 +108,7 @@ export default async function ProjectsPage() {
                   <p className="text-xs text-slate-600">Complete plans ready to download</p>
                 </div>
               </div>
-              <span className="text-xs font-semibold text-slate-600">{approvedPlans?.length || 0} Approved</span>
+              <span className="text-xs font-semibold text-slate-600">{approvedPlans?.length || 0} Approved / submitted</span>
             </div>
             {approvedPlans?.length ? (
               <div className="divide-y divide-slate-200 rounded-lg border border-slate-200">

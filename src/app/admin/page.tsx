@@ -82,7 +82,7 @@ export default async function AdminPage() {
     supabase.from("project_workspaces")
       .select("id, title, course, level, student_id, student:student_id(full_name, admission_number)")
       .eq("workspace_type", "business_plan")
-      .eq("status", "approved")
+      .in("status", ["approved", "submitted"])
       .order("updated_at", { ascending: false }),
   ]);
 
