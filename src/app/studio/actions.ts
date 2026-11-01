@@ -795,10 +795,13 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
     ? priorResearch as BusinessPlanResearch
     : await researchBusinessPlan(specs, aiProvider);
   const sectionDefinitions = getWorkspaceSections("business_plan", ws.level);
-  const { data: existingSections } = await db
+  const { data: existingSections, error: existingSectionsError } = await db
     .from("workspace_sections")
     .select("section_key, current_text")
     .eq("workspace_id", workspaceId);
+  if (existingSectionsError) {
+    return { success: false, error: "Could not check the saved sections. Retry the build." };
+  }
   const existingByKey = new Map(
     (existingSections || []).map((section) => [section.section_key, section.current_text || ""])
   );
@@ -845,8 +848,9 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
   // The active workspace is refreshed by the client after all chapter actions
   // complete. Invalidating it here would render Server Components in the
   // middle of the build and can fail after this details save has committed.
-  revalidatePath("/studio");
-  revalidatePath("/supervisor");
+  // revalidatePath is intentionally omitted here. The client calls router.refresh()
+  // after all chapters are saved. Calling it here triggers an RSC re-render
+  // mid-build which can fail while the workspace title is still being written.
 
   return {
     success: true,
@@ -995,6 +999,494 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
 
   return { success: true, generatedSections, preservedSections, factReviewWarning };
 }
+
+// ---------------------------------------------------------------------------
+// buildCompleteBusinessPlanAction
+// ---------------------------------------------------------------------------
+// A single Server Action request that runs the entire build pipeline:
+//   research → save specs → generate all chapters → revalidate once.
+//
+// Design principles:
+//   • Never throws — all failures are returned as { success: false, error }.
+//   • revalidatePath is called exactly once, at the very end, after every
+//     write has committed. This prevents RSC re-renders mid-build (React #441).
+//   • Research failures fall back to a stub so chapter generation still runs.
+//   • Chapter failures do NOT abort the run; the client is told how many
+//     chapters succeeded so it can retry the rest.
+// ---------------------------------------------------------------------------
+
+export type BuildCompleteBusinessPlanResult =
+  | {
+      success: true;
+      businessName: string;
+      totalSections: number;
+      preservedSections: number;
+      researchSources: BusinessPlanResearch["sources"];
+      factReviewWarning: boolean;
+      chaptersBuilt: number;
+      chaptersTotal: number;
+    }
+  | { success: false; error: string };
+
+export async function buildCompleteBusinessPlanAction(
+  formData: FormData
+): Promise<BuildCompleteBusinessPlanResult> {
+  try {
+    return await runCompleteBusinessPlanBuild(formData);
+  } catch (error) {
+    // Return operational failures as serializable data and keep details in
+    // server logs. Database writes completed before a failure remain saved.
+    console.error("Business plan build failed unexpectedly", error);
+    return {
+      success: false,
+      error: "The build could not finish. Saved sections are preserved; retry to resume.",
+    };
+  }
+}
+
+async function runCompleteBusinessPlanBuild(
+  formData: FormData
+): Promise<BuildCompleteBusinessPlanResult> {
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    // redirect() throws an internal Next.js error — use a returned error here
+    // so the client can show an inline message instead of crashing.
+    return { success: false, error: "Your session has expired. Please sign in again." };
+  }
+
+  const db = getServerDbClient(supabase);
+
+  // ── Parse inputs ──────────────────────────────────────────────────────────
+  const workspaceId = formData.get("workspaceId")?.toString();
+  const rawSpecs = formData.get("specs")?.toString();
+  const replaceExisting = formData.get("replaceExisting") === "true";
+
+  let aiProvider: BusinessPlanAIProvider = "groq";
+  try {
+    aiProvider = getBusinessPlanAIProvider(formData);
+  } catch {
+    return { success: false, error: "Choose Gemini or Groq as the AI provider." };
+  }
+
+  if (!workspaceId) return { success: false, error: "Missing workspace ID." };
+  if (!rawSpecs) return { success: false, error: "Missing business plan specifications." };
+  if (rawSpecs.length > 100_000)
+    return { success: false, error: "Business plan details are too large to save." };
+
+  let specs: BusinessPlanSpecs;
+  try {
+    specs = JSON.parse(rawSpecs) as BusinessPlanSpecs;
+  } catch {
+    return { success: false, error: "Invalid business plan specifications payload." };
+  }
+  if (!specs || typeof specs !== "object" || Array.isArray(specs)) {
+    return { success: false, error: "Invalid business plan specifications payload." };
+  }
+
+  // ── Workspace ownership & status ──────────────────────────────────────────
+  const { data: ws } = await db
+    .from("project_workspaces")
+    .select(
+      "id, student_id, supervisor_id, institution_id, workspace_type, level, course, status, business_plan_specs"
+    )
+    .eq("id", workspaceId)
+    .single();
+
+  if (!ws || ws.student_id !== user.id) {
+    return { success: false, error: "Unauthorized." };
+  }
+  if (ws.workspace_type !== "business_plan") {
+    return { success: false, error: "This workspace is not configured as a TVET Business Plan." };
+  }
+  if (ws.status !== "approved" && ws.status !== "submitted") {
+    return {
+      success: false,
+      error:
+        "Your business plan topic must be approved by your supervisor before you can build the full draft.",
+    };
+  }
+
+  // ── Profile defaults ───────────────────────────────────────────────────────
+  const [{ data: profile }, { data: supervisor }] = await Promise.all([
+    db
+      .from("profiles")
+      .select("full_name, admission_number, institutions(name)")
+      .eq("id", user.id)
+      .maybeSingle(),
+    ws.supervisor_id
+      ? db.from("profiles").select("full_name").eq("id", ws.supervisor_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const profileInstitution = profile?.institutions as
+    | { name?: string }
+    | { name?: string }[]
+    | null;
+  const profileInstitutionName = Array.isArray(profileInstitution)
+    ? profileInstitution[0]?.name
+    : profileInstitution?.name;
+  const { data: workspaceInstitution } =
+    !profileInstitutionName && ws.institution_id
+      ? await db.from("institutions").select("name").eq("id", ws.institution_id).maybeSingle()
+      : { data: null };
+
+  if (!specs.candidateName && profile?.full_name) specs.candidateName = profile.full_name;
+  if (!specs.admissionNumber && profile?.admission_number)
+    specs.admissionNumber = profile.admission_number;
+  if (!specs.institutionName) {
+    const name = profileInstitutionName || workspaceInstitution?.name;
+    if (name) specs.institutionName = name;
+  }
+  if (!specs.supervisorName && supervisor?.full_name) specs.supervisorName = supervisor.full_name;
+  if (!specs.course) specs.course = ws.course;
+
+  // ── Validation ────────────────────────────────────────────────────────────
+  const requiredText: Array<keyof BusinessPlanSpecs> = [
+    "businessName",
+    "industrySector",
+    "candidateName",
+    "admissionNumber",
+    "institutionName",
+    "course",
+    "county",
+    "townOrMarket",
+    "primaryProduct",
+  ];
+  const requiredFieldLabels: Partial<Record<keyof BusinessPlanSpecs, string>> = {
+    businessName: "Business name",
+    industrySector: "Industry sector",
+    candidateName: "Candidate name",
+    admissionNumber: "Admission number",
+    institutionName: "Training institution",
+    course: "Course",
+    county: "County",
+    townOrMarket: "Town or market",
+    primaryProduct: "Primary product",
+  };
+  for (const field of requiredText) {
+    if (typeof specs[field] !== "string" || !String(specs[field]).trim()) {
+      return {
+        success: false,
+        error: `${requiredFieldLabels[field] ?? "This field"} is required.`,
+      };
+    }
+  }
+  if (
+    !["Sole Proprietorship", "Partnership", "Private Limited Company"].includes(
+      specs.formOfOwnership
+    )
+  ) {
+    return { success: false, error: "Choose a valid form of ownership." };
+  }
+
+  const numericFields: Array<keyof BusinessPlanSpecs> = [
+    "unitSellingPrice",
+    "unitCostOfProduction",
+    "monthlyProductionUnitsYear1",
+    "annualGrowthRateYear2",
+    "annualGrowthRateYear3",
+    "projectedMarketSharePercentage",
+    "monthlyRent",
+    "preOperationalCosts",
+    "workingCapitalBuffer",
+    "ownerEquityAmount",
+    "loanAmount",
+    "loanInterestRateAnnual",
+    "loanTenureMonths",
+  ];
+  for (const field of numericFields) {
+    const value = specs[field];
+    const lowerBound = field === "annualGrowthRateYear2" || field === "annualGrowthRateYear3" ? -1 : 0;
+    const upperBound = field === "loanInterestRateAnnual" || field === "projectedMarketSharePercentage" ? 100 : 1_000_000_000;
+    if (
+      typeof value !== "number" ||
+      !Number.isFinite(value) ||
+      value < lowerBound ||
+      value > upperBound
+    ) {
+      return { success: false, error: `Enter a valid value for ${field}.` };
+    }
+  }
+
+  const lists = [specs.competitors, specs.machinery, specs.rawMaterials, specs.staffing];
+  if (lists.some((items) => !Array.isArray(items) || items.length > 100)) {
+    return { success: false, error: "Review the competitor, equipment, materials, and staffing lists." };
+  }
+  const isText = (value: unknown) => typeof value === "string" && value.length <= 2_000;
+  const isAmount = (value: unknown) =>
+    typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 1_000_000_000;
+  if (
+    !specs.competitors.every((item) => item && isText(item.name) && isText(item.location) && isText(item.priceLevel) && isText(item.strengths) && isText(item.weaknesses)) ||
+    !specs.machinery.every((item) => item && isText(item.item) && isText(item.supplier) && Number.isInteger(item.quantity) && item.quantity >= 0 && isAmount(item.unitCost)) ||
+    !specs.rawMaterials.every((item) => item && isText(item.material) && isText(item.monthlyQuantity) && isText(item.supplier) && isAmount(item.monthlyCost)) ||
+    !specs.staffing.every((item) => item && isText(item.position) && isText(item.duties) && isText(item.qualifications) && Number.isInteger(item.count) && item.count >= 0 && isAmount(item.monthlySalary))
+  ) {
+    return { success: false, error: "Check the values in your competitor, equipment, material, and staffing lists." };
+  }
+  if (
+    !specs.monthlyOverheads ||
+    ![
+      specs.monthlyOverheads.rent,
+      specs.monthlyOverheads.electricity,
+      specs.monthlyOverheads.water,
+      specs.monthlyOverheads.transport,
+      specs.monthlyOverheads.marketing,
+      specs.monthlyOverheads.stationeryMisc,
+    ].every(isAmount)
+  ) {
+    return { success: false, error: "Enter valid monthly overhead amounts." };
+  }
+
+  // ── Research ──────────────────────────────────────────────────────────────
+  const priorSpecs = ws.business_plan_specs as BusinessPlanSpecs | null;
+  const priorResearch = priorSpecs?.research;
+  const canReuseResearch = Boolean(
+    priorResearch?.summary &&
+      Array.isArray(priorResearch.sources) &&
+      priorSpecs?.businessName === specs.businessName &&
+      priorSpecs?.industrySector === specs.industrySector &&
+      priorSpecs?.primaryProduct === specs.primaryProduct &&
+      priorSpecs?.county === specs.county &&
+      priorSpecs?.townOrMarket === specs.townOrMarket
+  );
+
+  let research: BusinessPlanResearch;
+  let researchFallbackUsed = false;
+  if (canReuseResearch) {
+    research = priorResearch as BusinessPlanResearch;
+  } else {
+    try {
+      research = await researchBusinessPlan(specs, aiProvider);
+    } catch {
+      // Fall back to a minimal stub so generation can still proceed with
+      // script-derived content. The user is informed via factReviewWarning.
+      researchFallbackUsed = true;
+      research = {
+        summary:
+          `Market research for ${specs.businessName} in ${specs.industrySector} (${specs.county}).`,
+        sources: [],
+        searchedAt: new Date().toISOString(),
+      };
+    }
+  }
+
+  // ── Determine pending chapters ────────────────────────────────────────────
+  const sectionDefinitions = getWorkspaceSections("business_plan", ws.level);
+  const { data: existingSections, error: existingSectionsError } = await db
+    .from("workspace_sections")
+    .select("section_key, current_text")
+    .eq("workspace_id", workspaceId);
+  if (existingSectionsError) {
+    return { success: false, error: "Could not check the saved sections. Retry the build." };
+  }
+  const existingByKey = new Map(
+    (existingSections || []).map((s) => [s.section_key, s.current_text || ""])
+  );
+  const pendingDefinitions = replaceExisting
+    ? sectionDefinitions
+    : sectionDefinitions.filter((def) => {
+        const currentText = existingByKey.get(def.key) || "";
+        const starterText = getSectionStarterContent("business_plan", ws.level, def.key);
+        return !currentText.trim() || (starterText !== "" && currentText === starterText);
+      });
+  const chapterKeys = [
+    ...new Set(pendingDefinitions.map((def) => def.chapter || def.phase)),
+  ] as string[];
+
+  // ── Save specs + research ─────────────────────────────────────────────────
+  const savedSpecs: BusinessPlanSpecs = { ...specs, research };
+  const fullTitle = `Business Plan for ${specs.businessName} in ${specs.townOrMarket}, ${specs.county}`;
+  const executiveProfile = [
+    `Business: ${specs.businessName}`,
+    `Ownership: ${specs.formOfOwnership}`,
+    `Location: ${specs.streetOrBuilding}, ${specs.townOrMarket}, ${specs.county}`,
+    `Product or service: ${specs.primaryProduct}`,
+    `Sector: ${specs.industrySector}`,
+  ].join("\n");
+
+  const { error: saveError } = await db
+    .from("project_workspaces")
+    .update({
+      title: fullTitle,
+      problem_area: executiveProfile,
+      business_plan_specs: savedSpecs,
+    })
+    .eq("id", workspaceId);
+  if (saveError) {
+    return {
+      success: false,
+      error: saveError.message || "Could not save business plan details.",
+    };
+  }
+
+  // ── Build all chapters sequentially ───────────────────────────────────────
+  const preservedSectionsCount = sectionDefinitions.length - pendingDefinitions.length;
+  let totalGeneratedSections = 0;
+  let totalPreservedSections = preservedSectionsCount;
+  let factReviewWarning = researchFallbackUsed;
+  let chaptersBuilt = 0;
+
+  for (const chapterKey of chapterKeys) {
+    const definitions = sectionDefinitions.filter(
+      (def) => (def.chapter || def.phase) === chapterKey
+    );
+    const pending = replaceExisting
+      ? definitions
+      : definitions.filter((def) => {
+          const currentText = existingByKey.get(def.key) || "";
+          const starterText = getSectionStarterContent("business_plan", ws.level, def.key);
+          return !currentText.trim() || (starterText !== "" && currentText === starterText);
+        });
+
+    if (pending.length === 0) {
+      totalPreservedSections += definitions.length;
+      chaptersBuilt += 1;
+      continue;
+    }
+
+    const scriptedSections = new Map(
+      buildCompleteBusinessPlan(savedSpecs).map((s) => [s.section_key, s.content])
+    );
+    let aiCorrections = new Map<string, string>();
+    try {
+      aiCorrections = await reviewBusinessPlanFacts(
+        savedSpecs,
+        pending,
+        research,
+        scriptedSections,
+        aiProvider
+      );
+    } catch {
+      factReviewWarning = true;
+    }
+
+    const draftSections = pending.map((def) => ({
+      section_key: def.key,
+      position: definitions.findIndex((item) => item.key === def.key) + 1,
+      current_text:
+        aiCorrections.get(def.key) ||
+        scriptedSections.get(def.key) ||
+        `### ${def.title}\n\n[Add verified information for this section.]`,
+      starter_text: getSectionStarterContent("business_plan", ws.level, def.key),
+    }));
+
+    if (replaceExisting) {
+      for (const section of draftSections) {
+        const { data: savedSection, error: saveSectionError } = await db
+          .from("workspace_sections")
+          .upsert(
+            {
+              workspace_id: workspaceId,
+              section_key: section.section_key,
+              phase: "project",
+              position: section.position,
+              current_text: section.current_text,
+              status: "draft",
+            },
+            { onConflict: "workspace_id,section_key" }
+          )
+          .select("id")
+          .single();
+        if (saveSectionError || !savedSection) {
+          // Non-fatal: log and continue building remaining chapters
+          factReviewWarning = true;
+          continue;
+        }
+        const { error: versionError } = await db.from("section_versions").insert({
+          section_id: savedSection.id,
+          text: section.current_text,
+          source: "ai_generated_draft",
+          ai_chars_accepted: 0,
+        });
+        if (versionError) factReviewWarning = true;
+        totalGeneratedSections += 1;
+      }
+    } else {
+      const { data: generationStats, error: generationError } = await db.rpc(
+        "fill_empty_business_plan_sections",
+        {
+          p_workspace_id: workspaceId,
+          p_user_id: user.id,
+          p_sections: draftSections,
+        }
+      );
+      if (generationError) {
+        // Fallback: fill only the exact blank/starter value observed above.
+        // Avoid an unconditional upsert that could replace a concurrent edit.
+        for (const section of draftSections) {
+          const previousText = existingByKey.get(section.section_key);
+          const sectionValues = {
+            workspace_id: workspaceId,
+            section_key: section.section_key,
+            phase: "project",
+            position: section.position,
+            current_text: section.current_text,
+            status: "draft",
+          };
+          const saveResult = previousText === undefined
+            ? await db.from("workspace_sections").insert(sectionValues).select("id").maybeSingle()
+            : await db
+                .from("workspace_sections")
+                .update(sectionValues)
+                .eq("workspace_id", workspaceId)
+                .eq("section_key", section.section_key)
+                .eq("current_text", previousText)
+                .select("id")
+                .maybeSingle();
+          const savedSection = saveResult.data;
+          if (!savedSection) {
+            factReviewWarning = true;
+            continue;
+          }
+          const { error: versionError } = await db.from("section_versions").insert({
+            section_id: savedSection.id,
+            text: section.current_text,
+            source: "ai_generated_draft",
+            ai_chars_accepted: 0,
+          });
+          if (versionError) factReviewWarning = true;
+          totalGeneratedSections += 1;
+        }
+        factReviewWarning = true;
+      } else {
+        const stats = Array.isArray(generationStats) ? generationStats[0] : null;
+        totalGeneratedSections += Number(stats?.generated_sections) || 0;
+        totalPreservedSections += Number(stats?.preserved_sections) || 0;
+      }
+    }
+    chaptersBuilt += 1;
+  }
+
+  // ── Audit log ─────────────────────────────────────────────────────────────
+  const { error: auditLogError } = await db.from("project_log_entries").insert({
+    workspace_id: workspaceId,
+    activity: `Built ${totalGeneratedSections} business plan sections across ${chaptersBuilt} chapters for "${specs.businessName}".`,
+    auto_generated: true,
+    student_signed_at: new Date().toISOString(),
+  });
+  if (auditLogError) factReviewWarning = true;
+
+  // ── Single revalidation at the end ────────────────────────────────────────
+  // Called once, after every DB write has committed. This is the only safe
+  // point: calling revalidatePath earlier triggers RSC re-renders mid-build.
+  revalidatePath(`/studio/${workspaceId}`);
+
+  return {
+    success: true,
+    businessName: specs.businessName,
+    totalSections: totalGeneratedSections,
+    preservedSections: totalPreservedSections,
+    researchSources: research.sources,
+    factReviewWarning,
+    chaptersBuilt,
+    chaptersTotal: chapterKeys.length,
+  };
+}
+
 
 export async function reviewBusinessPlanDocumentAction(formData: FormData) {
   const supabase = await createClient();

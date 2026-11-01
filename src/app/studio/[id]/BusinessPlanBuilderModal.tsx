@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useMemo, useRef, useCallback } from "react";
+import { useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Sparkles,
@@ -20,9 +20,8 @@ import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
 import { BUSINESS_PLAN_PRESETS } from "@/lib/studio/businessPlanTypes";
 import { computeBusinessPlanFinancials } from "@/lib/studio/businessPlanMath";
 import {
-  buildBusinessPlanChapterAction,
+  buildCompleteBusinessPlanAction,
   reviewBusinessPlanDocumentAction,
-  saveBusinessPlanDetailsAction,
 } from "@/app/studio/actions";
 
 interface BusinessPlanBuilderModalProps {
@@ -154,17 +153,10 @@ export function BusinessPlanBuilderModal({
     ...initialSpecs,
   }));
 
-  const [isGenerating, startGeneratingTransition] = useTransition();
+  const [isGenerating, setIsGenerating] = useState(false);
   const [isReviewing, startReviewTransition] = useTransition();
   const [generationStep, setGenerationStep] = useState<string>("");
   const [generationError, setGenerationError] = useState<string | null>(null);
-  // Ref-backed step setter: schedules via setTimeout to avoid updating state
-  // of this component while React is mid-render (React error #441).
-  const stepRef = useRef(setGenerationStep);
-  stepRef.current = setGenerationStep;
-  const scheduleStep = useCallback((msg: string) => {
-    setTimeout(() => stepRef.current(msg), 0);
-  }, []);
   const [documentReviewError, setDocumentReviewError] = useState<string | null>(null);
   const [documentReview, setDocumentReview] = useState<WholeDocumentReview | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<RequiredField, string>>>({});
@@ -241,7 +233,7 @@ export function BusinessPlanBuilderModal({
     competitors: [...prev.competitors, { name: "", location: "", priceLevel: "", strengths: "", weaknesses: "" }],
   }));
 
-  const handleSaveDetails = (replaceExisting = false) => {
+  const handleSaveDetails = async (replaceExisting = false) => {
     if (
       replaceExisting &&
       !window.confirm("Rebuild every business-plan section? This replaces saved section text, including manual edits, with the refreshed script draft.")
@@ -250,6 +242,7 @@ export function BusinessPlanBuilderModal({
     setGenerationSuccess(null);
     setDocumentReview(null);
     setDocumentReviewError(null);
+
     const missing = REQUIRED_FIELDS.filter(({ key }) => !String(specs[key] ?? "").trim());
     if (missing.length > 0) {
       const errors = Object.fromEntries(
@@ -263,67 +256,56 @@ export function BusinessPlanBuilderModal({
       return;
     }
     setFieldErrors({});
-    scheduleStep("Building the draft and checking facts...");
+    setGenerationStep("Researching market and building sections…");
+    setIsGenerating(true);
 
-    startGeneratingTransition(async () => {
-      try {
-        const formData = new FormData();
-        formData.append("workspaceId", workspaceId);
-        formData.append("specs", JSON.stringify(specs));
-        formData.append("aiProvider", aiProvider);
-        if (replaceExisting) formData.append("replaceExisting", "true");
+    try {
+      const formData = new FormData();
+      formData.append("workspaceId", workspaceId);
+      formData.append("specs", JSON.stringify(specs));
+      formData.append("aiProvider", aiProvider);
+      if (replaceExisting) formData.append("replaceExisting", "true");
 
-        const res = await saveBusinessPlanDetailsAction(formData);
+      const res = await buildCompleteBusinessPlanAction(formData);
 
-        if ("error" in res) {
-          setGenerationError(res.error);
-          const missingField = REQUIRED_FIELDS.find(({ label }) =>
-            res.error.toLowerCase().startsWith(label.toLowerCase())
-          );
-          if (missingField) {
-            setFieldErrors({ [missingField.key]: `Enter ${missingField.label.toLowerCase()}.` });
-            setActiveTab(missingField.tab);
-            window.requestAnimationFrame(() => document.getElementById(missingField.key)?.focus());
-          }
-          scheduleStep("");
-          return;
-        }
-
-        let generatedSections = 0;
-        let preservedSections = res.preservedSectionsCount;
-        let factReviewWarning = false;
-        for (const [index, chapterKey] of res.chapterKeys.entries()) {
-          scheduleStep(`Building and fact-checking ${index + 1}/${res.chapterKeys.length}: ${chapterKey}...`);
-          const chapterForm = new FormData();
-          chapterForm.append("workspaceId", workspaceId);
-          chapterForm.append("chapterKey", chapterKey);
-          chapterForm.append("aiProvider", aiProvider);
-          if (replaceExisting) chapterForm.append("replaceExisting", "true");
-          const chapterResult = await buildBusinessPlanChapterAction(chapterForm);
-          generatedSections += chapterResult.generatedSections;
-          preservedSections += chapterResult.preservedSections;
-          factReviewWarning ||= Boolean(chapterResult.factReviewWarning);
-        }
-
-        setGenerationSuccess({
-          businessName: res.businessName,
-          sectionsCount: generatedSections,
-          preservedSectionsCount: preservedSections,
-          researchSources: res.researchSources,
-          factReviewWarning,
-        });
-        scheduleStep("");
-        if (onPlanGenerated) {
-          onPlanGenerated();
-        }
-        router.refresh();
-      } catch (err) {
-        setGenerationError(
-          `${err instanceof Error ? err.message : "Could not finish the business plan draft."} Completed sections stay saved; click Build Full Draft again to resume.`
+      if (!res.success) {
+        setGenerationError(res.error);
+        const missingField = REQUIRED_FIELDS.find(({ label }) =>
+          res.error.toLowerCase().startsWith(label.toLowerCase())
         );
-        scheduleStep("");
+        if (missingField) {
+          setFieldErrors({ [missingField.key]: `Enter ${missingField.label.toLowerCase()}.` });
+          setActiveTab(missingField.tab);
+          window.requestAnimationFrame(() => document.getElementById(missingField.key)?.focus());
+        }
+        setGenerationStep("");
+        return;
       }
-    });
+
+      setGenerationSuccess({
+        businessName: res.businessName,
+        sectionsCount: res.totalSections,
+        preservedSectionsCount: res.preservedSections,
+        researchSources: res.researchSources,
+        factReviewWarning: res.factReviewWarning,
+      });
+      setGenerationStep("");
+      if (onPlanGenerated) {
+        onPlanGenerated();
+      }
+      router.refresh();
+    } catch (err) {
+      // This branch should only fire for true network/infrastructure failures,
+      // not for business-logic errors (those are returned as { success: false }).
+      setGenerationError(
+        err instanceof Error
+          ? err.message
+          : "Could not finish the business plan draft. Completed sections stay saved."
+      );
+      setGenerationStep("");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleReviewWholeDocument = () => {
@@ -1328,7 +1310,7 @@ export function BusinessPlanBuilderModal({
                     Added {generationSuccess.sectionsCount} sections. Preserved {generationSuccess.preservedSectionsCount} existing sections.
                   </p>
                   {generationSuccess.factReviewWarning && (
-                    <p className="text-[11px] text-amber-800">AI fact review was unavailable. Verify factual claims before submission.</p>
+                    <p className="text-[11px] text-amber-800">Some research, review, or section saves need attention. Verify the draft before submission.</p>
                   )}
                   <div className="space-y-1.5">
                     <p className="text-[11px] font-semibold text-emerald-900">
