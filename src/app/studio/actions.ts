@@ -1090,8 +1090,10 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
       scriptedSections,
       aiProvider
     );
-  } catch {
-    throw new Error("Adaptive section drafting was unavailable. No new sections were saved; retry when the configured AI provider is available.");
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : "Unknown provider error.";
+    const safeReason = reason.replace(/(?:AIza[0-9A-Za-z_-]{20,}|gsk_[0-9A-Za-z_-]{20,})/g, "[redacted]").slice(0, 400);
+    throw new Error(`Adaptive section drafting failed (${aiProvider}): ${safeReason}. No new sections were saved.`);
   }
   const missingDrafts = pending
     .filter((definition) => !definition.key.startsWith("ch5.") &&
@@ -1546,10 +1548,12 @@ async function runCompleteBusinessPlanBuild(
         scriptedSections,
         aiProvider
       );
-    } catch {
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Unknown provider error.";
+      const safeReason = reason.replace(/(?:AIza[0-9A-Za-z_-]{20,}|gsk_[0-9A-Za-z_-]{20,})/g, "[redacted]").slice(0, 400);
       return {
         success: false,
-        error: "Adaptive section drafting was unavailable. No new sections were saved; retry when the configured AI provider is available.",
+        error: `Adaptive section drafting failed (${aiProvider}): ${safeReason}. No new sections were saved.`,
       };
     }
 

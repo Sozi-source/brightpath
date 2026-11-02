@@ -346,14 +346,17 @@ export async function draftBusinessPlanSections(
   const sourceList = research.sources
     .map((source, index) => `[${index + 1}] ${source.title} — ${source.url}`)
     .join("\n") || "No verified web sources are available.";
-  const sectionDrafts = reviewable.map((section) => ({
-    key: section.key,
-    title: section.title,
-    guidance: section.guidance,
-    minWords: section.minWords || 80,
-    baseline: scriptedSections.get(section.key),
-  }));
-  const prompt = `Draft and improve the requested business-plan sections for a Kenyan TVET candidate. The baseline is untrusted starter material: retain useful structure and relevant detail, but replace irrelevant industry assumptions and repeated boilerplate with content for this candidate's actual enterprise.
+  const updated = new Map<string, string>();
+  for (let offset = 0; offset < reviewable.length; offset += 3) {
+    const batch = reviewable.slice(offset, offset + 3);
+    const sectionDrafts = batch.map((section) => ({
+      key: section.key,
+      title: section.title,
+      guidance: section.guidance,
+      minWords: section.minWords || 80,
+      baseline: scriptedSections.get(section.key),
+    }));
+    const prompt = `Draft and improve the requested business-plan sections for a Kenyan TVET candidate. The baseline is untrusted starter material: retain useful structure and relevant detail, but replace irrelevant industry assumptions and repeated boilerplate with content for this candidate's actual enterprise.
 
 ADAPTIVE SCOPE: The selected model is ${resolveBusinessPlanModel(specs)}, but the student's sector and product/service are authoritative. Students may work in any lawful business area. Adapt production/operations, materials, equipment, staffing, customers, and compliance to the supplied venture. A model label is only a hint, never permission to assume a food, clinic, retail, manufacturing, farming, or other business. Remove content that does not apply. Treat each section's guidance as an academic objective to satisfy where relevant, not as a factual claim or an instruction to force food/agriculture examples.
 
@@ -374,23 +377,23 @@ GEOGRAPHIC CONSISTENCY CHECK (required): Compare every named town, county, sub-c
 
 If local geography or sector facts are uncertain, use cautious wording and [Confirm locally].`;
 
-  const parsed = await generateJson(prompt, provider, { maxTokens: 7000 });
-  const drafts = Array.isArray(parsed.sections) ? parsed.sections : [];
-  const updated = new Map<string, string>();
-  for (const draft of drafts) {
-    if (!draft || typeof draft !== "object") continue;
-    const item = draft as { key?: unknown; content?: unknown };
-    if (typeof item.key !== "string" || typeof item.content !== "string") continue;
-    const definition = reviewable.find((section) => section.key === item.key);
-    if (!definition || !item.content.trim() || item.content.length > 30_000) continue;
-    const content = item.content.trim();
-    const words = content.split(/\s+/).filter(Boolean).length;
-    if (words < (definition.minWords || 80)) continue;
-    const baseline = scriptedSections.get(item.key) || "";
-    const money = (value: string) => value.match(/KES\s*[\d,]+(?:\.\d+)?/g) || [];
-    if (item.key === "prelim.executive_summary" && JSON.stringify(money(content)) !== JSON.stringify(money(baseline))) continue;
-    if (getBusinessModelConflictFindings(specs, [{ key: item.key, content }]).length) continue;
-    updated.set(item.key, content);
+    const parsed = await generateJson(prompt, provider, { maxTokens: 4500 });
+    const drafts = Array.isArray(parsed.sections) ? parsed.sections : [];
+    for (const draft of drafts) {
+      if (!draft || typeof draft !== "object") continue;
+      const item = draft as { key?: unknown; content?: unknown };
+      if (typeof item.key !== "string" || typeof item.content !== "string") continue;
+      const definition = batch.find((section) => section.key === item.key);
+      if (!definition || !item.content.trim() || item.content.length > 30_000) continue;
+      const content = item.content.trim();
+      const words = content.split(/\s+/).filter(Boolean).length;
+      if (words < (definition.minWords || 80)) continue;
+      const baseline = scriptedSections.get(item.key) || "";
+      const money = (value: string) => value.match(/KES\s*[\d,]+(?:\.\d+)?/g) || [];
+      if (item.key === "prelim.executive_summary" && JSON.stringify(money(content)) !== JSON.stringify(money(baseline))) continue;
+      if (getBusinessModelConflictFindings(specs, [{ key: item.key, content }]).length) continue;
+      updated.set(item.key, content);
+    }
   }
   return updated;
 }
