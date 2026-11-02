@@ -57,6 +57,10 @@ export function BusinessPlanCorrectionChat({
       formData.set("messages", JSON.stringify(nextMessages));
       formData.set("currentProposal", proposal);
       const result = await chatAboutBusinessPlanFindingAction(formData);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
       if (baseUpdatedAt && baseUpdatedAt !== result.baseUpdatedAt) {
         setProposal("");
         setConfirmed(false);

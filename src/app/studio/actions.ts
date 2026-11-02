@@ -41,6 +41,17 @@ function getBusinessPlanAIProvider(formData: FormData): BusinessPlanAIProvider {
   return "groq";
 }
 
+function getBusinessPlanDraftingError(provider: BusinessPlanAIProvider, error: unknown) {
+  const reason = error instanceof Error ? error.message : "Unknown provider error.";
+  if (/api key not valid|invalid api key|api key is invalid/i.test(reason)) {
+    return provider === "gemini"
+      ? "Gemini rejected the configured API key. Update GEMINI_API_KEY in the server environment and restart the app, or select Groq and retry. No new sections were saved."
+      : "Groq rejected the configured API key. Update GROQ_API_KEY in the server environment and restart the app, or select Gemini and retry. No new sections were saved.";
+  }
+  const safeReason = reason.replace(/(?:AIza[0-9A-Za-z_-]{20,}|gsk_[0-9A-Za-z_-]{20,})/g, "[redacted]").slice(0, 400);
+  return `Adaptive section drafting failed (${provider}): ${safeReason}. No new sections were saved.`;
+}
+
 export async function createWorkspace(formData: FormData) {
   const supabase = await createClient();
   const {
@@ -1091,9 +1102,7 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
       aiProvider
     );
   } catch (error) {
-    const reason = error instanceof Error ? error.message : "Unknown provider error.";
-    const safeReason = reason.replace(/(?:AIza[0-9A-Za-z_-]{20,}|gsk_[0-9A-Za-z_-]{20,})/g, "[redacted]").slice(0, 400);
-    throw new Error(`Adaptive section drafting failed (${aiProvider}): ${safeReason}. No new sections were saved.`);
+    throw new Error(getBusinessPlanDraftingError(aiProvider, error));
   }
   const missingDrafts = pending
     .filter((definition) => !definition.key.startsWith("ch5.") &&
@@ -1549,11 +1558,9 @@ async function runCompleteBusinessPlanBuild(
         aiProvider
       );
     } catch (error) {
-      const reason = error instanceof Error ? error.message : "Unknown provider error.";
-      const safeReason = reason.replace(/(?:AIza[0-9A-Za-z_-]{20,}|gsk_[0-9A-Za-z_-]{20,})/g, "[redacted]").slice(0, 400);
       return {
         success: false,
-        error: `Adaptive section drafting failed (${aiProvider}): ${safeReason}. No new sections were saved.`,
+        error: getBusinessPlanDraftingError(aiProvider, error),
       };
     }
 
@@ -1729,7 +1736,11 @@ async function getBusinessPlanCorrectionActor(workspaceId: string) {
   return { db, user, workspace };
 }
 
-export async function chatAboutBusinessPlanFindingAction(formData: FormData) {
+export async function chatAboutBusinessPlanFindingAction(formData: FormData): Promise<
+  | { success: true; reply: string; proposedText: string; baseText: string; baseUpdatedAt: string }
+  | { success: false; error: string }
+> {
+  try {
   const workspaceId = formData.get("workspaceId")?.toString() || "";
   const sectionKey = formData.get("sectionKey")?.toString() || "";
   const issue = formData.get("issue")?.toString().trim() || "";
@@ -1777,10 +1788,19 @@ export async function chatAboutBusinessPlanFindingAction(formData: FormData) {
     currentProposal,
   });
   return {
+    success: true,
     ...result,
     baseText: section.current_text || "",
     baseUpdatedAt: section.updated_at,
   };
+  } catch (error) {
+    console.error("Business plan correction chat failed", error);
+    const message = error instanceof Error ? error.message : "The correction chat could not respond.";
+    const safeMessage = message
+      .replace(/(?:AIza[0-9A-Za-z_-]{20,}|gsk_[0-9A-Za-z_-]{20,})/g, "[redacted]")
+      .slice(0, 500);
+    return { success: false, error: safeMessage };
+  }
 }
 
 export async function applyBusinessPlanCorrectionProposalAction(formData: FormData) {
