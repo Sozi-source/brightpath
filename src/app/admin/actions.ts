@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { queueApprovedBusinessPlanListing } from "@/lib/studio/marketplaceListing";
 
 async function verifyAdmin() {
   const supabase = await createClient();
@@ -98,6 +99,33 @@ export async function updateProjectStatus(formData: FormData) {
 
   if (error) throw error;
   revalidatePath("/admin");
+}
+
+export async function queueApprovedBusinessPlanForPublishing(formData: FormData) {
+  const { supabase } = await verifyAdmin();
+  const workspaceId = formData.get("workspaceId")?.toString();
+  const rawPrice = formData.get("priceKes")?.toString().trim() || "";
+  if (!workspaceId) throw new Error("Missing business plan workspace.");
+  const priceKes = Number(rawPrice);
+  if (!rawPrice || !Number.isFinite(priceKes) || priceKes < 0 || priceKes > 1_000_000) {
+    throw new Error("Enter a valid marketplace price in KES.");
+  }
+
+  const { data: workspace, error: workspaceError } = await supabase.from("project_workspaces")
+    .select("id, workspace_type, final_project_status").eq("id", workspaceId).maybeSingle();
+  if (workspaceError || !workspace || workspace.workspace_type !== "business_plan") {
+    throw new Error(workspaceError?.message || "Approved business plan not found.");
+  }
+  if (workspace.final_project_status !== "approved") {
+    throw new Error("Supervisor final approval is required before queueing this plan.");
+  }
+
+  const { error: priceError } = await supabase.from("project_workspaces")
+    .update({ marketplace_price_kes: priceKes }).eq("id", workspaceId).eq("final_project_status", "approved");
+  if (priceError) throw new Error(priceError.message || "Could not save the marketplace price.");
+  await queueApprovedBusinessPlanListing(workspaceId);
+  revalidatePath("/admin");
+  revalidatePath("/projects");
 }
 
 export async function updateUserRole(formData: FormData) {

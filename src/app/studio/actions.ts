@@ -8,7 +8,7 @@ import {
 } from "@/lib/studio/templates";
 import { buildCompleteBusinessPlan } from "@/lib/studio/businessPlanBuilder";
 import {
-  reviewBusinessPlanFacts,
+  draftBusinessPlanSections,
   reviewWholeBusinessPlan,
   respondToBusinessPlanCorrectionChat,
   researchBusinessPlan,
@@ -1083,7 +1083,7 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
   let aiCorrections = new Map<string, string>();
   let factReviewWarning: string | undefined;
   try {
-    aiCorrections = await reviewBusinessPlanFacts(
+    aiCorrections = await draftBusinessPlanSections(
       specs,
       pending,
       research as BusinessPlanResearch,
@@ -1091,7 +1091,15 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
       aiProvider
     );
   } catch {
-    factReviewWarning = "AI fact review was unavailable; the script-generated draft was saved. Verify factual claims before submission.";
+    throw new Error("Adaptive section drafting was unavailable. No new sections were saved; retry when the configured AI provider is available.");
+  }
+  const missingDrafts = pending
+    .filter((definition) => !definition.key.startsWith("ch5.") &&
+      !["prelim.declaration", "prelim.dedication", "prelim.acknowledgements", "references", "app.invoices"].includes(definition.key) &&
+      !aiCorrections.has(definition.key))
+    .map((definition) => definition.key);
+  if (missingDrafts.length) {
+    throw new Error(`Adaptive drafting did not return complete sections: ${missingDrafts.join(", ")}. No new sections were saved; retry the build.`);
   }
   const draftSections = pending.map((definition) => ({
     section_key: definition.key,
@@ -1531,7 +1539,7 @@ async function runCompleteBusinessPlanBuild(
     );
     let aiCorrections = new Map<string, string>();
     try {
-      aiCorrections = await reviewBusinessPlanFacts(
+      aiCorrections = await draftBusinessPlanSections(
         savedSpecs,
         pending,
         research,
@@ -1539,7 +1547,22 @@ async function runCompleteBusinessPlanBuild(
         aiProvider
       );
     } catch {
-      factReviewWarning = true;
+      return {
+        success: false,
+        error: "Adaptive section drafting was unavailable. No new sections were saved; retry when the configured AI provider is available.",
+      };
+    }
+
+    const missingDrafts = pending
+      .filter((def) => !def.key.startsWith("ch5.") &&
+        !["prelim.declaration", "prelim.dedication", "prelim.acknowledgements", "references", "app.invoices"].includes(def.key) &&
+        !aiCorrections.has(def.key))
+      .map((def) => def.key);
+    if (missingDrafts.length) {
+      return {
+        success: false,
+        error: `Adaptive drafting did not return complete sections: ${missingDrafts.join(", ")}. No new sections were saved; retry the build.`,
+      };
     }
 
     const draftSections = pending.map((def) => ({

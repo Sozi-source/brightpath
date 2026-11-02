@@ -211,10 +211,17 @@ export function getBusinessModelConflictFindings(
   specs: BusinessPlanSpecs,
   sections: Array<{ key: string; content: string }>
 ) {
-  if (resolveBusinessPlanModel(specs) !== "consultancy") return [];
-  const forbidden = /\b(?:hammer mill|milling machine|grain moisture|farmgate|pouch sealer|pouch filling|grain intake|porridge flour|smallholder farmer|production plant|manufacturing workflow|food manufacturing|vacuum.packag|grain prices)\b/i;
+  const model = resolveBusinessPlanModel(specs);
+  const forbidden = model === "consultancy"
+    ? /\b(?:hammer mill|milling machine|grain moisture|farmgate|pouch sealer|pouch filling|grain intake|porridge flour|smallholder farmer|production plant|manufacturing workflow|food manufacturing|vacuum.packag|grain prices)\b/i
+    : model === "beverages"
+      ? /\b(?:grain milling|hammer mill|porridge flour|grain moisture|farmgate grain|grain intake|milling workflow)\b/i
+      : model === "milling"
+        ? /\b(?:juice bottling|fruit pulper|pasteurization tank|beverage processing|bottled juice|fruit puree)\b/i
+        : null;
+  if (!forbidden) return [];
   return sections.flatMap((section) => forbidden.test(section.content)
-    ? [{ sectionKey: section.key, issue: "This section contains food-manufacturing language, but the selected venture model is nutrition consultancy." }]
+    ? [{ sectionKey: section.key, issue: `This section contains language associated with a different business area than the selected ${model} model. Review the enterprise activity and revise the section.` }]
     : []);
 }
 

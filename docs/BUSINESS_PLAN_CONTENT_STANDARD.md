@@ -71,12 +71,14 @@ Do not force a table into reflective prose. Do not invent data to fill one; mark
 
 ## Generation and review workflow
 
-1. Build the full structured draft deterministically from candidate specifications.
-2. Run the selected Gemini or Groq provider for limited factual corrections. Apply only exact, supported corrections; retain the script draft if AI review fails.
-3. Keep the existing section-based review available for focused editing.
-4. Offer a separate whole-document audit after generation. It checks factual support, consistency across chapters, completeness, repetition, and structure. It returns findings and source links; it does not silently rewrite the manuscript.
-5. Make whole-document review available to the assigned supervisor and administrators. Link findings back to the relevant chapter or section.
-6. Preserve existing candidate text during a normal build. Replacing saved sections requires the explicit **Rebuild Existing Draft** action and confirmation.
+1. Build the required KNEC structure, section headings, candidate data, and financial statements from candidate specifications. Financial tables and ratios remain deterministic.
+2. Use the selected Gemini or Groq provider to draft enterprise-specific prose from each section's guidance, candidate inputs, and linked research. Guidance is an academic objective, not permission to assume that every enterprise is in food production or any other preset sector.
+3. Treat model presets as starting hints. The candidate's stated business area, product or service, and supplied evidence control the draft. Unsupported sector-specific details must be removed or marked for confirmation.
+4. If adaptive drafting fails or omits a required section, do not save a mismatched generic manuscript as a fallback. Keep existing saved sections intact and report the incomplete build.
+5. Keep the existing section-based review available for focused editing.
+6. Offer a separate whole-document audit after generation. It checks factual support, consistency across chapters, completeness, repetition, and structure. It returns findings and source links; it does not silently rewrite the manuscript.
+7. Make whole-document review available to the assigned supervisor and administrators. Link findings back to the relevant chapter or section.
+8. Preserve existing candidate text during a normal build. Replacing saved sections requires the explicit **Rebuild Existing Draft** action and confirmation.
 
 ## Final quality check
 

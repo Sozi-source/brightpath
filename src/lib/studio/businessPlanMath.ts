@@ -14,6 +14,11 @@ export interface ComputedFinancialModel {
   totalMachineryCost: number;
   totalPreOperationalCost: number;
   totalStartupCapital: number;
+  ownerEquityAmount: number;
+  loanAmount: number;
+  totalFunding: number;
+  fundingGap: number;
+  fundingSurplus: number;
   annualSalesYear1: number;
   annualSalesYear2: number;
   annualSalesYear3: number;
@@ -62,11 +67,13 @@ export interface ComputedFinancialModel {
 }
 
 export function computeBusinessPlanFinancials(specs: BusinessPlanSpecs): ComputedFinancialModel {
-  const isConsultancy = resolveBusinessPlanModel(specs) === "consultancy";
-  const unitLabel = isConsultancy ? "consultation sessions" : "units";
-  const variableCostLabel = isConsultancy ? "Consultation Delivery Costs" : "Raw Material Purchases";
-  const assetLabel = isConsultancy ? "Clinical & Office Equipment" : "Machinery & Tools";
-  const serviceLabel = isConsultancy ? "Cost of Services Delivered" : "Cost of Goods Sold (Raw Materials)";
+  const model = resolveBusinessPlanModel(specs);
+  const isConsultancy = model === "consultancy";
+  const isCustom = model === "custom";
+  const unitLabel = isConsultancy ? "consultation sessions" : isCustom ? "units or service engagements" : "units";
+  const variableCostLabel = isConsultancy ? "Consultation Delivery Costs" : isCustom ? "Direct Operating Inputs" : "Raw Material Purchases";
+  const assetLabel = isConsultancy ? "Clinical & Office Equipment" : isCustom ? "Business Assets & Equipment" : "Machinery & Tools";
+  const serviceLabel = isConsultancy ? "Cost of Services Delivered" : isCustom ? "Direct Cost of Sales or Services" : "Cost of Goods Sold (Raw Materials)";
   const formatKES = (n: number) => Math.round(n).toLocaleString("en-KE");
   const projectionYear = new Date().getFullYear();
   const yearLabels = [1, 2, 3].map((offset) => `Year ${offset} (${projectionYear + offset - 1})`);
@@ -94,8 +101,14 @@ export function computeBusinessPlanFinancials(specs: BusinessPlanSpecs): Compute
   // 3. Capitalization & Startup Capital
   const workingCapitalBuffer = specs.workingCapitalBuffer || 75000;
   const totalStartupCapital = totalMachineryCost + totalPreOperationalCost + workingCapitalBuffer;
-  const ownerEquity = Math.round(totalStartupCapital * 0.6);
-  const loanAmount = totalStartupCapital - ownerEquity;
+  const enteredEquity = Math.max(0, Math.round(specs.ownerEquityAmount || 0));
+  const enteredLoan = Math.max(0, Math.round(specs.loanAmount || 0));
+  const hasEnteredFunding = enteredEquity + enteredLoan > 0;
+  const ownerEquity = hasEnteredFunding ? enteredEquity : Math.round(totalStartupCapital * 0.6);
+  const loanAmount = hasEnteredFunding ? enteredLoan : totalStartupCapital - ownerEquity;
+  const totalFunding = ownerEquity + loanAmount;
+  const fundingGap = Math.max(0, totalStartupCapital - totalFunding);
+  const fundingSurplus = Math.max(0, totalFunding - totalStartupCapital);
   const loanTenureMonths = Math.max(1, Math.floor(specs.loanTenureMonths || 24));
   const monthlyLoanPrincipal = loanAmount / loanTenureMonths;
   const monthlyLoanRate = Math.max(0, specs.loanInterestRateAnnual || 0) / 1200;
@@ -124,7 +137,10 @@ export function computeBusinessPlanFinancials(specs: BusinessPlanSpecs): Compute
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
   ];
 
-  const openingCash = totalStartupCapital - totalMachineryCost - totalPreOperationalCost; // Cash buffer
+  const openingCash = Math.max(
+    0,
+    totalFunding - totalMachineryCost - totalPreOperationalCost
+  );
   let cumulativeCash = openingCash;
 
   interface MonthRecord {
@@ -319,12 +335,13 @@ export function computeBusinessPlanFinancials(specs: BusinessPlanSpecs): Compute
   const capitalizationTable = `
 | Capital Requirement | Amount (KES) | Percentage (%) | Proposed Funding Source |
 | :--- | :--- | :--- | :--- |
-| **Fixed Assets (${assetLabel})** | ${formatKES(totalMachineryCost)} | ${Math.round((totalMachineryCost / totalStartupCapital) * 100)}% | Proposed funding; confirm source |
-| **Pre-Operational Setup Costs** | ${formatKES(totalPreOperationalCost)} | ${Math.round((totalPreOperationalCost / totalStartupCapital) * 100)}% | Owner Personal Savings |
-| **Working Capital Reserve (Buffer)** | ${formatKES(workingCapitalBuffer)} | ${Math.round((workingCapitalBuffer / totalStartupCapital) * 100)}% | Commercial Bank Loan / Microfinance |
-| **Total Startup Capital Required** | **${formatKES(totalStartupCapital)}** | **100%** | **Total Enterprise Financing** |
-| **Owner's Equity Contribution** | ${formatKES(ownerEquity)} | 60% | Personal savings & family contribution |
-| **Debt Financing (${loanTenureMonths}-Month Loan @ ${Number(specs.loanInterestRateAnnual || 0).toFixed(1)}% p.a.)** | ${formatKES(loanAmount)} | ${Math.round((loanAmount / totalStartupCapital) * 100)}% | Youth Enterprise Development Fund / Lender |
+| **Fixed Assets (${assetLabel})** | ${formatKES(totalMachineryCost)} | ${Math.round((totalMachineryCost / totalStartupCapital) * 100)}% | Proposed funding mix; confirm allocation |
+| **Pre-Operational Setup Costs** | ${formatKES(totalPreOperationalCost)} | ${Math.round((totalPreOperationalCost / totalStartupCapital) * 100)}% | Proposed funding mix; confirm allocation |
+| **Working Capital Reserve (Buffer)** | ${formatKES(workingCapitalBuffer)} | ${Math.round((workingCapitalBuffer / totalStartupCapital) * 100)}% | Proposed funding mix; confirm allocation |
+| **Total Startup Capital Required** | **${formatKES(totalStartupCapital)}** | **100%** | Estimated startup costs |
+| **Owner's Equity Contribution** | ${formatKES(ownerEquity)} | ${totalFunding > 0 ? Math.round((ownerEquity / totalFunding) * 100) : 0}% | Candidate-entered assumption; confirm source |
+| **Debt Financing (${loanTenureMonths}-Month Loan @ ${Number(specs.loanInterestRateAnnual || 0).toFixed(1)}% p.a.)** | ${formatKES(loanAmount)} | ${totalFunding > 0 ? Math.round((loanAmount / totalFunding) * 100) : 0}% | Candidate-entered assumption; lender and terms to be confirmed |
+| **Funding Gap / (Surplus)** | **${formatKES(fundingGap ? fundingGap : -fundingSurplus)}** | | ${fundingGap ? "Additional funding required before launch" : fundingSurplus ? "Unallocated funding to be assigned" : "Funding matches estimated startup capital"} |
 `.trim();
 
   // 12-Month Cash Flow Statement (Split into two 6-month tables for clean page width)
@@ -384,7 +401,7 @@ ${makeRow("**Closing Balance c/f**", (m) => m.closing, part2Months)}
 | :--- | ---: | ---: | ---: |
 | **Opening Cash Balance** | ${formatKES(openingCash)} | ${formatKES(year1ClosingCash)} | ${formatKES(year2ClosingCash)} |
 | Cash Sales | ${formatKES(annualSalesYear1)} | ${formatKES(annualSalesYear2)} | ${formatKES(annualSalesYear3)} |
-| ${isConsultancy ? "Variable Consultation Costs" : "Raw Materials and Packaging"} | (${formatKES(annualCogsYear1)}) | (${formatKES(annualCogsYear2)}) | (${formatKES(annualCogsYear3)}) |
+| ${isConsultancy ? "Variable Consultation Costs" : isCustom ? "Direct Cost of Sales / Services" : "Raw Materials and Packaging"} | (${formatKES(annualCogsYear1)}) | (${formatKES(annualCogsYear2)}) | (${formatKES(annualCogsYear3)}) |
 | Operating Expenses | (${formatKES(annualOperatingExpensesYear1)}) | (${formatKES(annualOperatingExpensesYear2)}) | (${formatKES(annualOperatingExpensesYear3)}) |
 | Loan Principal Repaid | (${formatKES(principalYear1)}) | (${formatKES(loanYear2.principal)}) | (${formatKES(loanYear3.principal)}) |
 | Loan Interest Paid | (${formatKES(totalLoanInterestYear1)}) | (${formatKES(annualLoanInterestYear2)}) | (${formatKES(annualLoanInterestYear3)}) |
@@ -412,7 +429,7 @@ ${makeRow("**Closing Balance c/f**", (m) => m.closing, part2Months)}
 | **Operating Profit before Interest & Tax (EBIT)** | **${formatKES(ebitYear1)}** | **${formatKES(ebitYear2)}** | **${formatKES(ebitYear3)}** |
 | Less: Loan Interest Expense | (${formatKES(totalLoanInterestYear1)}) | (${formatKES(annualLoanInterestYear2)}) | (${formatKES(annualLoanInterestYear3)}) |
 | **Net Profit Before Tax (EBT)** | **${formatKES(ebtYear1)}** | **${formatKES(ebtYear2)}** | **${formatKES(ebtYear3)}** |
-| Less: Corporate Income Tax (30%) | (${formatKES(annualTaxYear1)}) | (${formatKES(annualTaxYear2)}) | (${formatKES(annualTaxYear3)}) |
+| Less: Provisional Tax Assumption (30%; verify applicability) | (${formatKES(annualTaxYear1)}) | (${formatKES(annualTaxYear2)}) | (${formatKES(annualTaxYear3)}) |
 | **Net Profit After Tax** | **${formatKES(netProfitYear1)}** | **${formatKES(netProfitYear2)}** | **${formatKES(netProfitYear3)}** |
 | *Net Profit Margin (%)* | *${netProfitMarginPercentYear1}%* | *${percent(netProfitYear2, annualSalesYear2) ?? "N/M"}%* | *${percent(netProfitYear3, annualSalesYear3) ?? "N/M"}%* |
 `.trim();
@@ -457,7 +474,7 @@ ${makeRow("**Closing Balance c/f**", (m) => m.closing, part2Months)}
 | :--- | :--- | :--- | :--- | :--- |
 | **CURRENT ASSETS:** | | | | |
 | - Cash at Hand & in Bank | ${formatKES(openingCash)} | ${formatKES(year1ClosingCash)} | ${formatKES(year2ClosingCash)} | ${formatKES(year3ClosingCash)} |
-| - ${isConsultancy ? "Consultation Supplies" : "Inventory / Stock of Goods"} | 0 | ${formatKES(isConsultancy ? 0 : stockY1)} | ${formatKES(isConsultancy ? 0 : stockY2)} | ${formatKES(isConsultancy ? 0 : stockY3)} |
+| - ${isConsultancy ? "Consultation Supplies" : isCustom ? "Inventory / Operating Inputs (assumption)" : "Inventory / Stock of Goods"} | 0 | ${formatKES(isConsultancy ? 0 : stockY1)} | ${formatKES(isConsultancy ? 0 : stockY2)} | ${formatKES(isConsultancy ? 0 : stockY3)} |
 | **Total Current Assets** | **${formatKES(openingCash)}** | **${formatKES(year1ClosingCash + stockY1)}** | **${formatKES(year2ClosingCash + stockY2)}** | **${formatKES(year3ClosingCash + stockY3)}** |
 | **FIXED ASSETS:** | | | | |
 | - ${assetLabel} (At Cost) | ${formatKES(totalMachineryCost)} | ${formatKES(totalMachineryCost)} | ${formatKES(totalMachineryCost)} | ${formatKES(totalMachineryCost)} |
@@ -515,6 +532,11 @@ ${makeRow("**Closing Balance c/f**", (m) => m.closing, part2Months)}
     totalMachineryCost,
     totalPreOperationalCost,
     totalStartupCapital,
+    ownerEquityAmount: ownerEquity,
+    loanAmount,
+    totalFunding,
+    fundingGap,
+    fundingSurplus,
     annualSalesYear1,
     annualSalesYear2,
     annualSalesYear3,

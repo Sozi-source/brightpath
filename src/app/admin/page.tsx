@@ -8,6 +8,7 @@ import {
   updateUserRole,
   createInstitution,
   updateInstitutionAiMode,
+  queueApprovedBusinessPlanForPublishing,
 } from "./actions";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
@@ -37,6 +38,7 @@ import type {
   Institution,
 } from "@/types/database";
 import { getWorkspaceSections } from "@/lib/studio/templates";
+import { resolveBusinessPlanModel, type BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
 
 export const instant = false;
 
@@ -80,7 +82,7 @@ export default async function AdminPage() {
     supabase.from("platform_settings").select("*").eq("id", 1).single(),
     supabase.from("institutions").select("*").order("name"),
     supabase.from("project_workspaces")
-      .select("id, title, course, level, student_id, student:student_id(full_name, admission_number)")
+      .select("id, title, course, level, student_id, business_plan_specs, marketplace_price_kes, student:student_id(full_name, admission_number)")
       .eq("workspace_type", "business_plan")
       .eq("final_project_status", "approved")
       .order("updated_at", { ascending: false }),
@@ -97,7 +99,7 @@ export default async function AdminPage() {
   }
   const readyPlans = (approvedBusinessPlans || []).filter((workspace) => {
     const sectionText = sectionsByWorkspace.get(workspace.id);
-    return getWorkspaceSections("business_plan", workspace.level).every((definition) =>
+    return getWorkspaceSections("business_plan", workspace.level, resolveBusinessPlanModel(workspace.business_plan_specs as BusinessPlanSpecs | null)).every((definition) =>
       (sectionText?.get(definition.key) || "").trim().split(/\s+/).filter(Boolean).length >= (definition.minWords || 30)
     );
   });
@@ -359,11 +361,24 @@ export default async function AdminPage() {
                     <div>
                       <p className="text-sm font-semibold text-slate-900">{workspace.title || "Business Plan"}</p>
                       <p className="text-xs text-slate-600">{student?.full_name || "Student"}{student?.admission_number ? ` · ${student.admission_number}` : ""} · {workspace.course || "Business Plan"}</p>
+                      <p className={`mt-1 text-[11px] font-medium ${listing?.status === "published" ? "text-emerald-700" : listing?.status === "pending_review" ? "text-amber-700" : "text-slate-600"}`}>
+                        {listing?.status === "published" ? "Published in marketplace" : listing?.status === "pending_review" ? "Queued · awaiting publishing" : listing ? `Listing ${listing.status} · requeue required` : "Not queued for marketplace publishing"}
+                      </p>
                     </div>
-                    {listing ? <div className="flex items-center gap-2">
+                    {listing && <div className="flex items-center gap-2">
                       <Link href={`/api/download?projectId=${encodeURIComponent(listing.id)}&format=pdf`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-3.5 w-3.5" /> PDF</Link>
                       <Link href={`/api/download?projectId=${encodeURIComponent(listing.id)}&format=docx`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-3.5 w-3.5" /> Word</Link>
-                    </div> : <span className="text-xs text-amber-800">Marketplace listing is being prepared</span>}
+                    </div>}
+                    {listing?.status !== "pending_review" && listing?.status !== "published" && (
+                      <form action={queueApprovedBusinessPlanForPublishing} className="flex items-center gap-2">
+                        <input type="hidden" name="workspaceId" value={workspace.id} />
+                        <label className="sr-only" htmlFor={`marketplace-price-${workspace.id}`}>Marketplace price in KES</label>
+                        <input id={`marketplace-price-${workspace.id}`} name="priceKes" type="number" min="0" max="1000000" step="1" required defaultValue={workspace.marketplace_price_kes ?? listing?.price_kes ?? 0} className="h-8 w-28 rounded-lg border border-slate-300 px-2 text-xs" />
+                        <button type="submit" className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700">
+                          {listing ? "Requeue for publishing" : "Queue for publishing"}
+                        </button>
+                      </form>
+                    )}
                   </div>
                 );
               })}

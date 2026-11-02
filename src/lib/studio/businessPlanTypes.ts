@@ -38,16 +38,23 @@ export type BusinessPlanModel = "consultancy" | "milling" | "beverages" | "custo
 export function resolveBusinessPlanModel(
   specs: Partial<BusinessPlanSpecs> | null | undefined
 ): BusinessPlanModel {
+  const businessDetails = [specs?.industrySector, specs?.primaryProduct, specs?.productDescription]
+    .filter(Boolean).join(" ").toLowerCase();
+  if (/consult|clinical nutrition|dietary meal|nutrition therap/.test(businessDetails)) return "consultancy";
+  if (/juice|beverage|puree/.test(businessDetails)) return "beverages";
+  if (/mill|flour|food manufactur|porridge/.test(businessDetails)) return "milling";
+
+  // A loaded preset is only a hint. If the candidate changes the enterprise
+  // identity to another area, route it through the adaptable custom model.
+  if (businessDetails && specs?.businessModel !== "custom") return "custom";
   if (
     specs?.businessModel === "consultancy" || specs?.businessModel === "milling" ||
     specs?.businessModel === "beverages" || specs?.businessModel === "custom"
   ) return specs.businessModel;
-
-  const identity = [specs?.businessName, specs?.industrySector, specs?.primaryProduct]
-    .filter(Boolean).join(" ").toLowerCase();
-  if (/consult|clinical nutrition|dietary meal|nutrition therap/.test(identity)) return "consultancy";
-  if (/juice|beverage|puree/.test(identity)) return "beverages";
-  if (/mill|flour|food manufactur|porridge/.test(identity)) return "milling";
+  const name = (specs?.businessName || "").toLowerCase();
+  if (/consult|clinical nutrition|dietary meal|nutrition therap/.test(name)) return "consultancy";
+  if (/juice|beverage|puree/.test(name)) return "beverages";
+  if (/mill|flour|porridge/.test(name)) return "milling";
   return "custom";
 }
 

@@ -179,6 +179,7 @@ export function BusinessPlanBuilderModal({
 
   const modelGuidance = getBusinessPlanModelGuidance(resolveBusinessPlanModel(specs));
   const isConsultancy = resolveBusinessPlanModel(specs) === "consultancy";
+  const isCustomModel = resolveBusinessPlanModel(specs) === "custom";
   const locationRationaleCorrection = getConsultancyLocationRationaleCorrection(specs);
 
   // Kept out of the report flow until the financial model is reconciled to the supplied template.
@@ -455,7 +456,7 @@ export function BusinessPlanBuilderModal({
                 }`}
               >
                 <Wrench className="h-3.5 w-3.5" />
-                <span>{isConsultancy ? "Practice & Staff" : "Machinery & Staff"}</span>
+                <span>{isConsultancy ? "Practice & Staff" : isCustomModel ? "Operations & Staff" : "Equipment & Staff"}</span>
               </button>
               <button
                 type="button"
@@ -905,14 +906,14 @@ export function BusinessPlanBuilderModal({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs font-medium text-slate-700 block mb-1">
-                        Packaging Format
+                        {isCustomModel ? "Delivery Format / Packaging" : "Packaging Format"}
                       </label>
                       <input
                         type="text"
                         value={specs.productPackaging}
                         onChange={(e) => setSpecs({ ...specs, productPackaging: e.target.value })}
                         className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                        placeholder="e.g. 1kg moisture-barrier laminated pouches"
+                        placeholder={isCustomModel ? "How the product or service reaches customers" : "Describe the packaging or service format"}
                       />
                     </div>
                     <div>
@@ -943,7 +944,7 @@ export function BusinessPlanBuilderModal({
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                       <label className="text-xs font-medium text-slate-700 block mb-1">
-                        {isConsultancy ? "Fee per Consultation (KES) *" : "Unit Selling Price (KES) *"}
+                        {isConsultancy ? "Fee per Consultation (KES) *" : isCustomModel ? "Price per Unit / Service (KES) *" : "Unit Selling Price (KES) *"}
                       </label>
                       <input
                         type="number"
@@ -957,7 +958,7 @@ export function BusinessPlanBuilderModal({
                     </div>
                     <div>
                       <label className="text-xs font-medium text-slate-700 block mb-1">
-                        {isConsultancy ? "Variable Cost per Consultation (KES) *" : "Unit Cost of Production (KES) *"}
+                        {isConsultancy ? "Variable Cost per Consultation (KES) *" : isCustomModel ? "Variable Cost per Unit / Service (KES) *" : "Unit Cost of Production (KES) *"}
                       </label>
                       <input
                         type="number"
@@ -971,7 +972,7 @@ export function BusinessPlanBuilderModal({
                     </div>
                     <div>
                       <label className="text-xs font-medium text-slate-700 block mb-1">
-                        {isConsultancy ? "Consultations per Month *" : "Monthly Production (Units) *"}
+                        {isConsultancy ? "Consultations per Month *" : isCustomModel ? "Monthly Sales / Service Volume *" : "Monthly Production (Units) *"}
                       </label>
                       <input
                         type="number"
@@ -991,7 +992,7 @@ export function BusinessPlanBuilderModal({
                   {/* Pricing Margin Metric Box */}
                   <div className="p-3 bg-indigo-50/60 border border-indigo-200 rounded-lg flex items-center justify-between text-xs">
                     <div>
-                      <span className="text-slate-600">{isConsultancy ? "Contribution per Consultation: " : "Gross Margin per Unit: "}</span>
+                      <span className="text-slate-600">{isConsultancy ? "Contribution per Consultation: " : isCustomModel ? "Contribution per Unit / Service: " : "Gross Margin per Unit: "}</span>
                       <span className="font-semibold text-slate-900 font-mono">
                         KES {formatKES(specs.unitSellingPrice - specs.unitCostOfProduction)} (
                         {specs.unitSellingPrice > 0
@@ -1005,7 +1006,7 @@ export function BusinessPlanBuilderModal({
                       </span>
                     </div>
                     <div>
-                      <span className="text-slate-600">{isConsultancy ? "Revenue at stated monthly capacity: " : "Sales at stated monthly output: "}</span>
+                      <span className="text-slate-600">{isConsultancy ? "Revenue at stated monthly capacity: " : isCustomModel ? "Revenue at planned monthly volume: " : "Sales at stated monthly output: "}</span>
                       <span className="font-semibold text-indigo-700 font-mono">
                         KES {formatKES(specs.unitSellingPrice * specs.monthlyProductionUnitsYear1 * 12)}
                       </span>
@@ -1079,7 +1080,7 @@ export function BusinessPlanBuilderModal({
                     </div>
                     {specs.rawMaterials.map((material, idx) => (
                       <div key={idx} className="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-lg border border-slate-200 bg-white p-3">
-                        <input aria-label="Material" placeholder="Material or packaging" value={material.material} onChange={(e) => setSpecs((prev) => ({ ...prev, rawMaterials: prev.rawMaterials.map((row, i) => i === idx ? { ...row, material: e.target.value } : row) }))} className="rounded-lg border border-slate-300 px-2.5 py-2 text-xs" />
+                        <input aria-label="Material or operating input" placeholder={isCustomModel ? "Material or operating input" : "Material or packaging"} value={material.material} onChange={(e) => setSpecs((prev) => ({ ...prev, rawMaterials: prev.rawMaterials.map((row, i) => i === idx ? { ...row, material: e.target.value } : row) }))} className="rounded-lg border border-slate-300 px-2.5 py-2 text-xs" />
                         <input aria-label="Quantity per month" placeholder="Quantity per month" value={material.monthlyQuantity} onChange={(e) => setSpecs((prev) => ({ ...prev, rawMaterials: prev.rawMaterials.map((row, i) => i === idx ? { ...row, monthlyQuantity: e.target.value } : row) }))} className="rounded-lg border border-slate-300 px-2.5 py-2 text-xs" />
                         <input aria-label="Monthly material cost in KES" type="number" min="0" placeholder="Monthly cost (KES)" value={material.monthlyCost} onChange={(e) => setSpecs((prev) => ({ ...prev, rawMaterials: prev.rawMaterials.map((row, i) => i === idx ? { ...row, monthlyCost: Number(e.target.value) || 0 } : row) }))} className="rounded-lg border border-slate-300 px-2.5 py-2 text-xs font-mono" />
                         <input aria-label="Material supplier" placeholder="Supplier and quote reference" value={material.supplier} onChange={(e) => setSpecs((prev) => ({ ...prev, rawMaterials: prev.rawMaterials.map((row, i) => i === idx ? { ...row, supplier: e.target.value } : row) }))} className="rounded-lg border border-slate-300 px-2.5 py-2 text-xs" />

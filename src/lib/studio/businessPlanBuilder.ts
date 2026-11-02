@@ -53,9 +53,9 @@ Supervisor Name: **${specs.supervisorName || "[Enter supervisor name]"}**<br>Des
     "prelim.dedication",
     "Dedication",
     `### DEDICATION
-This business plan is dedicated to Almighty God for the gift of life, wisdom, and strength throughout the duration of this academic programme.
+This business plan is dedicated to the people whose encouragement, guidance, and practical support contributed to the candidate's education and enterprise development.
 
-I specially dedicate this work to my beloved family, whose steadfast moral support, prayers, and financial sacrifices provided the foundation for my education. I also dedicate this plan to all passionate nutritionists, community health practitioners, and small-scale entrepreneurs across Kenya who strive daily to eliminate malnutrition and promote public health through sustainable, self-reliant enterprise.`
+The candidate may personalize this dedication to recognize family members, mentors, colleagues, or community members who provided meaningful support.`
   );
 
   add(
@@ -78,7 +78,7 @@ I also thank **${specs.institutionName || "[Institution name]"}** for its academ
 
 The flagship product offered is **${specs.primaryProduct}**, packaged in **${specs.productPackaging}** and retailed at **KES ${formatKES(specs.unitSellingPrice)}** per unit against a production cost of **KES ${formatKES(specs.unitCostOfProduction)}**. In ${specs.townOrMarket}, the total addressable market encompasses approximately **${specs.totalMarketPopulation}**. Market feasibility survey data reveals an unmet consumer deficit driven by high prices of imported commercial brands and hygienic shortcomings of informal, uncertified open-air market vendors. The enterprise projects capturing **${specs.projectedMarketSharePercentage}%** of the local market share within Year 1.
 
-The venture requires start-up capital of **KES ${formatKES(fin.totalStartupCapital)}**, comprising **KES ${formatKES(fin.totalMachineryCost)}** for equipment, **KES ${formatKES(fin.totalPreOperationalCost)}** for pre-operational costs, and **KES ${formatKES(specs.workingCapitalBuffer || 75000)}** for working capital. The projection assumes **60% owner's equity (KES ${formatKES(Math.round(fin.totalStartupCapital * 0.6))})** and **40% proposed debt financing (KES ${formatKES(fin.totalStartupCapital - Math.round(fin.totalStartupCapital * 0.6))})** at an assumed annual interest rate of ${Number(specs.loanInterestRateAnnual || 0).toFixed(1)}% over ${Math.max(1, Math.floor(specs.loanTenureMonths || 24))} months. The lender and loan terms require confirmation before implementation.
+The venture requires estimated start-up capital of **KES ${formatKES(fin.totalStartupCapital)}**, comprising **KES ${formatKES(fin.totalMachineryCost)}** for equipment or assets, **KES ${formatKES(fin.totalPreOperationalCost)}** for pre-operational costs, and **KES ${formatKES(specs.workingCapitalBuffer || 75000)}** for working capital. Candidate-entered funding assumptions are **KES ${formatKES(fin.ownerEquityAmount)}** in owner's equity and **KES ${formatKES(fin.loanAmount)}** in proposed borrowing, at an assumed annual interest rate of ${Number(specs.loanInterestRateAnnual || 0).toFixed(1)}% over ${Math.max(1, Math.floor(specs.loanTenureMonths || 24))} months. ${fin.fundingGap ? `This leaves a projected funding gap of **KES ${formatKES(fin.fundingGap)}**.` : fin.fundingSurplus ? `This leaves **KES ${formatKES(fin.fundingSurplus)}** in unallocated proposed funding.` : "The proposed funding matches the estimated startup requirement."} The lender and loan terms require confirmation before implementation.
 
 Financial forecasts project first-year gross sales of **KES ${formatKES(fin.annualSalesYear1)}**, gross profit of **KES ${formatKES(fin.annualGrossProfitYear1)}** (**${fin.grossProfitMarginPercent}% gross margin**), and net profit after tax of **KES ${formatKES(fin.netProfitYear1)}** (**${fin.netProfitMarginPercentYear1}% net margin**). Net profit after tax is projected at **KES ${formatKES(fin.netProfitYear2)}** in Year 2 and **KES ${formatKES(fin.netProfitYear3)}** in Year 3, subject to the stated production, pricing, cost, tax, and financing assumptions. ${fin.breakEvenAchievable ? `Monthly break-even is estimated at **${formatKES(fin.breakEvenUnitsMonthly)} units** (**${fin.breakEvenLevelPercent}%** of planned capacity).` : "Break-even cannot be calculated because the unit contribution margin is not positive."} The projected Year 1 return on investment (ROI) is **${fin.returnOnInvestmentYear1}%** and return on equity (ROE) is **${fin.returnOnEquityYear1}%**.`
   );
@@ -688,11 +688,11 @@ ${fin.capitalizationTable}
     `### 5.3 Key Financial and Macroeconomic Assumptions
 
 The financial statements are constructed upon realistic, conservative macroeconomic and operational parameters:
-1. **Sales Ramp-up**: Production and sales operate at 65% capacity during Months 1-2, 80% in Month 3, 90% in Month 4, and 100% capacity from Month 5 onward.
+1. **Sales Ramp-up**: The model projects 65% of stated monthly volume in Months 1-2, 80% in Month 3, 90% in Month 4, and 100% from Month 5 onward. Replace this planning assumption with a venture-specific ramp-up where needed.
 2. **Sales Expansion**: Gross turnover expands by **${Math.round((specs.annualGrowthRateYear2 || 0.2) * 100)}%** in Year 2 and **${Math.round((specs.annualGrowthRateYear3 || 0.2) * 100)}%** in Year 3.
 3. **Depreciation Policy**: Machinery and tools are depreciated on a straight-line basis at **10% per annum** with zero salvage value.
 4. **Inflation on Operating Costs**: Wages, utilities, and transport increase by a conservative 8-10% annually.
-5. **Corporate Taxation**: Corporate tax is computed at the statutory Kenyan corporate rate of **30%** on net taxable profit.`
+5. **Provisional Tax Calculation**: The financial model applies a **30% planning assumption** to positive pre-tax profit. Confirm the applicable tax treatment for the chosen legal form and activity with a qualified adviser or the relevant authority; the model rate is not a statement of statutory liability.`
   );
 
   add(
@@ -700,7 +700,7 @@ The financial statements are constructed upon realistic, conservative macroecono
     "5.4 Pro-Forma Cash Flow Statement (Three Years)",
     `### 5.4 Pro-Forma Cash Flow Statement (Three Years)
 
-The annual summary shows the projected opening and closing cash balances for all three years. The monthly schedule provides the Year 1 detail.
+The annual summary shows the projected opening and closing cash balances for all three years. The monthly schedule provides the Year 1 detail. The model opens with candidate-entered funding remaining after estimated asset and setup costs; any funding gap is shown in Section 5.2.
 
 ${fin.threeYearCashFlowTable}
 
@@ -720,7 +720,7 @@ The projected statement of profit and loss evaluates enterprise profitability ov
 ${fin.threeYearIncomeStatementTable}
 
 #### 5.5.1 Profitability Commentary
-Gross profit margin remains strong at **${fin.grossProfitMarginPercent}%**, reflecting disciplined raw material procurement. Net profit after tax grows from **KES ${formatKES(fin.netProfitYear1)}** in Year 1 to **KES ${formatKES(fin.netProfitYear3)}** in Year 3, proving substantial commercial viability.`
+The projected gross profit margin is **${fin.grossProfitMarginPercent}%**. Projected net profit after tax is **KES ${formatKES(fin.netProfitYear1)}** in Year 1 and **KES ${formatKES(fin.netProfitYear3)}** in Year 3. These are model outputs based on the stated assumptions; they do not establish demand or guarantee commercial viability.`
   );
 
   add(
@@ -738,7 +738,7 @@ ${fin.threeYearBalanceSheetTable}`
     "5.7 Break-Even Analysis",
     `### 5.7 Break-Even Analysis
 
-Break-even analysis establishes the margin of safety by determining the minimum production volume required to cover all fixed operating overheads.
+Break-even analysis estimates the minimum monthly sales volume needed to cover the fixed operating costs included in this model.
 
 ${fin.breakEvenTable}
 
@@ -767,10 +767,11 @@ ${fin.financialRatiosTable}`
 
 | Risk Category | Nature of Commercial Threat | Concrete Mitigation Measure |
 | :--- | :--- | :--- |
-| **Operational Risk** | Machinery breakdown during peak production. | Retain spare belts, hammer blades, and contract local technician on 4-hour standby agreement. |
-| **Supply Risk** | Seasonal spike in grain prices due to regional drought. | Maintain hermetic storage reserve holding 60 days of raw grain buffer stock. |
-| **Credit Risk** | Delayed payment by retail shop stockists. | Limit retailer credit to 7 days with mandatory M-PESA reconciliation prior to dispatching new orders. |
-| **Fire & Safety Risk** | Grain dust combustion or electrical short circuit. | Install certified foam and carbon dioxide fire extinguishers; enforce zero-smoking protocols. |`
+| **Demand risk** | Actual customer uptake may be below the candidate's sales assumption. | Track enquiries, completed sales, repeat purchases, and cancellations; revise volume targets using observed results. |
+| **Cash-flow risk** | Startup funding may not cover setup costs and operating needs. | Confirm funding commitments and close any gap shown in Section 5.2 before launch; monitor cash monthly. |
+| **Input or supplier risk** | Key supplies, materials, or services may cost more or be unavailable. | Obtain dated quotations, identify suitable alternatives, and revise the cost assumptions before committing. |
+| **Operational risk** | Equipment, premises, staffing, or service delivery may be disrupted. | Document venture-specific continuity, safety, and quality procedures; identify a responsible person and contingency after local review. |
+| **Compliance risk** | Applicable requirements may be missed or costs may differ. | Confirm current registration, licensing, tax, and professional requirements with the relevant authorities before operating. |`
   );
 
   // =========================================================================
@@ -782,67 +783,48 @@ ${fin.financialRatiosTable}`
     "References (APA 7th Edition)",
     `### REFERENCES
 
-Government of Kenya. (2012). *National Food and Nutrition Security Policy (NFNSP)*. Ministry of Agriculture, Livestock and Fisheries.
-
-Kenya Bureau of Standards [KEBS]. (2020). *Code of Hygienic Practice for the Food and Drink Manufacturing Industry (KS EAS 39:2020)*. KEBS.
-
-Kenya National Bureau of Statistics [KNBS]. (2023). *Kenya Demographic and Health Survey 2022: Key Indicators Report*. KNBS.
-
-Micro and Small Enterprise Authority [MSEA]. (2022). *National Policy on Micro and Small Enterprises: Unleashing the Potential of MSEs in Kenya*. MSEA.
-
-Ministry of Health. (2021). *Kenya National Clinical Nutrition and Dietetics Guidelines*. Government of Kenya.
-
-Republic of Kenya. (2012). *Public Health Act (Cap. 242, Laws of Kenya)*. National Council for Law Reporting.
-
-Republic of Kenya. (2015). *Business Registration Act (Cap. 499, Laws of Kenya)*. Government Printer.
-
-Wang'ombe, D. (2018). *Financial Accounting for Business in Eastern Africa* (2nd ed.). Focus Publishers Ltd.`
+${specs.research?.sources?.length
+  ? specs.research.sources.map((source, index) => `${index + 1}. ${source.title}. ${source.url}`).join("\n\n")
+  : "No verifiable sources are attached to this draft yet. Add current sources used for market, regulatory, technical, and financial claims before submission. Do not treat candidate assumptions as references."}`
   );
 
   add(
     "app.workplan",
     "Appendix I: Business Implementation Schedule (Gantt Chart)",
-    `### APPENDIX I: 12-MONTH BUSINESS IMPLEMENTATION SCHEDULE
+    `### APPENDIX I: PROPOSED 12-MONTH IMPLEMENTATION SCHEDULE
 
-| Milestone Task / Activity | M1 | M2 | M3 | M4 | M5 | M6 | M7 | M8 | M9 | M10 | M11 | M12 |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-X marks a month when the activity is scheduled.
+This is a planning sequence, not evidence that approvals, premises, funding, or supplier arrangements are secured. Confirm timing against the venture's actual requirements.
 
-| Milestone Task / Activity | M1 | M2 | M3 | M4 | M5 | M6 | M7 | M8 | M9 | M10 | M11 | M12 |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Business Name Search & Registration | X | | | | | | | | | | | |
-| Premises Lease & Renovation Works | | X | | | | | | | | | | |
-| Machinery Procurement & Installation | | X | X | | | | | | | | | |
-| Single Business Permit & Health Licenses | | | X | | | | | | | | | |
-| Raw Material Sourcing & Test Milling | | | X | | | | | | | | | |
-| Commercial Launch & Sampling Campaign | | | | X | | | | | | | | |
-| Distribution to 30 Retail Outlets | | | | X | X | X | | | | | | |
-| Mid-Year Operational Review & KEBS Audit | | | | | | X | X | | | | | |
-| Commercial Loan Amortization (Ongoing) | | | | X | X | X | X | X | X | X | X | X |
-| Expansion into Neighboring Sub-Counties | | | | | | | | | | X | X | X |`
+| Milestone | M1 | M2 | M3 | M4 | M5-M6 | M7-M9 | M10-M12 |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Confirm customer need, offer, and operating assumptions | X | X | | | | | |
+| Verify registration, permits, professional or sector requirements | X | X | X | | | | |
+| Confirm funding, premises, equipment, and supplier quotations | | X | X | | | | |
+| Set up operations, records, safety, and quality procedures | | | X | X | | | |
+| Trial service or product delivery and gather feedback | | | | X | X | | |
+| Begin planned commercial activity, subject to required approvals | | | | | X | X | |
+| Review actual demand, costs, cash flow, and customer feedback | | | | | | X | X |
+| Decide whether evidence supports expansion or revised targets | | | | | | | X |`
   );
 
   add(
     "app.invoices",
     "Appendix II: Price Quotes and Market Survey Evidence Summary",
-    `### APPENDIX II: SUPPLIER PRICE QUOTATIONS AND MARKET SURVEY SUMMARY
+    `### APPENDIX II: SUPPLIER QUOTATIONS AND MARKET EVIDENCE
 
-#### 1. Machinery Quotation Summary
-- **Quotation Ref**: NDL/Q/2026/84 - Ndume Mills Ltd, Gilgil
-  - Equipment: Commercial Stainless Steel Hammer Mill with 15 HP 3-Phase Electric Motor
-  - Quotation Value: KES 145,000 (VAT Inclusive)
-- **Quotation Ref**: GPM/2026/102 - General Pack Machinery, Commercial Street, Nairobi
-  - Equipment: Continuous Band Nitrogen Sealer with Embossing Date Stamper
-  - Quotation Value: KES 48,000 (VAT Inclusive)
-- **Quotation Ref**: CLS/INST/2026/45 - Crop Nutrition Laboratory Services, Nairobi
-  - Equipment: Digital Portable Grain Moisture Tester (Draminski Model)
-  - Quotation Value: KES 32,000
+Supplier names below are candidate-supplied planning details, not verified quotations. Attach dated quotations before treating costs, availability, or terms as confirmed.
 
-#### 2. Market Survey Evidence Summary
-- **Sample Size**: 40 Households with young children and 15 Retail Kiosk Operators in ${specs.townOrMarket}.
-- **Key Survey Finding 1**: 82% of household respondents reported purchasing packaged porridge flour weekly.
-- **Key Survey Finding 2**: 73% of respondents expressed willingness to buy a locally formulated, orange-fleshed sweet potato and amaranth enriched blend at KES 120-130 per kg.
-- **Key Survey Finding 3**: 100% of retail kiosk owners agreed to stock the product provided introductory margins exceed 15% on sale-or-return terms.`
+#### Equipment and tool quotation register
+| Item | Quantity | Candidate-entered unit cost (KES) | Supplier entered | Evidence status |
+| :--- | ---: | ---: | :--- | :--- |
+${specs.machinery.map((item) => `| ${item.item} | ${item.quantity} | ${formatKES(item.unitCost)} | ${item.supplier || "[Supplier not supplied]"} | [Quotation required] |`).join("\n") || "| [Enter equipment or tools] | [Confirm] | [Confirm] | [Supplier required] | [Quotation required] |"}
+
+#### Materials and operating inputs
+| Input | Monthly quantity | Candidate-entered monthly cost (KES) | Supplier entered | Evidence status |
+| :--- | :--- | ---: | :--- | :--- |
+${specs.rawMaterials.map((item) => `| ${item.material} | ${item.monthlyQuantity} | ${formatKES(item.monthlyCost)} | ${item.supplier || "[Supplier not supplied]"} | [Quotation required] |`).join("\n") || "| [Enter materials or operating inputs] | [Confirm] | [Confirm] | [Supplier required] | [Quotation required] |"}
+
+No survey result or customer commitment has been supplied for this draft. Add dated research records, methods, and results here only after conducting the work.`
   );
 
   if (resolveBusinessPlanModel(specs) === "consultancy") {

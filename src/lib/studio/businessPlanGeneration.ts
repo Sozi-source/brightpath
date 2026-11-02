@@ -285,7 +285,7 @@ Research local context, reachable customer segments, known competitors or altern
   return { summary, sources, searchedAt: new Date().toISOString() };
 }
 
-export async function reviewBusinessPlanFacts(
+export async function draftBusinessPlanSections(
   specs: BusinessPlanSpecs,
   definitions: SectionDef[],
   research: BusinessPlanResearch,
@@ -306,19 +306,42 @@ export async function reviewBusinessPlanFacts(
 
   const candidateEvidence = {
     businessModel: resolveBusinessPlanModel(specs),
+    businessAreaMayDifferFromModelLabel: true,
     businessName: specs.businessName,
+    candidateName: specs.candidateName,
+    course: specs.course,
+    qualificationLevel: specs.level,
     sector: specs.industrySector,
+    tagline: specs.tagline,
+    ownership: specs.formOfOwnership,
+    registrationTypeCandidateSupplied: specs.registrationType,
+    ownerQualificationsCandidateSupplied: specs.ownerQualifications,
     county: specs.county,
     townOrMarket: specs.townOrMarket,
+    proposedAddress: specs.streetOrBuilding,
+    locationRationaleCandidateSupplied: specs.locationRationale,
     product: specs.primaryProduct,
+    productDescriptionCandidateSupplied: specs.productDescription,
+    packagingCandidateSupplied: specs.productPackaging,
     sellingPriceKES: specs.unitSellingPrice,
     unitCostKES: specs.unitCostOfProduction,
+    plannedMonthlyVolume: specs.monthlyProductionUnitsYear1,
     targetCustomers: specs.targetCustomersDescription,
     statedMarketSize: specs.totalMarketPopulation,
     projectedMarketSharePercentage: specs.projectedMarketSharePercentage,
     competitors: specs.competitors,
-    suppliers: specs.rawMaterials.map((item) => item.supplier).filter(Boolean),
-    registrationType: specs.registrationType,
+    equipmentCandidateEntries: specs.machinery,
+    materialsCandidateEntries: specs.rawMaterials,
+    staffCandidateEntries: specs.staffing,
+    monthlyRentKES: specs.monthlyRent,
+    estimatedPremisesAreaSquareMetres: specs.workshopSquareMeters,
+    startupAndWorkingCapitalAssumptionsKES: {
+      preOperationalCosts: specs.preOperationalCosts,
+      workingCapitalBuffer: specs.workingCapitalBuffer,
+      ownerEquityAmount: specs.ownerEquityAmount,
+      loanAmount: specs.loanAmount,
+    },
+    overheadAssumptionsKES: specs.monthlyOverheads,
   };
   const sourceList = research.sources
     .map((source, index) => `[${index + 1}] ${source.title} — ${source.url}`)
@@ -326,11 +349,13 @@ export async function reviewBusinessPlanFacts(
   const sectionDrafts = reviewable.map((section) => ({
     key: section.key,
     title: section.title,
-    text: scriptedSections.get(section.key),
+    guidance: section.guidance,
+    minWords: section.minWords || 80,
+    baseline: scriptedSections.get(section.key),
   }));
-  const prompt = `Review the scripted business-plan sections for factual accuracy. Return only minimal corrections as exact text replacements.
+  const prompt = `Draft and improve the requested business-plan sections for a Kenyan TVET candidate. The baseline is untrusted starter material: retain useful structure and relevant detail, but replace irrelevant industry assumptions and repeated boilerplate with content for this candidate's actual enterprise.
 
-BUSINESS MODEL LOCK: The selected model is ${resolveBusinessPlanModel(specs)}. Do not add activities, customers, equipment, regulations, or financial language belonging to another model. For nutrition consultancy, describe appointment-based assessment and counselling services only; do not introduce food manufacturing, milling, grain, packaged products, or factory processes.
+ADAPTIVE SCOPE: The selected model is ${resolveBusinessPlanModel(specs)}, but the student's sector and product/service are authoritative. Students may work in any lawful business area. Adapt production/operations, materials, equipment, staffing, customers, and compliance to the supplied venture. A model label is only a hint, never permission to assume a food, clinic, retail, manufacturing, farming, or other business. Remove content that does not apply. Treat each section's guidance as an academic objective to satisfy where relevant, not as a factual claim or an instruction to force food/agriculture examples.
 
 CANDIDATE-SUPPLIED DETAILS (treat these as assumptions, not independently verified facts):
 ${JSON.stringify(candidateEvidence)}
@@ -340,31 +365,32 @@ ${research.summary}
 SOURCES:
 ${sourceList}
 
-SCRIPTED SECTIONS:
+SECTION REQUIREMENTS AND BASELINE (draft each listed section):
 ${JSON.stringify(sectionDrafts)}
 
-Return JSON only: {"edits":[{"key":"section key","find":"exact existing sentence or phrase","replace":"corrected sentence or phrase"}]}. Use only these sections. Do not rewrite style, add unsupported facts, alter candidate-supplied numbers or financial calculations, or claim surveys, contracts, licenses, approvals, or partnerships exist unless supported by supplied evidence. Cite supported claims with [n].
+Return JSON only: {"sections":[{"key":"exact section key","content":"complete Markdown for this section"}]}. Return one complete section for every requested key, retaining its exact heading. Meet its minWords expectation with substantive enterprise-specific analysis, useful lists/tables where appropriate, and concise professional prose. Vary wording naturally across sections; do not repeat generic introductions. Do not invent market sizes, competitors, survey findings, suppliers, quotations, prices, permits, fees, approvals, registrations, partnerships, or legal requirements. Candidate entries are assumptions, not verified evidence. Phrase missing information as a proposal or mark it [Confirm locally] / [Quotation required]. Cite supported external claims with [n], using only the listed sources. Do not introduce a source number without a matching listed source. Do not create or modify financial statements, ratios, forecasts, or calculations; chapter 5 is excluded. In the executive summary, retain every KES amount and financial percentage exactly as shown in the baseline. Do not claim an activity or facility exists if it is only proposed.
 
 GEOGRAPHIC CONSISTENCY CHECK (required): Compare every named town, county, sub-county, ward, road, and health facility in the draft with the candidate's stated business location and the supplied research. Flag claims that describe a distant or differently located facility as nearby, or place it in the wrong county. Do not guess a replacement facility. If the mismatch is clear from the supplied sources, correct only that claim; if no local facility is verified, use cautious wording such as "health facilities serving [town]" and add [Confirm locally].
 
-If no source supports another factual claim, replace only that claim with cautious wording and [Confirm locally]. Return an empty edits array when no correction is justified.`;
+If local geography or sector facts are uncertain, use cautious wording and [Confirm locally].`;
 
-  const parsed = await generateJson(prompt, provider, { maxTokens: 1800 });
-  const edits = Array.isArray(parsed.edits) ? parsed.edits : [];
+  const parsed = await generateJson(prompt, provider, { maxTokens: 7000 });
+  const drafts = Array.isArray(parsed.sections) ? parsed.sections : [];
   const updated = new Map<string, string>();
-  for (const edit of edits) {
-    if (!edit || typeof edit !== "object") continue;
-    const item = edit as { key?: unknown; find?: unknown; replace?: unknown };
-    if (
-      typeof item.key !== "string" || !reviewable.some((section) => section.key === item.key) ||
-      typeof item.find !== "string" || !item.find.trim() || item.find.length > 3_000 ||
-      typeof item.replace !== "string" || !item.replace.trim() || item.replace.length > 5_000
-    ) continue;
-    const original = updated.get(item.key) ?? scriptedSections.get(item.key);
-    if (!original?.includes(item.find)) continue;
-    const correctedText = original.replace(item.find, item.replace).slice(0, 30_000);
-    if (getBusinessModelConflictFindings(specs, [{ key: item.key, content: correctedText }]).length) continue;
-    updated.set(item.key, correctedText);
+  for (const draft of drafts) {
+    if (!draft || typeof draft !== "object") continue;
+    const item = draft as { key?: unknown; content?: unknown };
+    if (typeof item.key !== "string" || typeof item.content !== "string") continue;
+    const definition = reviewable.find((section) => section.key === item.key);
+    if (!definition || !item.content.trim() || item.content.length > 30_000) continue;
+    const content = item.content.trim();
+    const words = content.split(/\s+/).filter(Boolean).length;
+    if (words < (definition.minWords || 80)) continue;
+    const baseline = scriptedSections.get(item.key) || "";
+    const money = (value: string) => value.match(/KES\s*[\d,]+(?:\.\d+)?/g) || [];
+    if (item.key === "prelim.executive_summary" && JSON.stringify(money(content)) !== JSON.stringify(money(baseline))) continue;
+    if (getBusinessModelConflictFindings(specs, [{ key: item.key, content }]).length) continue;
+    updated.set(item.key, content);
   }
   return updated;
 }
@@ -428,7 +454,7 @@ export async function reviewWholeBusinessPlan(
   };
   const prompt = `Review this complete business plan across all chapters. Check factual support, cross-section consistency, completeness against requirements, repetition, and whether the extracted content has suitable lists or tables. This is an audit only; do not rewrite or apply edits.
 
-BUSINESS MODEL LOCK (required): The selected model is ${resolveBusinessPlanModel(specs)}. Check each section against it. For nutrition consultancy, the core offer is appointment-based nutrition assessment, counselling, and meal planning; flag manufacturing, milling, grain purchasing, packaged food sales, factory roles, and food-production workflows as model conflicts. Do not treat a nutrition consultancy as a food manufacturer.
+ENTERPRISE FIT (required): The model label is ${resolveBusinessPlanModel(specs)}, but the candidate's stated sector, product or service, and evidence define the actual enterprise. Check every section for incompatible activities, operations, costs, customers, staff, equipment, regulations, and repeated boilerplate. Do not assume the venture is a food business or a consultancy unless its supplied identity says so. Report mismatches as findings; do not rewrite the manuscript.
 
 GEOGRAPHIC CONSISTENCY CHECK (required): Compare every named town, county, sub-county, ward, road, and health facility in the manuscript with the candidate's stated business location and the supplied research. Flag claims that describe a distant or differently located facility as nearby, or place it in the wrong county. Use only the supplied sources for factual conclusions; if they do not resolve the issue, recommend local verification rather than guessing a replacement facility. Include the finding under the section containing the mismatch.
 
