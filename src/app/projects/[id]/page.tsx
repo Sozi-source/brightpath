@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
-import { BookOpen, Download, Eye, FileText, Star } from "lucide-react";
+import { BookOpen, Download, Eye, FileText, Star, CheckCircle2 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { BuyButton } from "@/components/BuyButton";
@@ -44,6 +44,21 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
   const publisherName = product.material_type === "business_plan"
     ? "BrightPath Academic Repository"
     : (publisher?.full_name || "BrightPath Publisher");
+  const isBusinessPlan =
+    product.material_type === "business_plan" ||
+    (product.category || "").toLowerCase().includes("business") ||
+    product.file_path.startsWith("workspace-export:");
+  const levelMatch = product.title.match(/\((Diploma|Craft Certificate|Certificate|Higher Diploma)\)/i);
+  const levelLabel = levelMatch
+    ? levelMatch[1]
+    : product.title.toLowerCase().includes("craft") || product.title.toLowerCase().includes("certificate")
+    ? "Craft Certificate"
+    : "Diploma";
+  const cleanTitle = product.title
+    .replace(/\s*—\s*Complete KNEC Business Plan.*$/i, "")
+    .replace(/\s*\(Craft Certificate\)|\s*\(Diploma\)/gi, "")
+    .trim();
+
   const extension = product.file_path.startsWith("workspace-export:")
     ? "PDF + Word"
     : product.file_path.split(".").pop()?.toUpperCase() || "Digital file";
@@ -64,10 +79,50 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <main className="space-y-5">
           <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
-            <div className="h-1 bg-gradient-to-r from-blue-600 via-blue-600 to-amber-400" />
-            <div className="grid gap-5 p-5 md:grid-cols-[190px_1fr]">
-              <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-slate-200 bg-gradient-to-br from-blue-50 via-white to-amber-50">
-                {product.cover_path ? <Image src={`/api/projects/${product.id}/cover`} alt={`${product.title} cover`} fill unoptimized sizes="190px" className="object-cover" /> : <div className="flex h-full flex-col items-center justify-center gap-3 p-4 text-center text-blue-800"><BookOpen className="h-10 w-10" /><span className="text-xs font-semibold uppercase tracking-wider">{getMaterialTypeLabel(product.material_type)}</span></div>}
+            <div className="h-1 bg-gradient-to-r from-indigo-600 via-indigo-600 to-amber-400" />
+            <div className="grid gap-5 p-5 md:grid-cols-[210px_1fr]">
+              <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950">
+                {product.cover_path ? (
+                  <Image src={`/api/projects/${product.id}/cover`} alt={`${product.title} cover`} fill unoptimized sizes="210px" className="object-cover" />
+                ) : isBusinessPlan ? (
+                  <div className="relative h-full w-full overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-4 text-white flex flex-col justify-between select-none">
+                    <div className="absolute inset-0 opacity-[0.08] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
+                    <div className="relative z-10 flex items-center justify-between gap-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                        <span className="text-[9px] font-bold tracking-widest uppercase text-slate-300">KNEC SERIES</span>
+                      </div>
+                      <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-white/10 text-amber-300 border border-amber-400/30">
+                        {levelLabel}
+                      </span>
+                    </div>
+                    <div className="relative z-10 my-auto text-center px-1">
+                      <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 border border-white/20 mb-2 shadow-xs backdrop-blur-xs">
+                        <FileText className="h-5 w-5 text-amber-300" />
+                      </div>
+                      <div className="text-xs font-semibold tracking-tight text-white line-clamp-3 leading-snug">
+                        {cleanTitle}
+                      </div>
+                      <div className="text-[9px] text-slate-300 font-mono mt-1 uppercase tracking-wider">
+                        Curriculum Examination Dossier
+                      </div>
+                    </div>
+                    <div className="relative z-10 flex items-center justify-between text-[9px] text-slate-300 border-t border-white/10 pt-2">
+                      <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
+                        <CheckCircle2 className="h-3 w-3" /> 47 KNEC Sections
+                      </span>
+                      <div className="flex items-center gap-1 font-mono text-[8.5px] text-slate-300">
+                        <span className="rounded bg-white/10 px-1.5 py-0.5 border border-white/10">PDF</span>
+                        <span className="rounded bg-white/10 px-1.5 py-0.5 border border-white/10">DOCX</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex h-full flex-col items-center justify-center gap-3 p-4 text-center text-blue-800">
+                    <BookOpen className="h-10 w-10" />
+                    <span className="text-xs font-semibold uppercase tracking-wider">{getMaterialTypeLabel(product.material_type)}</span>
+                  </div>
+                )}
               </div>
               <div className="flex min-w-0 flex-col">
                 <div className="flex flex-wrap items-center gap-2">

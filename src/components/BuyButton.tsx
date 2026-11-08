@@ -7,9 +7,10 @@ import { useRouter } from "next/navigation";
 interface BuyButtonProps {
   projectId: string;
   isOwner?: boolean;
+  className?: string;
 }
 
-export function BuyButton({ projectId, isOwner = false }: BuyButtonProps) {
+export function BuyButton({ projectId, isOwner = false, className = "" }: BuyButtonProps) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -50,7 +51,7 @@ export function BuyButton({ projectId, isOwner = false }: BuyButtonProps) {
       type="button"
       onClick={handleBuy}
       disabled={loading || isOwner}
-      className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-100 disabled:text-slate-500 disabled:opacity-100 text-white px-3.5 py-2 text-xs font-semibold transition-colors cursor-pointer"
+      className={`inline-flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-100 disabled:text-slate-500 disabled:border disabled:border-slate-200 disabled:opacity-100 text-white px-3.5 py-2 text-xs font-semibold shadow-xs hover:shadow transition-all active:scale-[0.98] cursor-pointer ${className}`}
     >
       {loading ? (
         <>
