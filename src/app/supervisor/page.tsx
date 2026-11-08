@@ -59,6 +59,7 @@ export default async function SupervisorPage() {
       title,
       problem_area,
       status,
+      final_project_status,
       approved_at,
       submitted_at,
       created_at,
@@ -76,10 +77,8 @@ export default async function SupervisorPage() {
     .eq("id", 1)
     .maybeSingle();
 
-  const pendingCount = workspaces.filter((w) => w.status === "proposal_pending").length;
-  const approvedCount = workspaces.filter(
-    (w) => w.status === "approved" || w.status === "submitted"
-  ).length;
+  const pendingCount = workspaces.filter((w) => w.final_project_status === "pending_review").length;
+  const approvedCount = workspaces.filter((w) => w.final_project_status === "approved").length;
 
   const rawInst = profile?.institutions as unknown;
   const institution = (
@@ -133,11 +132,11 @@ export default async function SupervisorPage() {
           subtext="Awaiting review"
         />
         <StatCard
-          label="Approved Portfolios"
+          label="Approved Projects"
           value={approvedCount}
           icon={CheckCircle}
           color="emerald"
-          subtext="Cleared for drafting"
+          subtext="Published to marketplace"
         />
       </div>
 
@@ -213,15 +212,21 @@ export default async function SupervisorPage() {
 
                     <div className="flex shrink-0 flex-row items-center justify-between gap-3 border-t border-slate-100 pt-3 sm:flex-col sm:items-end sm:border-0 sm:pt-0">
                       <span className={`rounded-md border px-2.5 py-1 text-[11px] font-semibold ${
-                        ws.status === "approved"
+                        ws.final_project_status === "approved"
                           ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                          : ws.status === "proposal_pending"
+                          : ws.final_project_status === "pending_review"
                           ? "border-amber-200 bg-amber-50 text-amber-900"
-                          : ws.status === "submitted"
-                          ? "border-blue-200 bg-blue-50 text-blue-800"
+                          : ws.final_project_status === "changes_requested"
+                          ? "border-rose-200 bg-rose-50 text-rose-800"
                           : "border-slate-200 bg-slate-50 text-slate-700"
                       }`}>
-                        {ws.status === "proposal_pending" ? "Needs Review" : ws.status === "approved" ? "Approved" : ws.status === "submitted" ? "Final Submitted" : "Ideation"}
+                        {ws.final_project_status === "approved"
+                          ? "Approved"
+                          : ws.final_project_status === "pending_review"
+                          ? "Needs Review"
+                          : ws.final_project_status === "changes_requested"
+                          ? "Changes Requested"
+                          : "Drafting"}
                       </span>
                       <Link
                         href={`/supervisor/${ws.id}`}

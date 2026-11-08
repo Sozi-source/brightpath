@@ -19,6 +19,14 @@ import {
   Wrench,
   Users,
   Eye,
+  HeartPulse,
+  Factory,
+  Utensils,
+  Sprout,
+  Store,
+  GraduationCap,
+  ClipboardCheck,
+  PawPrint,
 } from "lucide-react";
 import { NUTRITION_VENTURES, type NutritionVentureDefinition } from "@/lib/studio/catalog/nutritionVentures";
 import { createWorkspace } from "@/app/studio/actions";
@@ -45,6 +53,17 @@ const GROUP_LABELS: Record<GroupFilter, string> = {
   G: "G: Advisory & Audits (3)",
   H: "H: Therapeutic Feeds (1)",
 };
+
+const GROUP_VISUALS = {
+  A: { Icon: HeartPulse, tile: "bg-rose-50 text-rose-700", accent: "border-rose-100" },
+  B: { Icon: Factory, tile: "bg-amber-50 text-amber-700", accent: "border-amber-100" },
+  C: { Icon: Utensils, tile: "bg-orange-50 text-orange-700", accent: "border-orange-100" },
+  D: { Icon: Sprout, tile: "bg-green-50 text-green-700", accent: "border-green-100" },
+  E: { Icon: Store, tile: "bg-violet-50 text-violet-700", accent: "border-violet-100" },
+  F: { Icon: GraduationCap, tile: "bg-sky-50 text-sky-700", accent: "border-sky-100" },
+  G: { Icon: ClipboardCheck, tile: "bg-indigo-50 text-indigo-700", accent: "border-indigo-100" },
+  H: { Icon: PawPrint, tile: "bg-teal-50 text-teal-700", accent: "border-teal-100" },
+} as const;
 
 export function ProjectAreaCatalog({
   admissionNumber = "",
@@ -253,7 +272,7 @@ export function ProjectAreaCatalog({
             })}
           </div>
 
-          {/* 35 Minimalist Venture Cards Grid */}
+          {/* Opportunity cards */}
           {filteredVentures.length === 0 ? (
             <div className="bp-card border-dashed p-8 text-center">
               <p className="text-xs font-semibold text-slate-700">No project areas match your search</p>
@@ -271,7 +290,7 @@ export function ProjectAreaCatalog({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3.5">
               {filteredVentures.map((venture) => {
                 const capitalBadgeColor =
                   venture.capitalTier === "Low"
@@ -279,70 +298,71 @@ export function ProjectAreaCatalog({
                     : venture.capitalTier === "Medium"
                     ? "bg-amber-50 text-amber-700 border-amber-200"
                     : "bg-rose-50 text-rose-700 border-rose-200";
-
-                const unitPrice = venture.defaultSpecs.unitSellingPrice || 0;
+                const unitPrice = venture.defaultSpecs.unitSellingPrice;
+                const visual = GROUP_VISUALS[venture.group];
+                const CategoryIcon = visual.Icon;
 
                 return (
-                  <div
+                  <article
                     key={venture.id}
-                    onClick={() => setDetailVenture(venture)}
-                    className="bp-card bp-card-interactive group relative flex flex-col justify-between p-4 cursor-pointer"
+                    className="bp-card group flex min-w-0 flex-col justify-between p-4 transition-shadow hover:shadow-md"
                   >
                     <div>
-                      {/* Top Header: Number + Short Category + Non-Wrapping Capital Badge */}
-                      <div className="flex items-center justify-between gap-2 mb-2.5">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <span className="inline-flex h-5 shrink-0 items-center justify-center rounded-md bg-[#e8f5f5] px-1.5 font-mono text-[10px] font-semibold text-[#087f8c] border border-[#d8ebec]">
-                            #{venture.number}
+                      <div className="mb-3 flex items-start justify-between gap-2">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${visual.tile} ${visual.accent}`}>
+                            <CategoryIcon className="h-5 w-5" aria-hidden="true" />
                           </span>
-                          <span className="truncate text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                            {venture.groupName}
-                          </span>
+                          <div className="min-w-0">
+                            <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                              {venture.groupName}
+                            </span>
+                            <span className="font-mono text-[10px] text-slate-400">
+                              Opportunity #{venture.number}
+                            </span>
+                          </div>
                         </div>
-                        <span
-                          className={`inline-flex shrink-0 whitespace-nowrap items-center rounded-md border px-2 py-0.5 text-[10px] font-semibold ${capitalBadgeColor}`}
-                        >
-                          {venture.capitalTier} Capital
+                        <span className={`inline-flex shrink-0 whitespace-nowrap items-center rounded-md border px-2 py-1 text-[10px] font-semibold ${capitalBadgeColor}`}>
+                          {venture.capitalTier} capital
                         </span>
                       </div>
 
-                      {/* Clear, Concise Venture Title & Primary Product */}
-                      <h4 className="text-sm font-semibold text-slate-900 tracking-tight group-hover:text-[#087f8c] transition-colors">
+                      <h4 className="text-sm font-semibold leading-snug text-slate-900 group-hover:text-[#087f8c]">
                         {venture.title}
                       </h4>
-                      <p className="mt-0.5 text-xs text-slate-500 truncate">
-                        {venture.defaultSpecs.primaryProduct || venture.tagline}
+                      <p className="mt-1.5 min-h-[3.75rem] text-xs leading-relaxed text-slate-600 line-clamp-3">
+                        {venture.summary}
                       </p>
 
-                      {/* Compact Metric Chips */}
-                      <div className="mt-3 flex items-center justify-between gap-2 border-t border-slate-100 pt-2.5 text-[11px] text-slate-600">
-                        <div className="flex items-center gap-3">
-                          <span className="inline-flex items-center gap-1 font-mono font-medium text-slate-700">
-                            <DollarSign className="h-3 w-3 text-emerald-600 shrink-0" />
-                            KES {(venture.estimatedCapitalKES.min / 1000).toFixed(0)}k–{(venture.estimatedCapitalKES.max / 1000).toFixed(0)}k
+                      <div className="mt-3 space-y-2 rounded-lg bg-slate-50 p-3">
+                        <div>
+                          <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                            Estimated startup capital
                           </span>
-                          <span className="inline-flex items-center gap-1 text-slate-500">
-                            <Building2 className="h-3 w-3 text-[#087f8c] shrink-0" />
-                            <span className="capitalize">{venture.archetype.replace("_", " ")}</span>
+                          <span className="mt-0.5 block font-mono text-sm font-semibold text-slate-900">
+                            KES {formatKES(venture.estimatedCapitalKES.min)} – {formatKES(venture.estimatedCapitalKES.max)}
                           </span>
                         </div>
-                        {unitPrice > 0 && (
-                          <span className="font-mono text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
-                            KES {formatKES(unitPrice)}/unit
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-2">
+                          <span className="inline-flex min-w-0 items-center gap-1.5 text-[11px] text-slate-600">
+                            <Building2 className="h-3.5 w-3.5 shrink-0 text-[#087f8c]" aria-hidden="true" />
+                            <span><span className="text-slate-500">Business type: </span><span className="capitalize font-medium">{venture.archetype.replace("_", " ")}</span></span>
                           </span>
-                        )}
+                          {typeof unitPrice === "number" && unitPrice > 0 && (
+                            <span className="font-mono text-[10px] font-semibold text-slate-700">
+                              KES {formatKES(unitPrice)} / unit
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
-                    {/* Action Bar: View Details + Select */}
-                    <div
-                      className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center gap-2"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                    <div className="mt-3.5 flex items-center gap-2 border-t border-slate-100 pt-3">
                       <button
                         type="button"
                         onClick={() => setDetailVenture(venture)}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer"
+                        aria-label={`View details for ${venture.title}`}
+                        className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-slate-300 hover:bg-slate-50"
                       >
                         <Eye className="h-3.5 w-3.5 text-slate-500" />
                         <span>Details</span>
@@ -350,13 +370,13 @@ export function ProjectAreaCatalog({
                       <button
                         type="button"
                         onClick={() => handleOpenVentureModal(venture)}
-                        className="flex-1 inline-flex items-center justify-center gap-1.5 bp-btn-primary px-3 py-1.5 text-xs shadow-2xs cursor-pointer"
+                        className="bp-btn-primary inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 px-3 py-2 text-xs"
                       >
                         <span>Select Area</span>
                         <ArrowRight className="h-3.5 w-3.5" />
                       </button>
                     </div>
-                  </div>
+                  </article>
                 );
               })}
             </div>

@@ -65,7 +65,7 @@ export async function approveCompletedProjectForMarketplace(formData: FormData) 
   if (!workspaceId) throw new Error("Missing workspace ID.");
   const { supabase: db, user, workspace, role } = await verifySupervisorOrAdmin(workspaceId);
   if (role !== "admin" && workspace.supervisor_id !== user.id) throw new Error("This project is assigned to another supervisor.");
-  if (workspace.status !== "approved" || workspace.final_project_status !== "pending_review") {
+  if (role !== "admin" && workspace.final_project_status !== "pending_review") {
     throw new Error("This project is not awaiting final review.");
   }
   await assertSectionCommentsResolved(db, workspaceId);
@@ -94,8 +94,8 @@ export async function approveCompletedProjectForMarketplace(formData: FormData) 
   if (incomplete.length) throw new Error("The completed project no longer meets every section minimum.");
 
   const { error: statusError } = await db.from("project_workspaces")
-    .update({ final_project_status: "approved", final_project_approved_at: new Date().toISOString() }).eq("id", workspaceId)
-    .eq("final_project_status", "pending_review");
+    .update({ status: "approved", final_project_status: "approved", final_project_approved_at: new Date().toISOString() }).eq("id", workspaceId);
+
   if (statusError) throw new Error(statusError.message || "Could not record final approval.");
 
   try {
@@ -141,7 +141,7 @@ export async function requestFinalProjectChanges(formData: FormData) {
 
   const { error: statusError } = await db.from("project_workspaces")
     .update({ final_project_status: "changes_requested", final_project_approved_at: null }).eq("id", workspaceId)
-    .eq("final_project_status", "pending_review");
+
   if (statusError) throw new Error(statusError.message || "Could not request project changes.");
   const { error: reviewError } = await db.from("supervisor_reviews").insert({
     workspace_id: workspaceId,

@@ -6,11 +6,11 @@ import { getServerDbClient } from "@/lib/supabase/admin";
 import { getWorkspaceSections, type SectionDefinition } from "@/lib/studio/templates";
 import { getRubricForWorkspace } from "@/lib/studio/rubrics";
 import {
-  approveProposal,
+
   approveCompletedProjectForMarketplace,
   requestFinalProjectChanges,
-  requestProposalChanges,
-  updateProposalTitle,
+
+
 } from "@/app/supervisor/actions";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
@@ -171,9 +171,10 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
     return { key: group.chapterKey, title: group.chapterTitle, sections: chapterSections, words };
   });
 
-  const isApproved = workspace.status === "approved" || workspace.status === "submitted";
-  const isSubmitted = workspace.status === "submitted";
-  const isPending = workspace.status === "proposal_pending";
+  const isApproved = workspace.final_project_status === "approved";
+  const isReviewPending = workspace.final_project_status === "pending_review";
+
+
   const hasPlanContent = isBusiness && sections.some((section) => section.current_text.trim());
   const finalProjectIncomplete = templateDefs.filter((definition) => {
     const words = (sectionsMap.get(definition.key)?.current_text || "").trim().split(/\s+/).filter(Boolean).length;

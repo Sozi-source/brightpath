@@ -421,7 +421,6 @@ export async function submitCompletedProjectForFinalReview(formData: FormData) {
     .select("id, student_id, workspace_type, level, status, final_project_status, business_plan_specs")
     .eq("id", workspaceId).maybeSingle();
   if (!workspace || workspace.student_id !== user.id) throw new Error("This project is not yours.");
-  if (workspace.status !== "approved") throw new Error("Supervisor approval of the submitted chapters is required first.");
   if (!["not_submitted", "changes_requested"].includes(workspace.final_project_status)) {
     throw new Error("This project is already in or past final review.");
   }
@@ -465,6 +464,7 @@ export async function submitCompletedProjectForFinalReview(formData: FormData) {
   if (incomplete.length) throw new Error(`Complete every section before final review. ${incomplete.length} section(s) need more content.`);
 
   const { error } = await db.from("project_workspaces").update({
+    status: "submitted",
     final_project_status: "pending_review",
     final_project_submitted_at: new Date().toISOString(),
     final_project_approved_at: null,
