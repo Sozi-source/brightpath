@@ -19,6 +19,7 @@ import type { Project, ContentStatus } from "@/types/database";
 import { getMaterialTypeLabel } from "@/lib/marketplace";
 import { AdminProductEditModal } from "./AdminProductEditModal";
 import { updateProjectStatus } from "@/app/admin/actions";
+import { AmazonPrice } from "@/components/ui/AmazonPrice";
 
 interface AdminProjectsManagerProps {
   projects: Project[];
@@ -217,9 +218,9 @@ export function AdminProjectsManager({
                       {p.profiles?.full_name || "Institutional"}
                     </td>
 
-                    {/* Price */}
-                    <td className="py-2.5 px-3 font-mono font-semibold text-slate-900">
-                      KES {Number(p.price_kes || 0).toLocaleString()}
+                    {/* Price - Amazon E-Commerce Price */}
+                    <td className="py-2.5 px-3">
+                      <AmazonPrice amount={p.price_kes || 0} size="sm" />
                     </td>
 
                     {/* Status Badge */}

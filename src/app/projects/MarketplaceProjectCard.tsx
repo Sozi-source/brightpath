@@ -4,6 +4,7 @@ import { Download, Eye, Star, FileText, CheckCircle2, ShieldCheck, FileSpreadshe
 import type { Project } from "@/types/database";
 import { getMaterialTypeLabel } from "@/lib/marketplace";
 import { BuyButton } from "@/components/BuyButton";
+import { AmazonPrice } from "@/components/ui/AmazonPrice";
 
 export function MarketplaceProjectCard({
   project,
@@ -121,59 +122,60 @@ export function MarketplaceProjectCard({
       </Link>
 
       {/* Card Body */}
-      <div className="p-3.5 flex flex-col flex-1 justify-between">
+      <div className="p-3.5 flex flex-col flex-1 justify-between font-sans">
         <div>
           {/* Metadata Row: Category & Metrics */}
           <div className="flex items-center justify-between gap-2 mb-1.5">
-            <span className="inline-flex items-center text-[10px] font-semibold uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-100/80 px-2 py-0.5 rounded-md">
+            <span className="inline-flex items-center text-[10px] font-semibold uppercase tracking-wider text-[#007185] bg-sky-50/80 border border-sky-100 px-2 py-0.5 rounded">
               {isBusinessPlan ? "Business Plan" : project.category || getMaterialTypeLabel(project.material_type)}
             </span>
 
-            <div className="flex items-center gap-2 text-[11px] text-slate-500">
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
               {reviewCount > 0 ? (
-                <span className="inline-flex items-center gap-0.5 font-semibold text-slate-800">
-                  <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
+                <span className="inline-flex items-center gap-0.5 font-semibold text-[#0f1111]">
+                  <Star className="h-3 w-3 fill-[#ffa41c] text-[#de7921]" />
                   {average.toFixed(1)}
+                  <span className="text-[10px] text-[#007185] font-normal hover:underline ml-0.5">
+                    ({reviewCount})
+                  </span>
                 </span>
               ) : (
-                <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/70">
+                <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/60">
                   New
                 </span>
               )}
-              <span className="inline-flex items-center gap-0.5">
+              <span className="inline-flex items-center gap-0.5 text-[#565959]">
                 <Download className="h-3 w-3 text-slate-400" />
                 {Number(project.download_count || 0).toLocaleString()}
               </span>
             </div>
           </div>
 
-          {/* Title */}
+          {/* Title - Amazon E-Commerce Font Styling */}
           <Link href={`/projects/${project.id}`}>
-            <h3 className="mt-1 text-xs font-semibold leading-snug tracking-tight text-slate-900 group-hover:text-indigo-600 line-clamp-2 transition-colors min-h-[34px]">
+            <h3 className="mt-1 text-[13px] font-medium leading-[1.38] text-[#0f1111] group-hover:text-[#c7511f] line-clamp-2 transition-colors min-h-[36px]">
               {cleanTitle}
             </h3>
           </Link>
 
           {/* Micro Feature Chips */}
           <div className="mt-2.5 flex flex-wrap gap-1.5">
-            <span className="inline-flex items-center gap-1 rounded-md bg-slate-50 border border-slate-200/80 px-2 py-0.5 text-[10px] font-medium text-slate-700">
+            <span className="inline-flex items-center gap-1 rounded bg-slate-50 border border-slate-200/80 px-2 py-0.5 text-[10px] font-medium text-slate-700">
               <ShieldCheck className="h-3 w-3 text-indigo-600" />
               KNEC Moderated
             </span>
-            <span className="inline-flex items-center gap-1 rounded-md bg-slate-50 border border-slate-200/80 px-2 py-0.5 text-[10px] font-medium text-slate-700">
+            <span className="inline-flex items-center gap-1 rounded bg-slate-50 border border-slate-200/80 px-2 py-0.5 text-[10px] font-medium text-slate-700">
               <FileSpreadsheet className="h-3 w-3 text-emerald-600" />
               Pro-Forma Financials
             </span>
           </div>
         </div>
 
-        {/* Card Footer: Institutional Price + Action Button */}
+        {/* Card Footer: Amazon E-Commerce Price + Buy Button */}
         <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
           <div className="flex flex-col">
-            <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-500">Standard Price</span>
-            <span className="font-mono text-sm font-semibold tracking-tight text-slate-900">
-              KES {Number(project.price_kes).toLocaleString()}
-            </span>
+            <span className="text-[9px] font-medium uppercase tracking-wider text-[#565959]">Price</span>
+            <AmazonPrice amount={project.price_kes} size="md" />
           </div>
 
           <BuyButton

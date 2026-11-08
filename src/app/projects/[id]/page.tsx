@@ -5,6 +5,7 @@ import { connection } from "next/server";
 import { BookOpen, Download, Eye, FileText, Star, CheckCircle2, ChevronRight, ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { BuyButton } from "@/components/BuyButton";
+import { AmazonPrice } from "@/components/ui/AmazonPrice";
 import { createClient } from "@/lib/supabase/server";
 import { getMaterialTypeLabel } from "@/lib/marketplace";
 import type { UserProfile } from "@/types/database";
@@ -130,26 +131,32 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
                   </div>
                 )}
               </div>
-              <div className="flex min-w-0 flex-col">
+              <div className="flex min-w-0 flex-col font-sans">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-md border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-indigo-800">{getMaterialTypeLabel(product.material_type)}</span>
-                  {product.category && <span className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-slate-700">{product.category}</span>}
+                  <span className="rounded border border-sky-100 bg-sky-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#007185]">{getMaterialTypeLabel(product.material_type)}</span>
+                  {product.category && <span className="rounded border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-[#565959]">{product.category}</span>}
+                  <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#007600] ml-auto">
+                    <CheckCircle2 className="h-3 w-3" /> In Stock · Instant Download
+                  </span>
                 </div>
-                <h1 className="mt-3 text-xl font-semibold leading-tight tracking-tight text-slate-900">{product.title}</h1>
-                <p className="mt-2 text-sm text-slate-600">By {publisherName}</p>
-                <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-600">
-                  <span className="inline-flex items-center gap-1 font-semibold text-slate-900"><Star className="h-4 w-4 fill-amber-400 text-amber-500" />{reviewCount ? average.toFixed(1) : "New"}{reviewCount > 0 && <span className="font-normal text-slate-600">({reviewCount} reviews)</span>}</span>
-                  <span className="inline-flex items-center gap-1"><Download className="h-3.5 w-3.5" />{Number(product.download_count || 0).toLocaleString()} downloads</span>
-                  <span className="inline-flex items-center gap-1"><FileText className="h-3.5 w-3.5" />{extension}</span>
+                <h1 className="mt-3 text-xl sm:text-2xl font-semibold leading-snug tracking-tight text-[#0f1111]">{product.title}</h1>
+                <p className="mt-1.5 text-xs text-[#565959]">By <span className="text-[#007185] hover:underline cursor-pointer font-medium">{publisherName}</span></p>
+                <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs text-[#565959]">
+                  <span className="inline-flex items-center gap-1 font-semibold text-[#0f1111]"><Star className="h-4 w-4 fill-[#ffa41c] text-[#de7921]" />{reviewCount ? average.toFixed(1) : "New"}{reviewCount > 0 && <span className="font-normal text-[#007185] hover:underline">({reviewCount} customer reviews)</span>}</span>
+                  <span className="inline-flex items-center gap-1 text-[#565959]"><Download className="h-3.5 w-3.5 text-slate-400" />{Number(product.download_count || 0).toLocaleString()} downloads</span>
+                  <span className="inline-flex items-center gap-1 text-[#565959]"><FileText className="h-3.5 w-3.5 text-slate-400" />{extension}</span>
                 </div>
                 <div className="mt-5 border-t border-slate-100 pt-4">
-                  <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-700">About this material</h2>
-                  <div className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-700">{product.description || "A digital resource for TVET learners."}</div>
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-[#565959]">About this material</h2>
+                  <div className="mt-2 whitespace-pre-line text-sm leading-6 text-[#0f1111]">{product.description || "A verified digital resource for TVET learners."}</div>
                 </div>
-                <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
-                  <div><span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-600">Price</span><span className="font-mono text-xl font-semibold tracking-tight text-indigo-700">KES {Number(product.price_kes).toLocaleString()}</span></div>
+                <div className="mt-auto flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 pt-4">
+                  <div>
+                    <span className="block text-[10px] font-medium uppercase tracking-wider text-[#565959]">Price</span>
+                    <AmazonPrice amount={product.price_kes} size="xl" />
+                  </div>
                   {canDownload ? <div className="flex flex-wrap gap-2">
-                    {product.file_path.startsWith("workspace-export:") ? <><a href={`/api/download?projectId=${product.id}&format=pdf`} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700"><Download className="h-4 w-4" /> PDF</a><a href={`/api/download?projectId=${product.id}&format=docx`} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-4 w-4" /> Word</a></> : <a href={`/api/download?projectId=${product.id}`} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700"><Download className="h-4 w-4" /> Download</a>}
+                    {product.file_path.startsWith("workspace-export:") ? <><a href={`/api/download?projectId=${product.id}&format=pdf`} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700 shadow-xs"><Download className="h-4 w-4" /> Download PDF</a><a href={`/api/download?projectId=${product.id}&format=docx`} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs"><Download className="h-4 w-4" /> Download Word</a></> : <a href={`/api/download?projectId=${product.id}`} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700 shadow-xs"><Download className="h-4 w-4" /> Download</a>}
                   </div> : <BuyButton projectId={product.id} isOwner={isOwner} />}
                 </div>
               </div>

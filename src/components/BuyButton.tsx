@@ -51,7 +51,7 @@ export function BuyButton({ projectId, isOwner = false, className = "" }: BuyBut
       type="button"
       onClick={handleBuy}
       disabled={loading || isOwner}
-      className={`inline-flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-100 disabled:text-slate-500 disabled:border disabled:border-slate-200 disabled:opacity-100 text-white px-3.5 py-2 text-xs font-semibold shadow-xs hover:shadow transition-all active:scale-[0.98] cursor-pointer ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#ffd814] hover:bg-[#f7ca00] active:bg-[#f0b800] border border-[#fcd200] hover:border-[#f2c200] text-[#0f1111] font-sans px-3.5 py-2 text-xs font-semibold shadow-2xs hover:shadow-xs transition-all active:scale-[0.98] cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 disabled:opacity-100 ${className}`}
     >
       {loading ? (
         <>

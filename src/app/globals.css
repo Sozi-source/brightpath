@@ -1,33 +1,125 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   Amazon Ember Web Fonts
+   Authentic E-Commerce Typography System
+   ========================================================================== */
+
+/* Amazon Ember Light (300) */
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('https://cdn.jsdelivr.net/npm/amazon-fonts@1.0.1/fonts/AmazonEmber_W_Lt.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/npm/amazon-fonts@1.0.1/fonts/AmazonEmber_W_Lt.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('https://cdn.jsdelivr.net/npm/amazon-fonts@1.0.1/fonts/AmazonEmber_W_LtIt.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/npm/amazon-fonts@1.0.1/fonts/AmazonEmber_W_LtIt.woff') format('woff');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember Regular (400) */
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('https://cdn.jsdelivr.net/npm/amazon-fonts@1.0.1/fonts/AmazonEmber_W_Rg.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/npm/amazon-fonts@1.0.1/fonts/AmazonEmber_W_Rg.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('https://cdn.jsdelivr.net/npm/amazon-fonts@1.0.1/fonts/AmazonEmber_W_RgIt.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/npm/amazon-fonts@1.0.1/fonts/AmazonEmber_W_RgIt.woff') format('woff');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember Medium & Bold (600 - 700) */
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('https://cdn.jsdelivr.net/npm/amazon-fonts@1.0.1/fonts/AmazonEmber_W_Bd.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/npm/amazon-fonts@1.0.1/fonts/AmazonEmber_W_Bd.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('https://cdn.jsdelivr.net/npm/amazon-fonts@1.0.1/fonts/AmazonEmber_W_Bd.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/npm/amazon-fonts@1.0.1/fonts/AmazonEmber_W_Bd.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Amazon Ember Mono (400, 700) */
+@font-face {
+  font-family: 'Amazon Ember Mono';
+  src: url('https://cdn.jsdelivr.net/npm/amazon-fonts@1.0.1/fonts/AmazonEmberMono_W_Rg.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/npm/amazon-fonts@1.0.1/fonts/AmazonEmberMono_W_Rg.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Amazon Ember Mono';
+  src: url('https://cdn.jsdelivr.net/npm/amazon-fonts@1.0.1/fonts/AmazonEmberMono_W_Bd.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/npm/amazon-fonts@1.0.1/fonts/AmazonEmberMono_W_Bd.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   color-scheme: light;
-  --background: #f5f7fa;
-  --foreground: #142033;
+  --background: #f4f7fb;
+  --foreground: #0f1111;
   --surface: #ffffff;
   --surface-muted: #f8fafc;
   --border: #e4e9f0;
   --border-strong: #d5dde8;
-  --muted: #66758a;
-  --muted-strong: #475569;
+  --muted: #565959;
+  --muted-strong: #333333;
   --brand: #087f8c;
   --brand-strong: #086b76;
   --brand-soft: #e8f5f5;
-  --navy: #13243a;
+  --navy: #0f1111;
   --gold: #d9a441;
-  --success: #16845b;
+  --success: #067d62;
   --warning: #b7791f;
   --danger: #c2414b;
-  --radius-card: 16px;
-  --shadow-card: 0 1px 2px rgba(16, 24, 40, .04), 0 8px 24px rgba(16, 24, 40, .035);
-  --shadow-hover: 0 8px 28px rgba(16, 24, 40, .08);
+  --radius-card: 14px;
+  --shadow-card: 0 1px 2px rgba(15, 17, 17, .05), 0 4px 16px rgba(15, 17, 17, .03);
+  --shadow-hover: 0 4px 20px rgba(15, 17, 17, .08);
+
+  /* Amazon E-Commerce Design Tokens */
+  --amazon-black: #0f1111;
+  --amazon-gray: #565959;
+  --amazon-link: #007185;
+  --amazon-link-hover: #c7511f;
+  --amazon-orange: #de7921;
+  --amazon-yellow: #ffd814;
+  --amazon-yellow-hover: #f7ca00;
+  --amazon-yellow-border: #fcd200;
+  --amazon-green: #007600;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: "Amazon Ember", var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Amazon Ember Mono", var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 * { box-sizing: border-box; }
@@ -40,9 +132,78 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-h1,h2,h3,h4,h5,h6 { letter-spacing: -.025em; color: var(--navy); }
+
+h1,h2,h3,h4,h5,h6 {
+  letter-spacing: -0.015em;
+  color: var(--amazon-black);
+  font-family: var(--font-sans);
+}
+
 ::selection { background: #ccebed; color: #103c45; }
 :focus-visible { outline: 3px solid rgba(8,127,140,.28); outline-offset: 2px; border-radius: 6px; }
+
+/* Amazon E-Commerce Typography Classes */
+.a-price {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-sans);
+  color: var(--amazon-black);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.a-price-symbol {
+  font-size: 0.65em;
+  font-weight: 500;
+  color: var(--amazon-gray);
+  vertical-align: baseline;
+  margin-right: 0.18em;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
+.a-price-whole {
+  font-weight: 600;
+  color: var(--amazon-black);
+  letter-spacing: -0.02em;
+}
+
+.a-link {
+  color: var(--amazon-link);
+  text-decoration: none;
+  transition: color .15s ease;
+}
+
+.a-link:hover {
+  color: var(--amazon-link-hover);
+  text-decoration: underline;
+}
+
+.a-button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  background-color: var(--amazon-yellow);
+  border: 1px solid var(--amazon-yellow-border);
+  color: var(--amazon-black);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px 0 rgba(213,217,217,.5);
+  transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .1s ease;
+  cursor: pointer;
+}
+
+.a-button-primary:hover {
+  background-color: var(--amazon-yellow-hover);
+  border-color: #f2c200;
+  box-shadow: 0 2px 5px 0 rgba(213,217,217,.75);
+}
+
+.a-button-primary:active {
+  transform: scale(0.98);
+}
 
 .bp-card {
   background: var(--surface);
@@ -56,14 +217,11 @@ h1,h2,h3,h4,h5,h6 { letter-spacing: -.025em; color: var(--navy); }
 .bp-eyebrow { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; }
 .bp-icon-tile { display: inline-flex; align-items: center; justify-content: center; border: 1px solid #d8ebec; background: var(--brand-soft); color: var(--brand); border-radius: 12px; flex: none; }
 .bp-icon-tile svg { width: 20px; height: 20px; }
-.bp-btn-primary { background: var(--brand); color: white; border-radius: 10px; font-weight: 650; transition: background .16s ease, box-shadow .16s ease; }
+.bp-btn-primary { background: var(--brand); color: white; border-radius: 10px; font-weight: 600; transition: background .16s ease, box-shadow .16s ease; }
 .bp-btn-primary:hover { background: var(--brand-strong); box-shadow: 0 3px 10px rgba(8,127,140,.18); }
 .bp-divider { border-color: var(--border); }
 
 @media (max-width: 639px) {
-  :root { --radius-card: 13px; }
-  .bp-card { box-shadow: 0 1px 2px rgba(16,24,40,.035); }
-}
-@media (min-width: 1536px) {
-  :root { --radius-card: 18px; }
+  :root { --radius-card: 12px; }
+  .bp-card { box-shadow: 0 1px 2px rgba(15,17,17,.035); }
 }
