@@ -634,8 +634,8 @@ export function BusinessPlanBuilderModal({
                             <h5 className="text-xs font-semibold text-slate-900 leading-tight">
                               {v.title}
                             </h5>
-                            <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-2">
-                              {v.summary}
+                            <p className="text-[11px] text-slate-500 truncate">
+                              {v.defaultSpecs.primaryProduct || v.tagline}
                             </p>
                           </div>
 

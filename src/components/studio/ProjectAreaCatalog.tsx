@@ -5,19 +5,20 @@ import {
   Search,
   Plus,
   ArrowRight,
+  ArrowLeft,
   Building2,
   DollarSign,
   ShieldCheck,
   CheckCircle2,
   X,
   Loader2,
-  Filter,
-  Sparkles,
   FlaskConical,
   LineChart,
   Briefcase,
-  MapPin,
-  GraduationCap,
+  Package,
+  Wrench,
+  Users,
+  Eye,
 } from "lucide-react";
 import { NUTRITION_VENTURES, type NutritionVentureDefinition } from "@/lib/studio/catalog/nutritionVentures";
 import { createWorkspace } from "@/app/studio/actions";
@@ -39,36 +40,35 @@ const GROUP_LABELS: Record<GroupFilter, string> = {
   B: "B: Food Processing (10)",
   C: "C: Food Service (4)",
   D: "D: Agribusiness (4)",
-  E: "E: Retail & Mart (2)",
-  F: "F: Community & Culinary Ed (4)",
-  G: "G: Wellness & Safety (3)",
+  E: "E: Specialty Retail (2)",
+  F: "F: Nutrition Ed (4)",
+  G: "G: Advisory & Audits (3)",
   H: "H: Therapeutic Feeds (1)",
 };
 
 export function ProjectAreaCatalog({
-  candidateName = "Student Candidate",
   admissionNumber = "",
   course = "Diploma in Human Nutrition and Dietetics",
   level = "diploma",
-  currentWorkspacesCount = 0,
   initialTrack = "business_plan",
 }: ProjectAreaCatalogProps) {
   const [activeTrack, setActiveTrack] = useState<"business_plan" | "trade_fabrication" | "research_secondary">(initialTrack);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<GroupFilter>("ALL");
   const [selectedCapital, setSelectedCapital] = useState<"ALL" | "Low" | "Medium" | "High">("ALL");
+  const [detailVenture, setDetailVenture] = useState<NutritionVentureDefinition | null>(null);
   const [selectedVenture, setSelectedVenture] = useState<NutritionVentureDefinition | null>(null);
   const [isPending, startTransition] = useTransition();
 
   // Form states for the launch modal
-  const [formCandidateName, setFormCandidateName] = useState(candidateName);
   const [formAdmissionNumber, setFormAdmissionNumber] = useState(admissionNumber);
   const [formLevel, setFormLevel] = useState<"craft" | "diploma">(level);
-  const [formCourse, setFormCourse] = useState(course);
   const [formBusinessName, setFormBusinessName] = useState("");
   const [formTownOrMarket, setFormTownOrMarket] = useState("Juja");
   const [formCounty, setFormCounty] = useState("Kiambu");
   const [formPrivacyConsent, setFormPrivacyConsent] = useState(true);
+
+  const formatKES = (n: number) => Math.round(n).toLocaleString("en-KE");
 
   // Filtered ventures
   const filteredVentures = useMemo(() => {
@@ -82,7 +82,8 @@ export function ProjectAreaCatalog({
         const matchesTagline = venture.tagline.toLowerCase().includes(q);
         const matchesNum = `#${venture.number}`.includes(q) || `${venture.number}` === q;
         const matchesGroup = venture.groupName.toLowerCase().includes(q);
-        if (!matchesTitle && !matchesSummary && !matchesTagline && !matchesNum && !matchesGroup) {
+        const matchesProduct = (venture.defaultSpecs.primaryProduct || "").toLowerCase().includes(q);
+        if (!matchesTitle && !matchesSummary && !matchesTagline && !matchesNum && !matchesGroup && !matchesProduct) {
           return false;
         }
       }
@@ -110,7 +111,7 @@ export function ProjectAreaCatalog({
       formData.set("workspaceType", "business_plan");
       formData.set("ventureId", selectedVenture.id);
       formData.set("level", formLevel);
-      formData.set("course", formCourse);
+      formData.set("course", course);
       formData.set("admissionNumber", formAdmissionNumber);
       formData.set("businessName", formBusinessName);
       formData.set("title", formBusinessName);
@@ -127,7 +128,7 @@ export function ProjectAreaCatalog({
       const formData = new FormData();
       formData.set("workspaceType", track);
       formData.set("level", formLevel);
-      formData.set("course", formCourse);
+      formData.set("course", course);
       formData.set("admissionNumber", formAdmissionNumber);
       formData.set("privacyConsent", "on");
 
@@ -136,16 +137,19 @@ export function ProjectAreaCatalog({
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Track Selector Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
         <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-lg border border-slate-200/80">
           <button
             type="button"
-            onClick={() => setActiveTrack("business_plan")}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+            onClick={() => {
+              setActiveTrack("business_plan");
+              setDetailVenture(null);
+            }}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
               activeTrack === "business_plan"
-                ? "bg-white text-indigo-700 shadow-2xs font-semibold"
+                ? "bg-white text-indigo-700 shadow-2xs"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
@@ -154,10 +158,13 @@ export function ProjectAreaCatalog({
           </button>
           <button
             type="button"
-            onClick={() => setActiveTrack("trade_fabrication")}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+            onClick={() => {
+              setActiveTrack("trade_fabrication");
+              setDetailVenture(null);
+            }}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
               activeTrack === "trade_fabrication"
-                ? "bg-white text-indigo-700 shadow-2xs font-semibold"
+                ? "bg-white text-indigo-700 shadow-2xs"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
@@ -166,10 +173,13 @@ export function ProjectAreaCatalog({
           </button>
           <button
             type="button"
-            onClick={() => setActiveTrack("research_secondary")}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+            onClick={() => {
+              setActiveTrack("research_secondary");
+              setDetailVenture(null);
+            }}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
               activeTrack === "research_secondary"
-                ? "bg-white text-indigo-700 shadow-2xs font-semibold"
+                ? "bg-white text-indigo-700 shadow-2xs"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
@@ -178,13 +188,16 @@ export function ProjectAreaCatalog({
           </button>
         </div>
 
-        <div className="text-xs text-slate-500 font-medium">
-          {activeTrack === "business_plan" && `${filteredVentures.length} of 35 areas`}
+        <div className="text-xs text-slate-500 font-medium font-mono">
+          {activeTrack === "business_plan" &&
+            (detailVenture
+              ? `Area #${detailVenture.number} of 35`
+              : `${filteredVentures.length} of 35 areas`)}
         </div>
       </div>
 
       {/* Track 1: Nutrition Enterprise (35 Curated Areas) */}
-      {activeTrack === "business_plan" && (
+      {activeTrack === "business_plan" && !detailVenture && (
         <div className="space-y-4">
           {/* Controls Strip: Search and Filter Bar */}
           <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-xs lg:flex-row lg:items-center lg:justify-between">
@@ -194,7 +207,7 @@ export function ProjectAreaCatalog({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by venture name, porridge, infant foods, clinical clinic, honey..."
+                placeholder="Search by venture name, porridge, weaning, clinic, kefir, honey..."
                 className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100"
               />
             </div>
@@ -207,7 +220,7 @@ export function ProjectAreaCatalog({
                   key={cap}
                   type="button"
                   onClick={() => setSelectedCapital(cap)}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors ${
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors cursor-pointer ${
                     selectedCapital === cap
                       ? "bg-slate-900 text-white"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -228,7 +241,7 @@ export function ProjectAreaCatalog({
                   key={groupKey}
                   type="button"
                   onClick={() => setSelectedGroup(groupKey)}
-                  className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
                     isActive
                       ? "bg-indigo-600 text-white shadow-2xs"
                       : "border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
@@ -240,7 +253,7 @@ export function ProjectAreaCatalog({
             })}
           </div>
 
-          {/* 35 Venture Cards Grid */}
+          {/* 35 Minimalist Venture Cards Grid */}
           {filteredVentures.length === 0 ? (
             <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
               <p className="text-xs font-semibold text-slate-700">No project areas match your search</p>
@@ -252,7 +265,7 @@ export function ProjectAreaCatalog({
                   setSelectedGroup("ALL");
                   setSelectedCapital("ALL");
                 }}
-                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 cursor-pointer"
               >
                 Reset filters
               </button>
@@ -267,16 +280,19 @@ export function ProjectAreaCatalog({
                     ? "bg-amber-50 text-amber-700 border-amber-200"
                     : "bg-rose-50 text-rose-700 border-rose-200";
 
+                const unitPrice = venture.defaultSpecs.unitSellingPrice || 0;
+
                 return (
                   <div
                     key={venture.id}
-                    className="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-xs hover:border-indigo-400 hover:shadow-sm transition-all"
+                    onClick={() => setDetailVenture(venture)}
+                    className="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-xs hover:border-indigo-400 hover:shadow-sm transition-all cursor-pointer"
                   >
                     <div>
-                      {/* Top Badges */}
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <div className="flex items-center gap-1.5">
-                          <span className="inline-flex h-5 items-center justify-center rounded-md bg-indigo-50 px-1.5 text-[10px] font-semibold text-indigo-700 border border-indigo-100">
+                      {/* Top Header: Number + Short Category + Non-Wrapping Capital Badge */}
+                      <div className="flex items-center justify-between gap-2 mb-2.5">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="inline-flex h-5 shrink-0 items-center justify-center rounded-md bg-indigo-50 px-1.5 font-mono text-[10px] font-semibold text-indigo-700 border border-indigo-100">
                             #{venture.number}
                           </span>
                           <span className="truncate text-[10px] font-semibold uppercase tracking-wider text-slate-500">
@@ -284,44 +300,59 @@ export function ProjectAreaCatalog({
                           </span>
                         </div>
                         <span
-                          className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${capitalBadgeColor}`}
+                          className={`inline-flex shrink-0 whitespace-nowrap items-center rounded-md border px-2 py-0.5 text-[10px] font-semibold ${capitalBadgeColor}`}
                         >
                           {venture.capitalTier} Capital
                         </span>
                       </div>
 
-                      {/* Title & Tagline */}
-                      <h4 className="text-sm font-semibold text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors line-clamp-1">
+                      {/* Clear, Concise Venture Title & Primary Product */}
+                      <h4 className="text-sm font-semibold text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors">
                         {venture.title}
                       </h4>
-                      <p className="mt-1 text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                        {venture.summary}
+                      <p className="mt-0.5 text-xs text-slate-500 truncate">
+                        {venture.defaultSpecs.primaryProduct || venture.tagline}
                       </p>
 
-                      {/* Metadata Row */}
-                      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600 border-t border-slate-100 pt-2.5">
-                        <div className="flex items-center gap-1">
-                          <DollarSign className="h-3 w-3 text-emerald-600" />
-                          <span>
-                            KES {(venture.estimatedCapitalKES.min / 1000).toFixed(0)}k -{" "}
-                            {(venture.estimatedCapitalKES.max / 1000).toFixed(0)}k
+                      {/* Compact Metric Chips */}
+                      <div className="mt-3 flex items-center justify-between gap-2 border-t border-slate-100 pt-2.5 text-[11px] text-slate-600">
+                        <div className="flex items-center gap-3">
+                          <span className="inline-flex items-center gap-1 font-mono font-medium text-slate-700">
+                            <DollarSign className="h-3 w-3 text-emerald-600 shrink-0" />
+                            KES {(venture.estimatedCapitalKES.min / 1000).toFixed(0)}k–{(venture.estimatedCapitalKES.max / 1000).toFixed(0)}k
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-slate-500">
+                            <Building2 className="h-3 w-3 text-indigo-500 shrink-0" />
+                            <span className="capitalize">{venture.archetype.replace("_", " ")}</span>
                           </span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Building2 className="h-3 w-3 text-indigo-500" />
-                          <span className="capitalize">{venture.archetype.replace("_", " ")}</span>
-                        </div>
+                        {unitPrice > 0 && (
+                          <span className="font-mono text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                            KES {formatKES(unitPrice)}/unit
+                          </span>
+                        )}
                       </div>
                     </div>
 
-                    {/* Action Button */}
-                    <div className="mt-4 pt-2">
+                    {/* Action Bar: View Details + Select */}
+                    <div
+                      className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center gap-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setDetailVenture(venture)}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors cursor-pointer"
+                      >
+                        <Eye className="h-3.5 w-3.5 text-slate-500" />
+                        <span>Details</span>
+                      </button>
                       <button
                         type="button"
                         onClick={() => handleOpenVentureModal(venture)}
-                        className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700 shadow-2xs transition-colors cursor-pointer"
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 shadow-2xs transition-colors cursor-pointer"
                       >
-                        <span>Select Project Area</span>
+                        <span>Select Area</span>
                         <ArrowRight className="h-3.5 w-3.5" />
                       </button>
                     </div>
@@ -330,6 +361,305 @@ export function ProjectAreaCatalog({
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Venture Details View */}
+      {activeTrack === "business_plan" && detailVenture && (
+        <div className="space-y-4">
+          {/* Top Navigation Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-xs">
+            <button
+              type="button"
+              onClick={() => setDetailVenture(null)}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-indigo-600 transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to All 35 Project Areas</span>
+            </button>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleOpenVentureModal(detailVenture)}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700 shadow-2xs transition-colors cursor-pointer"
+              >
+                <span>Select & Launch This Area</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Primary Venture Overview Card */}
+          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs">
+            <div className="h-1 w-full bg-linear-to-r from-indigo-600 via-indigo-600 to-amber-500" />
+            <div className="p-5 space-y-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 font-mono text-xs font-semibold text-indigo-700 border border-indigo-100">
+                      Area #{detailVenture.number}
+                    </span>
+                    <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
+                      Group {detailVenture.group}: {detailVenture.groupName}
+                    </span>
+                    <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200">
+                      {detailVenture.capitalTier} Capital Tier
+                    </span>
+                    <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 capitalize">
+                      {detailVenture.archetype.replace("_", " ")} Model
+                    </span>
+                  </div>
+                  <h2 className="text-lg font-semibold text-slate-900 tracking-tight pt-1">
+                    {detailVenture.title}
+                  </h2>
+                  <p className="text-xs font-medium text-indigo-600">
+                    default brand: {detailVenture.defaultSpecs.businessName} — &ldquo;{detailVenture.tagline}&rdquo;
+                  </p>
+                </div>
+
+                <div className="text-right">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block">
+                    Estimated Startup Capital
+                  </span>
+                  <span className="font-mono text-base font-semibold text-slate-900">
+                    KES {formatKES(detailVenture.estimatedCapitalKES.min)} – {formatKES(detailVenture.estimatedCapitalKES.max)}
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
+                {detailVenture.summary}
+              </p>
+
+              {/* Key Economics Strip */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 block">
+                    Unit Selling Price
+                  </span>
+                  <span className="mt-1 font-mono text-sm font-semibold text-slate-900 block">
+                    KES {formatKES(detailVenture.defaultSpecs.unitSellingPrice || 0)}
+                  </span>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 block">
+                    Unit Direct Cost
+                  </span>
+                  <span className="mt-1 font-mono text-sm font-semibold text-slate-900 block">
+                    KES {formatKES(detailVenture.defaultSpecs.unitCostOfProduction || 0)}
+                  </span>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 block">
+                    Planned Monthly Volume
+                  </span>
+                  <span className="mt-1 font-mono text-sm font-semibold text-indigo-600 block">
+                    {formatKES(detailVenture.defaultSpecs.monthlyProductionUnitsYear1 || 0)} units/mo
+                  </span>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 block">
+                    Premises & Rent
+                  </span>
+                  <span className="mt-1 font-mono text-sm font-semibold text-slate-900 block">
+                    {detailVenture.defaultSpecs.workshopSquareMeters || 30} m² · KES {formatKES(detailVenture.defaultSpecs.monthlyRent || 0)}/mo
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Detailed Specifications Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Offering & Target Market */}
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
+              <div className="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+                <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
+                  <Package className="h-4 w-4" />
+                </div>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
+                  Product / Service & Target Market
+                </h3>
+              </div>
+
+              <div className="space-y-2.5 text-xs">
+                <div>
+                  <span className="text-[11px] font-semibold text-slate-500 block">Flagship Offering</span>
+                  <p className="font-semibold text-slate-900 mt-0.5">
+                    {detailVenture.defaultSpecs.primaryProduct}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-[11px] font-semibold text-slate-500 block">Packaging / Delivery Format</span>
+                  <p className="text-slate-700 mt-0.5">
+                    {detailVenture.defaultSpecs.productPackaging}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-[11px] font-semibold text-slate-500 block">Target Customers</span>
+                  <p className="text-slate-700 mt-0.5 leading-relaxed">
+                    {detailVenture.defaultSpecs.targetCustomersDescription}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div className="rounded-lg bg-slate-50 p-2 border border-slate-100">
+                    <span className="text-[10px] text-slate-500 block">Addressable Catchment</span>
+                    <span className="font-semibold text-slate-800">
+                      {detailVenture.defaultSpecs.totalMarketPopulation}
+                    </span>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 p-2 border border-slate-100">
+                    <span className="text-[10px] text-slate-500 block">Target Market Share</span>
+                    <span className="font-mono font-semibold text-indigo-600">
+                      {detailVenture.defaultSpecs.projectedMarketSharePercentage}% in Year 1
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Capital & Regulatory Compliance */}
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
+              <div className="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+                <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
+                  <ShieldCheck className="h-4 w-4" />
+                </div>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
+                  Financing & Regulatory Compliance
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="rounded-lg bg-slate-50 p-2.5 border border-slate-100">
+                  <span className="text-[10px] text-slate-500 block">Owner Equity</span>
+                  <span className="font-mono font-semibold text-slate-900">
+                    KES {formatKES(detailVenture.defaultSpecs.ownerEquityAmount || 0)}
+                  </span>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-2.5 border border-slate-100">
+                  <span className="text-[10px] text-slate-500 block">Proposed Loan</span>
+                  <span className="font-mono font-semibold text-slate-900">
+                    KES {formatKES(detailVenture.defaultSpecs.loanAmount || 0)}
+                  </span>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-2.5 border border-slate-100">
+                  <span className="text-[10px] text-slate-500 block">Working Capital</span>
+                  <span className="font-mono font-semibold text-emerald-700">
+                    KES {formatKES(detailVenture.defaultSpecs.workingCapitalBuffer || 0)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-1.5 pt-1">
+                <span className="text-[11px] font-semibold text-slate-500 block">
+                  Statutory & Regulatory Requirements
+                </span>
+                <div className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+                  {detailVenture.compliance.map((c, idx) => (
+                    <div key={idx} className="flex items-center justify-between px-3 py-2 text-xs">
+                      <div>
+                        <span className="font-semibold text-slate-800">{c.agency}: </span>
+                        <span className="text-slate-600">{c.requirement}</span>
+                      </div>
+                      <span className="font-mono text-[11px] font-semibold text-slate-700">
+                        KES {formatKES(c.fee)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Equipment & Tools Table */}
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
+                    <Wrench className="h-4 w-4" />
+                  </div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
+                    Included Equipment & Assets
+                  </h3>
+                </div>
+                <span className="font-mono text-xs font-semibold text-slate-700">
+                  Total: KES{" "}
+                  {formatKES(
+                    (detailVenture.defaultSpecs.machinery || []).reduce(
+                      (sum, m) => sum + m.quantity * m.unitCost,
+                      0
+                    )
+                  )}
+                </span>
+              </div>
+
+              <div className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+                {(detailVenture.defaultSpecs.machinery || []).map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between gap-2 px-3 py-2 text-xs">
+                    <div className="min-w-0">
+                      <p className="font-medium text-slate-800 truncate">{item.item}</p>
+                      <p className="text-[11px] text-slate-500">
+                        Qty: {item.quantity} × KES {formatKES(item.unitCost)} · {item.supplier}
+                      </p>
+                    </div>
+                    <span className="font-mono text-xs font-semibold text-slate-900 shrink-0">
+                      KES {formatKES(item.quantity * item.unitCost)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Operating Inputs & Staffing */}
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
+              <div className="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+                <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600">
+                  <Users className="h-4 w-4" />
+                </div>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
+                  Staffing & Monthly Inputs
+                </h3>
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-[11px] font-semibold text-slate-500 block">Proposed Staffing Plan</span>
+                <div className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+                  {(detailVenture.defaultSpecs.staffing || []).map((staff, idx) => (
+                    <div key={idx} className="flex items-center justify-between gap-2 px-3 py-2 text-xs">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-slate-800">
+                          {staff.count}× {staff.position}
+                        </p>
+                        <p className="text-[11px] text-slate-500 truncate">{staff.duties}</p>
+                      </div>
+                      <span className="font-mono text-xs font-semibold text-slate-800 shrink-0">
+                        KES {formatKES(staff.monthlySalary)}/mo
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-1">
+                <span className="text-[11px] font-semibold text-slate-500 block">Monthly Materials / Operating Inputs</span>
+                <div className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+                  {(detailVenture.defaultSpecs.rawMaterials || []).map((rm, idx) => (
+                    <div key={idx} className="flex items-center justify-between gap-2 px-3 py-2 text-xs">
+                      <div className="min-w-0">
+                        <p className="font-medium text-slate-800 truncate">{rm.material}</p>
+                        <p className="text-[11px] text-slate-500">
+                          {rm.monthlyQuantity} · {rm.supplier}
+                        </p>
+                      </div>
+                      <span className="font-mono text-xs font-semibold text-slate-800 shrink-0">
+                        KES {formatKES(rm.monthlyCost)}/mo
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -352,7 +682,7 @@ export function ProjectAreaCatalog({
                 type="button"
                 disabled={isPending}
                 onClick={() => handleLaunchCustomTrack("trade_fabrication")}
-                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700 shadow-2xs disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700 shadow-2xs disabled:opacity-50 cursor-pointer"
               >
                 {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
                 <span>Start Food Science Project</span>
@@ -381,7 +711,7 @@ export function ProjectAreaCatalog({
                 type="button"
                 disabled={isPending}
                 onClick={() => handleLaunchCustomTrack("research_secondary")}
-                className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700 shadow-2xs disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700 shadow-2xs disabled:opacity-50 cursor-pointer"
               >
                 {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
                 <span>Start Nutrition Research Project</span>
@@ -399,7 +729,7 @@ export function ProjectAreaCatalog({
             <div className="flex items-start justify-between border-b border-slate-100 pb-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-[11px] font-semibold text-indigo-700">
+                  <span className="rounded bg-indigo-50 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-indigo-700">
                     Area #{selectedVenture.number}
                   </span>
                   <span className="text-xs text-slate-500 font-medium">{selectedVenture.groupName}</span>
@@ -411,7 +741,7 @@ export function ProjectAreaCatalog({
               <button
                 type="button"
                 onClick={handleCloseModal}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -504,6 +834,7 @@ export function ProjectAreaCatalog({
                     required
                     className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
                   />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                   <span>I confirm these parameters for KNEC examination compliance.</span>
                 </label>
               </div>
@@ -514,7 +845,7 @@ export function ProjectAreaCatalog({
                   type="button"
                   onClick={handleCloseModal}
                   disabled={isPending}
-                  className="rounded-lg border border-slate-200 px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                  className="rounded-lg border border-slate-200 px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
                 >
                   Cancel
                 </button>

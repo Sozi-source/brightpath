@@ -26,9 +26,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "private_nutrition_practice",
     "number": 1,
-    "title": "Private Nutrition & Dietetics Practice",
+    "title": "Private Nutrition Clinic",
     "group": "A",
-    "groupName": "Clinical & Healthcare Services",
+    "groupName": "Clinical Care",
     "archetype": "clinical",
     "capitalTier": "Low",
     "estimatedCapitalKES": {
@@ -172,9 +172,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "online_telehealth_nutrition",
     "number": 2,
-    "title": "Online & Telehealth Nutrition Consultancy",
+    "title": "Telehealth Dietetics Practice",
     "group": "A",
-    "groupName": "Clinical & Healthcare Services",
+    "groupName": "Clinical Care",
     "archetype": "clinical",
     "capitalTier": "Low",
     "estimatedCapitalKES": {
@@ -306,9 +306,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "chronic_disease_diet_management",
     "number": 3,
-    "title": "Chronic Disease Medical Nutrition Therapy (MNT)",
+    "title": "Chronic Disease Diet Clinic",
     "group": "A",
-    "groupName": "Clinical & Healthcare Services",
+    "groupName": "Clinical Care",
     "archetype": "clinical",
     "capitalTier": "Low",
     "estimatedCapitalKES": {
@@ -452,9 +452,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "maternal_child_nutrition_services",
     "number": 4,
-    "title": "Maternal, Infant & Child Nutrition Care",
+    "title": "Maternal & Child Nutrition",
     "group": "A",
-    "groupName": "Clinical & Healthcare Services",
+    "groupName": "Clinical Care",
     "archetype": "clinical",
     "capitalTier": "Low",
     "estimatedCapitalKES": {
@@ -587,9 +587,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "home_based_nutrition_care",
     "number": 5,
-    "title": "Home-Based Domiciliary Nutrition Care",
+    "title": "Home-Based Nutrition Care",
     "group": "A",
-    "groupName": "Clinical & Healthcare Services",
+    "groupName": "Clinical Care",
     "archetype": "clinical",
     "capitalTier": "Low",
     "estimatedCapitalKES": {
@@ -729,9 +729,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "weight_management_coaching",
     "number": 6,
-    "title": "Weight Management & Body Composition Studio",
+    "title": "Weight Management Studio",
     "group": "A",
-    "groupName": "Clinical & Healthcare Services",
+    "groupName": "Clinical Care",
     "archetype": "clinical",
     "capitalTier": "Low",
     "estimatedCapitalKES": {
@@ -865,9 +865,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "sports_and_fitness_nutrition",
     "number": 7,
-    "title": "Sports & Athletic Performance Nutrition",
+    "title": "Sports Nutrition Practice",
     "group": "A",
-    "groupName": "Clinical & Healthcare Services",
+    "groupName": "Clinical Care",
     "archetype": "clinical",
     "capitalTier": "Low",
     "estimatedCapitalKES": {
@@ -1000,9 +1000,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "fortified_flours_and_porridges",
     "number": 8,
-    "title": "Fortified Composite Flour & Cereal Blends",
+    "title": "Fortified Porridge Flours",
     "group": "B",
-    "groupName": "Food Production & Processing",
+    "groupName": "Food Processing",
     "archetype": "manufacturing",
     "capitalTier": "High",
     "estimatedCapitalKES": {
@@ -1177,9 +1177,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "infant_complementary_foods",
     "number": 9,
-    "title": "Infant & Toddler Complementary Weaning Foods",
+    "title": "Infant Weaning Foods",
     "group": "B",
-    "groupName": "Food Production & Processing",
+    "groupName": "Food Processing",
     "archetype": "manufacturing",
     "capitalTier": "Medium",
     "estimatedCapitalKES": {
@@ -1337,9 +1337,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "healthy_snacks_and_bars",
     "number": 10,
-    "title": "Nutrient-Dense Healthy Snack Bars",
+    "title": "Healthy Energy Snack Bars",
     "group": "B",
-    "groupName": "Food Production & Processing",
+    "groupName": "Food Processing",
     "archetype": "manufacturing",
     "capitalTier": "Medium",
     "estimatedCapitalKES": {
@@ -1484,9 +1484,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "fruit_vegetable_processing",
     "number": 11,
-    "title": "Fruit & Vegetable Value Addition (Solar Drying & Juices)",
+    "title": "Dried Fruit & Juice Processing",
     "group": "B",
-    "groupName": "Food Production & Processing",
+    "groupName": "Food Processing",
     "archetype": "manufacturing",
     "capitalTier": "Medium",
     "estimatedCapitalKES": {
@@ -1631,9 +1631,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "plant_based_dairy_alternatives",
     "number": 12,
-    "title": "Plant-Based & Dairy Alternative Products",
+    "title": "Plant-Based Milk & Yoghurt",
     "group": "B",
-    "groupName": "Food Production & Processing",
+    "groupName": "Food Processing",
     "archetype": "manufacturing",
     "capitalTier": "Medium",
     "estimatedCapitalKES": {
@@ -1785,9 +1785,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "traditional_fermented_foods",
     "number": 13,
-    "title": "Fermented & Probiotic Foods (Kefir & Mursik)",
+    "title": "Probiotic Kefir & Ferments",
     "group": "B",
-    "groupName": "Food Production & Processing",
+    "groupName": "Food Processing",
     "archetype": "manufacturing",
     "capitalTier": "Low",
     "estimatedCapitalKES": {
@@ -1932,9 +1932,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "alternative_proteins_cricket_flour",
     "number": 14,
-    "title": "Alternative Proteins & Edible Insect Products",
+    "title": "High-Protein Insect Flour",
     "group": "B",
-    "groupName": "Food Production & Processing",
+    "groupName": "Food Processing",
     "archetype": "manufacturing",
     "capitalTier": "Medium",
     "estimatedCapitalKES": {
@@ -2079,9 +2079,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "healthy_spreads_and_nut_butters",
     "number": 15,
-    "title": "Natural Spreads, Nut Butters & Cold-Pressed Oils",
+    "title": "Nut Butters & Seed Oils",
     "group": "B",
-    "groupName": "Food Production & Processing",
+    "groupName": "Food Processing",
     "archetype": "manufacturing",
     "capitalTier": "Medium",
     "estimatedCapitalKES": {
@@ -2226,9 +2226,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "honey_processing_and_value_addition",
     "number": 16,
-    "title": "Honey Processing & Value-Added Bee Products",
+    "title": "Honey & Bee Value Addition",
     "group": "B",
-    "groupName": "Food Production & Processing",
+    "groupName": "Food Processing",
     "archetype": "manufacturing",
     "capitalTier": "Low",
     "estimatedCapitalKES": {
@@ -2354,9 +2354,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "herbal_and_functional_beverages",
     "number": 17,
-    "title": "Herbal Teas & Functional Wellness Drinks",
+    "title": "Herbal & Functional Drinks",
     "group": "B",
-    "groupName": "Food Production & Processing",
+    "groupName": "Food Processing",
     "archetype": "manufacturing",
     "capitalTier": "Low",
     "estimatedCapitalKES": {
@@ -2488,9 +2488,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "healthy_meal_prep_delivery",
     "number": 18,
-    "title": "Healthy Meal Prep & Calorie-Controlled Delivery",
+    "title": "Healthy Meal Prep Delivery",
     "group": "C",
-    "groupName": "Food Service & Catering",
+    "groupName": "Food Service",
     "archetype": "food_service",
     "capitalTier": "Medium",
     "estimatedCapitalKES": {
@@ -2660,9 +2660,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "institutional_therapeutic_catering",
     "number": 19,
-    "title": "Institutional & Therapeutic Diet Catering",
+    "title": "Hospital & School Catering",
     "group": "C",
-    "groupName": "Food Service & Catering",
+    "groupName": "Food Service",
     "archetype": "food_service",
     "capitalTier": "High",
     "estimatedCapitalKES": {
@@ -2809,9 +2809,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "corporate_event_nutrition_catering",
     "number": 20,
-    "title": "Corporate Wellness & Event Nutrition Catering",
+    "title": "Corporate Wellness Catering",
     "group": "C",
-    "groupName": "Food Service & Catering",
+    "groupName": "Food Service",
     "archetype": "food_service",
     "capitalTier": "Medium",
     "estimatedCapitalKES": {
@@ -2952,9 +2952,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "healthy_eateries_and_juice_bars",
     "number": 21,
-    "title": "Healthy Salad Bar, Smoothie & Juice Kiosk",
+    "title": "Salad & Cold-Pressed Juice Bar",
     "group": "C",
-    "groupName": "Food Service & Catering",
+    "groupName": "Food Service",
     "archetype": "food_service",
     "capitalTier": "Medium",
     "estimatedCapitalKES": {
@@ -3099,9 +3099,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "nutrition_sensitive_farming_ofsp",
     "number": 22,
-    "title": "Biofortified Crops (Orange-Fleshed Sweet Potato & Beans)",
+    "title": "Biofortified Sweet Potato & Beans",
     "group": "D",
-    "groupName": "Agribusiness & Value Chain",
+    "groupName": "Agribusiness",
     "archetype": "agribusiness",
     "capitalTier": "Medium",
     "estimatedCapitalKES": {
@@ -3241,9 +3241,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "urban_farming_microgreens",
     "number": 23,
-    "title": "Urban Vertical Farming & Microgreens",
+    "title": "Microgreens & Urban Farming",
     "group": "D",
-    "groupName": "Agribusiness & Value Chain",
+    "groupName": "Agribusiness",
     "archetype": "agribusiness",
     "capitalTier": "Low",
     "estimatedCapitalKES": {
@@ -3376,9 +3376,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "animal_source_omega3_eggs",
     "number": 24,
-    "title": "Enriched Pastured Eggs & Specialty Dairy",
+    "title": "Omega-3 Pastured Eggs",
     "group": "D",
-    "groupName": "Agribusiness & Value Chain",
+    "groupName": "Agribusiness",
     "archetype": "agribusiness",
     "capitalTier": "Medium",
     "estimatedCapitalKES": {
@@ -3518,9 +3518,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "post_harvest_preservation_solar",
     "number": 25,
-    "title": "Post-Harvest Preservation & Solar Drying Hub",
+    "title": "Solar Dried Indigenous Greens",
     "group": "D",
-    "groupName": "Agribusiness & Value Chain",
+    "groupName": "Agribusiness",
     "archetype": "agribusiness",
     "capitalTier": "Medium",
     "estimatedCapitalKES": {
@@ -3654,9 +3654,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "specialty_health_food_store",
     "number": 26,
-    "title": "Specialty Health Food Store & Organic Grocery",
+    "title": "Organic & Diet Food Store",
     "group": "E",
-    "groupName": "Retail & Distribution",
+    "groupName": "Specialty Retail",
     "archetype": "retail",
     "capitalTier": "Medium",
     "estimatedCapitalKES": {
@@ -3790,9 +3790,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "supplements_maternal_baby_retail",
     "number": 27,
-    "title": "Nutraceuticals, Maternal & Infant Nutrition Hub",
+    "title": "Maternal & Baby Nutrition Shop",
     "group": "E",
-    "groupName": "Retail & Distribution",
+    "groupName": "Specialty Retail",
     "archetype": "retail",
     "capitalTier": "Medium",
     "estimatedCapitalKES": {
@@ -3925,9 +3925,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "community_nutrition_workshops",
     "number": 28,
-    "title": "Community & Corporate Nutrition Workshops",
+    "title": "Community Nutrition Workshops",
     "group": "F",
-    "groupName": "Community Nutrition & Culinary Education",
+    "groupName": "Nutrition Education",
     "archetype": "education",
     "capitalTier": "Low",
     "estimatedCapitalKES": {
@@ -4053,9 +4053,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "healthy_cooking_academy",
     "number": 29,
-    "title": "Culinary Nutrition Academy & Cooking Demonstrations",
+    "title": "Culinary Nutrition Academy",
     "group": "F",
-    "groupName": "Community Nutrition & Culinary Education",
+    "groupName": "Nutrition Education",
     "archetype": "education",
     "capitalTier": "Low",
     "estimatedCapitalKES": {
@@ -4182,9 +4182,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "school_feeding_menu_nutrition",
     "number": 30,
-    "title": "School & Early Childhood (ECDE) Nutrition Program",
+    "title": "School Feeding & Growth Program",
     "group": "F",
-    "groupName": "Community Nutrition & Culinary Education",
+    "groupName": "Nutrition Education",
     "archetype": "education",
     "capitalTier": "Low",
     "estimatedCapitalKES": {
@@ -4318,9 +4318,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "maternal_iycf_caregiver_academy",
     "number": 31,
-    "title": "Maternal & Infant Complementary Feeding (IYCF) Caregiver Center",
+    "title": "Infant Weaning (IYCF) Center",
     "group": "F",
-    "groupName": "Community Nutrition & Culinary Education",
+    "groupName": "Nutrition Education",
     "archetype": "education",
     "capitalTier": "Low",
     "estimatedCapitalKES": {
@@ -4454,9 +4454,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "workplace_institutional_wellness",
     "number": 32,
-    "title": "Corporate Workplace Wellness & Health Audits",
+    "title": "Workplace Wellness Audits",
     "group": "G",
-    "groupName": "Corporate Wellness, Regulatory & Food Safety",
+    "groupName": "Advisory & Audits",
     "archetype": "consultancy",
     "capitalTier": "Low",
     "estimatedCapitalKES": {
@@ -4590,9 +4590,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "food_safety_regulatory_consultancy",
     "number": 33,
-    "title": "Food Safety, HACCP & KEBS Licensing Advisory",
+    "title": "Food Safety & KEBS Advisory",
     "group": "G",
-    "groupName": "Corporate Wellness, Regulatory & Food Safety",
+    "groupName": "Advisory & Audits",
     "archetype": "consultancy",
     "capitalTier": "Low",
     "estimatedCapitalKES": {
@@ -4718,9 +4718,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "community_project_nutrition_services",
     "number": 34,
-    "title": "Public Health Project Evaluation & M&E Consultancy",
+    "title": "Nutrition Survey & M&E Advisory",
     "group": "G",
-    "groupName": "Corporate Wellness, Regulatory & Food Safety",
+    "groupName": "Advisory & Audits",
     "archetype": "consultancy",
     "capitalTier": "Low",
     "estimatedCapitalKES": {
@@ -4846,9 +4846,9 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "therapeutic_enteral_feeds_unit",
     "number": 35,
-    "title": "Therapeutic Feeds & Enteral Nutrition Formulation Unit",
+    "title": "Therapeutic & Enteral Feeds Unit",
     "group": "H",
-    "groupName": "Specialized Therapeutic & Rehabilitation Nutrition",
+    "groupName": "Therapeutic Feeds",
     "archetype": "manufacturing",
     "capitalTier": "Medium",
     "estimatedCapitalKES": {
