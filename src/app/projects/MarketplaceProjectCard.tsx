@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Download, Eye, Star, FileText, CheckCircle2, ShieldCheck, FileSpreadsheet, BookOpen } from "lucide-react";
+import { Download, Eye, Star, FileText, CheckCircle2, BookOpen } from "lucide-react";
 import type { Project } from "@/types/database";
 import { getMaterialTypeLabel } from "@/lib/marketplace";
 import { BuyButton } from "@/components/BuyButton";
@@ -44,14 +44,14 @@ export function MarketplaceProjectCard({
       {/* Top Signature Two-Tone Stripe: Signature Blue (60%) + Kenyan Gold (40%) */}
       <div className="h-1 w-full bg-gradient-to-r from-indigo-600 via-indigo-600 to-amber-400" />
 
-      {/* Card Header / Manuscript Cover View */}
+      {/* Card Header / Manuscript Cover View - 3/4 Portrait Ratio to Maximize Cover Visibility */}
       <Link
         href={`/projects/${project.id}`}
         className="block relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
         aria-label={`View ${cleanTitle}`}
       >
         {project.cover_path ? (
-          <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+          <div className="relative aspect-[3/4] overflow-hidden bg-slate-100">
             <Image
               src={`/api/projects/${project.id}/cover`}
               alt={`${cleanTitle} cover`}
@@ -63,7 +63,7 @@ export function MarketplaceProjectCard({
           </div>
         ) : isBusinessPlan ? (
           /* Institutional KNEC Business Plan Manuscript Dossier Presentation */
-          <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-3.5 text-white flex flex-col justify-between select-none">
+          <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-4 text-white flex flex-col justify-between select-none">
             {/* Subtle background security pattern */}
             <div className="absolute inset-0 opacity-[0.07] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
 
@@ -79,20 +79,20 @@ export function MarketplaceProjectCard({
             </div>
 
             {/* Center Cover Monogram & Folio Title */}
-            <div className="relative z-10 my-auto text-center px-2 py-1">
-              <div className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 border border-white/20 mb-1.5 shadow-xs backdrop-blur-xs">
-                <FileText className="h-4 w-4 text-amber-300" />
+            <div className="relative z-10 my-auto text-center px-2 py-2">
+              <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 border border-white/20 mb-2 shadow-xs backdrop-blur-xs">
+                <FileText className="h-5 w-5 text-amber-300" />
               </div>
-              <div className="text-[11.5px] font-semibold tracking-tight text-white line-clamp-2 leading-snug">
+              <div className="text-xs font-semibold tracking-tight text-white line-clamp-3 leading-snug">
                 {cleanTitle}
               </div>
-              <div className="text-[8.5px] text-slate-300 font-mono mt-0.5 uppercase tracking-wider">
+              <div className="text-[9px] text-slate-300 font-mono mt-1 uppercase tracking-wider">
                 Assessment Project Dossier
               </div>
             </div>
 
             {/* Bottom Cover Specs Bar */}
-            <div className="relative z-10 flex items-center justify-between text-[9px] text-slate-300 border-t border-white/10 pt-1.5">
+            <div className="relative z-10 flex items-center justify-between text-[9px] text-slate-300 border-t border-white/10 pt-2">
               <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
                 <CheckCircle2 className="h-3 w-3" /> 47 KNEC Sections
               </span>
@@ -104,9 +104,9 @@ export function MarketplaceProjectCard({
           </div>
         ) : (
           /* General Institutional Learning Material Cover */
-          <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-blue-50 via-white to-slate-100 p-4 text-slate-900 flex flex-col items-center justify-center gap-2 text-center border-b border-slate-200/80">
+          <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-blue-50 via-white to-slate-100 p-4 text-slate-900 flex flex-col items-center justify-center gap-2 text-center border-b border-slate-200/80">
             <span className="rounded-xl bg-blue-100 p-2.5 text-blue-700 shadow-2xs">
-              <BookOpen className="h-5 w-5" />
+              <BookOpen className="h-6 w-6" />
             </span>
             <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600">
               {getMaterialTypeLabel(project.material_type)}
@@ -121,66 +121,55 @@ export function MarketplaceProjectCard({
         )}
       </Link>
 
-      {/* Card Body */}
-      <div className="p-3.5 flex flex-col flex-1 justify-between font-sans">
+      {/* Card Body - Tiny, Clean Text Beneath 3/4 Image */}
+      <div className="p-2.5 flex flex-col flex-1 justify-between font-sans">
         <div>
           {/* Metadata Row: Category & Metrics */}
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <span className="inline-flex items-center text-[10px] font-semibold uppercase tracking-wider text-[#007185] bg-sky-50/80 border border-sky-100 px-2 py-0.5 rounded">
+          <div className="flex items-center justify-between gap-1.5 mb-1">
+            <span className="inline-flex items-center text-[9px] font-semibold uppercase tracking-wider text-[#007185] bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100/80 truncate max-w-[140px]">
               {isBusinessPlan ? "Business Plan" : project.category || getMaterialTypeLabel(project.material_type)}
             </span>
 
-            <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+            <div className="flex items-center gap-1.5 text-[10px] text-slate-500 shrink-0">
               {reviewCount > 0 ? (
                 <span className="inline-flex items-center gap-0.5 font-semibold text-[#0f1111]">
-                  <Star className="h-3 w-3 fill-[#ffa41c] text-[#de7921]" />
+                  <Star className="h-2.5 w-2.5 fill-[#ffa41c] text-[#de7921]" />
                   {average.toFixed(1)}
-                  <span className="text-[10px] text-[#007185] font-normal hover:underline ml-0.5">
+                  <span className="text-[9px] text-[#007185] font-normal hover:underline ml-0.5">
                     ({reviewCount})
                   </span>
                 </span>
               ) : (
-                <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/60">
+                <span className="text-[9px] font-semibold text-emerald-800 bg-emerald-50 px-1 rounded border border-emerald-200/60">
                   New
                 </span>
               )}
               <span className="inline-flex items-center gap-0.5 text-[#565959]">
-                <Download className="h-3 w-3 text-slate-400" />
+                <Download className="h-2.5 w-2.5 text-slate-400" />
                 {Number(project.download_count || 0).toLocaleString()}
               </span>
             </div>
           </div>
 
-          {/* Title - Amazon E-Commerce Font Styling */}
+          {/* Tiny Title - 2 lines, Amazon E-Commerce Font Styling */}
           <Link href={`/projects/${project.id}`}>
-            <h3 className="mt-1 text-[13px] font-medium leading-[1.38] text-[#0f1111] group-hover:text-[#c7511f] line-clamp-2 transition-colors min-h-[36px]">
+            <h3 className="text-[11.5px] font-medium leading-[1.35] text-[#0f1111] group-hover:text-[#c7511f] line-clamp-2 transition-colors min-h-[31px]">
               {cleanTitle}
             </h3>
           </Link>
-
-          {/* Micro Feature Chips */}
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
-            <span className="inline-flex items-center gap-1 rounded bg-slate-50 border border-slate-200/80 px-2 py-0.5 text-[10px] font-medium text-slate-700">
-              <ShieldCheck className="h-3 w-3 text-indigo-600" />
-              KNEC Moderated
-            </span>
-            <span className="inline-flex items-center gap-1 rounded bg-slate-50 border border-slate-200/80 px-2 py-0.5 text-[10px] font-medium text-slate-700">
-              <FileSpreadsheet className="h-3 w-3 text-emerald-600" />
-              Pro-Forma Financials
-            </span>
-          </div>
         </div>
 
-        {/* Card Footer: Amazon E-Commerce Price + Buy Button */}
-        <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+        {/* Card Footer: Amazon Price + Compact Buy Button */}
+        <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
           <div className="flex flex-col">
-            <span className="text-[9px] font-medium uppercase tracking-wider text-[#565959]">Price</span>
-            <AmazonPrice amount={project.price_kes} size="md" />
+            <span className="text-[8px] font-medium uppercase tracking-wider text-[#565959] leading-none mb-0.5">Price</span>
+            <AmazonPrice amount={project.price_kes} size="sm" />
           </div>
 
           <BuyButton
             projectId={project.id}
             isOwner={viewerId === project.trainer_id}
+            className="px-2.5 py-1 text-[11px] h-7"
           />
         </div>
       </div>
