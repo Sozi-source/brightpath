@@ -428,8 +428,8 @@ export function BusinessPlanBuilderModal({
                     disabled={isGenerating}
                     className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800"
                   >
+                    <option value="groq">Groq (Recommended · Fast)</option>
                     <option value="gemini">Gemini</option>
-                    <option value="groq">Groq</option>
                   </select>
                 </label>
                 <button

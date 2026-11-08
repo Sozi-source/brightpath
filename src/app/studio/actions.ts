@@ -12,6 +12,8 @@ import {
   reviewWholeBusinessPlan,
   respondToBusinessPlanCorrectionChat,
   researchBusinessPlan,
+  isBusinessPlanProviderConfigured,
+  resolveAvailableBusinessPlanProvider,
   type BusinessPlanAIProvider,
   type BusinessPlanCorrectionChatMessage,
   type BusinessPlanResearch,
@@ -37,20 +39,37 @@ import {
 
 function getBusinessPlanAIProvider(formData: FormData): BusinessPlanAIProvider {
   const value = formData.get("aiProvider")?.toString();
-  if (value === "gemini" || value === "groq") return value;
-  if (value) throw new Error("Choose Gemini or Groq as the AI provider.");
-  return "groq";
+  if (value && value !== "gemini" && value !== "groq") {
+    throw new Error("Choose Gemini or Groq as the AI provider.");
+  }
+  const preferred: BusinessPlanAIProvider = value === "gemini" || value === "groq"
+    ? value
+    : isBusinessPlanProviderConfigured("gemini") && !isBusinessPlanProviderConfigured("groq")
+    ? "gemini"
+    : "groq";
+  if (isBusinessPlanProviderConfigured(preferred)) return preferred;
+  const alternate: BusinessPlanAIProvider = preferred === "gemini" ? "groq" : "gemini";
+  if (isBusinessPlanProviderConfigured(alternate)) return alternate;
+  return preferred;
 }
 
-function getBusinessPlanDraftingError(provider: BusinessPlanAIProvider, error: unknown) {
+function getBusinessPlanDraftingError(
+  provider: BusinessPlanAIProvider,
+  error: unknown,
+  savedSectionsCount = 0
+) {
   const reason = error instanceof Error ? error.message : "Unknown provider error.";
+  const progressSuffix =
+    savedSectionsCount > 0
+      ? `${savedSectionsCount} section(s) from earlier chapters were saved; retry to resume the remaining chapters.`
+      : "No new sections were saved.";
   if (/api key not valid|invalid api key|api key is invalid/i.test(reason)) {
     return provider === "gemini"
-      ? "Gemini rejected the configured API key. Update GEMINI_API_KEY in the server environment and restart the app, or select Groq and retry. No new sections were saved."
-      : "Groq rejected the configured API key. Update GROQ_API_KEY in the server environment and restart the app, or select Gemini and retry. No new sections were saved.";
+      ? `Gemini rejected the configured API key. Update GEMINI_API_KEY in the server environment and restart the app, or select Groq and retry. ${progressSuffix}`
+      : `Groq rejected the configured API key. Update GROQ_API_KEY in the server environment and restart the app, or select Gemini and retry. ${progressSuffix}`;
   }
   const safeReason = reason.replace(/(?:AIza[0-9A-Za-z_-]{20,}|gsk_[0-9A-Za-z_-]{20,})/g, "[redacted]").slice(0, 400);
-  return `Adaptive section drafting failed (${provider}): ${safeReason}. No new sections were saved.`;
+  return `Adaptive section drafting failed (${provider}): ${safeReason}. ${progressSuffix}`;
 }
 
 export async function createWorkspace(formData: FormData) {
@@ -1122,16 +1141,41 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
   );
   let aiCorrections = new Map<string, string>();
   let factReviewWarning: string | undefined;
+  let activeProvider: BusinessPlanAIProvider = aiProvider;
+  let fallbackProvider: BusinessPlanAIProvider | null = null;
+  try {
+    const resolved = resolveAvailableBusinessPlanProvider(aiProvider);
+    activeProvider = resolved.primary;
+    fallbackProvider = resolved.fallback;
+  } catch (configError) {
+    throw new Error(getBusinessPlanDraftingError(aiProvider, configError));
+  }
+
   try {
     aiCorrections = await draftBusinessPlanSections(
       specs,
       pending,
       research as BusinessPlanResearch,
       scriptedSections,
-      aiProvider
+      activeProvider
     );
   } catch (error) {
-    throw new Error(getBusinessPlanDraftingError(aiProvider, error));
+    if (fallbackProvider) {
+      console.warn(`${activeProvider} build failed, falling back to ${fallbackProvider}:`, error);
+      try {
+        aiCorrections = await draftBusinessPlanSections(
+          specs,
+          pending,
+          research as BusinessPlanResearch,
+          scriptedSections,
+          fallbackProvider
+        );
+      } catch (fallbackError) {
+        throw new Error(getBusinessPlanDraftingError(fallbackProvider, fallbackError));
+      }
+    } else {
+      throw new Error(getBusinessPlanDraftingError(activeProvider, error));
+    }
   }
   const missingDrafts = pending
     .filter((definition) => !definition.key.startsWith("ch5.") &&
@@ -1556,6 +1600,23 @@ async function runCompleteBusinessPlanBuild(
   let factReviewWarning = researchFallbackUsed;
   let chaptersBuilt = 0;
 
+  let activeProvider: BusinessPlanAIProvider = aiProvider;
+  let fallbackProvider: BusinessPlanAIProvider | null = null;
+  try {
+    const resolved = resolveAvailableBusinessPlanProvider(aiProvider);
+    activeProvider = resolved.primary;
+    fallbackProvider = resolved.fallback;
+  } catch (configError) {
+    return {
+      success: false,
+      error: getBusinessPlanDraftingError(aiProvider, configError, 0),
+    };
+  }
+
+  const scriptedSections = new Map(
+    buildCompleteBusinessPlan(savedSpecs).map((s) => [s.section_key, s.content])
+  );
+
   for (const chapterKey of chapterKeys) {
     const definitions = sectionDefinitions.filter(
       (def) => (def.chapter || def.phase) === chapterKey
@@ -1574,9 +1635,6 @@ async function runCompleteBusinessPlanBuild(
       continue;
     }
 
-    const scriptedSections = new Map(
-      buildCompleteBusinessPlan(savedSpecs).map((s) => [s.section_key, s.content])
-    );
     let aiCorrections = new Map<string, string>();
     try {
       aiCorrections = await draftBusinessPlanSections(
@@ -1584,13 +1642,33 @@ async function runCompleteBusinessPlanBuild(
         pending,
         research,
         scriptedSections,
-        aiProvider
+        activeProvider
       );
     } catch (error) {
-      return {
-        success: false,
-        error: getBusinessPlanDraftingError(aiProvider, error),
-      };
+      if (fallbackProvider) {
+        console.warn(`${activeProvider} build failed, falling back to ${fallbackProvider}:`, error);
+        try {
+          aiCorrections = await draftBusinessPlanSections(
+            savedSpecs,
+            pending,
+            research,
+            scriptedSections,
+            fallbackProvider
+          );
+        } catch (fallbackError) {
+          if (totalGeneratedSections > 0) revalidatePath(`/studio/${workspaceId}`);
+          return {
+            success: false,
+            error: getBusinessPlanDraftingError(fallbackProvider, fallbackError, totalGeneratedSections),
+          };
+        }
+      } else {
+        if (totalGeneratedSections > 0) revalidatePath(`/studio/${workspaceId}`);
+        return {
+          success: false,
+          error: getBusinessPlanDraftingError(activeProvider, error, totalGeneratedSections),
+        };
+      }
     }
 
     const missingDrafts = pending
@@ -1599,9 +1677,14 @@ async function runCompleteBusinessPlanBuild(
         !aiCorrections.has(def.key))
       .map((def) => def.key);
     if (missingDrafts.length) {
+      if (totalGeneratedSections > 0) revalidatePath(`/studio/${workspaceId}`);
+      const progressNote =
+        totalGeneratedSections > 0
+          ? `${totalGeneratedSections} section(s) from earlier chapters were saved; retry to resume the remaining sections.`
+          : "No new sections were saved; retry the build.";
       return {
         success: false,
-        error: `Adaptive drafting did not return complete sections: ${missingDrafts.join(", ")}. No new sections were saved; retry the build.`,
+        error: `Adaptive drafting did not return complete sections: ${missingDrafts.join(", ")}. ${progressNote}`,
       };
     }
 

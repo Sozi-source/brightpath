@@ -48,6 +48,41 @@ export interface BusinessPlanDocumentReview {
 
 const GEMINI_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
 const GROQ_DEFAULT_MODEL = "openai/gpt-oss-20b";
+const GROQ_FALLBACK_TEXT_MODEL = "llama-3.3-70b-versatile";
+
+function hasConfiguredApiKey(value: string | undefined): boolean {
+  if (!value) return false;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.length < 12) return false;
+  if (/^your_[a-z0-9_]+_here$/i.test(trimmed)) return false;
+  if (/^(todo|replace_me|changeme|none|null|undefined)$/i.test(trimmed)) return false;
+  return true;
+}
+
+export function isBusinessPlanProviderConfigured(provider: BusinessPlanAIProvider): boolean {
+  return provider === "gemini"
+    ? hasConfiguredApiKey(process.env.GEMINI_API_KEY)
+    : hasConfiguredApiKey(process.env.GROQ_API_KEY);
+}
+
+export function resolveAvailableBusinessPlanProvider(
+  preferred?: BusinessPlanAIProvider | string | null
+): { primary: BusinessPlanAIProvider; fallback: BusinessPlanAIProvider | null } {
+  const normalized: BusinessPlanAIProvider = preferred === "gemini" ? "gemini" : "groq";
+  const alternate: BusinessPlanAIProvider = normalized === "gemini" ? "groq" : "gemini";
+  const primaryReady = isBusinessPlanProviderConfigured(normalized);
+  const alternateReady = isBusinessPlanProviderConfigured(alternate);
+
+  if (primaryReady) {
+    return { primary: normalized, fallback: alternateReady ? alternate : null };
+  }
+  if (alternateReady) {
+    return { primary: alternate, fallback: null };
+  }
+  throw new Error(
+    "No AI provider key is configured. Add GEMINI_API_KEY or GROQ_API_KEY to .env.local and restart the server."
+  );
+}
 
 function readGeminiText(data: Record<string, unknown>): string {
   const candidates = data.candidates as Array<{
@@ -64,8 +99,10 @@ async function callGemini(
   prompt: string,
   options: { googleSearch?: boolean; json?: boolean; timeoutMs?: number; maxOutputTokens?: number } = {}
 ): Promise<Record<string, unknown>> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("Configure Gemini to research and build a complete business plan.");
+  const apiKey = process.env.GEMINI_API_KEY?.trim();
+  if (!hasConfiguredApiKey(apiKey)) {
+    throw new Error("Configure GEMINI_API_KEY to use Gemini.");
+  }
 
   const configuredModel = process.env.GEMINI_MODEL?.trim();
   const models = configuredModel
@@ -74,30 +111,41 @@ async function callGemini(
   let lastError = "";
 
   for (const model of models) {
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-            ...(options.googleSearch ? { tools: [{ google_search: {} }] } : {}),
-            generationConfig: {
-              temperature: 0.2,
-              ...(options.json ? { responseMimeType: "application/json" } : {}),
-              maxOutputTokens: options.maxOutputTokens ?? (options.googleSearch ? 4500 : 7000),
-            },
-          }),
-          signal: AbortSignal.timeout(options.timeoutMs ?? 55000),
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ role: "user", parts: [{ text: prompt }] }],
+              ...(options.googleSearch ? { tools: [{ google_search: {} }] } : {}),
+              generationConfig: {
+                temperature: 0.2,
+                ...(options.json ? { responseMimeType: "application/json" } : {}),
+                maxOutputTokens: options.maxOutputTokens ?? (options.googleSearch ? 4500 : 8192),
+              },
+            }),
+            signal: AbortSignal.timeout(options.timeoutMs ?? 55000),
+          }
+        );
+        if (response.ok) return await response.json();
+        const body = await response.json().catch(() => null);
+        const message = body?.error?.message;
+        lastError = typeof message === "string" ? message : `HTTP ${response.status}`;
+        if ((response.status === 429 || response.status === 503) && attempt === 0) {
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+          continue;
         }
-      );
-      if (response.ok) return await response.json();
-      const body = await response.json().catch(() => null);
-      const message = body?.error?.message;
-      lastError = typeof message === "string" ? message : `HTTP ${response.status}`;
-    } catch {
-      // Retry with the next supported Gemini model.
+        break;
+      } catch (err) {
+        lastError = err instanceof Error ? err.message : "Network timeout";
+        if (attempt === 0) {
+          await new Promise((resolve) => setTimeout(resolve, 800));
+          continue;
+        }
+      }
     }
   }
 
@@ -110,57 +158,71 @@ async function callGroq(
   prompt: string,
   options: { browserSearch?: boolean; json?: boolean; timeoutMs?: number; maxCompletionTokens?: number } = {}
 ): Promise<Record<string, unknown>> {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) throw new Error("Configure GROQ_API_KEY to use Groq.");
-
-  const model = options.browserSearch
-    ? process.env.GROQ_SEARCH_MODEL?.trim() || GROQ_DEFAULT_MODEL
-    : process.env.GROQ_TEXT_MODEL?.trim() || GROQ_DEFAULT_MODEL;
-  const requestBody = JSON.stringify({
-    model,
-    messages: [{ role: "user", content: prompt }],
-    max_completion_tokens: options.maxCompletionTokens ?? (options.browserSearch ? 4500 : 6000),
-    ...(options.browserSearch
-      ? {
-          tool_choice: "required",
-          tools: [{ type: "browser_search" }],
-          reasoning_effort: "low",
-        }
-      : options.json
-      ? { response_format: { type: "json_object" } }
-      : {}),
-  });
-
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: requestBody,
-      signal: AbortSignal.timeout(options.timeoutMs ?? 55000),
-    });
-    if (response.ok) return response.json();
-
-    const body = await response.json().catch(() => null);
-    const message = body?.error?.message;
-    const messageText = typeof message === "string" ? message : `HTTP ${response.status}`;
-    const retryMatch = messageText.match(/try again in\s+(\d+(?:\.\d+)?)\s*s/i);
-    const headerRetry = Number(response.headers.get("retry-after"));
-    const retrySeconds = retryMatch ? Number(retryMatch[1]) : headerRetry;
-    if (
-      response.status === 429 && attempt === 0 &&
-      Number.isFinite(retrySeconds) && retrySeconds > 0 && retrySeconds <= 20
-    ) {
-      await new Promise((resolve) => setTimeout(resolve, Math.ceil(retrySeconds * 1000) + 300));
-      continue;
-    }
-
-    throw new Error(`Groq request failed: ${messageText.slice(0, 300)}`);
+  const apiKey = process.env.GROQ_API_KEY?.trim();
+  if (!hasConfiguredApiKey(apiKey)) {
+    throw new Error("Configure GROQ_API_KEY to use Groq.");
   }
 
-  throw new Error("Groq request failed after a rate-limit retry. Please try again.");
+  const primaryModel = options.browserSearch
+    ? process.env.GROQ_SEARCH_MODEL?.trim() || GROQ_DEFAULT_MODEL
+    : process.env.GROQ_TEXT_MODEL?.trim() || GROQ_DEFAULT_MODEL;
+  const modelsToTry = options.browserSearch || primaryModel === GROQ_FALLBACK_TEXT_MODEL
+    ? [primaryModel]
+    : [primaryModel, GROQ_FALLBACK_TEXT_MODEL];
+
+  let lastError = "";
+  for (const model of modelsToTry) {
+    const requestBody = JSON.stringify({
+      model,
+      messages: [{ role: "user", content: prompt }],
+      max_completion_tokens: options.maxCompletionTokens ?? (options.browserSearch ? 4500 : 7000),
+      ...(options.browserSearch
+        ? {
+            tool_choice: "required",
+            tools: [{ type: "browser_search" }],
+            reasoning_effort: "low",
+          }
+        : options.json
+        ? { response_format: { type: "json_object" } }
+        : {}),
+    });
+
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: requestBody,
+          signal: AbortSignal.timeout(options.timeoutMs ?? 55000),
+        });
+        if (response.ok) return response.json();
+
+        const body = await response.json().catch(() => null);
+        const message = body?.error?.message;
+        const messageText = typeof message === "string" ? message : `HTTP ${response.status}`;
+        lastError = messageText;
+        const retryMatch = messageText.match(/try again in\s+(\d+(?:\.\d+)?)\s*s/i);
+        const headerRetry = Number(response.headers.get("retry-after"));
+        const retrySeconds = retryMatch ? Number(retryMatch[1]) : headerRetry;
+        if (
+          response.status === 429 && attempt === 0 &&
+          Number.isFinite(retrySeconds) && retrySeconds > 0 && retrySeconds <= 20
+        ) {
+          await new Promise((resolve) => setTimeout(resolve, Math.ceil(retrySeconds * 1000) + 300));
+          continue;
+        }
+        break;
+      } catch (err) {
+        lastError = err instanceof Error ? err.message : "Network timeout";
+        break;
+      }
+    }
+  }
+
+  throw new Error(`Groq request failed: ${(lastError || "Rate-limit or network error").slice(0, 300)}`);
 }
 
 function readGroqText(data: Record<string, unknown>): string {
@@ -174,11 +236,22 @@ async function generateJson(
   provider: BusinessPlanAIProvider,
   options: { maxTokens?: number } = {}
 ): Promise<Record<string, unknown>> {
-  const response = provider === "groq"
-    ? await callGroq(prompt, { json: true, maxCompletionTokens: options.maxTokens })
-    : await callGemini(prompt, { json: true, timeoutMs: 55000, maxOutputTokens: options.maxTokens });
-  const text = provider === "groq" ? readGroqText(response) : readGeminiText(response);
-  return parseJsonObject(text);
+  const { primary, fallback } = resolveAvailableBusinessPlanProvider(provider);
+  const invokeProvider = async (target: BusinessPlanAIProvider) => {
+    const response = target === "groq"
+      ? await callGroq(prompt, { json: true, maxCompletionTokens: options.maxTokens })
+      : await callGemini(prompt, { json: true, timeoutMs: 55000, maxOutputTokens: options.maxTokens });
+    const text = target === "groq" ? readGroqText(response) : readGeminiText(response);
+    return parseJsonObject(text);
+  };
+
+  try {
+    return await invokeProvider(primary);
+  } catch (primaryError) {
+    if (!fallback) throw primaryError;
+    console.warn(`${primary} call failed in generateJson, falling back to ${fallback}:`, primaryError);
+    return await invokeProvider(fallback);
+  }
 }
 
 function parseJsonObject(text: string): Record<string, unknown> {
@@ -207,10 +280,11 @@ function parseJsonObject(text: string): Record<string, unknown> {
       inString = false;
     }
   }
+  const withoutTrailingCommas = normalized.replace(/,\s*([}\]])/g, "$1");
 
   let value: unknown;
   try {
-    value = JSON.parse(normalized);
+    value = JSON.parse(withoutTrailingCommas);
   } catch {
     throw new Error("The AI returned an invalid response format. Try again.");
   }
@@ -244,13 +318,34 @@ Use web search. Prioritize official county, national statistics, regulator, and 
 {"summary":"A concise research brief with facts, dates, and uncertainty clearly stated.","sourceUrls":["https://..." ]}
 Research local context, reachable customer segments, known competitors or alternatives, supplier/transport conditions, and permits relevant to this sector. Do not invent local population figures, business names, prices, survey results, supplier quotes, license fees, or regulations. Say when a detail could not be verified. Keep summary under 900 words.`;
 
-  const response = provider === "groq"
-    ? await callGroq(
+  const { primary, fallback } = resolveAvailableBusinessPlanProvider(provider);
+  const invokeResearch = async (target: BusinessPlanAIProvider) => {
+    if (target === "groq") {
+      const res = await callGroq(
         `${prompt}\nReturn sources as a JSON array with the exact page title and full HTTPS URL for each source you used. Keep any browser-search citation markers beside researched claims.`,
         { browserSearch: true, timeoutMs: 60000 }
-      )
-    : await callGemini(prompt, { googleSearch: true, timeoutMs: 60000 });
-  const resultText = provider === "groq" ? readGroqText(response) : readGeminiText(response);
+      );
+      return { response: res, actualProvider: "groq" as const };
+    }
+    const res = await callGemini(prompt, { googleSearch: true, timeoutMs: 60000 });
+    return { response: res, actualProvider: "gemini" as const };
+  };
+
+  let response: Record<string, unknown>;
+  let actualProvider: BusinessPlanAIProvider;
+  try {
+    const res = await invokeResearch(primary);
+    response = res.response;
+    actualProvider = res.actualProvider;
+  } catch (primaryError) {
+    if (!fallback) throw primaryError;
+    console.warn(`${primary} research call failed, falling back to ${fallback}:`, primaryError);
+    const res = await invokeResearch(fallback);
+    response = res.response;
+    actualProvider = res.actualProvider;
+  }
+
+  const resultText = actualProvider === "groq" ? readGroqText(response) : readGeminiText(response);
   const parsed = parseJsonObject(resultText);
   const grounding = response.candidates as Array<{
     groundingMetadata?: {
@@ -258,7 +353,7 @@ Research local context, reachable customer segments, known competitors or altern
     };
   }> | undefined;
   const chunks = grounding?.[0]?.groundingMetadata?.groundingChunks || [];
-  const sourceCandidates = provider === "groq"
+  const sourceCandidates = actualProvider === "groq"
     ? (Array.isArray(parsed.sources) ? parsed.sources : [])
     : chunks.map((chunk) => ({ title: chunk.web?.title, url: chunk.web?.uri }));
   const sources = sourceCandidates.reduce<BusinessPlanResearchSource[]>((all, source) => {
@@ -283,6 +378,52 @@ Research local context, reachable customer segments, known competitors or altern
     : "Web search returned no verifiable sources. Use only the candidate-supplied market details in this plan. Mark market size, competitor, supplier, price, and permit claims for local verification.";
 
   return { summary, sources, searchedAt: new Date().toISOString() };
+}
+
+function reconcileExecutiveSummaryFinancials(content: string, baseline: string): string | null {
+  const extractMoney = (value: string) =>
+    (value.match(/KES\s*[\d,]+(?:\.\d+)?/g) || []).map((m) => m.replace(/\s+/g, " ").trim());
+  const baselineMoney = extractMoney(baseline);
+  const contentMoney = extractMoney(content);
+  if (JSON.stringify(contentMoney) === JSON.stringify(baselineMoney)) {
+    return content;
+  }
+  const baselineSet = new Set(baselineMoney);
+  if (
+    contentMoney.length >= baselineSet.size &&
+    baselineMoney.every((item) => contentMoney.includes(item)) &&
+    contentMoney.every((item) => baselineSet.has(item))
+  ) {
+    return content;
+  }
+
+  // Deterministic financial reconciliation: keep AI's enterprise/market intro
+  // paragraphs and splice in the exact deterministic startup & forecast paragraphs from baseline.
+  const baselineBlocks = baseline.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
+  const financialBlocks = baselineBlocks.filter((b) =>
+    /requires estimated start-up capital|Financial forecasts project first-year gross sales/i.test(b)
+  );
+  if (financialBlocks.length < 2) return null;
+
+  const contentBlocks = content.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
+  const headingBlock = contentBlocks.find((b) => /^#{1,4}\s/.test(b)) || "### EXECUTIVE SUMMARY / SYNOPSIS";
+  const narrativeBlocks = contentBlocks.filter(
+    (b) =>
+      !/^#{1,4}\s/.test(b) &&
+      !/start-up capital|owner's equity|gross sales|net profit after tax|return on investment/i.test(b)
+  );
+  if (narrativeBlocks.length === 0) return null;
+
+  const firstNarrative = narrativeBlocks.slice(0, 2).join("\n\n");
+  const reconciled = [headingBlock, firstNarrative, ...financialBlocks].join("\n\n");
+  const reconciledMoney = extractMoney(reconciled);
+  if (
+    baselineMoney.every((item) => reconciledMoney.includes(item)) &&
+    reconciledMoney.every((item) => baselineSet.has(item))
+  ) {
+    return reconciled;
+  }
+  return null;
 }
 
 export async function draftBusinessPlanSections(
@@ -347,6 +488,35 @@ export async function draftBusinessPlanSections(
     .map((source, index) => `[${index + 1}] ${source.title} — ${source.url}`)
     .join("\n") || "No verified web sources are available.";
   const updated = new Map<string, string>();
+
+  const validateCandidateDraft = (
+    definition: SectionDef,
+    rawContent: string,
+    allowSoftWordThreshold: boolean
+  ): string | null => {
+    const trimmed = rawContent.trim();
+    if (!trimmed || trimmed.length > 30_000) return null;
+    const minWords = definition.minWords || 80;
+    const requiredWords = allowSoftWordThreshold
+      ? Math.max(65, Math.floor(minWords * 0.82))
+      : minWords;
+    const words = trimmed.split(/\s+/).filter(Boolean).length;
+    if (words < requiredWords) return null;
+
+    let normalizedContent = trimmed;
+    if (definition.key === "prelim.executive_summary") {
+      const baseline = scriptedSections.get(definition.key) || "";
+      const reconciled = reconcileExecutiveSummaryFinancials(trimmed, baseline);
+      if (!reconciled) return null;
+      normalizedContent = reconciled;
+    }
+
+    if (getBusinessModelConflictFindings(specs, [{ key: definition.key, content: normalizedContent }]).length) {
+      return null;
+    }
+    return normalizedContent;
+  };
+
   for (let offset = 0; offset < reviewable.length; offset += 3) {
     const batch = reviewable.slice(offset, offset + 3);
     const sectionDrafts = batch.map((section) => ({
@@ -377,22 +547,70 @@ GEOGRAPHIC CONSISTENCY CHECK (required): Compare every named town, county, sub-c
 
 If local geography or sector facts are uncertain, use cautious wording and [Confirm locally].`;
 
-    const parsed = await generateJson(prompt, provider, { maxTokens: 4500 });
-    const drafts = Array.isArray(parsed.sections) ? parsed.sections : [];
-    for (const draft of drafts) {
-      if (!draft || typeof draft !== "object") continue;
-      const item = draft as { key?: unknown; content?: unknown };
-      if (typeof item.key !== "string" || typeof item.content !== "string") continue;
-      const definition = batch.find((section) => section.key === item.key);
-      if (!definition || !item.content.trim() || item.content.length > 30_000) continue;
-      const content = item.content.trim();
-      const words = content.split(/\s+/).filter(Boolean).length;
-      if (words < (definition.minWords || 80)) continue;
-      const baseline = scriptedSections.get(item.key) || "";
-      const money = (value: string) => value.match(/KES\s*[\d,]+(?:\.\d+)?/g) || [];
-      if (item.key === "prelim.executive_summary" && JSON.stringify(money(content)) !== JSON.stringify(money(baseline))) continue;
-      if (getBusinessModelConflictFindings(specs, [{ key: item.key, content }]).length) continue;
-      updated.set(item.key, content);
+    let lastBatchError: unknown = null;
+    try {
+      const parsed = await generateJson(prompt, provider, { maxTokens: 6500 });
+      const drafts = Array.isArray(parsed.sections) ? parsed.sections : [];
+      for (const draft of drafts) {
+        if (!draft || typeof draft !== "object") continue;
+        const item = draft as { key?: unknown; content?: unknown };
+        if (typeof item.key !== "string" || typeof item.content !== "string") continue;
+        const definition = batch.find((section) => section.key === item.key);
+        if (!definition) continue;
+        const accepted = validateCandidateDraft(definition, item.content, false);
+        if (accepted) {
+          updated.set(definition.key, accepted);
+        }
+      }
+    } catch (batchErr) {
+      lastBatchError = batchErr;
+    }
+
+    // Targeted single-section retry for any section in the batch that was omitted,
+    // truncated, slightly below minWords, or had a model/financial conflict.
+    const missingInBatch = batch.filter((section) => !updated.has(section.key));
+    for (const section of missingInBatch) {
+      const targetMinWords = section.minWords || 80;
+      const singlePrompt = `Draft one complete, enterprise-specific KNEC business-plan section for a Kenyan TVET candidate.
+Section key: ${section.key}
+Section title: ${section.title}
+Minimum word count required: ${targetMinWords} words (write at least ${targetMinWords + 25} words of substantive analysis, procedures, and Markdown tables/lists where appropriate).
+Section guidance: ${section.guidance}
+
+ADAPTIVE SCOPE: Selected model is ${resolveBusinessPlanModel(specs)}, sector is "${specs.industrySector}", primary offering is "${specs.primaryProduct}" in ${specs.townOrMarket}, ${specs.county}. Do not use incompatible industry terminology (e.g., for consultancy, do not describe manufacturing factory lines or raw material milling; for manufacturing, focus on production operations).
+
+CANDIDATE-SUPPLIED DETAILS:
+${JSON.stringify(candidateEvidence)}
+
+RESEARCH SUMMARY:
+${research.summary}
+SOURCES:
+${sourceList}
+
+BASELINE SECTION TO ADAPT:
+${scriptedSections.get(section.key) || ""}
+
+Return JSON only: {"key":${JSON.stringify(section.key)},"content":"complete Markdown starting with ### ${section.title}"}.
+Do not invent facts, competitors, survey results, permits, or financial figures. Mark unverified local details with [Confirm locally] or [Quotation required]. ${section.key === "prelim.executive_summary" ? "Retain all KES amounts and financial percentages from the baseline executive summary." : ""}`;
+
+      try {
+        const singleParsed = await generateJson(singlePrompt, provider, { maxTokens: 4000 });
+        const rawSingle =
+          typeof singleParsed.content === "string"
+            ? singleParsed.content
+            : Array.isArray(singleParsed.sections) &&
+              singleParsed.sections[0] &&
+              typeof (singleParsed.sections[0] as { content?: unknown }).content === "string"
+            ? ((singleParsed.sections[0] as { content: string }).content)
+            : "";
+        const accepted = validateCandidateDraft(section, rawSingle, true);
+        if (accepted) {
+          updated.set(section.key, accepted);
+        }
+      } catch (singleErr) {
+        if (lastBatchError) throw lastBatchError;
+        throw singleErr;
+      }
     }
   }
   return updated;
