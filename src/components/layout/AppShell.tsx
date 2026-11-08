@@ -218,50 +218,8 @@ export function AppShell({
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           } shadow-xl md:shadow-none`}
         >
-          <div className="flex-1 overflow-y-auto py-4 space-y-4">
-            {/* Top Active Course/Workspace & Candidate Context Card */}
-            <div className="px-3">
-              <div className="bg-[#e8f5f5]/85 border border-[#d8ebec] rounded-xl p-3 space-y-2">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-1.5 text-[#087f8c] text-xs font-semibold">
-                    <GraduationCap className="h-3.5 w-3.5 shrink-0" />
-                    <span className="uppercase tracking-wider text-[10px]">Active Track</span>
-                  </div>
-                  <div className="text-xs font-semibold truncate text-slate-900">
-                    {activeContextTitle || profile?.course || "KNEC Project Studio"}
-                  </div>
-                </div>
-
-                {user && (
-                  <div className="border-t border-[#d8ebec] pt-2 space-y-1 text-[11px]">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-slate-500">Candidate</span>
-                      <span className="font-semibold text-slate-800 truncate">
-                        {profile?.full_name || user.email?.split("@")[0] || "Student"}
-                      </span>
-                    </div>
-                    {profile?.admission_number && (
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-slate-500">Adm No</span>
-                        <span className="font-mono font-semibold text-slate-800 truncate">
-                          {profile.admission_number}
-                        </span>
-                      </div>
-                    )}
-                    {institutionName && (
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-slate-500">Institution</span>
-                        <span className="font-medium text-slate-700 truncate">
-                          {institutionName}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Primary Portal Navigation */}
+          <div className="flex-1 overflow-y-auto py-3.5 space-y-4">
+            {/* 1. Primary Portal Navigation FIRST (Uncrowded & Prominent) */}
             <div className="space-y-1 px-3">
               <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-3 pb-1">
                 Main Portal
@@ -274,7 +232,7 @@ export function AppShell({
                     key={item.label}
                     href={item.href}
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all ${
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                       isActive
                         ? "bg-[#087f8c] text-white shadow-xs font-semibold"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
@@ -288,96 +246,8 @@ export function AppShell({
               })}
             </div>
 
-            {/* Active Projects Section in Sidebar */}
-            {studioWorkspaces !== undefined && (
-              <div className="space-y-2 border-t border-slate-100 px-3 pt-4">
-                <div className="flex items-center justify-between px-1">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                    Active Projects ({studioWorkspaces.length})
-                  </span>
-                  <Link
-                    href="/studio/new"
-                    onClick={() => setSidebarOpen(false)}
-                    className="inline-flex items-center gap-1 rounded-md bg-[#e8f5f5] px-2 py-0.5 text-[10px] font-semibold text-[#087f8c] hover:bg-teal-100 transition-colors"
-                  >
-                    <Plus className="h-3 w-3" />
-                    <span>New</span>
-                  </Link>
-                </div>
-
-                {studioWorkspaces.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/60 p-3 text-center">
-                    <p className="text-[11px] font-medium text-slate-500">No active workspace yet.</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">Select an area on the right to start.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {studioWorkspaces.map((ws) => {
-                      const isApproved = ws.status === "approved";
-                      const isPending = ws.status === "pending";
-                      return (
-                        <div
-                          key={ws.id}
-                          className="rounded-xl border border-slate-200 bg-slate-50/70 p-2.5 space-y-2 shadow-2xs"
-                        >
-                          <div className="space-y-1">
-                            <Link
-                              href={`/studio/${ws.id}`}
-                              onClick={() => setSidebarOpen(false)}
-                              className="block text-xs font-semibold text-slate-900 hover:text-[#087f8c] line-clamp-2 leading-snug"
-                            >
-                              {ws.title}
-                            </Link>
-                            <div className="flex items-center justify-between gap-1 text-[10px]">
-                              <span
-                                className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-medium ${
-                                  isApproved
-                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                    : isPending
-                                    ? "bg-amber-50 text-amber-700 border border-amber-200"
-                                    : "bg-white text-slate-600 border border-slate-200"
-                                }`}
-                              >
-                                {isApproved ? (
-                                  <CheckCircle2 className="h-2.5 w-2.5" />
-                                ) : (
-                                  <Clock3 className="h-2.5 w-2.5" />
-                                )}
-                                {isApproved ? "Approved" : isPending ? "Review" : "Draft"}
-                              </span>
-                              <span className="font-mono text-slate-500">
-                                {ws.completedSections}/{ws.totalSections} · {ws.progressPct}%
-                              </span>
-                            </div>
-                            <div className="h-1 w-full overflow-hidden rounded-full bg-slate-200">
-                              <div
-                                className="h-full rounded-full bg-[#087f8c]"
-                                style={{ width: `${Math.min(100, Math.max(0, ws.progressPct))}%` }}
-                              />
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-1.5 pt-0.5">
-                            <Link
-                              href={`/studio/${ws.id}`}
-                              onClick={() => setSidebarOpen(false)}
-                              className="flex-1 inline-flex items-center justify-center gap-1 rounded-md bg-[#087f8c] hover:bg-[#086b76] px-2.5 py-1.5 text-[11px] font-semibold text-white transition-colors"
-                            >
-                              <span>Continue</span>
-                              <ArrowRight className="h-3 w-3" />
-                            </Link>
-                            <DeleteDraftButton workspaceId={ws.id} title={ws.title} iconOnly />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-
             {pathname.startsWith("/projects") && marketplaceCategories?.length ? (
-              <nav aria-label="Marketplace categories" className="space-y-1 border-t border-slate-100 px-3 pt-4">
+              <nav aria-label="Marketplace categories" className="space-y-1 border-t border-slate-100 px-3 pt-3">
                 <div className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Marketplace</div>
                 {marketplaceCategories.map((category) => (
                   <Link
@@ -385,7 +255,7 @@ export function AppShell({
                     href={category.href}
                     onClick={() => setSidebarOpen(false)}
                     aria-current={category.active ? "page" : undefined}
-                    className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-xs transition-colors ${
+                    className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs transition-colors ${
                       category.active
                         ? "bg-[#087f8c] font-semibold text-white shadow-xs"
                         : "font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
@@ -400,7 +270,7 @@ export function AppShell({
 
             {/* Faculty / Supervisor / Governance Portals */}
             {isRoleSupervisor && (
-              <div className="space-y-1 px-3 border-t border-slate-100 pt-4">
+              <div className="space-y-1 px-3 border-t border-slate-100 pt-3">
                 <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-3 pb-1">
                   Faculty Portals
                 </div>
@@ -409,7 +279,7 @@ export function AppShell({
                   <Link
                     href="/supervisor"
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-colors ${
+                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
                       pathname.startsWith("/supervisor")
                         ? "bg-[#087f8c] text-white shadow-xs font-semibold"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
@@ -427,7 +297,7 @@ export function AppShell({
                   <Link
                     href="/admin"
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-colors ${
+                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
                       pathname === "/admin"
                         ? "bg-[#087f8c] text-white shadow-xs font-semibold"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
@@ -445,7 +315,7 @@ export function AppShell({
 
             {/* Admin Modules Quick Jump Navigation */}
             {pathname.startsWith("/admin") && (
-              <div className="space-y-1 px-3 border-t border-slate-100 pt-4">
+              <div className="space-y-1 px-3 border-t border-slate-100 pt-3">
                 <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-3 pb-1">
                   Admin Modules
                 </div>
@@ -470,10 +340,117 @@ export function AppShell({
                 ))}
               </div>
             )}
+
+            {/* 2. Unified Candidate Track + Active Projects Panel (Kept Together) */}
+            <div className="px-3 border-t border-slate-100 pt-3">
+              <div className="rounded-xl border border-[#d8ebec] bg-[#e8f5f5]/50 p-2.5 space-y-2.5">
+                {/* Compact Candidate & Track Header */}
+                <div className="space-y-0.5 px-0.5">
+                  <div className="flex items-center justify-between gap-1.5">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-[#087f8c]">
+                      <GraduationCap className="h-3.5 w-3.5 shrink-0" />
+                      <span>Candidate Workspace</span>
+                    </span>
+                    {studioWorkspaces !== undefined && (
+                      <Link
+                        href="/studio/new"
+                        onClick={() => setSidebarOpen(false)}
+                        className="inline-flex items-center gap-0.5 rounded bg-white px-1.5 py-0.5 text-[10px] font-semibold text-[#087f8c] border border-[#d8ebec] hover:bg-teal-50 transition-colors"
+                      >
+                        <Plus className="h-2.5 w-2.5" />
+                        <span>New</span>
+                      </Link>
+                    )}
+                  </div>
+                  <div className="text-xs font-semibold truncate text-slate-900">
+                    {activeContextTitle || profile?.course || "KNEC Project Studio"}
+                  </div>
+                  {user && (
+                    <div className="text-[10px] text-slate-500 truncate">
+                      {profile?.full_name || user.email?.split("@")[0]}
+                      {profile?.admission_number ? ` · ${profile.admission_number}` : ""}
+                      {institutionName ? ` · ${institutionName}` : ""}
+                    </div>
+                  )}
+                </div>
+
+                {/* Integrated Active Projects List inside the same card */}
+                {studioWorkspaces !== undefined && (
+                  <div className="border-t border-[#d8ebec]/80 pt-2 space-y-1.5">
+                    <div className="flex items-center justify-between px-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                      <span>Active Projects</span>
+                      <span className="font-mono">{studioWorkspaces.length}</span>
+                    </div>
+
+                    {studioWorkspaces.length === 0 ? (
+                      <p className="px-0.5 text-[11px] text-slate-500">
+                        Select a project area to begin.
+                      </p>
+                    ) : (
+                      <div className="space-y-1.5">
+                        {studioWorkspaces.map((ws) => {
+                          const isApproved = ws.status === "approved";
+                          const isPending = ws.status === "pending";
+                          return (
+                            <div
+                              key={ws.id}
+                              className="rounded-lg border border-slate-200/90 bg-white p-2 space-y-1.5 shadow-2xs"
+                            >
+                              <Link
+                                href={`/studio/${ws.id}`}
+                                onClick={() => setSidebarOpen(false)}
+                                className="block text-[11px] font-semibold text-slate-900 hover:text-[#087f8c] truncate leading-snug"
+                                title={ws.title}
+                              >
+                                {ws.title}
+                              </Link>
+
+                              <div className="flex items-center justify-between gap-1 text-[10px]">
+                                <span
+                                  className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-medium ${
+                                    isApproved
+                                      ? "bg-emerald-50 text-emerald-700"
+                                      : isPending
+                                      ? "bg-amber-50 text-amber-700"
+                                      : "bg-slate-100 text-slate-600"
+                                  }`}
+                                >
+                                  {isApproved ? (
+                                    <CheckCircle2 className="h-2.5 w-2.5" />
+                                  ) : (
+                                    <Clock3 className="h-2.5 w-2.5" />
+                                  )}
+                                  {isApproved ? "Approved" : isPending ? "Review" : "Draft"}
+                                </span>
+                                <span className="font-mono text-slate-500">
+                                  {ws.completedSections}/{ws.totalSections} ({ws.progressPct}%)
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-1.5 pt-0.5">
+                                <Link
+                                  href={`/studio/${ws.id}`}
+                                  onClick={() => setSidebarOpen(false)}
+                                  className="flex-1 inline-flex items-center justify-center gap-1 rounded-md bg-[#087f8c] hover:bg-[#086b76] px-2 py-1 text-[11px] font-semibold text-white transition-colors"
+                                >
+                                  <span>Continue</span>
+                                  <ArrowRight className="h-3 w-3" />
+                                </Link>
+                                <DeleteDraftButton workspaceId={ws.id} title={ws.title} iconOnly />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Sidebar Footer with National Accreditation Info */}
-          <div className="p-4 border-t border-slate-100 text-[11px] text-slate-400 space-y-0.5">
+          <div className="p-3.5 border-t border-slate-100 text-[11px] text-slate-400 space-y-0.5">
             <div className="font-semibold text-slate-700">BrightPath TVET</div>
             <div className="text-[10px] text-slate-400 leading-tight">
               KNEC Project Studio Standard
