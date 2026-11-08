@@ -827,9 +827,10 @@ ${specs.rawMaterials.map((item) => `| ${item.material} | ${item.monthlyQuantity}
 No survey result or customer commitment has been supplied for this draft. Add dated research records, methods, and results here only after conducting the work.`
   );
 
-  if (resolveBusinessPlanModel(specs) === "consultancy") {
+  const resolvedModel = resolveBusinessPlanModel(specs);
+  if (resolvedModel === "consultancy" || resolvedModel === "clinical") {
     const definitions = new Map(
-      getWorkspaceSections("business_plan", specs.level, "consultancy").map((definition) => [definition.key, definition])
+      getWorkspaceSections("business_plan", specs.level, resolvedModel).map((definition) => [definition.key, definition])
     );
     return results.map((section) => {
       const definition = definitions.get(section.section_key);
@@ -841,6 +842,36 @@ No survey result or customer commitment has been supplied for this draft. Add da
         title,
         content,
         wordCount: content.trim().split(/\s+/).filter(Boolean).length,
+      };
+    });
+  }
+
+  if (resolvedModel !== "milling" && resolvedModel !== "manufacturing") {
+    const productLabel = specs.primaryProduct || "nutritional products";
+    const adaptText = (text: string) =>
+      text
+        .replace(/\bporridge flour and health foods\b/gi, productLabel)
+        .replace(/\bporridge flour\b/gi, productLabel)
+        .replace(/\bweaning porridge mixes\b/gi, `specialized ${productLabel} lines`)
+        .replace(/\bweaning porridge thickness\b/gi, `${productLabel} preparation standards`)
+        .replace(/\bporridge[- ]tasting\b/gi, "product sampling")
+        .replace(/\bhammer milling\b/gi, "standardized processing and blending")
+        .replace(/\bhammer mill\b/gi, "processing equipment")
+        .replace(/\bmilling chambers\b/gi, "processing vessels")
+        .replace(/\bmilled flour fineness\b/gi, "in-process batch consistency")
+        .replace(/\bgrain milling\b/gi, "product processing")
+        .replace(/\bmilling workflow\b/gi, "operational workflow")
+        .replace(/\bgrain intake\b/gi, "raw material intake")
+        .replace(/\bgrain moisture\b/gi, "input quality")
+        .replace(/\bfarmgate grain\b/gi, "direct supplier")
+        .replace(/\bposho mills\b/gi, "informal uncertified vendors");
+
+    return results.map((section) => {
+      const adapted = adaptText(section.content);
+      return {
+        ...section,
+        content: adapted,
+        wordCount: adapted.trim().split(/\s+/).filter(Boolean).length,
       };
     });
   }

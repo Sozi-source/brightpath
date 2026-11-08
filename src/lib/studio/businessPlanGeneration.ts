@@ -48,11 +48,15 @@ export interface BusinessPlanDocumentReview {
 
 const GEMINI_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
 const GROQ_DEFAULT_MODEL = "openai/gpt-oss-20b";
-const GROQ_FALLBACK_TEXT_MODEL = "llama-3.3-70b-versatile";
+const GROQ_TEXT_MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", GROQ_DEFAULT_MODEL];
+
+function normalizeApiKey(value: string | undefined): string {
+  if (!value) return "";
+  return value.trim().replace(/^["']+|["']+$/g, "").trim();
+}
 
 function hasConfiguredApiKey(value: string | undefined): boolean {
-  if (!value) return false;
-  const trimmed = value.trim();
+  const trimmed = normalizeApiKey(value);
   if (!trimmed || trimmed.length < 12) return false;
   if (/^your_[a-z0-9_]+_here$/i.test(trimmed)) return false;
   if (/^(todo|replace_me|changeme|none|null|undefined)$/i.test(trimmed)) return false;
@@ -99,7 +103,7 @@ async function callGemini(
   prompt: string,
   options: { googleSearch?: boolean; json?: boolean; timeoutMs?: number; maxOutputTokens?: number } = {}
 ): Promise<Record<string, unknown>> {
-  const apiKey = process.env.GEMINI_API_KEY?.trim();
+  const apiKey = normalizeApiKey(process.env.GEMINI_API_KEY);
   if (!hasConfiguredApiKey(apiKey)) {
     throw new Error("Configure GEMINI_API_KEY to use Gemini.");
   }
@@ -158,24 +162,29 @@ async function callGroq(
   prompt: string,
   options: { browserSearch?: boolean; json?: boolean; timeoutMs?: number; maxCompletionTokens?: number } = {}
 ): Promise<Record<string, unknown>> {
-  const apiKey = process.env.GROQ_API_KEY?.trim();
+  const apiKey = normalizeApiKey(process.env.GROQ_API_KEY);
   if (!hasConfiguredApiKey(apiKey)) {
     throw new Error("Configure GROQ_API_KEY to use Groq.");
   }
 
-  const primaryModel = options.browserSearch
-    ? process.env.GROQ_SEARCH_MODEL?.trim() || GROQ_DEFAULT_MODEL
-    : process.env.GROQ_TEXT_MODEL?.trim() || GROQ_DEFAULT_MODEL;
-  const modelsToTry = options.browserSearch || primaryModel === GROQ_FALLBACK_TEXT_MODEL
-    ? [primaryModel]
-    : [primaryModel, GROQ_FALLBACK_TEXT_MODEL];
+  const configuredTextModel = process.env.GROQ_TEXT_MODEL?.trim();
+  const modelsToTry = options.browserSearch
+    ? [process.env.GROQ_SEARCH_MODEL?.trim() || GROQ_DEFAULT_MODEL]
+    : configuredTextModel
+    ? [configuredTextModel, ...GROQ_TEXT_MODELS.filter((m) => m !== configuredTextModel)]
+    : GROQ_TEXT_MODELS;
+
+  const safeMaxCompletionTokens = Math.min(
+    options.maxCompletionTokens ?? (options.browserSearch ? 3500 : 3800),
+    4000
+  );
 
   let lastError = "";
   for (const model of modelsToTry) {
     const requestBody = JSON.stringify({
       model,
       messages: [{ role: "user", content: prompt }],
-      max_completion_tokens: options.maxCompletionTokens ?? (options.browserSearch ? 4500 : 7000),
+      max_completion_tokens: safeMaxCompletionTokens,
       ...(options.browserSearch
         ? {
             tool_choice: "required",
@@ -209,7 +218,7 @@ async function callGroq(
         const retrySeconds = retryMatch ? Number(retryMatch[1]) : headerRetry;
         if (
           response.status === 429 && attempt === 0 &&
-          Number.isFinite(retrySeconds) && retrySeconds > 0 && retrySeconds <= 20
+          Number.isFinite(retrySeconds) && retrySeconds > 0 && retrySeconds <= 12
         ) {
           await new Promise((resolve) => setTimeout(resolve, Math.ceil(retrySeconds * 1000) + 300));
           continue;
@@ -250,7 +259,15 @@ async function generateJson(
   } catch (primaryError) {
     if (!fallback) throw primaryError;
     console.warn(`${primary} call failed in generateJson, falling back to ${fallback}:`, primaryError);
-    return await invokeProvider(fallback);
+    try {
+      return await invokeProvider(fallback);
+    } catch (fallbackError) {
+      const fallbackMsg = fallbackError instanceof Error ? fallbackError.message : "";
+      if (/api key not valid|invalid api key|configure .*_api_key/i.test(fallbackMsg)) {
+        throw primaryError;
+      }
+      throw fallbackError;
+    }
   }
 }
 
@@ -340,9 +357,17 @@ Research local context, reachable customer segments, known competitors or altern
   } catch (primaryError) {
     if (!fallback) throw primaryError;
     console.warn(`${primary} research call failed, falling back to ${fallback}:`, primaryError);
-    const res = await invokeResearch(fallback);
-    response = res.response;
-    actualProvider = res.actualProvider;
+    try {
+      const res = await invokeResearch(fallback);
+      response = res.response;
+      actualProvider = res.actualProvider;
+    } catch (fallbackError) {
+      const fallbackMsg = fallbackError instanceof Error ? fallbackError.message : "";
+      if (/api key not valid|invalid api key|configure .*_api_key/i.test(fallbackMsg)) {
+        throw primaryError;
+      }
+      throw fallbackError;
+    }
   }
 
   const resultText = actualProvider === "groq" ? readGroqText(response) : readGeminiText(response);
@@ -549,7 +574,7 @@ If local geography or sector facts are uncertain, use cautious wording and [Conf
 
     let lastBatchError: unknown = null;
     try {
-      const parsed = await generateJson(prompt, provider, { maxTokens: 6500 });
+      const parsed = await generateJson(prompt, provider, { maxTokens: 3800 });
       const drafts = Array.isArray(parsed.sections) ? parsed.sections : [];
       for (const draft of drafts) {
         if (!draft || typeof draft !== "object") continue;
@@ -594,7 +619,7 @@ Return JSON only: {"key":${JSON.stringify(section.key)},"content":"complete Mark
 Do not invent facts, competitors, survey results, permits, or financial figures. Mark unverified local details with [Confirm locally] or [Quotation required]. ${section.key === "prelim.executive_summary" ? "Retain all KES amounts and financial percentages from the baseline executive summary." : ""}`;
 
       try {
-        const singleParsed = await generateJson(singlePrompt, provider, { maxTokens: 4000 });
+        const singleParsed = await generateJson(singlePrompt, provider, { maxTokens: 3200 });
         const rawSingle =
           typeof singleParsed.content === "string"
             ? singleParsed.content
@@ -606,10 +631,21 @@ Do not invent facts, competitors, survey results, permits, or financial figures.
         const accepted = validateCandidateDraft(section, rawSingle, true);
         if (accepted) {
           updated.set(section.key, accepted);
+          continue;
         }
       } catch (singleErr) {
-        if (lastBatchError) throw lastBatchError;
-        throw singleErr;
+        lastBatchError = singleErr || lastBatchError;
+      }
+
+      // Deterministic fallback per AGENTS.md ("Build the bulk draft deterministically.
+      // AI may make limited evidence-supported corrections"): if the AI provider is
+      // rate-limited or has an invalid key, validate and use the deterministic section.
+      const deterministicBaseline = scriptedSections.get(section.key) || "";
+      const validDeterministic = validateCandidateDraft(section, deterministicBaseline, true);
+      if (validDeterministic) {
+        updated.set(section.key, validDeterministic);
+      } else if (lastBatchError) {
+        throw lastBatchError;
       }
     }
   }

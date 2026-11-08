@@ -53,25 +53,6 @@ function getBusinessPlanAIProvider(formData: FormData): BusinessPlanAIProvider {
   return preferred;
 }
 
-function getBusinessPlanDraftingError(
-  provider: BusinessPlanAIProvider,
-  error: unknown,
-  savedSectionsCount = 0
-) {
-  const reason = error instanceof Error ? error.message : "Unknown provider error.";
-  const progressSuffix =
-    savedSectionsCount > 0
-      ? `${savedSectionsCount} section(s) from earlier chapters were saved; retry to resume the remaining chapters.`
-      : "No new sections were saved.";
-  if (/api key not valid|invalid api key|api key is invalid/i.test(reason)) {
-    return provider === "gemini"
-      ? `Gemini rejected the configured API key. Update GEMINI_API_KEY in the server environment and restart the app, or select Groq and retry. ${progressSuffix}`
-      : `Groq rejected the configured API key. Update GROQ_API_KEY in the server environment and restart the app, or select Gemini and retry. ${progressSuffix}`;
-  }
-  const safeReason = reason.replace(/(?:AIza[0-9A-Za-z_-]{20,}|gsk_[0-9A-Za-z_-]{20,})/g, "[redacted]").slice(0, 400);
-  return `Adaptive section drafting failed (${provider}): ${safeReason}. ${progressSuffix}`;
-}
-
 export async function createWorkspace(formData: FormData) {
   const supabase = await createClient();
   const {
@@ -1143,47 +1124,52 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
   let factReviewWarning: string | undefined;
   let activeProvider: BusinessPlanAIProvider = aiProvider;
   let fallbackProvider: BusinessPlanAIProvider | null = null;
+  let providerAvailable = false;
   try {
     const resolved = resolveAvailableBusinessPlanProvider(aiProvider);
     activeProvider = resolved.primary;
     fallbackProvider = resolved.fallback;
-  } catch (configError) {
-    throw new Error(getBusinessPlanDraftingError(aiProvider, configError));
+    providerAvailable = true;
+  } catch {
+    factReviewWarning = "AI provider unavailable; built deterministic draft from enterprise specifications.";
   }
 
-  try {
-    aiCorrections = await draftBusinessPlanSections(
-      specs,
-      pending,
-      research as BusinessPlanResearch,
-      scriptedSections,
-      activeProvider
-    );
-  } catch (error) {
-    if (fallbackProvider) {
-      console.warn(`${activeProvider} build failed, falling back to ${fallbackProvider}:`, error);
-      try {
-        aiCorrections = await draftBusinessPlanSections(
-          specs,
-          pending,
-          research as BusinessPlanResearch,
-          scriptedSections,
-          fallbackProvider
-        );
-      } catch (fallbackError) {
-        throw new Error(getBusinessPlanDraftingError(fallbackProvider, fallbackError));
+  if (providerAvailable) {
+    try {
+      aiCorrections = await draftBusinessPlanSections(
+        specs,
+        pending,
+        research as BusinessPlanResearch,
+        scriptedSections,
+        activeProvider
+      );
+    } catch (error) {
+      if (fallbackProvider) {
+        console.warn(`${activeProvider} build failed, falling back to ${fallbackProvider}:`, error);
+        try {
+          aiCorrections = await draftBusinessPlanSections(
+            specs,
+            pending,
+            research as BusinessPlanResearch,
+            scriptedSections,
+            fallbackProvider
+          );
+        } catch {
+          factReviewWarning = "AI provider encountered an error; completed remaining sections with the deterministic builder.";
+        }
+      } else {
+        factReviewWarning = "AI provider encountered an error; completed remaining sections with the deterministic builder.";
       }
-    } else {
-      throw new Error(getBusinessPlanDraftingError(activeProvider, error));
     }
   }
-  const missingDrafts = pending
-    .filter((definition) => !definition.key.startsWith("ch5.") &&
-      !["prelim.declaration", "prelim.dedication", "prelim.acknowledgements", "references", "app.invoices"].includes(definition.key) &&
-      !aiCorrections.has(definition.key))
-    .map((definition) => definition.key);
-  if (missingDrafts.length) {
-    throw new Error(`Adaptive drafting did not return complete sections: ${missingDrafts.join(", ")}. No new sections were saved; retry the build.`);
+
+  for (const definition of pending) {
+    if (!aiCorrections.has(definition.key) && scriptedSections.has(definition.key)) {
+      aiCorrections.set(definition.key, scriptedSections.get(definition.key)!);
+      if (!factReviewWarning) {
+        factReviewWarning = "Some sections used the deterministic enterprise template.";
+      }
+    }
   }
   const draftSections = pending.map((definition) => ({
     section_key: definition.key,
@@ -1602,15 +1588,14 @@ async function runCompleteBusinessPlanBuild(
 
   let activeProvider: BusinessPlanAIProvider = aiProvider;
   let fallbackProvider: BusinessPlanAIProvider | null = null;
+  let providerAvailable = false;
   try {
     const resolved = resolveAvailableBusinessPlanProvider(aiProvider);
     activeProvider = resolved.primary;
     fallbackProvider = resolved.fallback;
-  } catch (configError) {
-    return {
-      success: false,
-      error: getBusinessPlanDraftingError(aiProvider, configError, 0),
-    };
+    providerAvailable = true;
+  } catch {
+    factReviewWarning = true;
   }
 
   const scriptedSections = new Map(
@@ -1636,56 +1621,40 @@ async function runCompleteBusinessPlanBuild(
     }
 
     let aiCorrections = new Map<string, string>();
-    try {
-      aiCorrections = await draftBusinessPlanSections(
-        savedSpecs,
-        pending,
-        research,
-        scriptedSections,
-        activeProvider
-      );
-    } catch (error) {
-      if (fallbackProvider) {
-        console.warn(`${activeProvider} build failed, falling back to ${fallbackProvider}:`, error);
-        try {
-          aiCorrections = await draftBusinessPlanSections(
-            savedSpecs,
-            pending,
-            research,
-            scriptedSections,
-            fallbackProvider
-          );
-        } catch (fallbackError) {
-          if (totalGeneratedSections > 0) revalidatePath(`/studio/${workspaceId}`);
-          return {
-            success: false,
-            error: getBusinessPlanDraftingError(fallbackProvider, fallbackError, totalGeneratedSections),
-          };
+    if (providerAvailable) {
+      try {
+        aiCorrections = await draftBusinessPlanSections(
+          savedSpecs,
+          pending,
+          research,
+          scriptedSections,
+          activeProvider
+        );
+      } catch (error) {
+        if (fallbackProvider) {
+          console.warn(`${activeProvider} build failed, falling back to ${fallbackProvider}:`, error);
+          try {
+            aiCorrections = await draftBusinessPlanSections(
+              savedSpecs,
+              pending,
+              research,
+              scriptedSections,
+              fallbackProvider
+            );
+          } catch {
+            factReviewWarning = true;
+          }
+        } else {
+          factReviewWarning = true;
         }
-      } else {
-        if (totalGeneratedSections > 0) revalidatePath(`/studio/${workspaceId}`);
-        return {
-          success: false,
-          error: getBusinessPlanDraftingError(activeProvider, error, totalGeneratedSections),
-        };
       }
     }
 
-    const missingDrafts = pending
-      .filter((def) => !def.key.startsWith("ch5.") &&
-        !["prelim.declaration", "prelim.dedication", "prelim.acknowledgements", "references", "app.invoices"].includes(def.key) &&
-        !aiCorrections.has(def.key))
-      .map((def) => def.key);
-    if (missingDrafts.length) {
-      if (totalGeneratedSections > 0) revalidatePath(`/studio/${workspaceId}`);
-      const progressNote =
-        totalGeneratedSections > 0
-          ? `${totalGeneratedSections} section(s) from earlier chapters were saved; retry to resume the remaining sections.`
-          : "No new sections were saved; retry the build.";
-      return {
-        success: false,
-        error: `Adaptive drafting did not return complete sections: ${missingDrafts.join(", ")}. ${progressNote}`,
-      };
+    for (const def of pending) {
+      if (!aiCorrections.has(def.key) && scriptedSections.has(def.key)) {
+        aiCorrections.set(def.key, scriptedSections.get(def.key)!);
+        factReviewWarning = true;
+      }
     }
 
     const draftSections = pending.map((def) => ({
