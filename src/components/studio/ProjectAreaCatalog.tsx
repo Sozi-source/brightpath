@@ -113,6 +113,7 @@ export function ProjectAreaCatalog({
       formData.set("course", formCourse);
       formData.set("admissionNumber", formAdmissionNumber);
       formData.set("businessName", formBusinessName);
+      formData.set("title", formBusinessName);
       formData.set("townOrMarket", formTownOrMarket);
       formData.set("county", formCounty);
       formData.set("privacyConsent", formPrivacyConsent ? "on" : "off");

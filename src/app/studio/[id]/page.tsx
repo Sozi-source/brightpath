@@ -22,7 +22,7 @@ import {
   Send,
   ShieldAlert,
   ChevronRight,
-  Lightbulb, Sparkles,
+  Lightbulb, Sparkles, Building2,
 } from "lucide-react";
 import type { ProjectWorkspace, WorkspaceSection, SupervisorReview } from "@/types/database";
 import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
@@ -287,8 +287,8 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
       <div className="space-y-4">
           {/* Stage 1: Project Topic & Approval / Business Plan Concept */}
           <ContentCard
-            title={isBusiness ? "Project setup" : "Project topic"}
-            icon={Lightbulb}
+            title={isBusiness ? "Enterprise Profile & Concept" : "Project topic"}
+            icon={isBusiness ? Building2 : Lightbulb}
             headerRight={
               isApproved ? (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
@@ -329,21 +329,35 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                   </h4>
                 </div>
 
-                <Link
-                  href={`/studio/${workspaceId}/problem`}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 shadow-xs transition-colors shrink-0 self-start"
-                >
-                  <span>
-                    {workspace.title
-                      ? isBusiness
-                        ? "Edit Plan Concept"
-                        : "Edit Topic"
-                      : isBusiness
-                      ? "Formulate Concept"
-                      : "Formulate Topic"}
-                  </span>
-                  <ChevronRight className="h-3 w-3 text-slate-400" />
-                </Link>
+                {isBusiness ? (
+                  <BusinessPlanBuilderModal
+                    workspaceId={workspaceId}
+                    defaultCandidateName={workspace.student?.full_name || ""}
+                    defaultAdmissionNumber={workspace.student?.admission_number || ""}
+                    defaultInstitutionName={workspace.institution?.name || ""}
+                    defaultSupervisorName={workspace.supervisor?.full_name || ""}
+                    defaultCourse={workspace.course}
+                    defaultLevel={workspace.level}
+                    initialSpecs={workspace.business_plan_specs as Partial<BusinessPlanSpecs> | undefined}
+                    triggerButton={
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 shadow-xs transition-colors shrink-0 self-start cursor-pointer"
+                      >
+                        <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+                        <span>Edit Parameters & Build</span>
+                      </button>
+                    }
+                  />
+                ) : (
+                  <Link
+                    href={`/studio/${workspaceId}/problem`}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 shadow-xs transition-colors shrink-0 self-start"
+                  >
+                    <span>{workspace.title ? "Edit Topic" : "Formulate Topic"}</span>
+                    <ChevronRight className="h-3 w-3 text-slate-400" />
+                  </Link>
+                )}
               </div>
 
               {workspace.problem_area && (

@@ -189,7 +189,7 @@ export async function createWorkspace(formData: FormData) {
 
   revalidatePath("/studio");
   revalidatePath("/supervisor");
-  if (initialTitle) {
+  if (workspaceType === "business_plan" || finalTitle || initialTitle) {
     redirect(`/studio/${workspace.id}`);
   }
   redirect(`/studio/${workspace.id}/problem`);
