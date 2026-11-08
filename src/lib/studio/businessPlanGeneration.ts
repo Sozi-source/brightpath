@@ -640,8 +640,13 @@ Do not invent facts, competitors, survey results, permits, or financial figures.
       // Deterministic fallback per AGENTS.md ("Build the bulk draft deterministically.
       // AI may make limited evidence-supported corrections"): if the AI provider is
       // rate-limited or has an invalid key, validate and use the deterministic section.
-      const deterministicBaseline = scriptedSections.get(section.key) || "";
-      const validDeterministic = validateCandidateDraft(section, deterministicBaseline, true);
+      const deterministicBaseline = (scriptedSections.get(section.key) || "").trim();
+      const validDeterministic =
+        validateCandidateDraft(section, deterministicBaseline, true) ||
+        (deterministicBaseline &&
+        !getBusinessModelConflictFindings(specs, [{ key: section.key, content: deterministicBaseline }]).length
+          ? deterministicBaseline
+          : null);
       if (validDeterministic) {
         updated.set(section.key, validDeterministic);
       } else if (lastBatchError) {
@@ -832,7 +837,17 @@ CHAT:
 ${JSON.stringify(messages)}
 
 Rules: Explain the finding plainly and answer the latest question. If enough information exists, provide a proposed replacement for this section only, preserving unrelated points and structure. Do not invent evidence, local facilities, survey results, permissions, prices, or partnerships. If a fact is missing, use concise [Confirm locally] wording or ask one targeted question and leave proposedText empty. Never change financial calculations or numerical assumptions. Return JSON only as {"reply":"short response","proposedText":"complete proposed section text, or empty string if clarification is needed"}.`;
-  const parsed = await generateJson(prompt, args.provider, { maxTokens: 5000 });
+  const resolved = resolveAvailableBusinessPlanProvider(args.provider);
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = await generateJson(prompt, resolved.primary, { maxTokens: 3500 });
+  } catch (err) {
+    if (resolved.fallback) {
+      parsed = await generateJson(prompt, resolved.fallback, { maxTokens: 3500 });
+    } else {
+      throw err;
+    }
+  }
   const reply = typeof parsed.reply === "string" ? parsed.reply.trim().slice(0, 3000) : "I could not prepare a correction. Please clarify what should change.";
   const proposedText = typeof parsed.proposedText === "string" && parsed.proposedText.trim().length <= 30000
     ? parsed.proposedText.trim()

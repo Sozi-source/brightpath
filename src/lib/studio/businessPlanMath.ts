@@ -8,7 +8,7 @@
  */
 
 import type { BusinessPlanSpecs } from "./businessPlanTypes";
-import { resolveBusinessPlanModel } from "./businessPlanTypes";
+import { normalizeBusinessPlanSpecs, resolveBusinessPlanModel } from "./businessPlanTypes";
 
 export interface ComputedFinancialModel {
   totalMachineryCost: number;
@@ -66,7 +66,8 @@ export interface ComputedFinancialModel {
   financialRatiosTable: string;
 }
 
-export function computeBusinessPlanFinancials(specs: BusinessPlanSpecs): ComputedFinancialModel {
+export function computeBusinessPlanFinancials(rawSpecs: Partial<BusinessPlanSpecs>): ComputedFinancialModel {
+  const specs = normalizeBusinessPlanSpecs(rawSpecs);
   const model = resolveBusinessPlanModel(specs);
   const isConsultancy = model === "consultancy" || model === "clinical";
   const isEducation = model === "education";
@@ -131,7 +132,7 @@ export function computeBusinessPlanFinancials(specs: BusinessPlanSpecs): Compute
     (sum, m) => sum + m.quantity * m.unitCost,
     0
   );
-  const annualDepreciation = totalMachineryCost * 0.1; // 10% straight-line per KNEC standard
+  const annualDepreciation = Math.round(totalMachineryCost * 0.1); // 10% straight-line per KNEC standard
 
   // 2. Pre-operational expenses
   const enteredPreOp = Math.max(0, Math.round(specs.preOperationalCosts || 0));
@@ -216,7 +217,6 @@ export function computeBusinessPlanFinancials(specs: BusinessPlanSpecs): Compute
   let totalSalesYear1 = 0;
   let totalMaterialCostsYear1 = 0;
   let totalWagesYear1 = 0;
-  let totalOperatingOverheadsYear1 = 0;
   let totalLoanInterestYear1 = 0;
   let loanBalance = loanAmount;
 
@@ -225,8 +225,11 @@ export function computeBusinessPlanFinancials(specs: BusinessPlanSpecs): Compute
     const unitsSold = Math.round(fullMonthlyUnits * factor);
     const sales = unitsSold * unitPrice;
     const materialPurchases = Math.round(unitsSold * unitCost);
-    const principalPayment = i < loanTenureMonths ? Math.min(loanBalance, monthlyLoanPrincipal) : 0;
-    const interestPayment = loanBalance * monthlyLoanRate;
+    const principalPayment =
+      i < loanTenureMonths
+        ? Math.min(loanBalance, i === loanTenureMonths - 1 ? loanBalance : Math.round(monthlyLoanPrincipal))
+        : 0;
+    const interestPayment = Math.round(loanBalance * monthlyLoanRate);
     const loanRepayment = principalPayment + interestPayment;
     loanBalance = Math.max(0, loanBalance - principalPayment);
 
@@ -251,7 +254,6 @@ export function computeBusinessPlanFinancials(specs: BusinessPlanSpecs): Compute
     totalSalesYear1 += sales;
     totalMaterialCostsYear1 += materialPurchases;
     totalWagesYear1 += monthlyWages;
-    totalOperatingOverheadsYear1 += overheadsThisMonth;
     totalLoanInterestYear1 += interestPayment;
 
     monthlyRecords.push({
@@ -293,18 +295,49 @@ export function computeBusinessPlanFinancials(specs: BusinessPlanSpecs): Compute
   const annualGrossProfitYear2 = annualSalesYear2 - annualCogsYear2;
   const annualGrossProfitYear3 = annualSalesYear3 - annualCogsYear3;
 
-  // Operating Expenses = Wages + Overheads
-  const annualOperatingExpensesYear1 = totalWagesYear1 + totalOperatingOverheadsYear1;
-  const annualOperatingExpensesYear2 = Math.round(annualOperatingExpensesYear1 * 1.1); // 10% inflation / growth
-  const annualOperatingExpensesYear3 = Math.round(annualOperatingExpensesYear2 * 1.08);
+  // Operating Expenses = Exact sum of the 6 line items across Years 1, 2, and 3
+  const wagesY1 = totalWagesYear1;
+  const wagesY2 = Math.round(wagesY1 * 1.1);
+  const wagesY3 = Math.round(wagesY1 * 1.18);
+
+  const rentY1 = monthlyRent * 12;
+  const rentY2 = Math.round(rentY1 * 1.05);
+  const rentY3 = Math.round(rentY1 * 1.1);
+
+  const utilitiesY1 = monthlyUtilities * 12;
+  const utilitiesY2 = Math.round(utilitiesY1 * 1.08);
+  const utilitiesY3 = Math.round(utilitiesY1 * 1.15);
+
+  const transportY1 = monthlyTransport * 12;
+  const transportY2 = Math.round(transportY1 * 1.1);
+  const transportY3 = Math.round(transportY1 * 1.15);
+
+  const marketingY1 = monthlyMarketing * 12;
+  const marketingY2 = Math.round(marketingY1 * 1.05);
+  const marketingY3 = Math.round(marketingY1 * 1.05);
+
+  const miscY1 = monthlyMisc * 12;
+  const miscY2 = Math.round(miscY1 * 1.05);
+  const miscY3 = Math.round(miscY1 * 1.05);
+
+  const annualOperatingExpensesYear1 =
+    wagesY1 + rentY1 + utilitiesY1 + transportY1 + marketingY1 + miscY1;
+  const annualOperatingExpensesYear2 =
+    wagesY2 + rentY2 + utilitiesY2 + transportY2 + marketingY2 + miscY2;
+  const annualOperatingExpensesYear3 =
+    wagesY3 + rentY3 + utilitiesY3 + transportY3 + marketingY3 + miscY3;
 
   const projectLoanYear = (openingBalance: number, firstMonth: number) => {
     let balance = openingBalance;
     let principal = 0;
     let interest = 0;
     for (let month = firstMonth; month < firstMonth + 12; month += 1) {
-      const principalPayment = month < loanTenureMonths ? Math.min(balance, monthlyLoanPrincipal) : 0;
-      interest += balance * monthlyLoanRate;
+      const principalPayment =
+        month < loanTenureMonths
+          ? Math.min(balance, month === loanTenureMonths - 1 ? balance : Math.round(monthlyLoanPrincipal))
+          : 0;
+      const interestPayment = Math.round(balance * monthlyLoanRate);
+      interest += interestPayment;
       principal += principalPayment;
       balance = Math.max(0, balance - principalPayment);
     }
@@ -382,12 +415,13 @@ export function computeBusinessPlanFinancials(specs: BusinessPlanSpecs): Compute
 | **Total Pre-Operational Expenses** | **All pre-opening setup costs** | **${formatKES(totalPreOperationalCost)}** |
 `.trim();
 
+  const safeStartupCapital = Math.max(1, totalStartupCapital);
   const capitalizationTable = `
 | Capital Requirement | Amount (KES) | Percentage (%) | Proposed Funding Source |
 | :--- | :--- | :--- | :--- |
-| **Fixed Assets (${assetLabel})** | ${formatKES(totalMachineryCost)} | ${Math.round((totalMachineryCost / totalStartupCapital) * 100)}% | Proposed funding mix; confirm allocation |
-| **Pre-Operational Setup Costs** | ${formatKES(totalPreOperationalCost)} | ${Math.round((totalPreOperationalCost / totalStartupCapital) * 100)}% | Proposed funding mix; confirm allocation |
-| **Working Capital Reserve (Buffer)** | ${formatKES(workingCapitalBuffer)} | ${Math.round((workingCapitalBuffer / totalStartupCapital) * 100)}% | Proposed funding mix; confirm allocation |
+| **Fixed Assets (${assetLabel})** | ${formatKES(totalMachineryCost)} | ${Math.round((totalMachineryCost / safeStartupCapital) * 100)}% | Proposed funding mix; confirm allocation |
+| **Pre-Operational Setup Costs** | ${formatKES(totalPreOperationalCost)} | ${Math.round((totalPreOperationalCost / safeStartupCapital) * 100)}% | Proposed funding mix; confirm allocation |
+| **Working Capital Reserve (Buffer)** | ${formatKES(workingCapitalBuffer)} | ${Math.round((workingCapitalBuffer / safeStartupCapital) * 100)}% | Proposed funding mix; confirm allocation |
 | **Total Startup Capital Required** | **${formatKES(totalStartupCapital)}** | **100%** | Estimated startup costs |
 | **Owner's Equity Contribution** | ${formatKES(ownerEquity)} | ${totalFunding > 0 ? Math.round((ownerEquity / totalFunding) * 100) : 0}% | Candidate-entered assumption; confirm source |
 | **Debt Financing (${loanTenureMonths}-Month Loan @ ${Number(specs.loanInterestRateAnnual || 0).toFixed(1)}% p.a.)** | ${formatKES(loanAmount)} | ${totalFunding > 0 ? Math.round((loanAmount / totalFunding) * 100) : 0}% | Candidate-entered assumption; lender and terms to be confirmed |
@@ -468,12 +502,12 @@ ${makeRow("**Closing Balance c/f**", (m) => m.closing, part2Months)}
 | **Gross Profit** | **${formatKES(annualGrossProfitYear1)}** | **${formatKES(annualGrossProfitYear2)}** | **${formatKES(annualGrossProfitYear3)}** |
 | *Gross Profit Margin (%)* | *${grossProfitMarginPercent}%* | *${percent(annualGrossProfitYear2, annualSalesYear2) ?? "N/M"}%* | *${percent(annualGrossProfitYear3, annualSalesYear3) ?? "N/M"}%* |
 | **Operating Overheads & Expenses:** | | | |
-| - Wages & Staff Salaries | ${formatKES(totalWagesYear1)} | ${formatKES(Math.round(totalWagesYear1 * 1.1))} | ${formatKES(Math.round(totalWagesYear1 * 1.18))} |
-| - Premises Rent | ${formatKES(monthlyRent * 12)} | ${formatKES(Math.round(monthlyRent * 12 * 1.05))} | ${formatKES(Math.round(monthlyRent * 12 * 1.1))} |
-| - Utilities (Electricity & Water) | ${formatKES(monthlyUtilities * 12)} | ${formatKES(Math.round(monthlyUtilities * 12 * 1.08))} | ${formatKES(Math.round(monthlyUtilities * 12 * 1.15))} |
-| - Transport, Logistics & Delivery | ${formatKES(monthlyTransport * 12)} | ${formatKES(Math.round(monthlyTransport * 12 * 1.1))} | ${formatKES(Math.round(monthlyTransport * 12 * 1.15))} |
-| - Advertising, Promotion & Public Relations | ${formatKES(monthlyMarketing * 12)} | ${formatKES(Math.round(monthlyMarketing * 12 * 1.05))} | ${formatKES(Math.round(monthlyMarketing * 12 * 1.05))} |
-| - Stationery, Licenses & Incidentals | ${formatKES(monthlyMisc * 12)} | ${formatKES(Math.round(monthlyMisc * 12 * 1.05))} | ${formatKES(Math.round(monthlyMisc * 12 * 1.05))} |
+| - Wages & Staff Salaries | ${formatKES(wagesY1)} | ${formatKES(wagesY2)} | ${formatKES(wagesY3)} |
+| - Premises Rent | ${formatKES(rentY1)} | ${formatKES(rentY2)} | ${formatKES(rentY3)} |
+| - Utilities (Electricity & Water) | ${formatKES(utilitiesY1)} | ${formatKES(utilitiesY2)} | ${formatKES(utilitiesY3)} |
+| - Transport, Logistics & Delivery | ${formatKES(transportY1)} | ${formatKES(transportY2)} | ${formatKES(transportY3)} |
+| - Advertising, Promotion & Public Relations | ${formatKES(marketingY1)} | ${formatKES(marketingY2)} | ${formatKES(marketingY3)} |
+| - Stationery, Licenses & Incidentals | ${formatKES(miscY1)} | ${formatKES(miscY2)} | ${formatKES(miscY3)} |
 | **Total Operating Expenses** | **(${formatKES(annualOperatingExpensesYear1)})** | **(${formatKES(annualOperatingExpensesYear2)})** | **(${formatKES(annualOperatingExpensesYear3)})** |
 | Less: Depreciation (10% on ${isConsultancy ? "Equipment" : "Machinery"}) | (${formatKES(annualDepreciation)}) | (${formatKES(annualDepreciation)}) | (${formatKES(annualDepreciation)}) |
 | **Operating Profit before Interest & Tax (EBIT)** | **${formatKES(ebitYear1)}** | **${formatKES(ebitYear2)}** | **${formatKES(ebitYear3)}** |

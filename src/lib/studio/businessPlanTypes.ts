@@ -393,3 +393,210 @@ export const BUSINESS_PLAN_PRESETS: Record<string, Partial<BusinessPlanSpecs>> =
     },
   },
 };
+
+/**
+ * Sanitizes and fills defaults for any partial or legacy BusinessPlanSpecs object
+ * so that financial calculations, deterministic drafting, and exports never
+ * encounter undefined, NaN, Infinity, or empty array crashes.
+ */
+export function normalizeBusinessPlanSpecs(
+  raw: Partial<BusinessPlanSpecs> | null | undefined
+): BusinessPlanSpecs {
+  const s = raw || {};
+  const str = (val: unknown, fallback: string) =>
+    typeof val === "string" && val.trim().length > 0 && val.trim() !== "undefined"
+      ? val.trim()
+      : fallback;
+  const num = (val: unknown, fallback: number, min = 0) => {
+    const n = Number(val);
+    return Number.isFinite(n) && n >= min ? n : fallback;
+  };
+
+  const level: "craft" | "diploma" = s.level === "craft" ? "craft" : "diploma";
+  const course = str(
+    s.course,
+    level === "craft"
+      ? "Craft Certificate in Nutrition and Dietetics"
+      : "Diploma in Human Nutrition and Dietetics"
+  );
+  const county = str(s.county, "Kiambu County");
+  const townOrMarket = str(s.townOrMarket, "Thika Town");
+  const primaryProduct = str(s.primaryProduct, "Fortified Nutritional Products & Dietetic Services");
+  const industrySector = str(s.industrySector, "Human Nutrition, Dietetics & Food Processing");
+  const businessName = str(s.businessName, "BrightPath Nutrition & Wellness Enterprise");
+  const unitSellingPrice = num(s.unitSellingPrice, 500, 0);
+  const unitCostOfProduction = num(s.unitCostOfProduction, Math.round(unitSellingPrice * 0.45), 0);
+  const monthlyRent = num(s.monthlyRent ?? s.monthlyOverheads?.rent, 15000, 0);
+  const marketingPromotionBudgetMonthly = num(
+    s.marketingPromotionBudgetMonthly ?? s.monthlyOverheads?.marketing,
+    8000,
+    0
+  );
+
+  const machinery = Array.isArray(s.machinery) && s.machinery.length > 0
+    ? s.machinery.map((m) => ({
+        item: str(m?.item, "Operational Equipment & Tools"),
+        quantity: Math.max(1, Math.round(num(m?.quantity, 1, 1))),
+        unitCost: num(m?.unitCost, 25000, 0),
+        supplier: str(m?.supplier, "Verified Local Equipment Supplier [Quotation required]"),
+      }))
+    : [
+        {
+          item: "Primary Nutrition Assessment / Processing Equipment",
+          quantity: 1,
+          unitCost: 85000,
+          supplier: "Nairobi Commercial Equipment Suppliers [Quotation required]",
+        },
+        {
+          item: "Digital Weighing Scales, Storage & Hygiene Fixtures",
+          quantity: 1,
+          unitCost: 35000,
+          supplier: "Checked Local Hardware & Lab Suppliers [Quotation required]",
+        },
+      ];
+
+  const rawMaterials = Array.isArray(s.rawMaterials) && s.rawMaterials.length > 0
+    ? s.rawMaterials.map((r) => ({
+        material: str(r?.material, "Primary Operating Inputs & Supplies"),
+        monthlyQuantity: str(r?.monthlyQuantity, "Monthly batch requirement"),
+        monthlyCost: num(r?.monthlyCost, 15000, 0),
+        supplier: str(r?.supplier, "Verified Local Supplier [Confirm locally]"),
+      }))
+    : [
+        {
+          material: "Certified Nutritional Inputs & Consumables",
+          monthlyQuantity: "Monthly operating requirement",
+          monthlyCost: 25000,
+          supplier: `${townOrMarket} Approved Suppliers [Confirm locally]`,
+        },
+        {
+          material: "Food-Grade Packaging & Client Documentation Materials",
+          monthlyQuantity: "500 units",
+          monthlyCost: 10000,
+          supplier: "Packaging & Print Vendors [Quotation required]",
+        },
+      ];
+
+  const staffing = Array.isArray(s.staffing) && s.staffing.length > 0
+    ? s.staffing.map((st) => ({
+        position: str(st?.position, "Operations & Nutrition Lead"),
+        count: Math.max(1, Math.round(num(st?.count, 1, 1))),
+        monthlySalary: num(st?.monthlySalary, 25000, 0),
+        duties: str(st?.duties, "Operations supervision, quality assurance, customer service, and financial records."),
+        qualifications: str(st?.qualifications, `${course} or relevant technical qualification.`),
+      }))
+    : [
+        {
+          position: "Managing Director / Lead Nutritionist",
+          count: 1,
+          monthlySalary: 30000,
+          duties: "Overall enterprise management, technical quality oversight, client service, and financial control.",
+          qualifications: `${course}, registered with KNDI.`,
+        },
+        {
+          position: "Operations & Customer Support Assistant",
+          count: 1,
+          monthlySalary: 16000,
+          duties: "Daily operational preparation, hygiene maintenance, packaging/booking support, and dispatch.",
+          qualifications: "Certificate in Nutrition, Food Processing, or Business Administration.",
+        },
+      ];
+
+  const competitors = Array.isArray(s.competitors) && s.competitors.length > 0
+    ? s.competitors.map((c) => ({
+        name: str(c?.name, "Established Local Commercial Providers [Confirm locally]"),
+        location: str(c?.location, `${townOrMarket} Commercial Center`),
+        priceLevel: str(c?.priceLevel, `KES ${Math.round(unitSellingPrice * 1.15).toLocaleString("en-KE")} per unit [Confirm locally]`),
+        strengths: str(c?.strengths, "Existing customer visibility and established premises"),
+        weaknesses: str(c?.weaknesses, "Higher pricing and less personalized nutritionist oversight"),
+      }))
+    : [
+        {
+          name: "Established Commercial Providers / Brands [Confirm locally]",
+          location: `${townOrMarket} Commercial Center`,
+          priceLevel: `KES ${Math.round(unitSellingPrice * 1.2).toLocaleString("en-KE")} per unit [Confirm locally]`,
+          strengths: "Established market visibility and existing distribution networks",
+          weaknesses: "Higher pricing and less personalized nutrition formulation or client support",
+        },
+        {
+          name: "Informal Uncertified Local Vendors [Confirm locally]",
+          location: `${townOrMarket} Open-Air / Estate Outlets`,
+          priceLevel: `KES ${Math.round(unitSellingPrice * 0.8).toLocaleString("en-KE")} per unit [Confirm locally]`,
+          strengths: "Low price point and convenient neighborhood proximity",
+          weaknesses: "Inconsistent hygiene, unstandardized portions/formulations, and lack of nutritionist oversight",
+        },
+      ];
+
+  const formOfOwnership: BusinessPlanSpecs["formOfOwnership"] =
+    s.formOfOwnership === "Partnership" || s.formOfOwnership === "Private Limited Company"
+      ? s.formOfOwnership
+      : "Sole Proprietorship";
+
+  return {
+    businessModel: resolveBusinessPlanModel(s),
+    research: s.research,
+    businessName,
+    tagline: str(s.tagline, "Evidence-Based Nutrition for Everyday Wellness"),
+    industrySector,
+    formOfOwnership,
+    registrationType: str(s.registrationType, "Business Names Registration Act (Cap 499, Laws of Kenya)"),
+    candidateName: str(s.candidateName, "[Candidate Name]"),
+    admissionNumber: str(s.admissionNumber, "[Index / Admission Number]"),
+    institutionName: str(s.institutionName, "[Institution Name]"),
+    supervisorName: str(s.supervisorName, "[Supervisor Name]"),
+    course,
+    level,
+    ownerQualifications: str(
+      s.ownerQualifications,
+      `${course}, registered with the Kenya Nutritionists and Dietitians Institute (KNDI)`
+    ),
+    county,
+    townOrMarket,
+    streetOrBuilding: str(s.streetOrBuilding, "Commercial Center Ground Floor Premises [Confirm exact plot/street locally]"),
+    postalAddress: str(s.postalAddress, "100-00100"),
+    email: str(s.email, "info@nutritionventure.co.ke"),
+    phone: str(s.phone, "+254 700 000 000"),
+    locationRationale: str(
+      s.locationRationale,
+      `Accessible commercial location within ${townOrMarket}, ${county} with reliable road transport, potable water, electricity, and proximity to target customers [Confirm site specifics locally].`
+    ),
+    primaryProduct,
+    productDescription: str(
+      s.productDescription,
+      `${primaryProduct} formulated and delivered under strict hygiene and nutrition quality standards to serve households and institutions in ${townOrMarket}, ${county}.`
+    ),
+    productPackaging: str(s.productPackaging, "Standardized food-grade or professional service units with clear nutrition labeling"),
+    unitSellingPrice,
+    unitCostOfProduction,
+    monthlyProductionUnitsYear1: Math.max(1, Math.round(num(s.monthlyProductionUnitsYear1, 300, 1))),
+    annualGrowthRateYear2: num(s.annualGrowthRateYear2, 0.2, 0),
+    annualGrowthRateYear3: num(s.annualGrowthRateYear3, 0.25, 0),
+    targetCustomersDescription: str(
+      s.targetCustomersDescription,
+      `Health-conscious households, mothers and caregivers, working professionals, and local institutions in ${townOrMarket} and ${county}`
+    ),
+    totalMarketPopulation: str(s.totalMarketPopulation, "25,000+ target catchment residents and institutional buyers"),
+    projectedMarketSharePercentage: num(s.projectedMarketSharePercentage, 6, 0.1),
+    competitors,
+    marketingPromotionBudgetMonthly,
+    machinery,
+    rawMaterials,
+    workshopSquareMeters: Math.max(6, Math.round(num(s.workshopSquareMeters, 35, 6))),
+    monthlyRent,
+    staffing,
+    preOperationalCosts: num(s.preOperationalCosts, 40000, 0),
+    workingCapitalBuffer: num(s.workingCapitalBuffer, 75000, 0),
+    ownerEquityAmount: num(s.ownerEquityAmount, 0, 0),
+    loanAmount: num(s.loanAmount, 0, 0),
+    loanInterestRateAnnual: num(s.loanInterestRateAnnual, 12, 0),
+    loanTenureMonths: Math.max(1, Math.round(num(s.loanTenureMonths, 24, 1))),
+    monthlyOverheads: {
+      rent: monthlyRent,
+      electricity: num(s.monthlyOverheads?.electricity, 4000, 0),
+      water: num(s.monthlyOverheads?.water, 1500, 0),
+      transport: num(s.monthlyOverheads?.transport, 5000, 0),
+      marketing: marketingPromotionBudgetMonthly,
+      stationeryMisc: num(s.monthlyOverheads?.stationeryMisc, 2500, 0),
+    },
+  };
+}

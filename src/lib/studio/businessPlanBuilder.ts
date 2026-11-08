@@ -5,7 +5,7 @@
  */
 
 import type { BusinessPlanSpecs } from "./businessPlanTypes";
-import { resolveBusinessPlanModel } from "./businessPlanTypes";
+import { normalizeBusinessPlanSpecs, resolveBusinessPlanModel } from "./businessPlanTypes";
 import { computeBusinessPlanFinancials } from "./businessPlanMath";
 import { getConsultancySectionContent } from "./businessPlanProfiles";
 import { getWorkspaceSections } from "./templates";
@@ -17,7 +17,8 @@ export interface GeneratedSectionPayload {
   wordCount: number;
 }
 
-export function buildCompleteBusinessPlan(specs: BusinessPlanSpecs): GeneratedSectionPayload[] {
+export function buildCompleteBusinessPlan(rawSpecs: Partial<BusinessPlanSpecs>): GeneratedSectionPayload[] {
+  const specs = normalizeBusinessPlanSpecs(rawSpecs);
   const fin = computeBusinessPlanFinancials(specs);
   const formatKES = (n: number) => Math.round(n).toLocaleString("en-KE");
   const resolvedModel = resolveBusinessPlanModel(specs);
@@ -117,9 +118,9 @@ The candidate may personalize this dedication to recognize family members, mento
     "prelim.acknowledgements",
     "Acknowledgements",
     `### ACKNOWLEDGEMENTS
-I acknowledge my project supervisor, **${specs.supervisorName || "[Supervisor name]"}**, for the guidance provided during preparation of this business plan.
+I express sincere gratitude to my project supervisor, **${specs.supervisorName || "[Supervisor name]"}**, for the academic guidance, constructive feedback, and technical mentorship provided throughout the preparation of this business plan for **${specs.businessName}**.
 
-I also thank **${specs.institutionName || "[Institution name]"}** for its academic support during my **${specs.course}** course.`
+I also thank the administration and teaching faculty of **${specs.institutionName || "[Institution name]"}** for imparting practical competencies during my **${specs.course}** training. Finally, I appreciate the local nutrition practitioners, suppliers, and prospective customers in **${specs.townOrMarket}, ${specs.county}** who shared market and operational insights during the preliminary planning phase.`
   );
 
   add(
@@ -438,13 +439,16 @@ The enterprise applies a **Cost-Plus and Competitor-Benchmarked Pricing Strategy
     "2.5 Advertising and Sales Promotion Strategy",
     `### 2.5 Advertising and Sales Promotion Strategy
 
-To build brand visibility and customer trust across **${specs.townOrMarket}, ${specs.county}**, the enterprise allocates a monthly marketing budget of **KES ${formatKES(specs.marketingPromotionBudgetMonthly)}**.
+To build brand visibility, nutrition credibility, and customer trust across **${specs.townOrMarket}, ${specs.county}**, the enterprise allocates a disciplined monthly marketing budget of **KES ${formatKES(specs.marketingPromotionBudgetMonthly)}**.
 
 #### 2.5.1 Promotional Channels and Activities
-1. **Community Nutrition Talks & Sampling**: Monthly educational sessions and product/service demonstrations for local women groups (chamas), workplace teams, clinics, and community gatherings.
-2. **Digital & WhatsApp Business Catalog**: A structured WhatsApp Business profile, Google Business listing, and social media page sharing evidence-based nutrition tips, clear pricing, and direct ordering links.
-3. **Point-of-Sale & Partner Information Leaflets**: Printed brochures, posters, and product fact sheets placed at partner shops, pharmacies, fitness centers, and community noticeboards in ${specs.townOrMarket}.
-4. **Customer Referral & Loyalty Incentives**: Encouraging repeat purchases and word-of-mouth referrals through bundle packages and attentive customer follow-up.`
+1. **Community Nutrition Talks & Sampling**: Monthly educational sessions and product/service demonstrations for local women groups (chamas), workplace teams, clinics, and community gatherings to demonstrate the practical value of **${specs.primaryProduct}**.
+2. **Digital & WhatsApp Business Catalog**: A structured WhatsApp Business profile, Google Business listing, and social media page sharing evidence-based nutrition tips, clear pricing (**KES ${formatKES(specs.unitSellingPrice)}**), and direct M-PESA ordering links.
+3. **Point-of-Sale & Partner Information Leaflets**: Printed brochures, posters, and nutrition fact sheets placed at partner shops, pharmacies, fitness centers, and community noticeboards in ${specs.townOrMarket}.
+4. **Customer Referral & Loyalty Incentives**: Encouraging repeat household purchases and institutional word-of-mouth referrals through bundle packages, introductory trial offers, and attentive customer follow-up.
+
+#### 2.5.2 Promotional Performance Tracking
+Marketing expenditure will be reviewed monthly against customer inquiries, conversion rates, repeat order frequency, and actual sales volume relative to the **${formatKES(specs.monthlyProductionUnitsYear1)} ${unitWord}/month** target.`
   );
 
   add(
@@ -488,20 +492,22 @@ Sales projections incorporate a conservative Year 1 operational ramp-up (65% in 
   const leadRole = specs.staffing[0]?.position || "Managing Director / Lead Nutritionist";
   const secondRole = specs.staffing[1]?.position || "Operations & Quality Assistant";
   const thirdRole = specs.staffing[2]?.position || "Sales, Dispatch & Customer Support";
+  const avgDailyUnits = Math.max(1, Math.round((specs.monthlyProductionUnitsYear1 / 24) * 10) / 10);
 
   add(
     "ch3.structure",
     "3.1 Organizational Structure / Organogram",
     `### 3.1 Organizational Structure / Organogram
 
-**${specs.businessName}** adopts a lean, accountable organizational structure designed to maintain direct professional supervision over quality, customer service, and cash flow while controlling payroll overheads.
+**${specs.businessName}** adopts a lean, accountable organizational structure designed to maintain direct professional supervision over nutritional quality, customer service, and cash flow while controlling monthly payroll overheads in **${specs.townOrMarket}**.
 
 \`\`\`org
 ${leadRole}
 Operations & Quality Execution — ${secondRole}
 Customer Service, Records & Logistics — ${thirdRole}
 \`\`\`
-- **Chain of Command**: The **${leadRole}** exercises overall executive, technical, financial, and regulatory authority. Operational, support, and delivery personnel report directly to the founder with clearly defined daily duties and hygiene/quality accountability.`
+- **Chain of Command**: The **${leadRole}** exercises overall executive, technical, financial, and regulatory authority. Operational, support, and delivery personnel report directly to the founder with clearly defined daily duties, shift schedules, and hygiene/quality accountability.
+- **Coordination & Internal Controls**: Daily morning briefings align daily targets (${avgDailyUnits} ${unitWord}/day), while separation of order preparation from cash/M-PESA reconciliation ensures transparent internal control.`
   );
 
   add(
@@ -527,7 +533,7 @@ The enterprise is managed by **${specs.candidateName || "the candidate"}**, who 
     "3.3 Staffing Requirements and Job Specifications",
     `### 3.3 Staffing Requirements and Job Specifications
 
-The enterprise will operate with a team of **${specs.staffing.reduce((sum, s) => sum + s.count, 0)} personnel** whose roles, responsibilities, and minimum qualifications are detailed below:
+The enterprise will operate with a lean, cross-trained team of **${specs.staffing.reduce((sum, s) => sum + s.count, 0)} personnel** whose positions, headcount, operational duties, and minimum academic/professional qualifications are detailed in the table below:
 
 | Position Title | Staff Count | Key Duties and Operational Tasks | Minimum Academic & Professional Qualifications |
 | :--- | :---: | :--- | :--- |
@@ -536,7 +542,10 @@ ${specs.staffing
     (s) =>
       `| **${s.position}** | ${s.count} | ${s.duties} | ${s.qualifications} |`
   )
-  .join("\n")}`
+  .join("\n")}
+
+#### 3.3.1 Role Allocation and Accountability
+Each staff member receives a written job description prior to onboarding. Technical nutritional formulation, quality sign-off, and statutory compliance remain under the direct authority of the **${leadRole}**, while routine preparation, sanitation, packaging, customer reception, and local dispatch are executed under documented standard operating procedures (SOPs). Cross-training between team members ensures uninterrupted service continuity during peak demand days or scheduled staff leave.`
   );
 
   add(
@@ -796,7 +805,7 @@ ${specs.machinery
     "4.4 Raw Material Requirements and Sourcing",
     `### 4.4 Raw Material / Operating Input Requirements and Sourcing
 
-Consistent quality depends on reliable sourcing of verified inputs and packaging materials. The table below summarizes the planned monthly operating inputs at full Year 1 capacity:
+Consistent nutritional quality and uninterrupted supply depend on reliable sourcing of verified raw inputs, consumables, and food-grade packaging materials. The table below summarizes the planned monthly operating inputs at full Year 1 capacity (**${formatKES(specs.monthlyProductionUnitsYear1)} ${unitWord}/month**):
 
 | Input / Packaging Material | Planned Monthly Quantity | Estimated Monthly Cost (KES) | Proposed Supplier / Sourcing Channel |
 | :--- | :--- | ---: | :--- |
@@ -806,10 +815,11 @@ ${specs.rawMaterials
       `| **${r.material}** | ${r.monthlyQuantity} | ${formatKES(r.monthlyCost)} | ${r.supplier || "[Confirm supplier locally]"} |`
   )
   .join("\n")}
-| **Total Planned Monthly Input Budget** | | **KES ${formatKES(specs.rawMaterials.reduce((sum, r) => sum + r.monthlyCost, 0))}** | **Confirm dated supplier price lists before launch** |`
-  );
+| **Total Planned Monthly Input Budget** | | **KES ${formatKES(specs.rawMaterials.reduce((sum, r) => sum + r.monthlyCost, 0))}** | **Confirm dated supplier price lists before launch** |
 
-  const avgDailyUnits = Math.max(1, Math.round((specs.monthlyProductionUnitsYear1 / 24) * 10) / 10);
+#### 4.4.1 Procurement and Inventory Control Policy
+All inputs will be sourced from vetted suppliers in **${specs.county}** and major wholesale hubs, inspected upon delivery against quality and hygiene specifications, and rotated on a strict First-Expired, First-Out (FEFO) basis.`
+  );
 
   add(
     "ch4.labor",
@@ -870,7 +880,10 @@ Organic processing byproducts (such as fruit pulp, seed cake, or grain bran/husk
     "4.6 Quality Control, Hygiene, and Waste Management",
     `### 4.6 Quality Control, Hygiene, and Waste Management
 
-${qualityAndWasteContent}`
+${qualityAndWasteContent}
+
+#### 4.6.3 Regulatory and Traceability Records
+Daily sanitation logs, batch/service registers, supplier delivery notes, and customer feedback records will be maintained at **${safeStreet}** for internal quality audits and inspection by County Public Health and relevant regulatory authorities.`
   );
 
   const maxInstalledMonthlyCapacity = Math.round(specs.monthlyProductionUnitsYear1 * 1.6);

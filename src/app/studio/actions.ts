@@ -991,9 +991,20 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
     priorSpecs?.county === specs.county &&
     priorSpecs?.townOrMarket === specs.townOrMarket
   );
-  const research = canReuseResearch
-    ? priorResearch as BusinessPlanResearch
-    : await researchBusinessPlan(specs, aiProvider);
+  let research: BusinessPlanResearch;
+  if (canReuseResearch) {
+    research = priorResearch as BusinessPlanResearch;
+  } else {
+    try {
+      research = await researchBusinessPlan(specs, aiProvider);
+    } catch {
+      research = {
+        summary: `Market research for ${specs.businessName} in ${specs.industrySector} (${specs.county}).`,
+        sources: [],
+        searchedAt: new Date().toISOString(),
+      };
+    }
+  }
   const sectionDefinitions = getWorkspaceSections("business_plan", ws.level, specs.businessModel);
   const { data: existingSections, error: existingSectionsError } = await db
     .from("workspace_sections")
@@ -1007,7 +1018,7 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
   );
   const pendingDefinitions = replaceExisting ? sectionDefinitions : sectionDefinitions.filter((definition) => {
     const currentText = existingByKey.get(definition.key) || "";
-    const starterText = getSectionStarterContent("business_plan", ws.level, definition.key);
+    const starterText = getSectionStarterContent("business_plan", ws.level, definition.key, specs.businessModel);
     return !currentText.trim() || (starterText !== "" && currentText === starterText);
   });
   const chapterKeys = [...new Set(
@@ -1108,9 +1119,10 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
     .select("section_key, current_text")
     .eq("workspace_id", workspaceId);
   const existingByKey = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
+  const resolvedModel = resolveBusinessPlanModel(specs);
   const pending = replaceExisting ? definitions : definitions.filter((definition) => {
     const currentText = existingByKey.get(definition.key) || "";
-    const starterText = getSectionStarterContent("business_plan", workspace.level, definition.key);
+    const starterText = getSectionStarterContent("business_plan", workspace.level, definition.key, resolvedModel);
     return !currentText.trim() || (starterText !== "" && currentText === starterText);
   });
   if (pending.length === 0) {
@@ -1178,7 +1190,7 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
       aiCorrections.get(definition.key) ||
       scriptedSections.get(definition.key) ||
       `### ${definition.title}\n\n[Add verified information for this section.]`,
-    starter_text: getSectionStarterContent("business_plan", workspace.level, definition.key),
+    starter_text: getSectionStarterContent("business_plan", workspace.level, definition.key, resolvedModel),
   }));
   const modelConflicts = getBusinessModelConflictFindings(
     specs,
@@ -1546,7 +1558,7 @@ async function runCompleteBusinessPlanBuild(
     ? sectionDefinitions
     : sectionDefinitions.filter((def) => {
         const currentText = existingByKey.get(def.key) || "";
-        const starterText = getSectionStarterContent("business_plan", ws.level, def.key);
+        const starterText = getSectionStarterContent("business_plan", ws.level, def.key, specs.businessModel);
         return !currentText.trim() || (starterText !== "" && currentText === starterText);
       });
   const chapterKeys = [
@@ -1664,7 +1676,7 @@ async function runCompleteBusinessPlanBuild(
         aiCorrections.get(def.key) ||
         scriptedSections.get(def.key) ||
         `### ${def.title}\n\n[Add verified information for this section.]`,
-      starter_text: getSectionStarterContent("business_plan", ws.level, def.key),
+      starter_text: getSectionStarterContent("business_plan", ws.level, def.key, specs.businessModel),
     }));
     const modelConflicts = getBusinessModelConflictFindings(
       specs,

@@ -37,15 +37,17 @@ export function getWorkspaceSections(
     .map((sec) => {
       const baseWords = sec.minWords || 100;
       const isSubstantiveChapter =
+        type !== "business_plan" &&
         sec.phase === "project" &&
         sec.chapter !== "cover" &&
         sec.chapter !== "preliminary" &&
         sec.chapter !== "appendices";
 
-      // Certificate uses 1.25x base (~3,850 words / ~15+ pages); Diploma uses 3.1x base (~10,000+ words / ~40+ pages)
+      // Trade/Research projects scale base words by level; Business Plans use the
+      // explicit KNEC section minWords defined in src/lib/studio/templates/business.ts.
       const scaledMinWords = isSubstantiveChapter
         ? Math.round((baseWords * (isDiploma ? 3.1 : 1.25)) / 10) * 10
-        : isDiploma && sec.phase === "proposal"
+        : type !== "business_plan" && isDiploma && sec.phase === "proposal"
         ? Math.round((baseWords * 1.5) / 10) * 10
         : baseWords;
 
@@ -126,4 +128,3 @@ export function getSectionStarterContent(
   }
   return "";
 }
-
