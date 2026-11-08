@@ -40,8 +40,6 @@ export default async function HomePage() {
   const dashboardHref =
     userRole === "admin"
       ? "/admin"
-      : userRole === "trainer"
-      ? "/trainer"
       : userRole === "supervisor"
       ? "/supervisor"
       : "/studio";
@@ -81,9 +79,6 @@ export default async function HomePage() {
             </Link>
             <Link href="/projects" className="hover:text-blue-700 transition-colors">
               Projects Marketplace
-            </Link>
-            <Link href="/trainer" className="hover:text-blue-700 transition-colors">
-              Trainer Publisher
             </Link>
             <Link href="/supervisor" className="hover:text-blue-700 transition-colors">
               Supervisor Portal
@@ -169,13 +164,6 @@ export default async function HomePage() {
                 <ShoppingBag className="h-4 w-4 text-emerald-700" />
                 <span>Browse Marketplace</span>
               </Link>
-              <Link
-                href="/trainer"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 px-5 py-2.5 text-xs sm:text-sm font-bold text-slate-800 transition-colors shadow-xs"
-              >
-                <Briefcase className="h-4 w-4 text-blue-700" />
-                <span>Trainer Publisher</span>
-              </Link>
             </div>
           </div>
 
@@ -190,8 +178,8 @@ export default async function HomePage() {
               <span className="text-xs font-bold text-slate-900">Research & Business Plan</span>
             </div>
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Trainer Publishing</span>
-              <span className="text-xs font-bold text-slate-900">Single & Fast CSV Bulk Upload</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">KNEC Compliance</span>
+              <span className="text-xs font-bold text-slate-900">28 Standard Sections</span>
             </div>
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Instant Payment</span>
@@ -265,7 +253,6 @@ export default async function HomePage() {
           <div className="flex items-center gap-5 font-medium text-slate-600">
             <Link href="/studio" className="hover:text-blue-700">Project Studio</Link>
             <Link href="/projects" className="hover:text-blue-700">Projects</Link>
-            <Link href="/trainer" className="hover:text-blue-700">Trainer Publisher</Link>
             <Link href="/supervisor" className="hover:text-blue-700">Supervisor</Link>
             <Link href="/login" className="hover:text-blue-700">Sign In</Link>
           </div>

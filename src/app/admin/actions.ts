@@ -43,35 +43,6 @@ export async function updateCommission(formData: FormData) {
   revalidatePath("/admin");
 }
 
-export async function updateTrainerStatus(formData: FormData) {
-  const { supabase } = await verifyAdmin();
-  const userId = formData.get("userId")?.toString();
-  const status = formData.get("status")?.toString();
-
-  if (!userId || !status) throw new Error("Missing userId or status");
-
-  const updateData: { status: string; approved_at?: string | null } = { status };
-  if (status === "approved") {
-    updateData.approved_at = new Date().toISOString();
-  } else {
-    updateData.approved_at = null;
-  }
-
-  const { error: trainerErr } = await supabase
-    .from("trainer_profiles")
-    .update(updateData)
-    .eq("user_id", userId);
-
-  if (trainerErr) throw trainerErr;
-
-  // Sync role to trainer if approved
-  if (status === "approved") {
-    await supabase.from("profiles").update({ role: "trainer" }).eq("id", userId);
-  }
-
-  revalidatePath("/admin");
-}
-
 export async function updateProjectStatus(formData: FormData) {
   const { supabase } = await verifyAdmin();
   const projectId = formData.get("projectId")?.toString();

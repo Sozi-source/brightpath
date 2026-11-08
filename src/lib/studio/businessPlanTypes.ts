@@ -33,28 +33,35 @@ export interface BusinessPlanCompetitorItem {
   weaknesses: string;
 }
 
-export type BusinessPlanModel = "consultancy" | "milling" | "beverages" | "custom";
+export type BusinessPlanModel =
+  | "consultancy"
+  | "milling"
+  | "beverages"
+  | "clinical"
+  | "manufacturing"
+  | "food_service"
+  | "agribusiness"
+  | "retail"
+  | "education"
+  | "custom";
 
 export function resolveBusinessPlanModel(
   specs: Partial<BusinessPlanSpecs> | null | undefined
 ): BusinessPlanModel {
+  if (specs?.businessModel && specs.businessModel !== "custom") {
+    return specs.businessModel;
+  }
   const businessDetails = [specs?.industrySector, specs?.primaryProduct, specs?.productDescription]
     .filter(Boolean).join(" ").toLowerCase();
-  if (/consult|clinical nutrition|dietary meal|nutrition therap/.test(businessDetails)) return "consultancy";
+  if (/cater|meal prep|cloud kitchen|restaurant|salad|juice bar/.test(businessDetails)) return "food_service";
+  if (/farm|crop|egg|poultry|microgreen|sweet potato|post-harvest/.test(businessDetails)) return "agribusiness";
+  if (/retail|store|shop|grocery|supplement|supermarket/.test(businessDetails)) return "retail";
+  if (/workshop|training|academy|course|prep|content|software|app/.test(businessDetails)) return "education";
+  if (/consult|clinical nutrition|dietary meal|nutrition therap|patient|clinic/.test(businessDetails)) return "consultancy";
   if (/juice|beverage|puree/.test(businessDetails)) return "beverages";
-  if (/mill|flour|food manufactur|porridge/.test(businessDetails)) return "milling";
+  if (/mill|flour|food manufactur|porridge|snack|bar|oil|butter|honey/.test(businessDetails)) return "milling";
 
-  // A loaded preset is only a hint. If the candidate changes the enterprise
-  // identity to another area, route it through the adaptable custom model.
-  if (businessDetails && specs?.businessModel !== "custom") return "custom";
-  if (
-    specs?.businessModel === "consultancy" || specs?.businessModel === "milling" ||
-    specs?.businessModel === "beverages" || specs?.businessModel === "custom"
-  ) return specs.businessModel;
-  const name = (specs?.businessName || "").toLowerCase();
-  if (/consult|clinical nutrition|dietary meal|nutrition therap/.test(name)) return "consultancy";
-  if (/juice|beverage|puree/.test(name)) return "beverages";
-  if (/mill|flour|porridge/.test(name)) return "milling";
+  if (specs?.businessModel) return specs.businessModel;
   return "custom";
 }
 

@@ -62,7 +62,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
   const pageNumber = Math.min(pageCount, Math.max(1, Number.parseInt(filters.page || "1", 10) || 1));
   const pageProjects = visibleProjects.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
-  const isPublisher = profile?.role === "trainer" || profile?.role === "admin";
+  const isPublisher = profile?.role === "admin";
 
   const { data: approvedPlans } = profile?.role === "admin"
     ? await supabase.from("project_workspaces")
@@ -132,7 +132,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
           <label htmlFor="marketplace-sort" className="sr-only">Sort materials</label>
           <select id="marketplace-sort" name="sort" defaultValue={sort} className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-xs text-slate-800"><option value="newest">Latest</option><option value="rating">Top rated</option><option value="downloads">Most downloaded</option><option value="price_low">Price: low to high</option><option value="price_high">Price: high to low</option></select>
           <button className="h-10 rounded-lg bg-indigo-600 px-5 text-sm font-semibold text-white hover:bg-indigo-700">Search</button>
-          {isPublisher ? <Link href="/trainer" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-indigo-900 hover:bg-slate-50"><Briefcase className="h-4 w-4 text-indigo-600" />Publisher</Link> : <Link href="/library" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-4 w-4 text-indigo-600" />My Library</Link>}
+          {isPublisher ? <Link href="/admin" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-indigo-900 hover:bg-slate-50"><Layers className="h-4 w-4 text-indigo-600" />Admin</Link> : <Link href="/library" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-4 w-4 text-indigo-600" />My Library</Link>}
           {profile?.role === "admin" && <a href="#approved-student-plans" className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Approved plans ({approvedPlans?.length || 0})</a>}
         </form>
 

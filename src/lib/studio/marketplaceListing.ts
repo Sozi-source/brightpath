@@ -37,9 +37,18 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
   });
   if (incomplete.length) throw new Error("The business plan no longer meets the completion requirements.");
 
-  const specs = workspace.business_plan_specs as {
-    candidateName?: string; admissionNumber?: string; institutionName?: string; supervisorName?: string;
-  } | null;
+  const specs = workspace.business_plan_specs as (Partial<BusinessPlanSpecs> & {
+    candidateName?: string;
+    admissionNumber?: string;
+    institutionName?: string;
+    supervisorName?: string;
+    townOrMarket?: string;
+    county?: string;
+    streetOrBuilding?: string;
+    phone?: string;
+    email?: string;
+    postalAddress?: string;
+  }) | null;
   const student = workspace.student as unknown as { full_name?: string | null; admission_number?: string | null } | null;
   const supervisor = workspace.supervisor as unknown as { full_name?: string | null } | null;
   const institution = workspace.institution as unknown as { name?: string | null } | null;
@@ -50,14 +59,28 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
     return content.replace(new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, "giu"), replacement);
   };
   const redactPrivateDetails = (content: string) => [
-    [specs?.candidateName, "[Candidate]"], [student?.full_name, "[Candidate]"],
-    [specs?.admissionNumber, "[Admission number withheld]"], [student?.admission_number, "[Admission number withheld]"],
-    [specs?.institutionName, "[Institution]"], [institution?.name, "[Institution]"],
-    [specs?.supervisorName, "[Supervisor]"], [supervisor?.full_name, "[Supervisor]"],
+    [specs?.candidateName, "{{CANDIDATE_NAME}}"],
+    [student?.full_name, "{{CANDIDATE_NAME}}"],
+    [specs?.admissionNumber, "{{ADMISSION_NUMBER}}"],
+    [student?.admission_number, "{{ADMISSION_NUMBER}}"],
+    [specs?.institutionName, "{{INSTITUTION_NAME}}"],
+    [institution?.name, "{{INSTITUTION_NAME}}"],
+    [specs?.supervisorName, "{{SUPERVISOR_NAME}}"],
+    [supervisor?.full_name, "{{SUPERVISOR_NAME}}"],
+    [specs?.streetOrBuilding, "{{STREET_ADDRESS}}"],
+    [specs?.townOrMarket, "{{TARGET_TOWN}}"],
+    [specs?.county, "{{TARGET_COUNTY}}"],
+    [specs?.phone, "{{PHONE_NUMBER}}"],
+    [specs?.email, "{{EMAIL_ADDRESS}}"],
+    [specs?.postalAddress, "{{POSTAL_ADDRESS}}"],
   ].reduce((text, [value, replacement]) => redact(text, value, replacement as string), content);
 
-  const listingTitle = redactPrivateDetails(workspace.title || `${workspace.course} Business Plan`);
-  const listingDescription = redactPrivateDetails(workspace.problem_area || `Completed ${workspace.course} business plan.`);
+  const listingTitle = redactPrivateDetails(workspace.title || `${workspace.course} Business Plan`)
+    .replace(/\{\{TARGET_TOWN\}\}/g, "Regional")
+    .replace(/\{\{TARGET_COUNTY\}\}/g, "County");
+  const listingDescription = redactPrivateDetails(workspace.problem_area || `Completed ${workspace.course} business plan.`)
+    .replace(/\{\{TARGET_TOWN\}\}/g, "local market")
+    .replace(/\{\{TARGET_COUNTY\}\}/g, "county catchment");
   const filePath = `workspace-export:${workspaceId}`;
   const { data: existing, error: existingError } = await db.from("projects")
     .select("id, status").eq("file_path", filePath).maybeSingle();
@@ -102,3 +125,50 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
   }
   return projectId;
 }
+
+export interface BuyerPersonalDetails {
+  candidateName: string;
+  admissionNumber: string;
+  institutionName: string;
+  supervisorName?: string;
+  townOrMarket: string;
+  county: string;
+  streetOrBuilding?: string;
+}
+
+/**
+ * Stamps a buyer's personal details and target location into an anonymized marketplace business plan snapshot.
+ */
+export function stampMarketplaceBusinessPlan(
+  sections: Array<{ title: string; content: string }>,
+  buyer: BuyerPersonalDetails
+): Array<{ title: string; content: string }> {
+  const replacements: Record<string, string> = {
+    "{{CANDIDATE_NAME}}": buyer.candidateName,
+    "{{ADMISSION_NUMBER}}": buyer.admissionNumber,
+    "{{INSTITUTION_NAME}}": buyer.institutionName,
+    "{{SUPERVISOR_NAME}}": buyer.supervisorName || "[Supervisor Name]",
+    "{{TARGET_TOWN}}": buyer.townOrMarket,
+    "{{TARGET_COUNTY}}": buyer.county,
+    "{{STREET_ADDRESS}}": buyer.streetOrBuilding || `${buyer.townOrMarket} Commercial Center`,
+    "{{PHONE_NUMBER}}": "+254 700 000 000",
+    "{{EMAIL_ADDRESS}}": "info@enterprise.co.ke",
+    "{{POSTAL_ADDRESS}}": "P.O. Box 100",
+    "[Candidate]": buyer.candidateName,
+    "[Admission number withheld]": buyer.admissionNumber,
+    "[Institution]": buyer.institutionName,
+    "[Supervisor]": buyer.supervisorName || "[Supervisor Name]",
+  };
+
+  return sections.map((sec) => {
+    let text = sec.content;
+    for (const [token, val] of Object.entries(replacements)) {
+      text = text.replaceAll(token, val);
+    }
+    return {
+      title: sec.title,
+      content: text,
+    };
+  });
+}
+

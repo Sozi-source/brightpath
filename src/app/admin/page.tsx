@@ -3,7 +3,6 @@ import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import {
   updateCommission,
-  updateTrainerStatus,
   updateProjectStatus,
   updateUserRole,
   createInstitution,
@@ -31,7 +30,6 @@ import {
 } from "lucide-react";
 import type {
   UserProfile,
-  TrainerProfile,
   Project,
   Order,
   ContentReport,
@@ -66,7 +64,6 @@ export default async function AdminPage() {
   // Fetch admin dashboard data in parallel
   const [
     { data: allProfiles },
-    { data: trainerProfiles },
     { data: allProjects },
     { data: allOrders },
     { data: allReports },
@@ -75,7 +72,6 @@ export default async function AdminPage() {
     { data: approvedBusinessPlans },
   ] = await Promise.all([
     supabase.from("profiles").select("*").order("created_at", { ascending: false }),
-    supabase.from("trainer_profiles").select("*, profiles(*)"),
     supabase.from("projects").select("*, profiles:trainer_id(full_name)").order("created_at", { ascending: false }),
     supabase.from("orders").select("*").order("created_at", { ascending: false }),
     supabase.from("reports").select("*").order("created_at", { ascending: false }),
@@ -105,7 +101,7 @@ export default async function AdminPage() {
   });
 
   const profilesList: UserProfile[] = (allProfiles as unknown as UserProfile[]) || [];
-  const trainersList: TrainerProfile[] = (trainerProfiles as unknown as TrainerProfile[]) || [];
+  const adminCount = profilesList.filter((p) => p.role === "admin").length;
   const projectsList: Project[] = (allProjects as unknown as Project[]) || [];
   const ordersList: Order[] = (allOrders as unknown as Order[]) || [];
   const reportsList: ContentReport[] = (allReports as unknown as ContentReport[]) || [];
@@ -114,8 +110,7 @@ export default async function AdminPage() {
 
   // Compute stats
   const studentCount = profilesList.filter((p) => p.role === "student").length;
-  const trainerCount = trainersList.length;
-  const pendingTrainers = trainersList.filter((t) => t.status === "pending");
+
   const pendingProjects = projectsList.filter((p) => p.status === "pending_review");
 
   const paidOrders = ordersList.filter((o) => o.status === "paid");
@@ -142,11 +137,11 @@ export default async function AdminPage() {
         ]}
         actions={
           <Link
-            href="/trainer"
+            href="/studio"
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white text-indigo-900 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
           >
-            <Briefcase className="h-4 w-4 text-indigo-600" />
-            <span>Trainer Studio</span>
+            <FileText className="h-4 w-4 text-indigo-600" />
+            <span>Studio Workspaces</span>
           </Link>
         }
       />
@@ -160,11 +155,11 @@ export default async function AdminPage() {
           color="indigo"
         />
         <StatCard
-          label="Trainers"
-          value={trainerCount}
-          icon={Briefcase}
+          label="Approved Plans"
+          value={readyPlans.length}
+          icon={FileText}
           color="emerald"
-          subtext={pendingTrainers.length > 0 ? `${pendingTrainers.length} pending review` : undefined}
+          subtext={readyPlans.length > 0 ? `${readyPlans.length} ready for market` : undefined}
         />
         <StatCard
           label="Projects"
@@ -220,62 +215,14 @@ export default async function AdminPage() {
       </div>
 
       {/* Pending Action Items (if any) */}
-      {(pendingTrainers.length > 0 || pendingProjects.length > 0) && (
+      {pendingProjects.length > 0 && (
         <div id="pending" className="scroll-mt-20">
           <ContentCard
-            title={`Pending Moderation (${pendingTrainers.length + pendingProjects.length})`}
+            title={`Pending Projects (${pendingProjects.length})`}
             subtitle="Items awaiting review"
             icon={AlertCircle}
           >
           <div className="space-y-6">
-            {/* Pending Trainers */}
-            {pendingTrainers.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Trainer Verification Requests ({pendingTrainers.length})
-                </h4>
-                <div className="divide-y divide-slate-200 border border-slate-200 rounded-lg overflow-hidden bg-slate-50/50">
-                  {pendingTrainers.map((t) => (
-                    <div key={t.user_id} className="p-3.5 flex items-center justify-between gap-4">
-                      <div>
-                        <p className="font-bold text-xs text-slate-900">
-                          {t.profiles?.full_name || "Trainer"}
-                        </p>
-                        <p className="text-xs text-slate-600">
-                          {t.profiles?.institution || "Institution not provided"} • Subjects:{" "}
-                          {t.subjects?.join(", ") || "General"}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <form action={updateTrainerStatus}>
-                          <input type="hidden" name="userId" value={t.user_id} />
-                          <input type="hidden" name="status" value="approved" />
-                          <button
-                            type="submit"
-                            className="inline-flex items-center gap-1 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-1.5 text-xs font-bold cursor-pointer"
-                          >
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            Approve
-                          </button>
-                        </form>
-                        <form action={updateTrainerStatus}>
-                          <input type="hidden" name="userId" value={t.user_id} />
-                          <input type="hidden" name="status" value="suspended" />
-                          <button
-                            type="submit"
-                            className="inline-flex items-center gap-1 rounded-md bg-rose-700 hover:bg-rose-800 text-white px-3 py-1.5 text-xs font-bold cursor-pointer"
-                          >
-                            <XCircle className="h-3.5 w-3.5" />
-                            Reject
-                          </button>
-                        </form>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Pending Projects */}
             {pendingProjects.length > 0 && (
               <div className="space-y-3">
@@ -288,7 +235,7 @@ export default async function AdminPage() {
                       <div>
                         <p className="font-bold text-xs text-slate-900">{p.title}</p>
                         <p className="text-xs text-slate-600">
-                          Trainer: {p.profiles?.full_name || "Unknown"} • Price: KES {Number(p.price_kes).toLocaleString()} • Category: {p.category || "General"}
+                          Author: {p.profiles?.full_name || "Unknown"} • Price: KES {Number(p.price_kes).toLocaleString()} • Category: {p.category || "General"}
                         </p>
                       </div>
                       <div className="flex flex-wrap items-center justify-end gap-2">
@@ -391,7 +338,7 @@ export default async function AdminPage() {
       <div id="projects" className="scroll-mt-20">
         <ContentCard
           title="Projects Catalog"
-          subtitle="All trainer project packages"
+          subtitle="All marketplace project packages"
           icon={Layers}
           headerRight={
             <span className="text-[11px] font-bold px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
@@ -404,11 +351,7 @@ export default async function AdminPage() {
               <Layers className="h-8 w-8 mx-auto text-slate-400 mb-2" />
               <p className="text-sm font-semibold text-slate-700">No projects uploaded yet</p>
               <p className="text-xs text-slate-500 mt-1">
-                Trainers can upload projects from the Trainer Studio at{" "}
-                <Link href="/trainer" className="text-blue-700 font-bold hover:underline">
-                  /trainer
-                </Link>
-                .
+                Approved business plans and marketplace materials appear here once queued and published.
               </p>
             </div>
           ) : (
@@ -417,7 +360,7 @@ export default async function AdminPage() {
                 <thead className="border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600 bg-slate-50">
                   <tr>
                     <th className="py-2.5 px-3">Title</th>
-                    <th className="py-2.5 px-3">Trainer</th>
+                    <th className="py-2.5 px-3">Author</th>
                     <th className="py-2.5 px-3">Category</th>
                     <th className="py-2.5 px-3">Price</th>
                     <th className="py-2.5 px-3">Status</th>
@@ -529,8 +472,6 @@ export default async function AdminPage() {
                       className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold ${
                         p.role === "admin"
                           ? "bg-purple-50 text-purple-800 border border-purple-200"
-                          : p.role === "trainer"
-                          ? "bg-indigo-50 text-indigo-800 border border-indigo-200"
                           : p.role === "supervisor"
                           ? "bg-blue-50 text-blue-800 border border-blue-200"
                           : "bg-slate-100 text-slate-700 border border-slate-200"
@@ -555,8 +496,6 @@ export default async function AdminPage() {
                           className="rounded-md border border-slate-300 bg-white text-xs px-2 py-1 font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
                         >
                           <option value="student">Student</option>
-                          <option value="trainer">Trainer</option>
-                          <option value="supervisor">Supervisor</option>
                           <option value="admin">Admin</option>
                         </select>
                         <button
@@ -716,7 +655,7 @@ export default async function AdminPage() {
                   <th className="py-2.5 px-3">Reference</th>
                   <th className="py-2.5 px-3">Amount</th>
                   <th className="py-2.5 px-3">Platform Cut</th>
-                  <th className="py-2.5 px-3">Trainer Share</th>
+                  <th className="py-2.5 px-3">Author Share</th>
                   <th className="py-2.5 px-3">Status</th>
                   <th className="py-2.5 px-3">Date</th>
                 </tr>

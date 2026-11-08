@@ -5,13 +5,49 @@ import { computeBusinessPlanFinancials } from "./businessPlanMath";
 export { resolveBusinessPlanModel };
 
 export function getBusinessPlanModelGuidance(model: BusinessPlanModel) {
-  if (model === "consultancy") {
+  if (model === "consultancy" || model === "clinical") {
     return {
       unit: "consultation sessions",
-      operations: "nutrition assessment and counselling services",
-      workplace: "consultation room and client records area",
-      equipment: "clinical assessment and office equipment",
-      supplies: "consumables and client education materials",
+      operations: "clinical nutrition assessment and counselling services",
+      workplace: "consultation room and confidential client records area",
+      equipment: "clinical diagnostic and office documentation equipment",
+      supplies: "assessment consumables and client education materials",
+    };
+  }
+  if (model === "food_service") {
+    return {
+      unit: "meal portions / subscription boxes",
+      operations: "healthy food preparation, therapeutic cooking, and hygienic dispatch",
+      workplace: "commercial kitchen, cold room, and meal plating stations",
+      equipment: "commercial cooking ranges, chillers, and portion scales",
+      supplies: "fresh produce, proteins, and biodegradable packaging containers",
+    };
+  }
+  if (model === "agribusiness") {
+    return {
+      unit: "harvested crates / bundles / kilograms",
+      operations: "horticultural cultivation, seedling nursery, and post-harvest handling",
+      workplace: "greenhouse, cultivation farm, and shaded sorting bay",
+      equipment: "irrigation drip kits, climate monitors, and harvesting tools",
+      supplies: "certified seeds/vines, organic fertilizers, and aerated sacks",
+    };
+  }
+  if (model === "retail") {
+    return {
+      unit: "retail product units / customer baskets",
+      operations: "merchandise inventory procurement, shelf merchandising, and checkout",
+      workplace: "retail sales floor, display shelving, and climate-controlled stockroom",
+      equipment: "POS barcode terminal, display chillers, and security counters",
+      supplies: "wholesale health food inventory and branded carrier packaging",
+    };
+  }
+  if (model === "education") {
+    return {
+      unit: "workshop attendees / enrolled students / course licenses",
+      operations: "curriculum delivery, practical food demos, and educational publishing",
+      workplace: "training seminar room, demonstration kitchen, and studio desk",
+      equipment: "multimedia projector, PA audio, and demonstration cookware",
+      supplies: "printed participant manuals, certificates, and recipe books",
     };
   }
   if (model === "beverages") {
@@ -23,7 +59,7 @@ export function getBusinessPlanModelGuidance(model: BusinessPlanModel) {
       supplies: "ingredients and packaging materials",
     };
   }
-  if (model === "milling") {
+  if (model === "milling" || model === "manufacturing") {
     return {
       unit: "packs",
       operations: "grain milling and food production",

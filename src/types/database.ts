@@ -1,4 +1,4 @@
-export type UserRole = "student" | "trainer" | "admin" | "supervisor";
+export type UserRole = "student" | "admin" | "supervisor";
 export type TrainerStatus = "pending" | "approved" | "suspended";
 export type ContentStatus = "draft" | "pending_review" | "published" | "rejected";
 export type MarketplaceMaterialType = "lecture_notes" | "past_paper" | "study_guide" | "reference_book" | "business_plan" | "technical_project" | "research_project" | "other";

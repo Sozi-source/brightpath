@@ -15,9 +15,13 @@ import {
   ChevronRight,
   FileText,
   Plus,
+  Search,
+  Filter,
+  Check,
 } from "lucide-react";
 import { BUSINESS_PLAN_PRESETS, resolveBusinessPlanModel } from "@/lib/studio/businessPlanTypes";
 import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
+import { NUTRITION_VENTURES, type NutritionVentureDefinition } from "@/lib/studio/catalog/nutritionVentures";
 import {
   getBusinessPlanModelGuidance,
   getConsultancyLocationRationaleCorrection,
@@ -185,19 +189,43 @@ export function BusinessPlanBuilderModal({
   // Kept out of the report flow until the financial model is reconciled to the supplied template.
   const financials = useMemo(() => computeBusinessPlanFinancials(specs), [specs]);
 
-  const loadPreset = (presetKey: "milling" | "consultancy" | "beverages") => {
-    const preset = BUSINESS_PLAN_PRESETS[presetKey];
-    if (!preset) return;
+  const [selectedVentureId, setSelectedVentureId] = useState<string>("fortified_flours_and_porridges");
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("ALL");
+  const [selectedCapitalFilter, setSelectedCapitalFilter] = useState<string>("ALL");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const filteredVentures = useMemo(() => {
+    return NUTRITION_VENTURES.filter((v) => {
+      if (selectedGroupFilter !== "ALL" && v.group !== selectedGroupFilter) return false;
+      if (selectedCapitalFilter !== "ALL" && v.capitalTier !== selectedCapitalFilter) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        return (
+          v.title.toLowerCase().includes(q) ||
+          v.summary.toLowerCase().includes(q) ||
+          v.tagline.toLowerCase().includes(q) ||
+          v.groupName.toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+  }, [selectedGroupFilter, selectedCapitalFilter, searchQuery]);
+
+  const loadVenturePreset = (ventureId: string) => {
+    setSelectedVentureId(ventureId);
+    const venture = NUTRITION_VENTURES.find((v) => v.id === ventureId);
+    if (!venture) return;
+    const preset = venture.defaultSpecs;
 
     setSpecs((prev) => ({
       ...prev,
-      businessModel: presetKey,
+      businessModel: preset.businessModel || venture.archetype,
       businessName: preset.businessName || prev.businessName,
       tagline: preset.tagline || prev.tagline,
       industrySector: preset.industrySector || prev.industrySector,
       formOfOwnership: (preset.formOfOwnership as "Sole Proprietorship") || prev.formOfOwnership,
       registrationType: preset.registrationType || prev.registrationType,
-      ownerQualifications: preset.ownerQualifications || prev.ownerQualifications,
+      ownerQualifications: preset.ownerQualifications || prev.ownerQualifications || "Diploma in Human Nutrition & Dietetics, KNDI Registered",
       locationRationale: preset.locationRationale || prev.locationRationale,
       primaryProduct: preset.primaryProduct || prev.primaryProduct,
       productDescription: preset.productDescription || prev.productDescription,
@@ -229,6 +257,13 @@ export function BusinessPlanBuilderModal({
       loanTenureMonths: preset.loanTenureMonths || prev.loanTenureMonths,
       monthlyOverheads: preset.monthlyOverheads || prev.monthlyOverheads,
     }));
+  };
+
+  const loadPreset = (presetKey: string) => {
+    if (presetKey === "milling") return loadVenturePreset("fortified_flours_and_porridges");
+    if (presetKey === "consultancy") return loadVenturePreset("private_nutrition_practice");
+    if (presetKey === "beverages") return loadVenturePreset("fruit_vegetable_processing");
+    loadVenturePreset(presetKey);
   };
 
   const addEquipment = () => setSpecs((prev) => ({
@@ -489,78 +524,138 @@ export function BusinessPlanBuilderModal({
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {/* Preset 1: Milling */}
-                    <div
-                      onClick={() => loadPreset("milling")}
-                      className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
-                        specs.businessModel === "milling"
-                          ? "border-indigo-600 bg-indigo-50/40 shadow-xs ring-1 ring-indigo-600"
-                          : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
-                      }`}
-                    >
-                      <div className="space-y-2">
-                        <span className="text-xl">🌾</span>
-                        <h5 className="text-xs font-semibold text-slate-900 leading-tight">
-                          Biofortified Porridge Milling
-                        </h5>
-                        <p className="text-[11px] text-slate-500 leading-normal">
-                          Composite sweet potato, sorghum, amaranth flour manufacturing in Kitui Central.
-                        </p>
+                  {/* Search & Filter Controls */}
+                  <div className="space-y-3">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+                      {/* Search Bar */}
+                      <div className="relative flex-1">
+                        <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                        <input
+                          type="text"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          placeholder="Search 35 ventures by product, sector, or keyword..."
+                          className="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-600 text-slate-800 placeholder:text-slate-400"
+                        />
+                        {searchQuery && (
+                          <button
+                            type="button"
+                            onClick={() => setSearchQuery("")}
+                            className="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-600"
+                          >
+                            ×
+                          </button>
+                        )}
                       </div>
-                      <div className="pt-3 mt-3 border-t border-slate-200 flex items-center justify-between text-[11px] font-mono text-slate-600">
-                        <span>Capital: KES 785k</span>
-                        <span className="text-indigo-600 font-semibold">Load Preset →</span>
+
+                      {/* Capital Tier Filters */}
+                      <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200/80 text-[11px]">
+                        {(["ALL", "Low", "Medium", "High"] as const).map((tier) => (
+                          <button
+                            key={tier}
+                            type="button"
+                            onClick={() => setSelectedCapitalFilter(tier)}
+                            className={`px-2.5 py-1 rounded-md font-semibold transition-all cursor-pointer ${
+                              selectedCapitalFilter === tier
+                                ? "bg-white text-indigo-600 shadow-2xs"
+                                : "text-slate-600 hover:text-slate-900"
+                            }`}
+                          >
+                            {tier === "ALL" ? "All Capital" : `${tier}`}
+                          </button>
+                        ))}
                       </div>
                     </div>
 
-                    {/* Preset 2: Clinical Consultancy */}
-                    <div
-                      onClick={() => loadPreset("consultancy")}
-                      className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
-                        specs.businessModel === "consultancy"
-                          ? "border-indigo-600 bg-indigo-50/40 shadow-xs ring-1 ring-indigo-600"
-                          : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
-                      }`}
-                    >
-                      <div className="space-y-2">
-                        <span className="text-xl">🩺</span>
-                        <h5 className="text-xs font-semibold text-slate-900 leading-tight">
-                          Clinical Nutrition Practice
-                        </h5>
-                        <p className="text-[11px] text-slate-500 leading-normal">
-                          Nutrition assessment and counselling practice. Set the location and verify local service information.
-                        </p>
-                      </div>
-                      <div className="pt-3 mt-3 border-t border-slate-200 flex items-center justify-between text-[11px] font-mono text-slate-600">
-                        <span>Capital: KES 320k</span>
-                        <span className="text-indigo-600 font-semibold">Load Preset →</span>
-                      </div>
+                    {/* Group Filter Badges */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] scrollbar-none">
+                      {[
+                        { key: "ALL", label: "All 35 Areas" },
+                        { key: "A", label: "A. Clinical (1-7)" },
+                        { key: "B", label: "B. Processing (8-17)" },
+                        { key: "C", label: "C. Catering (18-21)" },
+                        { key: "D", label: "D. Agribusiness (22-25)" },
+                        { key: "E", label: "E. Retail (26-27)" },
+                        { key: "F", label: "F. Education (28-31)" },
+                        { key: "G", label: "G. Consultancy (32-34)" },
+                        { key: "H", label: "H. Digital (35)" },
+                      ].map((grp) => (
+                        <button
+                          key={grp.key}
+                          type="button"
+                          onClick={() => setSelectedGroupFilter(grp.key)}
+                          className={`px-2.5 py-1 rounded-lg whitespace-nowrap font-medium transition-all cursor-pointer border ${
+                            selectedGroupFilter === grp.key
+                              ? "bg-indigo-600 text-white border-indigo-600 shadow-2xs font-semibold"
+                              : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                          }`}
+                        >
+                          {grp.label}
+                        </button>
+                      ))}
                     </div>
+                  </div>
 
-                    {/* Preset 3: Fruit Juices */}
-                    <div
-                      onClick={() => loadPreset("beverages")}
-                      className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
-                        specs.businessModel === "beverages"
-                          ? "border-indigo-600 bg-indigo-50/40 shadow-xs ring-1 ring-indigo-600"
-                          : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
-                      }`}
-                    >
-                      <div className="space-y-2">
-                        <span className="text-xl">🥤</span>
-                        <h5 className="text-xs font-semibold text-slate-900 leading-tight">
-                          Fruit Juices & Purees
-                        </h5>
-                        <p className="text-[11px] text-slate-500 leading-normal">
-                          Pasteurized mango, passion, and guava nectar processing plant in Machakos Town.
-                        </p>
-                      </div>
-                      <div className="pt-3 mt-3 border-t border-slate-200 flex items-center justify-between text-[11px] font-mono text-slate-600">
-                        <span>Capital: KES 890k</span>
-                        <span className="text-indigo-600 font-semibold">Load Preset →</span>
-                      </div>
-                    </div>
+                  {/* 35 Venture Cards Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[460px] overflow-y-auto pr-1">
+                    {filteredVentures.map((v) => {
+                      const isSelected = selectedVentureId === v.id || specs.businessName === v.defaultSpecs.businessName;
+                      return (
+                        <div
+                          key={v.id}
+                          onClick={() => loadVenturePreset(v.id)}
+                          className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+                            isSelected
+                              ? "border-indigo-600 bg-indigo-50/40 shadow-xs ring-1 ring-indigo-600"
+                              : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50 bg-white"
+                          }`}
+                        >
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-1.5">
+                              <span className="inline-flex items-center justify-center h-5 px-1.5 rounded text-[10px] font-mono font-semibold bg-slate-100 text-slate-700">
+                                #{v.number}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                <span
+                                  className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                                    v.capitalTier === "Low"
+                                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                      : v.capitalTier === "Medium"
+                                      ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                      : "bg-indigo-50 text-indigo-700 border border-indigo-200"
+                                  }`}
+                                >
+                                  {v.capitalTier} Capital
+                                </span>
+                              </div>
+                            </div>
+
+                            <h5 className="text-xs font-semibold text-slate-900 leading-tight">
+                              {v.title}
+                            </h5>
+                            <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-2">
+                              {v.summary}
+                            </p>
+                          </div>
+
+                          <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                            <span className="font-mono text-slate-500">
+                              KES {Math.round(v.estimatedCapitalKES.min / 1000)}k–{Math.round(v.estimatedCapitalKES.max / 1000)}k
+                            </span>
+                            <span className={`font-semibold flex items-center gap-1 ${isSelected ? "text-indigo-600" : "text-slate-600 hover:text-indigo-600"}`}>
+                              {isSelected ? (
+                                <>
+                                  <Check className="h-3 w-3" />
+                                  <span>Selected</span>
+                                </>
+                              ) : (
+                                <span>Select →</span>
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
 
                   {/* Summary of Active Specifications */}

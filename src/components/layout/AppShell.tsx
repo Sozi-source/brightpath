@@ -49,7 +49,6 @@ export function AppShell({
   const pathname = usePathname();
 
   const isRoleAdmin = profile?.role === "admin";
-  const isRoleTrainer = profile?.role === "trainer" || isRoleAdmin;
   const isRoleSupervisor = profile?.role === "supervisor" || isRoleAdmin;
 
   const navItems = [
@@ -113,15 +112,6 @@ export function AppShell({
                     </div>
                     <span className="text-xs font-bold text-slate-800">Marketplace</span>
                   </Link>
-                  {isRoleTrainer && <Link
-                    href="/trainer"
-                    className="p-2.5 rounded-lg hover:bg-indigo-50 border border-transparent hover:border-indigo-100 flex flex-col items-center text-center gap-1.5 transition-colors"
-                  >
-                    <div className="p-2 bg-indigo-100 text-indigo-700 rounded-lg">
-                      <Briefcase className="h-4 w-4" />
-                    </div>
-                    <span className="text-xs font-bold text-slate-800">Trainer Publisher</span>
-                  </Link>}
                   {isRoleSupervisor && <Link
                     href="/supervisor"
                     className="p-2.5 rounded-lg hover:bg-amber-50 border border-transparent hover:border-amber-100 flex flex-col items-center text-center gap-1.5 transition-colors"
@@ -264,29 +254,11 @@ export function AppShell({
             ) : null}
 
             {/* Faculty / Supervisor / Governance Portals */}
-            {(isRoleSupervisor || isRoleTrainer) && (
+            {isRoleSupervisor && (
               <div className="space-y-1 px-3 border-t border-slate-100 pt-4">
                 <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-3 pb-1">
                   Faculty Portals
                 </div>
-
-                {isRoleTrainer && (
-                  <Link
-                    href="/trainer"
-                    onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-colors ${
-                      pathname.startsWith("/trainer")
-                        ? "bg-indigo-600 text-white shadow-xs font-semibold"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Briefcase className={`h-4 w-4 shrink-0 ${pathname.startsWith("/trainer") ? "text-white" : "text-slate-400"}`} />
-                      <span>Trainer Publisher</span>
-                    </div>
-                    {!pathname.startsWith("/trainer") && <ChevronRight className="h-3.5 w-3.5 text-slate-300 shrink-0" />}
-                  </Link>
-                )}
 
                 {isRoleSupervisor && (
                   <Link

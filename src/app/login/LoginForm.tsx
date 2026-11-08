@@ -91,7 +91,7 @@ export function LoginForm({
             ) : (
               <span className="inline-flex items-center gap-1.5 text-slate-700">
                 <Briefcase className="h-3.5 w-3.5 text-indigo-600" />
-                Faculty Trainer or Supervisor
+                Administrator & Faculty
               </span>
             )}
           </div>
@@ -102,7 +102,7 @@ export function LoginForm({
           <p className="text-xs text-slate-500">
             {isStudent
               ? "Access your project studio workspace"
-              : "Institutional access for trainers and supervisors"}
+              : "Institutional access for administrators and supervisors"}
           </p>
         </div>
 

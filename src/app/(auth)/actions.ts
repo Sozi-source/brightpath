@@ -13,16 +13,14 @@ function fail(path: string, message: string): never {
 
 const ROLE_HOME: Record<UserRole, string> = {
   student: "/studio",
-  trainer: "/trainer",
   supervisor: "/supervisor",
   admin: "/admin",
 };
 
 const ROLE_REDIRECT_PREFIXES: Record<UserRole, string[]> = {
   student: ["/studio", "/learn", "/library", "/projects"],
-  trainer: ["/trainer", "/projects", "/library"],
   supervisor: ["/supervisor", "/projects", "/library"],
-  admin: ["/admin", "/supervisor", "/trainer", "/studio", "/learn", "/library", "/projects"],
+  admin: ["/admin", "/supervisor", "/studio", "/learn", "/library", "/projects"],
 };
 
 function isAllowedRoleRedirect(role: UserRole, redirectUrl: string | undefined): boolean {

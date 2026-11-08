@@ -125,7 +125,7 @@ export async function createWorkspace(formData: FormData) {
       course,
       title: initialTitle,
       problem_area: initialProblem,
-      status: initialTitle ? "proposal_pending" : "ideation",
+      status: workspaceType === "business_plan" ? "approved" : (initialTitle ? "proposal_pending" : "ideation"),
     })
     .select("id")
     .single();
@@ -184,7 +184,7 @@ export async function updateWorkspaceTopic(formData: FormData) {
 
   const { data: existingWs } = await db
     .from("project_workspaces")
-    .select("id, student_id, status, final_project_status")
+    .select("id, student_id, status, final_project_status, workspace_type")
     .eq("id", workspaceId)
     .single();
 
@@ -340,7 +340,7 @@ export async function submitChaptersForReview(formData: FormData) {
 
   const { data: ws } = await db
     .from("project_workspaces")
-    .select("id, student_id, status, final_project_status")
+    .select("id, student_id, status, final_project_status, workspace_type")
     .eq("id", workspaceId)
     .single();
 
@@ -348,7 +348,7 @@ export async function submitChaptersForReview(formData: FormData) {
     throw new Error("Unauthorized.");
   }
 
-  if (ws.status !== "approved" && ws.status !== "submitted") {
+  if (ws.workspace_type !== "business_plan" && ws.status !== "approved" && ws.status !== "submitted") {
     throw new Error("Your project topic must be approved by your supervisor first.");
   }
   if (ws.final_project_status === "pending_review" || ws.final_project_status === "approved") {
@@ -809,7 +809,7 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
   if (ws.workspace_type !== "business_plan") {
     throw new Error("This workspace is not configured as a TVET Business Plan.");
   }
-  if (ws.status !== "approved" && ws.status !== "submitted") {
+  if (ws.workspace_type !== "business_plan" && ws.status !== "approved" && ws.status !== "submitted") {
     throw new Error("Your business plan topic must be approved before you build the full draft.");
   }
 
@@ -1298,7 +1298,7 @@ async function runCompleteBusinessPlanBuild(
   if (ws.workspace_type !== "business_plan") {
     return { success: false, error: "This workspace is not configured as a TVET Business Plan." };
   }
-  if (ws.status !== "approved" && ws.status !== "submitted") {
+  if (ws.workspace_type !== "business_plan" && ws.status !== "approved" && ws.status !== "submitted") {
     return {
       success: false,
       error:
