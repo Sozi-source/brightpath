@@ -37,6 +37,7 @@ import type {
 } from "@/types/database";
 import { getWorkspaceSections } from "@/lib/studio/templates";
 import { resolveBusinessPlanModel, type BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
+import { AdminProjectsManager } from "@/components/admin/AdminProjectsManager";
 
 export const instant = false;
 
@@ -337,104 +338,19 @@ export default async function AdminPage() {
       {/* Projects Section */}
       <div id="projects" className="scroll-mt-20">
         <ContentCard
-          title="Projects Catalog"
-          subtitle="All marketplace project packages"
+          title="Marketplace Catalog Setup"
+          subtitle="Manage cover photos, prices, metadata, and publication status"
           icon={Layers}
           headerRight={
-            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-              {projectsList.length} Total
+            <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+              {projectsList.length} Listed
             </span>
           }
         >
-          {projectsList.length === 0 ? (
-            <div className="text-center py-10 border border-dashed border-slate-200 rounded-lg">
-              <Layers className="h-8 w-8 mx-auto text-slate-400 mb-2" />
-              <p className="text-sm font-semibold text-slate-700">No projects uploaded yet</p>
-              <p className="text-xs text-slate-500 mt-1">
-                Approved business plans and marketplace materials appear here once queued and published.
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600 bg-slate-50">
-                  <tr>
-                    <th className="py-2.5 px-3">Title</th>
-                    <th className="py-2.5 px-3">Author</th>
-                    <th className="py-2.5 px-3">Category</th>
-                    <th className="py-2.5 px-3">Price</th>
-                    <th className="py-2.5 px-3">Status</th>
-                    <th className="py-2.5 px-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {projectsList.map((p) => (
-                    <tr key={p.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-3 px-3 font-bold text-slate-900">{p.title}</td>
-                      <td className="py-3 px-3 text-slate-600">{p.profiles?.full_name || "-"}</td>
-                      <td className="py-3 px-3 text-slate-600">{p.category || "General"}</td>
-                      <td className="py-3 px-3 font-mono font-bold text-slate-900">KES {Number(p.price_kes).toLocaleString()}</td>
-                      <td className="py-3 px-3">
-                        <span
-                          className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold ${
-                            p.status === "published"
-                              ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                              : p.status === "pending_review"
-                              ? "bg-amber-50 text-amber-800 border border-amber-200"
-                              : "bg-slate-100 text-slate-700 border border-slate-200"
-                          }`}
-                        >
-                          {p.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-right space-x-2">
-                        {p.file_path?.startsWith("workspace-export:") && (
-                          <>
-                            <Link
-                              href={`/api/download?projectId=${encodeURIComponent(p.id)}&format=pdf`}
-                              className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                            >
-                              <Download className="h-3.5 w-3.5" /> PDF
-                            </Link>
-                            <Link
-                              href={`/api/download?projectId=${encodeURIComponent(p.id)}&format=docx`}
-                              className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                            >
-                              <Download className="h-3.5 w-3.5" /> Word
-                            </Link>
-                          </>
-                        )}
-                        {p.status !== "published" && (
-                          <form action={updateProjectStatus} className="inline-block">
-                            <input type="hidden" name="projectId" value={p.id} />
-                            <input type="hidden" name="status" value="published" />
-                            <button
-                              type="submit"
-                              className="text-xs text-emerald-700 hover:underline font-bold cursor-pointer"
-                            >
-                              Publish
-                            </button>
-                          </form>
-                        )}
-                        {p.status !== "rejected" && (
-                          <form action={updateProjectStatus} className="inline-block">
-                            <input type="hidden" name="projectId" value={p.id} />
-                            <input type="hidden" name="status" value="rejected" />
-                            <button
-                              type="submit"
-                              className="text-xs text-rose-700 hover:underline font-bold cursor-pointer"
-                            >
-                              Reject
-                            </button>
-                          </form>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <AdminProjectsManager
+            projects={projectsList}
+            commissionPercent={commissionPercent}
+          />
         </ContentCard>
       </div>
 
