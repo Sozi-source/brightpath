@@ -27,6 +27,7 @@ import { revalidatePath } from "next/cache";
 import type { WorkspaceType, WorkspaceLevel } from "@/types/database";
 import { resolveBusinessPlanModel } from "@/lib/studio/businessPlanTypes";
 import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
+import { NUTRITION_VENTURES } from "@/lib/studio/catalog/nutritionVentures";
 import {
   correctConsultancyLocationClaims,
   getConsultancyLocationRationaleCorrection,
@@ -87,7 +88,7 @@ export async function createWorkspace(formData: FormData) {
   // Automatically resolve student's existing institution or default institution + default supervisor
   const [{ data: existingProfile }, { data: defaultInst }, { data: defaultSupervisor }] =
     await Promise.all([
-      db.from("profiles").select("institution_id").eq("id", user.id).maybeSingle(),
+      db.from("profiles").select("institution_id, full_name").eq("id", user.id).maybeSingle(),
       db.from("institutions").select("id").limit(1).maybeSingle(),
       db
         .from("profiles")
@@ -113,6 +114,33 @@ export async function createWorkspace(formData: FormData) {
 
   if (profileErr) throw new Error(profileErr.message);
 
+  const ventureId = formData.get("ventureId")?.toString().trim();
+  const townOrMarket = formData.get("townOrMarket")?.toString().trim() || "Juja";
+  const county = formData.get("county")?.toString().trim() || "Kiambu";
+  const customBusinessName = formData.get("businessName")?.toString().trim();
+
+  let businessPlanSpecs: Partial<BusinessPlanSpecs> | null = null;
+  let finalTitle = initialTitle;
+  let finalProblem = initialProblem;
+
+  if (ventureId) {
+    const venture = NUTRITION_VENTURES.find((v) => v.id === ventureId);
+    if (venture) {
+      finalTitle = customBusinessName || (venture.defaultSpecs.businessName as string) || venture.title;
+      finalProblem = venture.summary;
+      businessPlanSpecs = {
+        ...venture.defaultSpecs,
+        businessName: finalTitle,
+        townOrMarket,
+        county,
+        candidateName: existingProfile?.full_name || user.email || "Candidate",
+        admissionNumber,
+        course,
+        level,
+      };
+    }
+  }
+
   // 2. Insert new project workspace
   const { data: workspace, error: wsErr } = await db
     .from("project_workspaces")
@@ -123,9 +151,10 @@ export async function createWorkspace(formData: FormData) {
       workspace_type: workspaceType,
       level,
       course,
-      title: initialTitle,
-      problem_area: initialProblem,
-      status: workspaceType === "business_plan" ? "approved" : (initialTitle ? "proposal_pending" : "ideation"),
+      title: finalTitle,
+      problem_area: finalProblem,
+      business_plan_specs: businessPlanSpecs,
+      status: workspaceType === "business_plan" ? "approved" : (finalTitle ? "proposal_pending" : "ideation"),
     })
     .select("id")
     .single();
@@ -135,9 +164,10 @@ export async function createWorkspace(formData: FormData) {
   }
 
   // 3. Populate workspace sections
-  const sectionDefs = getWorkspaceSections(workspaceType, level);
+  const resolvedModel = workspaceType === "business_plan" ? resolveBusinessPlanModel(businessPlanSpecs as BusinessPlanSpecs | null) : undefined;
+  const sectionDefs = getWorkspaceSections(workspaceType, level, resolvedModel);
   const sectionsPayload = sectionDefs.map((def, idx) => {
-    const starterText = getSectionStarterContent(workspaceType, level, def.key);
+    const starterText = getSectionStarterContent(workspaceType, level, def.key, resolvedModel);
 
     return {
       workspace_id: workspace.id,
