@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getPaystackSecretKey } from "@/lib/paystack";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -95,30 +96,17 @@ export async function POST(request: NextRequest) {
   }
 
   // Read Paystack Secret Key with fallbacks and quote-stripping
-  const rawKey =
-    process.env.PAYSTACK_SECRET_KEY ||
-    process.env.NEXT_PUBLIC_PAYSTACK_SECRET_KEY ||
-    process.env.PAYSTACK_SECRET ||
-    process.env.PAYSTACK_KEY;
-
-  const paystackKey = rawKey?.trim().replace(/^["']|["']$/g, "");
+  const paystackKey = getPaystackSecretKey();
 
   if (!paystackKey) {
-    const presentKeys = Object.keys(process.env).filter((k) =>
-      k.toUpperCase().includes("PAYSTACK")
-    );
-    console.warn(
-      `[Paystack Init] Missing PAYSTACK_SECRET_KEY. Relevant env keys found: [${presentKeys.join(", ")}]`
-    );
-
+    console.error("[Paystack Init] Missing PAYSTACK_SECRET_KEY in server environment.");
     return NextResponse.json(
       {
-        error: `PAYSTACK_SECRET_KEY is not detected in this Vercel deployment. Found keys: [${presentKeys.join(", ") || "none"}]. Please make sure PAYSTACK_SECRET_KEY is saved in Vercel Environment Variables and redeployed without build cache.`,
+        error: "Payment gateway is not configured yet. Please configure PAYSTACK_SECRET_KEY in server settings.",
         reference,
         amountKes,
-        testMode: true,
       },
-      { status: 400 }
+      { status: 503 }
     );
   }
 

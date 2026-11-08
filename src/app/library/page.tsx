@@ -7,6 +7,7 @@ import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { Download, Layers, ShieldCheck } from "lucide-react";
 import type { Order, Project, UserProfile } from "@/types/database";
 import { submitProjectReview } from "./actions";
+import { verifyTransactionWithPaystack } from "@/lib/paystack";
 
 export const instant = false;
 
@@ -14,7 +15,11 @@ interface PurchasedProjectOrder extends Order {
   projects?: Project | null;
 }
 
-export default async function LibraryPage() {
+export default async function LibraryPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ reference?: string; trxref?: string }>;
+}) {
   await connection();
   const supabase = await createClient();
   const {
@@ -23,6 +28,22 @@ export default async function LibraryPage() {
 
   if (!user) {
     redirect("/login");
+  }
+
+  // Fallback verification if returning from Paystack redirect
+  const resolvedParams = searchParams ? await searchParams : {};
+  const redirectRef = (resolvedParams.reference || resolvedParams.trxref)?.trim();
+  if (redirectRef) {
+    const { data: pendingOrder } = await supabase
+      .from("orders")
+      .select("id, status")
+      .eq("student_id", user.id)
+      .eq("paystack_reference", redirectRef)
+      .maybeSingle();
+
+    if (pendingOrder && pendingOrder.status === "pending") {
+      await verifyTransactionWithPaystack(redirectRef);
+    }
   }
 
   const { data: profileData } = await supabase
