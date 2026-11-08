@@ -2,9 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
-import { BookOpen, Download, Eye, FileText, Star, CheckCircle2 } from "lucide-react";
+import { BookOpen, Download, Eye, FileText, Star, CheckCircle2, ChevronRight, ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
-import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { BuyButton } from "@/components/BuyButton";
 import { createClient } from "@/lib/supabase/server";
 import { getMaterialTypeLabel } from "@/lib/marketplace";
@@ -65,16 +64,23 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
 
   return (
     <AppShell user={user} profile={profile} activeContextTitle="Learning Resource Marketplace">
-      <PageHeaderCard
-        title="Material Details"
-        subtitle={product.title}
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Marketplace", href: "/projects" }, { label: "Details", active: true }]}
-        metadata={[
-          { label: "Type", value: getMaterialTypeLabel(product.material_type) },
-          { label: "Subject", value: product.category || "General" },
-          { label: "Downloads", value: Number(product.download_count || 0).toLocaleString() },
-        ]}
-      />
+      {/* Sleek Minimal Breadcrumb Bar */}
+      <div className="flex items-center justify-between gap-3 text-xs text-slate-500 mb-1">
+        <nav aria-label="Breadcrumbs" className="flex items-center gap-1.5 flex-wrap">
+          <Link href="/" className="hover:text-slate-900 transition-colors">Home</Link>
+          <ChevronRight className="h-3.5 w-3.5 text-slate-300 shrink-0" />
+          <Link href="/projects" className="hover:text-slate-900 transition-colors">Marketplace</Link>
+          <ChevronRight className="h-3.5 w-3.5 text-slate-300 shrink-0" />
+          <span className="font-semibold text-slate-800 truncate max-w-[240px] sm:max-w-md">{cleanTitle}</span>
+        </nav>
+        <Link
+          href="/projects"
+          className="inline-flex items-center gap-1 font-semibold text-indigo-600 hover:text-indigo-800 transition-colors shrink-0"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span>All materials</span>
+        </Link>
+      </div>
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <main className="space-y-5">
