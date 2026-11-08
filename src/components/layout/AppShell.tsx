@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/(auth)/actions";
+import { DeleteDraftButton } from "@/app/studio/DeleteDraftButton";
 import { BrandIcon, type BrandIconName } from "@/components/ui/BrandIcon";
 import {
   LayoutGrid,
@@ -19,7 +20,21 @@ import {
   LogOut,
   ChevronRight,
   ShoppingBag,
+  Plus,
+  ArrowRight,
+  CheckCircle2,
+  Clock3,
 } from "lucide-react";
+
+export interface SidebarWorkspaceItem {
+  id: string;
+  title: string;
+  typeLabel: string;
+  status: "approved" | "pending" | "draft";
+  completedSections: number;
+  totalSections: number;
+  progressPct: number;
+}
 
 interface AppShellProps {
   user: { id: string; email?: string } | null;
@@ -30,8 +45,10 @@ interface AppShellProps {
     course?: string | null;
     level?: string | null;
   } | null;
+  institutionName?: string | null;
   activeContextTitle?: string | null;
   marketplaceCategories?: { label: string; href: string; count: number; active: boolean }[];
+  studioWorkspaces?: SidebarWorkspaceItem[];
   fullScreenWorkspace?: boolean;
   children: React.ReactNode;
 }
@@ -39,8 +56,10 @@ interface AppShellProps {
 export function AppShell({
   user,
   profile,
+  institutionName,
   activeContextTitle,
   marketplaceCategories,
+  studioWorkspaces,
   fullScreenWorkspace = false,
   children,
 }: AppShellProps) {
@@ -199,17 +218,46 @@ export function AppShell({
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           } shadow-xl md:shadow-none`}
         >
-          <div className="flex-1 overflow-y-auto py-4 space-y-5">
-            {/* Top Active Course/Workspace Context Anchor */}
+          <div className="flex-1 overflow-y-auto py-4 space-y-4">
+            {/* Top Active Course/Workspace & Candidate Context Card */}
             <div className="px-3">
-              <div className="bg-[#e8f5f5] border border-[#d8ebec] rounded-xl p-3 space-y-1">
-                <div className="flex items-center gap-2 text-[#087f8c] text-xs font-semibold">
-                  <GraduationCap className="h-4 w-4" />
-                  <span className="uppercase tracking-wider text-[10px]">Active Track</span>
+              <div className="bg-[#e8f5f5]/85 border border-[#d8ebec] rounded-xl p-3 space-y-2">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5 text-[#087f8c] text-xs font-semibold">
+                    <GraduationCap className="h-3.5 w-3.5 shrink-0" />
+                    <span className="uppercase tracking-wider text-[10px]">Active Track</span>
+                  </div>
+                  <div className="text-xs font-semibold truncate text-slate-900">
+                    {activeContextTitle || profile?.course || "KNEC Project Studio"}
+                  </div>
                 </div>
-                <div className="text-xs font-semibold truncate text-slate-900">
-                  {activeContextTitle || profile?.course || "KNEC Project Studio"}
-                </div>
+
+                {user && (
+                  <div className="border-t border-[#d8ebec] pt-2 space-y-1 text-[11px]">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-slate-500">Candidate</span>
+                      <span className="font-semibold text-slate-800 truncate">
+                        {profile?.full_name || user.email?.split("@")[0] || "Student"}
+                      </span>
+                    </div>
+                    {profile?.admission_number && (
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-slate-500">Adm No</span>
+                        <span className="font-mono font-semibold text-slate-800 truncate">
+                          {profile.admission_number}
+                        </span>
+                      </div>
+                    )}
+                    {institutionName && (
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-slate-500">Institution</span>
+                        <span className="font-medium text-slate-700 truncate">
+                          {institutionName}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -239,6 +287,94 @@ export function AppShell({
                 );
               })}
             </div>
+
+            {/* Active Projects Section in Sidebar */}
+            {studioWorkspaces !== undefined && (
+              <div className="space-y-2 border-t border-slate-100 px-3 pt-4">
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                    Active Projects ({studioWorkspaces.length})
+                  </span>
+                  <Link
+                    href="/studio/new"
+                    onClick={() => setSidebarOpen(false)}
+                    className="inline-flex items-center gap-1 rounded-md bg-[#e8f5f5] px-2 py-0.5 text-[10px] font-semibold text-[#087f8c] hover:bg-teal-100 transition-colors"
+                  >
+                    <Plus className="h-3 w-3" />
+                    <span>New</span>
+                  </Link>
+                </div>
+
+                {studioWorkspaces.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/60 p-3 text-center">
+                    <p className="text-[11px] font-medium text-slate-500">No active workspace yet.</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">Select an area on the right to start.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {studioWorkspaces.map((ws) => {
+                      const isApproved = ws.status === "approved";
+                      const isPending = ws.status === "pending";
+                      return (
+                        <div
+                          key={ws.id}
+                          className="rounded-xl border border-slate-200 bg-slate-50/70 p-2.5 space-y-2 shadow-2xs"
+                        >
+                          <div className="space-y-1">
+                            <Link
+                              href={`/studio/${ws.id}`}
+                              onClick={() => setSidebarOpen(false)}
+                              className="block text-xs font-semibold text-slate-900 hover:text-[#087f8c] line-clamp-2 leading-snug"
+                            >
+                              {ws.title}
+                            </Link>
+                            <div className="flex items-center justify-between gap-1 text-[10px]">
+                              <span
+                                className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-medium ${
+                                  isApproved
+                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                    : isPending
+                                    ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                    : "bg-white text-slate-600 border border-slate-200"
+                                }`}
+                              >
+                                {isApproved ? (
+                                  <CheckCircle2 className="h-2.5 w-2.5" />
+                                ) : (
+                                  <Clock3 className="h-2.5 w-2.5" />
+                                )}
+                                {isApproved ? "Approved" : isPending ? "Review" : "Draft"}
+                              </span>
+                              <span className="font-mono text-slate-500">
+                                {ws.completedSections}/{ws.totalSections} · {ws.progressPct}%
+                              </span>
+                            </div>
+                            <div className="h-1 w-full overflow-hidden rounded-full bg-slate-200">
+                              <div
+                                className="h-full rounded-full bg-[#087f8c]"
+                                style={{ width: `${Math.min(100, Math.max(0, ws.progressPct))}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 pt-0.5">
+                            <Link
+                              href={`/studio/${ws.id}`}
+                              onClick={() => setSidebarOpen(false)}
+                              className="flex-1 inline-flex items-center justify-center gap-1 rounded-md bg-[#087f8c] hover:bg-[#086b76] px-2.5 py-1.5 text-[11px] font-semibold text-white transition-colors"
+                            >
+                              <span>Continue</span>
+                              <ArrowRight className="h-3 w-3" />
+                            </Link>
+                            <DeleteDraftButton workspaceId={ws.id} title={ws.title} iconOnly />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
             {pathname.startsWith("/projects") && marketplaceCategories?.length ? (
               <nav aria-label="Marketplace categories" className="space-y-1 border-t border-slate-100 px-3 pt-4">

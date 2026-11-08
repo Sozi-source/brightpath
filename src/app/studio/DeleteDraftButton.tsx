@@ -9,6 +9,7 @@ interface DeleteDraftButtonProps {
   title?: string | null;
   redirectAfter?: boolean;
   compact?: boolean;
+  iconOnly?: boolean;
 }
 
 export function DeleteDraftButton({
@@ -16,6 +17,7 @@ export function DeleteDraftButton({
   title,
   redirectAfter = false,
   compact = false,
+  iconOnly = false,
 }: DeleteDraftButtonProps) {
   const [isPending, startTransition] = useTransition();
 
@@ -35,6 +37,21 @@ export function DeleteDraftButton({
       await deleteDraftWorkspace(formData);
     });
   };
+
+  if (iconOnly) {
+    return (
+      <button
+        type="button"
+        onClick={handleDelete}
+        disabled={isPending}
+        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-rose-200/80 bg-rose-50/70 text-rose-600 hover:bg-rose-100 hover:text-rose-700 transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+        title="Delete project"
+        aria-label={`Delete ${title || "project"}`}
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
+    );
+  }
 
   return (
     <button
