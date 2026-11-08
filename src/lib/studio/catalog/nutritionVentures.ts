@@ -4347,7 +4347,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
     ],
     "defaultSpecs": {
       "businessModel": "education",
-      "businessName": "First1000Days Maternal & Baby Nutrition Center",
+      "businessName": "First 1000 Days Maternal & Baby Nutrition Center",
       "tagline": "Practical Weaning & First 1,000 Days Nutrition for Healthy Babies",
       "industrySector": "Maternal & Child Nutrition Education and Caregiver Training",
       "formOfOwnership": "Sole Proprietorship",
