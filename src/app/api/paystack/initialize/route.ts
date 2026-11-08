@@ -77,8 +77,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to initialize order." }, { status: 500 });
   }
 
-  const paystackKey = process.env.PAYSTACK_SECRET_KEY;
+  const paystackKey = process.env.PAYSTACK_SECRET_KEY?.trim();
   if (!paystackKey) {
+    console.warn("[Paystack Init] PAYSTACK_SECRET_KEY environment variable is missing or empty.");
     return NextResponse.json({
       message: "Order initiated. Paystack secret key not configured in environment.",
       reference,
@@ -87,13 +88,16 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://brightpath-zc14.vercel.app";
+  const siteUrl = rawSiteUrl.replace(/\/+$/, "");
+
   // Call Paystack API
   const paystackPayload: Record<string, unknown> = {
     email: user.email,
     amount: Math.round(amountKes * 100), // in kobo/cents
     currency: "KES",
     reference,
-    callback_url: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/library`,
+    callback_url: `${siteUrl}/library`,
   };
 
   // Only route subaccount payouts for non-business-plan materials (trainer-owned resources)
