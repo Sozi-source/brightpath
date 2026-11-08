@@ -170,7 +170,11 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
       })
     )?.chapterKey || chapterGroups[0]?.chapterKey;
 
-  const levelLabel = workspace.level === "craft" ? "Certificate" : "Diploma";
+  const cleanBusinessTitle = (
+    workspace.title || (isBusiness ? "Untitled Business Enterprise" : "Untitled Project Workspace")
+  )
+    .replace(/^business\s+plan\s+for\s+/i, "")
+    .trim();
 
   const rawInst = profile?.institutions as unknown;
   const institutionName =
@@ -317,15 +321,19 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
               </div>
             </div>
 
-            {/* Project Title, Course Info & Collapsible Concept Profile */}
+            {/* Project Title (Two-Line Format) & Collapsible Concept Profile */}
             <div className="space-y-2">
-              <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
+              <div className="space-y-0.5">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-[#087f8c]">
+                  {isBusiness
+                    ? "BUSINESS PLAN"
+                    : workspace.workspace_type === "trade_fabrication"
+                    ? "TRADE FABRICATION"
+                    : "RESEARCH PROJECT"}
+                </div>
                 <h1 className="text-base sm:text-lg font-semibold text-slate-900 tracking-tight leading-snug">
-                  {workspace.title || (isBusiness ? "Untitled Business Plan" : "Untitled Project Workspace")}
+                  {cleanBusinessTitle}
                 </h1>
-                <span className="text-xs font-medium text-slate-500 shrink-0">
-                  {workspace.course} · {levelLabel}
-                </span>
               </div>
 
               {workspace.problem_area && (
