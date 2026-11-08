@@ -77,7 +77,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to initialize order." }, { status: 500 });
   }
 
-  const paystackKey = process.env.PAYSTACK_SECRET_KEY?.trim();
+  const paystackKey = (
+    process.env.PAYSTACK_SECRET_KEY ||
+    process.env.NEXT_PUBLIC_PAYSTACK_SECRET_KEY ||
+    process.env.PAYSTACK_SECRET ||
+    process.env.PAYSTACK_KEY
+  )?.trim();
+
   if (!paystackKey) {
     console.warn("[Paystack Init] PAYSTACK_SECRET_KEY environment variable is missing or empty.");
     return NextResponse.json({

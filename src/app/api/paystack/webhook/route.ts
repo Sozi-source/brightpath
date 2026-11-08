@@ -3,7 +3,12 @@ import { NextResponse, type NextRequest } from "next/server";
 import crypto from "crypto";
 
 export async function POST(request: NextRequest) {
-  const secret = process.env.PAYSTACK_SECRET_KEY?.trim();
+  const secret = (
+    process.env.PAYSTACK_SECRET_KEY ||
+    process.env.NEXT_PUBLIC_PAYSTACK_SECRET_KEY ||
+    process.env.PAYSTACK_SECRET ||
+    process.env.PAYSTACK_KEY
+  )?.trim();
   const rawBody = await request.text();
 
   if (secret) {
