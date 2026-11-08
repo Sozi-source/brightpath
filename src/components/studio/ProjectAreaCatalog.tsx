@@ -243,7 +243,7 @@ export function ProjectAreaCatalog({
                   onClick={() => setSelectedGroup(groupKey)}
                   className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
                     isActive
-                      ? "bg-indigo-600 text-white shadow-2xs"
+                      ? "bg-[#087f8c] text-white shadow-2xs"
                       : "border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
                   }`}
                 >
@@ -255,7 +255,7 @@ export function ProjectAreaCatalog({
 
           {/* 35 Minimalist Venture Cards Grid */}
           {filteredVentures.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
+            <div className="bp-card border-dashed p-8 text-center">
               <p className="text-xs font-semibold text-slate-700">No project areas match your search</p>
               <p className="mt-1 text-xs text-slate-500">Try clearing filters or search terms.</p>
               <button
@@ -265,7 +265,7 @@ export function ProjectAreaCatalog({
                   setSelectedGroup("ALL");
                   setSelectedCapital("ALL");
                 }}
-                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 cursor-pointer"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#e8f5f5] px-3 py-1.5 text-xs font-semibold text-[#087f8c] hover:bg-teal-100 cursor-pointer"
               >
                 Reset filters
               </button>
@@ -286,13 +286,13 @@ export function ProjectAreaCatalog({
                   <div
                     key={venture.id}
                     onClick={() => setDetailVenture(venture)}
-                    className="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-xs hover:border-indigo-400 hover:shadow-sm transition-all cursor-pointer"
+                    className="bp-card bp-card-interactive group relative flex flex-col justify-between p-4 cursor-pointer"
                   >
                     <div>
                       {/* Top Header: Number + Short Category + Non-Wrapping Capital Badge */}
                       <div className="flex items-center justify-between gap-2 mb-2.5">
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <span className="inline-flex h-5 shrink-0 items-center justify-center rounded-md bg-indigo-50 px-1.5 font-mono text-[10px] font-semibold text-indigo-700 border border-indigo-100">
+                          <span className="inline-flex h-5 shrink-0 items-center justify-center rounded-md bg-[#e8f5f5] px-1.5 font-mono text-[10px] font-semibold text-[#087f8c] border border-[#d8ebec]">
                             #{venture.number}
                           </span>
                           <span className="truncate text-[10px] font-semibold uppercase tracking-wider text-slate-500">
@@ -307,7 +307,7 @@ export function ProjectAreaCatalog({
                       </div>
 
                       {/* Clear, Concise Venture Title & Primary Product */}
-                      <h4 className="text-sm font-semibold text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors">
+                      <h4 className="text-sm font-semibold text-slate-900 tracking-tight group-hover:text-[#087f8c] transition-colors">
                         {venture.title}
                       </h4>
                       <p className="mt-0.5 text-xs text-slate-500 truncate">
@@ -322,7 +322,7 @@ export function ProjectAreaCatalog({
                             KES {(venture.estimatedCapitalKES.min / 1000).toFixed(0)}k–{(venture.estimatedCapitalKES.max / 1000).toFixed(0)}k
                           </span>
                           <span className="inline-flex items-center gap-1 text-slate-500">
-                            <Building2 className="h-3 w-3 text-indigo-500 shrink-0" />
+                            <Building2 className="h-3 w-3 text-[#087f8c] shrink-0" />
                             <span className="capitalize">{venture.archetype.replace("_", " ")}</span>
                           </span>
                         </div>
@@ -350,7 +350,7 @@ export function ProjectAreaCatalog({
                       <button
                         type="button"
                         onClick={() => handleOpenVentureModal(venture)}
-                        className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 shadow-2xs transition-colors cursor-pointer"
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 bp-btn-primary px-3 py-1.5 text-xs shadow-2xs cursor-pointer"
                       >
                         <span>Select Area</span>
                         <ArrowRight className="h-3.5 w-3.5" />
@@ -368,11 +368,11 @@ export function ProjectAreaCatalog({
       {activeTrack === "business_plan" && detailVenture && (
         <div className="space-y-4">
           {/* Top Navigation Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-3 bp-card px-4 py-3">
             <button
               type="button"
               onClick={() => setDetailVenture(null)}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-indigo-600 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-[#087f8c] transition-colors cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Back to All 35 Project Areas</span>
@@ -382,7 +382,7 @@ export function ProjectAreaCatalog({
               <button
                 type="button"
                 onClick={() => handleOpenVentureModal(detailVenture)}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700 shadow-2xs transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 bp-btn-primary px-4 py-2 text-xs shadow-2xs cursor-pointer"
               >
                 <span>Select & Launch This Area</span>
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -391,13 +391,13 @@ export function ProjectAreaCatalog({
           </div>
 
           {/* Primary Venture Overview Card */}
-          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs">
-            <div className="h-1 w-full bg-linear-to-r from-indigo-600 via-indigo-600 to-amber-500" />
+          <div className="bp-card overflow-hidden">
+            <div className="h-1 w-full bg-gradient-to-r from-[#087f8c] via-[#0e9ba5] to-[#d9a441]" />
             <div className="p-5 space-y-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 font-mono text-xs font-semibold text-indigo-700 border border-indigo-100">
+                    <span className="inline-flex items-center rounded-md bg-[#e8f5f5] px-2 py-0.5 font-mono text-xs font-semibold text-[#087f8c] border border-[#d8ebec]">
                       Area #{detailVenture.number}
                     </span>
                     <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
@@ -406,14 +406,14 @@ export function ProjectAreaCatalog({
                     <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200">
                       {detailVenture.capitalTier} Capital Tier
                     </span>
-                    <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 capitalize">
+                    <span className="inline-flex items-center rounded-md bg-sky-50 px-2 py-0.5 text-xs font-semibold text-sky-700 capitalize">
                       {detailVenture.archetype.replace("_", " ")} Model
                     </span>
                   </div>
                   <h2 className="text-lg font-semibold text-slate-900 tracking-tight pt-1">
                     {detailVenture.title}
                   </h2>
-                  <p className="text-xs font-medium text-indigo-600">
+                  <p className="text-xs font-medium text-[#087f8c]">
                     default brand: {detailVenture.defaultSpecs.businessName} — &ldquo;{detailVenture.tagline}&rdquo;
                   </p>
                 </div>

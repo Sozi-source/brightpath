@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/(auth)/actions";
+import { BrandIcon, type BrandIconName } from "@/components/ui/BrandIcon";
 import {
   LayoutGrid,
   Home,
@@ -18,7 +19,6 @@ import {
   LogOut,
   ChevronRight,
   ShoppingBag,
-  Briefcase,
 } from "lucide-react";
 
 interface AppShellProps {
@@ -51,15 +51,15 @@ export function AppShell({
   const isRoleAdmin = profile?.role === "admin";
   const isRoleSupervisor = profile?.role === "supervisor" || isRoleAdmin;
 
-  const navItems = [
-    { label: "Home", href: "/", icon: Home },
-    { label: "Project Studio", href: "/studio", icon: Layers },
-    { label: "Projects Marketplace", href: "/projects", icon: ShoppingBag },
-    { label: "Digital Library", href: "/library", icon: Library },
+  const navItems: { label: string; href: string; icon: React.ComponentType<{ className?: string }>; brandIcon: BrandIconName }[] = [
+    { label: "Home", href: "/", icon: Home, brandIcon: "dashboard" },
+    { label: "Project Studio", href: "/studio", icon: Layers, brandIcon: "projects" },
+    { label: "Projects Marketplace", href: "/projects", icon: ShoppingBag, brandIcon: "marketplace" },
+    { label: "Digital Library", href: "/library", icon: Library, brandIcon: "library" },
   ];
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb] text-slate-800 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#f5f7fa] text-slate-800 flex flex-col font-sans">
       {/* 1. Global Institutional Top Bar (KEC White Bar with App Launcher) */}
       <header className="h-16 bg-white border-b border-slate-200 sticky top-0 z-40 px-4 sm:px-6 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-3 sm:gap-4">
@@ -78,10 +78,10 @@ export function AppShell({
             <button
               type="button"
               onClick={() => setAppLauncherOpen(!appLauncherOpen)}
-              className="p-2 rounded-lg text-slate-700 hover:bg-slate-100 hover:text-blue-700 transition-colors flex items-center justify-center cursor-pointer"
+              className="p-2 rounded-lg text-slate-700 hover:bg-slate-100 hover:text-[#087f8c] transition-colors flex items-center justify-center cursor-pointer"
               title="BrightPath TVET Application Suite"
             >
-              <LayoutGrid className="h-5 w-5 text-blue-900" />
+              <LayoutGrid className="h-5 w-5 text-[#13243a]" />
             </button>
 
             {/* App Matrix Dropdown */}
@@ -96,10 +96,10 @@ export function AppShell({
                 <div className="grid grid-cols-2 gap-2 pt-1">
                   <Link
                     href="/studio"
-                    className="p-2.5 rounded-lg hover:bg-blue-50 border border-transparent hover:border-blue-100 flex flex-col items-center text-center gap-1.5 transition-colors"
+                    className="p-2.5 rounded-lg hover:bg-teal-50 border border-transparent hover:border-teal-100 flex flex-col items-center text-center gap-1.5 transition-colors"
                   >
-                    <div className="p-2 bg-blue-100 text-blue-700 rounded-lg">
-                      <Layers className="h-4 w-4" />
+                    <div className="p-2 bg-teal-50 text-teal-700 rounded-lg">
+                      <BrandIcon name="projects" size="xs" />
                     </div>
                     <span className="text-xs font-bold text-slate-800">Project Studio</span>
                   </Link>
@@ -108,16 +108,25 @@ export function AppShell({
                     className="p-2.5 rounded-lg hover:bg-emerald-50 border border-transparent hover:border-emerald-100 flex flex-col items-center text-center gap-1.5 transition-colors"
                   >
                     <div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg">
-                      <ShoppingBag className="h-4 w-4" />
+                      <BrandIcon name="marketplace" size="xs" />
                     </div>
                     <span className="text-xs font-bold text-slate-800">Marketplace</span>
+                  </Link>
+                  <Link
+                    href="/library"
+                    className="p-2.5 rounded-lg hover:bg-sky-50 border border-transparent hover:border-sky-100 flex flex-col items-center text-center gap-1.5 transition-colors"
+                  >
+                    <div className="p-2 bg-sky-100 text-sky-700 rounded-lg">
+                      <BrandIcon name="library" size="xs" />
+                    </div>
+                    <span className="text-xs font-bold text-slate-800">Digital Library</span>
                   </Link>
                   {isRoleSupervisor && <Link
                     href="/supervisor"
                     className="p-2.5 rounded-lg hover:bg-amber-50 border border-transparent hover:border-amber-100 flex flex-col items-center text-center gap-1.5 transition-colors"
                   >
                     <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
-                      <ShieldCheck className="h-4 w-4" />
+                      <BrandIcon name="supervisor" size="xs" />
                     </div>
                     <span className="text-xs font-bold text-slate-800">Supervisor</span>
                   </Link>}
@@ -128,14 +137,14 @@ export function AppShell({
 
           {/* Official Portal Branding */}
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
+            <div className="h-9 w-9 rounded-xl bg-[#087f8c] flex items-center justify-center text-white font-bold text-sm shadow-xs">
               <span className="text-amber-300">B</span>P
             </div>
             <div className="flex flex-col">
               <span className="font-semibold text-base sm:text-lg text-slate-900 tracking-tight leading-none">
                 BrightPath
               </span>
-              <span className="text-[10px] font-medium text-indigo-600 uppercase tracking-wider">
+              <span className="text-[10px] font-medium text-[#087f8c] uppercase tracking-wider">
                 TVET Project Studio
               </span>
             </div>
@@ -144,8 +153,8 @@ export function AppShell({
 
         {/* Top Right User & Examination Series Context */}
         <div className="flex items-center gap-3 sm:gap-4">
-          <div className="hidden lg:flex items-center gap-2 bg-[#e8f1f8] px-3 py-1 rounded-md border border-blue-200 text-xs font-semibold text-blue-900">
-            <Calendar className="h-3.5 w-3.5 text-blue-700" />
+          <div className="hidden lg:flex items-center gap-2 bg-[#e8f5f5] px-3 py-1 rounded-md border border-[#d8ebec] text-xs font-semibold text-[#13243a]">
+            <Calendar className="h-3.5 w-3.5 text-[#087f8c]" />
             <span>KNEC 2026 Academic Series</span>
           </div>
 
@@ -173,7 +182,7 @@ export function AppShell({
           ) : (
             <Link
               href="/login"
-              className="text-xs font-bold px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white transition-colors"
+              className="text-xs font-bold px-4 py-2 rounded-lg bg-[#087f8c] hover:bg-[#086b76] text-white transition-colors"
             >
               Sign In
             </Link>
@@ -188,13 +197,13 @@ export function AppShell({
         <aside
           className={`fixed inset-y-0 left-0 top-16 z-30 w-64 bg-white border-r border-slate-200/80 text-slate-800 flex flex-col justify-between transition-transform duration-200 ease-in-out md:sticky md:top-16 md:h-[calc(100vh-4rem)] md:shrink-0 md:self-start md:translate-x-0 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } shadow-md md:shadow-none`}
+          } shadow-xl md:shadow-none`}
         >
           <div className="flex-1 overflow-y-auto py-4 space-y-5">
             {/* Top Active Course/Workspace Context Anchor */}
             <div className="px-3">
-              <div className="bg-indigo-50/70 border border-indigo-100 rounded-xl p-3 space-y-1">
-                <div className="flex items-center gap-2 text-indigo-700 text-xs font-semibold">
+              <div className="bg-[#e8f5f5] border border-[#d8ebec] rounded-xl p-3 space-y-1">
+                <div className="flex items-center gap-2 text-[#087f8c] text-xs font-semibold">
                   <GraduationCap className="h-4 w-4" />
                   <span className="uppercase tracking-wider text-[10px]">Active Track</span>
                 </div>
@@ -217,9 +226,9 @@ export function AppShell({
                     key={item.label}
                     href={item.href}
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all ${
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all ${
                       isActive
-                        ? "bg-indigo-600 text-white shadow-xs font-semibold"
+                        ? "bg-[#087f8c] text-white shadow-xs font-semibold"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     }`}
                   >
@@ -240,14 +249,14 @@ export function AppShell({
                     href={category.href}
                     onClick={() => setSidebarOpen(false)}
                     aria-current={category.active ? "page" : undefined}
-                    className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs transition-colors ${
+                    className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-xs transition-colors ${
                       category.active
-                        ? "bg-indigo-600 font-semibold text-white shadow-xs"
+                        ? "bg-[#087f8c] font-semibold text-white shadow-xs"
                         : "font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     }`}
                   >
                     <span>{category.label}</span>
-                    <span className={category.active ? "text-indigo-100" : "text-slate-500"}>{category.count}</span>
+                    <span className={category.active ? "text-teal-100" : "text-slate-500"}>{category.count}</span>
                   </Link>
                 ))}
               </nav>
@@ -264,9 +273,9 @@ export function AppShell({
                   <Link
                     href="/supervisor"
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-colors ${
+                    className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-colors ${
                       pathname.startsWith("/supervisor")
-                        ? "bg-indigo-600 text-white shadow-xs font-semibold"
+                        ? "bg-[#087f8c] text-white shadow-xs font-semibold"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     }`}
                   >
@@ -282,9 +291,9 @@ export function AppShell({
                   <Link
                     href="/admin"
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-colors ${
+                    className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-colors ${
                       pathname === "/admin"
-                        ? "bg-indigo-600 text-white shadow-xs font-semibold"
+                        ? "bg-[#087f8c] text-white shadow-xs font-semibold"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     }`}
                   >

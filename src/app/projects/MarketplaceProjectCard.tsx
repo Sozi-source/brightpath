@@ -1,9 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
-import { BookOpen, Download, Eye, Star } from "lucide-react";
+import { Download, Eye, Star } from "lucide-react";
 import type { Project } from "@/types/database";
 import { getMaterialTypeLabel } from "@/lib/marketplace";
 import { BuyButton } from "@/components/BuyButton";
+import { BrandIcon } from "@/components/ui/BrandIcon";
 
 export function MarketplaceProjectCard({
   project,
@@ -19,19 +20,21 @@ export function MarketplaceProjectCard({
 
   return (
     <article className="group w-[168px] shrink-0">
-      <Link href={`/projects/${project.id}`} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600" aria-label={`View ${project.title}`}>
-        <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-slate-200 bg-gradient-to-br from-blue-50 via-white to-amber-50 shadow-xs transition group-hover:-translate-y-0.5 group-hover:shadow-md">
+      <Link href={`/projects/${project.id}`} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#087f8c]" aria-label={`View ${project.title}`}>
+        <div className="relative aspect-[3/4] overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-[#e8f5f5] via-white to-amber-50/70 shadow-xs transition group-hover:-translate-y-0.5 group-hover:shadow-md">
           {project.cover_path ? (
             <Image src={`/api/projects/${project.id}/cover`} alt={`${project.title} cover`} fill unoptimized sizes="168px" className="object-cover" />
           ) : (
-            <div className="flex h-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-blue-50 via-white to-amber-50 p-4 text-center text-blue-800">
-              <BookOpen className="h-9 w-9" />
-              <span className="text-[10px] font-semibold uppercase tracking-wide">{getMaterialTypeLabel(project.material_type)}</span>
+            <div className="flex h-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-[#e8f5f5] via-white to-amber-50/70 p-4 text-center text-[#13243a]">
+              <span className="bp-icon-tile h-12 w-12">
+                <BrandIcon name="document" size="md" />
+              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-[#087f8c]">{getMaterialTypeLabel(project.material_type)}</span>
             </div>
           )}
-          {project.preview_path && <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-md bg-white/95 px-2 py-1 text-[10px] font-semibold text-blue-800 shadow-xs"><Eye className="h-3 w-3" />Preview</span>}
+          {project.preview_path && <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-md bg-white/95 px-2 py-1 text-[10px] font-semibold text-[#087f8c] shadow-xs"><Eye className="h-3 w-3" />Preview</span>}
         </div>
-        <h2 className="mt-2 line-clamp-2 min-h-9 text-xs font-semibold leading-4 text-slate-900 group-hover:text-indigo-700">{project.title}</h2>
+        <h2 className="mt-2 line-clamp-2 min-h-9 text-xs font-semibold leading-4 text-slate-900 group-hover:text-[#087f8c]">{project.title}</h2>
       </Link>
       <p className="mt-0.5 truncate text-[11px] text-slate-600">{project.category || getMaterialTypeLabel(project.material_type)}</p>
       <div className="mt-1 flex items-center justify-between gap-2 text-[10px] text-slate-600">
@@ -39,7 +42,7 @@ export function MarketplaceProjectCard({
         <span className="inline-flex items-center gap-1"><Download className="h-3 w-3" />{Number(project.download_count || 0).toLocaleString()}</span>
       </div>
       <div className="mt-2 flex items-center justify-between gap-1">
-        <span className="font-mono text-xs font-semibold text-indigo-700">KES {Number(project.price_kes).toLocaleString()}</span>
+        <span className="font-mono text-xs font-semibold text-[#087f8c]">KES {Number(project.price_kes).toLocaleString()}</span>
         <BuyButton projectId={project.id} isOwner={viewerId === project.trainer_id} />
       </div>
     </article>

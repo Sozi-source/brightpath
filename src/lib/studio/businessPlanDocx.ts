@@ -8,6 +8,13 @@ export interface BusinessPlanDocxSection {
   content: string;
 }
 
+export interface TocComputedEntry {
+  title: string;
+  level: 0 | 1 | 2;
+  bookmarkName: string;
+  pageLabel: string;
+}
+
 function sectionGroup(title: string): string {
   const number = title.match(/^\s*(\d+)\./)?.[1];
   if (number) return `ch${number}`;
@@ -54,6 +61,27 @@ function chapterHeading(group: string): string | null {
     ch5: "CHAPTER FIVE: FINANCIAL PLAN",
   };
   return labels[group] || null;
+}
+
+export function toRomanLower(num: number): string {
+  const pairs: Array<[number, string]> = [
+    [50, "l"],
+    [40, "xl"],
+    [10, "x"],
+    [9, "ix"],
+    [5, "v"],
+    [4, "iv"],
+    [1, "i"],
+  ];
+  let n = Math.max(1, Math.floor(num));
+  let out = "";
+  for (const [val, sym] of pairs) {
+    while (n >= val) {
+      out += sym;
+      n -= val;
+    }
+  }
+  return out;
 }
 
 function xml(value: string): string {
@@ -132,11 +160,18 @@ function inlineRuns(
     .join("");
 }
 
+function wrapBookmark(innerRunsXml: string, bookmarkId?: number, bookmarkName?: string): string {
+  if (!bookmarkId || !bookmarkName) return innerRunsXml;
+  return `<w:bookmarkStart w:id="${bookmarkId}" w:name="${bookmarkName}"/>${innerRunsXml}<w:bookmarkEnd w:id="${bookmarkId}"/>`;
+}
+
 function paragraph(
   text: string,
   style = "Normal",
   extraPPr = "",
-  baseOpts: RunStyleOptions = {}
+  baseOpts: RunStyleOptions = {},
+  bookmarkId?: number,
+  bookmarkName?: string
 ): string {
   const isHeading = style !== "Normal";
   const align = isHeading ? "" : '<w:jc w:val="both"/>';
@@ -148,9 +183,11 @@ function paragraph(
         : style === "Heading3"
           ? '<w:spacing w:before="160" w:after="80" w:line="360" w:lineRule="auto"/>'
           : '<w:spacing w:after="120" w:line="360" w:lineRule="auto"/>';
-  return `<w:p><w:pPr><w:pStyle w:val="${style}"/>${align}${spacing}${extraPPr}</w:pPr>${inlineRuns(
-    text,
-    { ...baseOpts, bold: baseOpts.bold ?? isHeading }
+  const inner = inlineRuns(text, { ...baseOpts, bold: baseOpts.bold ?? isHeading });
+  return `<w:p><w:pPr><w:pStyle w:val="${style}"/>${align}${spacing}${extraPPr}</w:pPr>${wrapBookmark(
+    inner,
+    bookmarkId,
+    bookmarkName
   )}</w:p>`;
 }
 
@@ -158,11 +195,15 @@ function centeredParagraph(
   text: string,
   style = "Normal",
   opts: RunStyleOptions = {},
-  spacingXml = '<w:spacing w:after="120" w:line="360" w:lineRule="auto"/>'
+  spacingXml = '<w:spacing w:after="120" w:line="360" w:lineRule="auto"/>',
+  bookmarkId?: number,
+  bookmarkName?: string
 ): string {
-  return `<w:p><w:pPr><w:pStyle w:val="${style}"/><w:jc w:val="center"/>${spacingXml}</w:pPr>${inlineRuns(
-    text,
-    { ...opts, bold: opts.bold ?? style !== "Normal" }
+  const inner = inlineRuns(text, { ...opts, bold: opts.bold ?? style !== "Normal" });
+  return `<w:p><w:pPr><w:pStyle w:val="${style}"/><w:jc w:val="center"/>${spacingXml}</w:pPr>${wrapBookmark(
+    inner,
+    bookmarkId,
+    bookmarkName
   )}</w:p>`;
 }
 
@@ -201,68 +242,48 @@ function brandMarkCard(initials: string, accent: string, sector?: string | null)
   }</w:tc></w:tr></w:tbl>`;
 }
 
-function cachedContentsText(sections: BusinessPlanDocxSection[]): Array<{ text: string; level: number }> {
-  const sectionKey = (value: string) =>
-    value.replace(/^\s*\d+(?:\.\d+)*\s*/, "").trim().toLowerCase();
-  const sectionHeadings = (section: BusinessPlanDocxSection) => {
-    const cleanContent = removeDuplicateLeadHeading(section.content, section.title);
-    return Array.from(cleanContent.matchAll(/^#{2,6}\s+(.+)$/gm), (match) =>
-      stripMarkdownMarkers(match[1].trim())
-    )
-      .filter((heading) => sectionKey(heading) !== sectionKey(section.title))
-      .map((heading) => ({ text: heading, level: 2 }));
-  };
-  const entries: Array<{ text: string; level: number }> = [
-    ...["dedication", "declaration", "acknowledgements"].flatMap((group) =>
-      sections
-        .filter((section) => sectionGroup(section.title) === group)
-        .map((section) => ({ text: section.title, level: 0 }))
-    ),
-    { text: "Abbreviations and Acronyms", level: 0 },
-    { text: "Table of Contents", level: 0 },
-    ...sections
-      .filter((section) => sectionGroup(section.title) === "executive")
-      .map((section) => ({ text: section.title, level: 0 })),
-  ];
-  for (const group of ["ch1", "ch2", "ch3", "ch4", "ch5"]) {
-    const chapter = sections.filter((section) => sectionGroup(section.title) === group);
-    if (!chapter.length) continue;
-    entries.push({ text: chapterHeading(group) || chapter[0].title, level: 0 });
-    for (const section of chapter) {
-      entries.push({ text: section.title, level: 1 });
-      entries.push(...sectionHeadings(section));
-    }
-  }
-  entries.push(
-    ...sections
-      .filter((section) => ["references", "appendices"].includes(sectionGroup(section.title)))
-      .map((section) => ({ text: section.title, level: 0 }))
-  );
-  return entries;
-}
-
-function tableOfContentsField(sections: BusinessPlanDocxSection[]): string {
-  const entries = cachedContentsText(sections);
-  const tocParagraphs = entries
+/**
+ * Renders the Table of Contents with dot-leader tab stops (........), clickable internal
+ * bookmark links, live PAGEREF fields, and pre-computed Roman/Arabic page numbers.
+ */
+function renderTableOfContentsField(entries: TocComputedEntry[]): string {
+  return entries
     .map((entry, index) => {
-      const leftIndent = entry.level === 0 ? 0 : entry.level === 1 ? 360 : 720;
+      const leftIndent = entry.level === 0 ? 0 : entry.level === 1 ? 320 : 640;
       const isTop = entry.level === 0;
-      const fldBegin =
+      const isSub = entry.level === 2;
+      const fontSize = isSub ? 20 : isTop ? 23 : 22;
+      const textColor = isTop ? "0F172A" : isSub ? "334155" : "1E293B";
+
+      const tocOpen =
         index === 0
           ? `<w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> TOC \\o &quot;1-3&quot; \\h \\z \\u </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r>`
           : "";
-      const fldEnd =
+      const tocClose =
         index === entries.length - 1 ? `<w:r><w:fldChar w:fldCharType="end"/></w:r>` : "";
-      return `<w:p><w:pPr><w:ind w:left="${leftIndent}"/><w:spacing w:before="${
-        isTop ? "80" : "20"
-      }" w:after="40" w:line="300" w:lineRule="auto"/></w:pPr>${fldBegin}${run(entry.text, {
+
+      const titleRun = run(entry.title, {
         bold: isTop,
-        sizeHalfPt: entry.level === 2 ? 21 : 23,
-        color: isTop ? "0F172A" : "1E293B",
-      })}${fldEnd}</w:p>`;
+        sizeHalfPt: fontSize,
+        color: textColor,
+      });
+      const tabRun = `<w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="${fontSize}"/><w:color w:val="64748B"/></w:rPr><w:tab/></w:r>`;
+      const pageRefRuns = `<w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> PAGEREF ${entry.bookmarkName} \\h </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r>${run(
+        entry.pageLabel,
+        {
+          bold: isTop,
+          sizeHalfPt: fontSize,
+          color: textColor,
+        }
+      )}<w:r><w:fldChar w:fldCharType="end"/></w:r>`;
+
+      return `<w:p><w:pPr><w:tabs><w:tab w:val="right" w:leader="dot" w:pos="9360"/></w:tabs><w:ind w:left="${leftIndent}"/><w:spacing w:before="${
+        isTop ? "100" : "20"
+      }" w:after="40" w:line="280" w:lineRule="auto"/></w:pPr>${tocOpen}<w:hyperlink w:anchor="${
+        entry.bookmarkName
+      }" w:history="1">${titleRun}${tabRun}${pageRefRuns}</w:hyperlink>${tocClose}</w:p>`;
     })
     .join("");
-  return tocParagraphs;
 }
 
 function isNumericOrCurrencyCell(value: string): boolean {
@@ -384,12 +405,6 @@ function table(rows: string[][]): string {
   return `<w:tbl><w:tblPr><w:tblW w:w="9360" w:type="dxa"/><w:jc w:val="center"/><w:tblLayout w:type="fixed"/>${borders}</w:tblPr><w:tblGrid>${grid}</w:tblGrid>${body}</w:tbl><w:p><w:pPr><w:spacing w:after="80"/></w:pPr></w:p>`;
 }
 
-/**
- * Renders a true hierarchical Organogram / Channel Tree in WordprocessingML:
- * - Centered Top Executive Card with navy top stripe and role badge
- * - Vertical stem + horizontal branching connector crossbar + downward arrows (▼)
- * - Standalone bordered Direct-Report Cards separated by white-space spacer columns
- */
 function renderOrgDiagram(lines: string[], mode = "org"): string {
   const cleaned = cleanDiagramLines(lines);
   const { manager, reports } =
@@ -400,7 +415,6 @@ function renderOrgDiagram(lines: string[], mode = "org"): string {
   const rootBadge =
     mode === "channels" ? "PRIMARY DISTRIBUTION HUB" : "EXECUTIVE & TECHNICAL LEADERSHIP";
 
-  // 1. Top Executive / Root Card (centered, 5600 dxa wide)
   const rootTable = `<w:tbl><w:tblPr><w:tblW w:w="5600" w:type="dxa"/><w:jc w:val="center"/><w:tblLayout w:type="fixed"/><w:tblBorders><w:top w:val="single" w:sz="18" w:color="1E40AF"/><w:left w:val="single" w:sz="8" w:color="1E3A8A"/><w:bottom w:val="single" w:sz="8" w:color="1E3A8A"/><w:right w:val="single" w:sz="8" w:color="1E3A8A"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="5600"/></w:tblGrid><w:tr><w:trPr><w:cantSplit/></w:trPr><w:tc><w:tcPr><w:tcW w:w="5600" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="EEF2FF"/><w:tcMar><w:top w:w="120" w:type="dxa"/><w:bottom w:w="120" w:type="dxa"/><w:left w:w="180" w:type="dxa"/><w:right w:w="180" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p><w:pPr><w:jc w:val="center"/><w:spacing w:before="0" w:after="30" w:line="240" w:lineRule="auto"/></w:pPr>${run(
     rootBadge,
     { bold: true, sizeHalfPt: 17, color: "1E40AF" }
@@ -411,13 +425,11 @@ function renderOrgDiagram(lines: string[], mode = "org"): string {
 
   if (branches.length === 0) return rootTable;
 
-  // 2. Vertical Stem Paragraph connecting Root Card to Branch Crossbar
   const stemParagraph = `<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:before="0" w:after="0" w:line="220" w:lineRule="exact"/></w:pPr>${run(
     "│",
     { bold: true, sizeHalfPt: 22, color: "334155" }
   )}</w:p>`;
 
-  // 3. Multi-Branch Cards Table with Spacer Columns (9360 dxa total width)
   const n = branches.length;
   const spacerWidth = n > 1 ? 280 : 0;
   const cardWidth = Math.floor((9360 - spacerWidth * (n - 1)) / n);
@@ -428,7 +440,6 @@ function renderOrgDiagram(lines: string[], mode = "org"): string {
   }
   const grid = colWidths.map((w) => `<w:gridCol w:w="${w}"/>`).join("");
 
-  // Connector row with horizontal top tree line + downward arrow ▼ over each card
   const connectorCells = colWidths
     .map((w, colIdx) => {
       const isCardCol = colIdx % 2 === 0;
@@ -444,7 +455,6 @@ function renderOrgDiagram(lines: string[], mode = "org"): string {
     })
     .join("");
 
-  // Subordinate card cells separated by unbordered spacer cells
   const branchCells = colWidths
     .map((w, colIdx) => {
       if (colIdx % 2 === 1) {
@@ -564,10 +574,76 @@ function diagram(lines: string[], mode = "flow"): string {
   return renderFlowDiagram(lines);
 }
 
-function markdownToWord(content: string, allocateOrderedListNumId: () => number): string {
+const PAGE_CAPACITY_DXA = 13600;
+
+interface PageLayoutTracker {
+  isMainBody: boolean;
+  prelimPage: number;
+  mainPage: number;
+  usedDxa: number;
+  nextBookmarkId: number;
+  tocEntries: TocComputedEntry[];
+}
+
+function currentLabel(tracker: PageLayoutTracker): string {
+  return tracker.isMainBody ? String(tracker.mainPage) : toRomanLower(tracker.prelimPage);
+}
+
+function forceNewPage(tracker: PageLayoutTracker): void {
+  if (tracker.isMainBody) {
+    tracker.mainPage += 1;
+  } else {
+    tracker.prelimPage += 1;
+  }
+  tracker.usedDxa = 0;
+}
+
+function consumeHeight(tracker: PageLayoutTracker, heightDxa: number, keepWithNext = false): void {
+  const threshold = keepWithNext ? PAGE_CAPACITY_DXA - 1200 : PAGE_CAPACITY_DXA;
+  if (tracker.usedDxa + heightDxa > threshold && tracker.usedDxa > 0) {
+    forceNewPage(tracker);
+  }
+  tracker.usedDxa += heightDxa;
+  while (tracker.usedDxa >= PAGE_CAPACITY_DXA) {
+    tracker.usedDxa -= PAGE_CAPACITY_DXA;
+    if (tracker.isMainBody) {
+      tracker.mainPage += 1;
+    } else {
+      tracker.prelimPage += 1;
+    }
+  }
+}
+
+function registerHeadingBookmark(
+  tracker: PageLayoutTracker,
+  title: string,
+  level: 0 | 1 | 2,
+  estimatedHeadingDxa = 560
+): { id: number; name: string } {
+  consumeHeight(tracker, estimatedHeadingDxa, true);
+  const id = tracker.nextBookmarkId++;
+  const name = `_TocBP_${id}`;
+  tracker.tocEntries.push({
+    title: stripMarkdownMarkers(title).trim(),
+    level,
+    bookmarkName: name,
+    pageLabel: currentLabel(tracker),
+  });
+  return { id, name };
+}
+
+function markdownToWord(
+  content: string,
+  sectionTitle: string,
+  includeSubheadingsInToc: boolean,
+  tracker: PageLayoutTracker,
+  allocateOrderedListNumId: () => number
+): string {
   const lines = content.replace(/\r/g, "").split("\n");
   const output: string[] = [];
   let activeOrderedNumId: number | null = null;
+  const titleKey = (value: string) =>
+    stripMarkdownMarkers(value).replace(/^\s*\d+(?:\.\d+)*\s*/, "").trim().toLowerCase();
 
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index].trim();
@@ -588,6 +664,13 @@ function markdownToWord(content: string, allocateOrderedListNumId: () => number)
       while (index < lines.length && !lines[index].trim().startsWith("```")) {
         diagramLines.push(lines[index++]);
       }
+      const dHeight =
+        diagramType === "org" || diagramType === "channels"
+          ? 2400
+          : diagramType === "layout"
+            ? Math.ceil(diagramLines.length / 2) * 860 + 200
+            : diagramLines.length * 620 + 200;
+      consumeHeight(tracker, dHeight);
       output.push(diagram(diagramLines, diagramType));
       continue;
     }
@@ -610,7 +693,24 @@ function markdownToWord(content: string, allocateOrderedListNumId: () => number)
         index += 1;
       }
       index -= 1;
-      if (rows.length) output.push(table(rows));
+      if (rows.length) {
+        const tableHeight = rows.reduce((sum, r, rIdx) => {
+          if (rIdx === 0) return sum + 480;
+          const maxLines = Math.max(
+            1,
+            ...r.map((cellText) => {
+              const subLines = cellText.split(/<br\s*\/?>/i);
+              return subLines.reduce(
+                (acc, l) => acc + Math.max(1, Math.ceil(stripMarkdownMarkers(l).length / 28)),
+                0
+              );
+            })
+          );
+          return sum + maxLines * 290 + 180;
+        }, 160);
+        consumeHeight(tracker, tableHeight);
+        output.push(table(rows));
+      }
       continue;
     }
 
@@ -619,7 +719,14 @@ function markdownToWord(content: string, allocateOrderedListNumId: () => number)
       activeOrderedNumId = null;
       const level = heading[1].length;
       const style = level <= 2 ? "Heading1" : level === 3 ? "Heading2" : "Heading3";
-      output.push(paragraph(heading[2].replace(/<br\s*\/?>/gi, " "), style));
+      const cleanHeadingText = heading[2].replace(/<br\s*\/?>/gi, " ").trim();
+      if (includeSubheadingsInToc && titleKey(cleanHeadingText) !== titleKey(sectionTitle)) {
+        const bm = registerHeadingBookmark(tracker, cleanHeadingText, 2, 480);
+        output.push(paragraph(cleanHeadingText, style, "", {}, bm.id, bm.name));
+      } else {
+        consumeHeight(tracker, 480, true);
+        output.push(paragraph(cleanHeadingText, style));
+      }
       continue;
     }
 
@@ -627,7 +734,11 @@ function markdownToWord(content: string, allocateOrderedListNumId: () => number)
     if (bullet) {
       activeOrderedNumId = null;
       for (const part of bullet[1].split(/<br\s*\/?>/gi)) {
-        if (part.trim()) output.push(listItemParagraph(part.trim(), 1));
+        if (part.trim()) {
+          const wrappedLines = Math.max(1, Math.ceil(stripMarkdownMarkers(part.trim()).length / 76));
+          consumeHeight(tracker, wrappedLines * 340 + 100);
+          output.push(listItemParagraph(part.trim(), 1));
+        }
       }
       continue;
     }
@@ -637,15 +748,20 @@ function markdownToWord(content: string, allocateOrderedListNumId: () => number)
       if (activeOrderedNumId === null) {
         activeOrderedNumId = allocateOrderedListNumId();
       }
-      output.push(
-        listItemParagraph(numbered[1].replace(/<br\s*\/?>/gi, " ").trim(), activeOrderedNumId)
-      );
+      const itemText = numbered[1].replace(/<br\s*\/?>/gi, " ").trim();
+      const wrappedLines = Math.max(1, Math.ceil(stripMarkdownMarkers(itemText).length / 76));
+      consumeHeight(tracker, wrappedLines * 340 + 100);
+      output.push(listItemParagraph(itemText, activeOrderedNumId));
       continue;
     }
 
     activeOrderedNumId = null;
     for (const part of line.split(/<br\s*\/?>/gi)) {
-      if (part.trim()) output.push(paragraph(part.trim()));
+      if (part.trim()) {
+        const wrappedLines = Math.max(1, Math.ceil(stripMarkdownMarkers(part.trim()).length / 82));
+        consumeHeight(tracker, wrappedLines * 360 + 120);
+        output.push(paragraph(part.trim()));
+      }
     }
   }
   return output.join("");
@@ -679,6 +795,75 @@ function buildNumberingXml(maxOrderedNumId: number): string {
   )}</w:numbering>`;
 }
 
+export function computeBusinessPlanTocEntries(
+  rawSections: BusinessPlanDocxSection[]
+): TocComputedEntry[] {
+  const sections = orderSections(rawSections);
+  const tracker: PageLayoutTracker = {
+    isMainBody: false,
+    prelimPage: 1,
+    mainPage: 1,
+    usedDxa: 0,
+    nextBookmarkId: 1,
+    tocEntries: [],
+  };
+  let nextOrdered = 1;
+  const allocate = () => ++nextOrdered;
+  let previousGroup = "";
+  let hasAbbreviationsPage = false;
+  let hasContentsPage = false;
+  let hasMainSection = false;
+  let hasStartedPreliminaryContent = false;
+
+  for (const section of sections) {
+    const group = sectionGroup(section.title);
+    if (group === "executive" && !hasAbbreviationsPage) {
+      forceNewPage(tracker);
+      registerHeadingBookmark(tracker, "Abbreviations and Acronyms", 0, 600);
+      hasAbbreviationsPage = true;
+    }
+    if (group === "executive" && !hasContentsPage) {
+      forceNewPage(tracker);
+      registerHeadingBookmark(tracker, "Table of Contents", 0, 600);
+      // TOC spans ~2 pages (v - vi)
+      tracker.prelimPage += 1;
+      hasContentsPage = true;
+    }
+    if (group === "ch1" && !hasMainSection) {
+      tracker.isMainBody = true;
+      tracker.mainPage = 1;
+      tracker.usedDxa = 0;
+      hasMainSection = true;
+    } else if (
+      (["dedication", "declaration", "acknowledgements"].includes(group) &&
+        hasStartedPreliminaryContent) ||
+      ["references", "appendices"].includes(group) ||
+      (group.startsWith("ch") && group !== previousGroup) ||
+      (group === "executive" && previousGroup !== "contents")
+    ) {
+      forceNewPage(tracker);
+    }
+    if (group.startsWith("ch") && group !== previousGroup) {
+      registerHeadingBookmark(tracker, chapterHeading(group) || section.title.toUpperCase(), 0, 720);
+    }
+    const level: 0 | 1 = group.startsWith("ch") ? 1 : 0;
+    registerHeadingBookmark(tracker, section.title, level, 580);
+    markdownToWord(
+      removeDuplicateLeadHeading(section.content, section.title),
+      section.title,
+      group.startsWith("ch"),
+      tracker,
+      allocate
+    );
+    if (["dedication", "declaration", "acknowledgements"].includes(group)) {
+      hasStartedPreliminaryContent = true;
+    }
+    previousGroup = group;
+  }
+
+  return tracker.tocEntries;
+}
+
 export function createBusinessPlanDocx(params: {
   title: string;
   candidate?: string;
@@ -699,16 +884,25 @@ export function createBusinessPlanDocx(params: {
     industry: params.industrySector,
     product: params.primaryProduct,
   });
-  const awardCourse = /^(?:certificate|diploma|craft|higher\s+diploma)\b/i.test(
-    params.course.trim()
-  )
-    ? params.course.trim()
-    : `${params.level} in ${params.course}`.trim();
+  const rawCourse = (params.course || "Human Nutrition and Dietetics").trim();
+  const rawLevel = (params.level || "Diploma").trim();
+  const awardCourse = /^(?:certificate|diploma|craft|higher\s+diploma)\b/i.test(rawCourse)
+    ? rawCourse
+    : `${rawLevel} in ${rawCourse}`.trim();
 
   let nextOrderedNumId = 1;
   const allocateOrderedListNumId = () => {
     nextOrderedNumId += 1;
     return nextOrderedNumId;
+  };
+
+  const tracker: PageLayoutTracker = {
+    isMainBody: false,
+    prelimPage: 1,
+    mainPage: 1,
+    usedDxa: 0,
+    nextBookmarkId: 1,
+    tocEntries: [],
   };
 
   const content: string[] = [
@@ -789,6 +983,7 @@ export function createBusinessPlanDocx(params: {
     sectionBreak(),
   ];
 
+  let tocPlaceholderIndex = -1;
   let previousGroup = "";
   let hasAbbreviationsPage = false;
   let hasContentsPage = false;
@@ -798,10 +993,19 @@ export function createBusinessPlanDocx(params: {
   for (const section of sections) {
     const group = sectionGroup(section.title);
     if (group === "executive" && !hasAbbreviationsPage) {
+      forceNewPage(tracker);
+      const abbrBm = registerHeadingBookmark(tracker, "Abbreviations and Acronyms", 0, 600);
       const rows = getVerifiedBusinessPlanAbbreviations(sections);
       content.push(
         `<w:p><w:pPr><w:pageBreakBefore w:val="true"/></w:pPr>${run("")}</w:p>`,
-        centeredParagraph("ABBREVIATIONS AND ACRONYMS", "Heading1"),
+        centeredParagraph(
+          "ABBREVIATIONS AND ACRONYMS",
+          "Heading1",
+          {},
+          '<w:spacing w:after="120" w:line="360" w:lineRule="auto"/>',
+          abbrBm.id,
+          abbrBm.name
+        ),
         rows.length
           ? table([["Abbreviation", "Full Meaning"], ...rows.map(([abbr, meaning]) => [abbr, meaning])])
           : paragraph("No abbreviations or acronyms were identified in the supplied plan.")
@@ -809,15 +1013,30 @@ export function createBusinessPlanDocx(params: {
       hasAbbreviationsPage = true;
     }
     if (group === "executive" && !hasContentsPage) {
+      forceNewPage(tracker);
+      const tocBm = registerHeadingBookmark(tracker, "Table of Contents", 0, 600);
+      // TOC spans ~2 pages (v - vi)
+      tracker.prelimPage += 1;
       content.push(
         `<w:p><w:pPr><w:pageBreakBefore w:val="true"/></w:pPr>${run("")}</w:p>`,
-        centeredParagraph("TABLE OF CONTENTS", "Heading1"),
-        tableOfContentsField(sections)
+        centeredParagraph(
+          "TABLE OF CONTENTS",
+          "Heading1",
+          {},
+          '<w:spacing w:after="160" w:line="360" w:lineRule="auto"/>',
+          tocBm.id,
+          tocBm.name
+        )
       );
+      tocPlaceholderIndex = content.length;
+      content.push("");
       hasContentsPage = true;
     }
     if (group === "ch1" && !hasMainSection) {
       content.push(sectionBreak("lowerRoman", true));
+      tracker.isMainBody = true;
+      tracker.mainPage = 1;
+      tracker.usedDxa = 0;
       hasMainSection = true;
     } else if (
       (["dedication", "declaration", "acknowledgements"].includes(group) &&
@@ -827,29 +1046,53 @@ export function createBusinessPlanDocx(params: {
       (group === "executive" && previousGroup !== "contents")
     ) {
       content.push(`<w:p><w:pPr><w:pageBreakBefore w:val="true"/></w:pPr>${run("")}</w:p>`);
+      forceNewPage(tracker);
     }
     if (group.startsWith("ch") && group !== previousGroup) {
+      const chapTitle = chapterHeading(group) || section.title.toUpperCase();
+      const chapBm = registerHeadingBookmark(tracker, chapTitle, 0, 720);
       content.push(
         centeredParagraph(
-          chapterHeading(group) || section.title.toUpperCase(),
+          chapTitle,
           "Heading1",
           { bold: true, sizeHalfPt: 26, color: "0F172A" },
-          '<w:pBdr><w:bottom w:val="single" w:sz="12" w:space="6" w:color="1E40AF"/></w:pBdr><w:spacing w:before="120" w:after="240" w:line="360" w:lineRule="auto"/>'
+          '<w:pBdr><w:bottom w:val="single" w:sz="12" w:space="6" w:color="1E40AF"/></w:pBdr><w:spacing w:before="120" w:after="240" w:line="360" w:lineRule="auto"/>',
+          chapBm.id,
+          chapBm.name
         )
       );
     }
     const titleStyle = group.startsWith("ch") ? "Heading2" : "Heading1";
+    const secLevel: 0 | 1 = group.startsWith("ch") ? 1 : 0;
+    const secBm = registerHeadingBookmark(tracker, section.title, secLevel, 580);
     const headingParagraph = group.startsWith("ch")
-      ? paragraph(section.title, titleStyle)
-      : centeredParagraph(section.title.toUpperCase(), titleStyle);
+      ? paragraph(section.title, titleStyle, "", {}, secBm.id, secBm.name)
+      : centeredParagraph(
+          section.title.toUpperCase(),
+          titleStyle,
+          {},
+          '<w:spacing w:after="120" w:line="360" w:lineRule="auto"/>',
+          secBm.id,
+          secBm.name
+        );
     content.push(
       headingParagraph,
-      markdownToWord(removeDuplicateLeadHeading(section.content, section.title), allocateOrderedListNumId)
+      markdownToWord(
+        removeDuplicateLeadHeading(section.content, section.title),
+        section.title,
+        group.startsWith("ch"),
+        tracker,
+        allocateOrderedListNumId
+      )
     );
     if (["dedication", "declaration", "acknowledgements"].includes(group)) {
       hasStartedPreliminaryContent = true;
     }
     previousGroup = group;
+  }
+
+  if (tocPlaceholderIndex >= 0) {
+    content[tocPlaceholderIndex] = renderTableOfContentsField(tracker.tocEntries);
   }
 
   const zip = new PizZip();

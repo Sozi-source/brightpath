@@ -73,7 +73,7 @@ export default async function LibraryPage() {
       />
 
       {purchasedOrders.length === 0 ? (
-        <div className="text-center py-16 border border-dashed border-slate-200 rounded-xl bg-white shadow-xs">
+        <div className="text-center py-16 bp-card border-dashed">
           <Layers className="h-10 w-10 mx-auto text-slate-400 mb-3" />
           <h2 className="text-base font-semibold text-slate-900">No purchased projects yet</h2>
           <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
@@ -81,7 +81,7 @@ export default async function LibraryPage() {
           </p>
           <Link
             href="/projects"
-            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-5 py-2 text-xs font-semibold text-white shadow-xs transition-colors"
+            className="mt-5 inline-flex items-center gap-2 bp-btn-primary px-5 py-2 text-xs shadow-xs"
           >
             Explore Projects
           </Link>
@@ -95,7 +95,7 @@ export default async function LibraryPage() {
             return (
               <div
                 key={order.id}
-                className="bg-white rounded-xl border border-slate-200 p-6 flex flex-col justify-between shadow-xs hover:border-slate-300 transition-colors"
+                className="bp-card bp-card-interactive p-6 flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">

@@ -90,7 +90,7 @@ export default async function StudioDashboardPage() {
         actions={
           <Link
             href="/studio/new"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs sm:text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bp-btn-primary text-xs sm:text-sm shadow-xs"
           >
             <Plus className="h-4 w-4" />
             <span>New Workspace</span>
@@ -107,7 +107,7 @@ export default async function StudioDashboardPage() {
               <span className="text-xs text-slate-500 font-medium">{workspaces.length} workspace{workspaces.length === 1 ? "" : "s"}</span>
             </div>
 
-            <div className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white shadow-xs">
+            <div className="divide-y divide-slate-200 bp-card overflow-hidden">
               {workspaces.map((ws) => {
                 const typeLabel =
                   ws.workspace_type === "trade_fabrication"
@@ -142,7 +142,7 @@ export default async function StudioDashboardPage() {
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       <DeleteDraftButton workspaceId={ws.id} title={ws.title} compact />
-                      <Link href={`/studio/${ws.id}`} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700">
+                      <Link href={`/studio/${ws.id}`} className="inline-flex items-center gap-1.5 bp-btn-primary px-3 py-2 text-xs">
                         <span>Continue</span><ArrowRight className="h-3.5 w-3.5" />
                       </Link>
                     </div>
