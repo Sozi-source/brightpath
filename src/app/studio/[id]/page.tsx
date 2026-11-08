@@ -9,8 +9,7 @@ import {
   submitProposalForApproval,
   submitChaptersForReview,
 } from "@/app/studio/actions";
-import { AppShell } from "@/components/layout/AppShell";
-import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
+import { AppShell, type SidebarWorkspaceItem } from "@/components/layout/AppShell";
 import { ContentCard } from "@/components/layout/ContentCard";
 import { DeleteDraftButton } from "../DeleteDraftButton";
 import { BusinessPlanBuilderModal } from "./BusinessPlanBuilderModal";
@@ -22,7 +21,10 @@ import {
   Send,
   ShieldAlert,
   ChevronRight,
-  Lightbulb, Sparkles, Building2,
+  ArrowLeft,
+  Sparkles,
+  Download,
+  FileText,
 } from "lucide-react";
 import type { ProjectWorkspace, WorkspaceSection, SupervisorReview } from "@/types/database";
 import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
@@ -51,7 +53,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
   // Fetch student's profile
   const { data: profile } = await db
     .from("profiles")
-    .select("full_name, role, admission_number, course, level, institution_id")
+    .select("full_name, role, admission_number, course, level, institution_id, institutions(name)")
     .eq("id", user.id)
     .single();
 
@@ -118,7 +120,6 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
 
   // Template definitions & KNEC Rubric
   const templateDefs = getWorkspaceSections(workspace.workspace_type, workspace.level);
-
   const sectionsMap = new Map(sections.map((s) => [s.section_key, s]));
 
   // Group templateDefs by chapter
@@ -136,14 +137,17 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
 
   const isBusiness = workspace.workspace_type === "business_plan";
   const hasPlanContent = isBusiness && sections.some((section) => section.current_text.trim());
-  const isProjectComplete = templateDefs.every((definition) => {
+  const totalDefinedSections = templateDefs.length;
+  const completedDefinedSections = templateDefs.filter((definition) => {
     const text = sectionsMap.get(definition.key)?.current_text || "";
     return text.trim().split(/\s+/).filter(Boolean).length >= (definition.minWords || 30);
-  });
-  const incompleteProjectSections = templateDefs.filter((definition) => {
-    const text = sectionsMap.get(definition.key)?.current_text || "";
-    return text.trim().split(/\s+/).filter(Boolean).length < (definition.minWords || 30);
   }).length;
+  const overallProgressPct =
+    totalDefinedSections > 0 ? Math.round((completedDefinedSections / totalDefinedSections) * 100) : 0;
+
+  const isProjectComplete = completedDefinedSections === totalDefinedSections;
+  const incompleteProjectSections = totalDefinedSections - completedDefinedSections;
+
   const { data: marketplaceListing } = isBusiness && workspace.student_id === user.id
     ? await db.from("projects").select("id, status, price_kes").eq("file_path", `workspace-export:${workspaceId}`).maybeSingle()
     : { data: null };
@@ -158,178 +162,107 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
     const s = sectionsMap.get(def.key);
     return s && s.current_text && s.current_text.trim().length >= 20;
   });
-  const firstIncompleteChapterKey = chapterGroups.find((group) =>
-    group.defs.some((def) => {
-      const text = sectionsMap.get(def.key)?.current_text || "";
-      return text.trim().split(/\s+/).filter(Boolean).length < (def.minWords || 30);
-    })
-  )?.chapterKey;
+  const firstIncompleteChapterKey =
+    chapterGroups.find((group) =>
+      group.defs.some((def) => {
+        const text = sectionsMap.get(def.key)?.current_text || "";
+        return text.trim().split(/\s+/).filter(Boolean).length < (def.minWords || 30);
+      })
+    )?.chapterKey || chapterGroups[0]?.chapterKey;
 
   const levelLabel = workspace.level === "craft" ? "Certificate" : "Diploma";
+
+  const rawInst = profile?.institutions as unknown;
+  const institutionName =
+    workspace.institution?.name ||
+    (Array.isArray(rawInst)
+      ? (rawInst[0] as { name?: string })?.name
+      : (rawInst as { name?: string })?.name) ||
+    "Independent Candidate";
+
+  const sidebarWorkspaces: SidebarWorkspaceItem[] = [
+    {
+      id: workspace.id,
+      title: workspace.title || "Untitled project",
+      typeLabel: isBusiness ? "Business Plan" : "Research Project",
+      status: isApproved ? "approved" : isPending ? "pending" : "draft",
+      completedSections: completedDefinedSections,
+      totalSections: totalDefinedSections,
+      progressPct: overallProgressPct,
+    },
+  ];
 
   return (
     <AppShell
       user={user}
       profile={profile}
-      activeContextTitle={workspace.title || workspace.course}
+      institutionName={institutionName}
+      activeContextTitle={workspace.course || "KNEC Project Studio"}
+      studioWorkspaces={sidebarWorkspaces}
     >
-      {/* 1. Header Card */}
-      <PageHeaderCard
-        title={isBusiness ? "Business Plan" : "Project Workspace"}
-        subtitle={`${workspace.course} • ${levelLabel} Level`}
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Project Studio", href: "/studio" },
-          { label: workspace.title || "Overview", active: true },
-        ]}
-        metadata={[
-          { label: "Candidate", value: workspace.student?.full_name || "Student" },
-          { label: "Admission No", value: workspace.student?.admission_number || "Unset" },
-          { label: "Qualification", value: levelLabel },
-        ]}
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            {isBusiness && workspace.student_id === user.id && (
-              <BusinessPlanBuilderModal
-                workspaceId={workspaceId}
-                defaultCandidateName={workspace.student?.full_name || ""}
-                defaultAdmissionNumber={workspace.student?.admission_number || ""}
-                defaultInstitutionName={workspace.institution?.name || ""}
-                defaultSupervisorName={workspace.supervisor?.full_name || ""}
-                defaultCourse={workspace.course}
-                defaultLevel={workspace.level}
-                initialSpecs={workspace.business_plan_specs as Partial<BusinessPlanSpecs> | undefined}
-              />
-            )}
-            {workspace.student_id === user.id && (
-              <DeleteDraftButton
-                workspaceId={workspaceId}
-                title={workspace.title}
-                redirectAfter
-              />
-            )}
-          </div>
-        }
-      />
+      <div className="space-y-4">
+        {/* 1. Unified Compact Workspace Bar & Concept Card (Replaces 4 stacked banners) */}
+        <section className="bp-card overflow-hidden">
+          <div className="h-1 w-full bg-gradient-to-r from-[#087f8c] via-[#0e9ba5] to-[#d9a441]" />
 
-      {hasPlanContent && (
-        <section aria-label="Download business plan" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-          <h2 className="text-sm font-semibold tracking-tight text-slate-900">Download business plan</h2>
-          <div className="flex flex-wrap gap-2">
-            <Link href={`/api/studio/${workspaceId}/export?format=pdf`} className="inline-flex items-center rounded-lg border border-indigo-600 bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700">Download PDF</Link>
-            <Link href={`/api/studio/${workspaceId}/export?format=docx`} className="inline-flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50">Download Word</Link>
-          </div>
-        </section>
-      )}
-
-      {/* Changes Requested Notification Banner */}
-      {hasChangesRequested && latestReview && (
-        <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 space-y-2">
-          <div className="flex items-center gap-2 text-rose-800 font-semibold text-xs sm:text-sm">
-            <ShieldAlert className="h-4 w-4 text-rose-600" />
-            <span>Supervisor Feedback</span>
-          </div>
-          <p className="text-xs text-rose-950 leading-relaxed bg-white p-3 rounded-lg border border-rose-200">
-            &ldquo;{latestReview.comment}&rdquo;
-          </p>
-        </div>
-      )}
-
-      {isBusiness && workspace.student_id === user.id && (
-        <div className="relative overflow-hidden rounded-xl border border-indigo-200 bg-gradient-to-r from-indigo-50/90 via-blue-50/40 to-white p-5 shadow-xs mb-4">
-          <div className="absolute top-0 left-0 right-0 h-1 flex">
-            <div className="w-[60%] bg-indigo-600" />
-            <div className="w-[40%] bg-amber-500" />
-          </div>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
-            <div className="space-y-1 min-w-0">
+          <div className="p-4 sm:p-5 space-y-3.5">
+            {/* Top Toolbar: Back Link + Status Pill + Primary Action Buttons */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-100 pb-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-600 text-white">
-                  <Sparkles className="h-3 w-3" />
-                  <span>KNEC Business Plan Engine</span>
-                </span>
-                <span className="text-xs font-semibold text-slate-600">
-                  25–30 Page Standard
+                <Link
+                  href="/studio"
+                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  <span>All Areas</span>
+                </Link>
+
+                <span className="text-slate-300">|</span>
+
+                {isApproved ? (
+                  <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
+                    <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                    <span>{isBusiness ? "Plan Approved" : "Topic Approved"}</span>
+                  </span>
+                ) : isPending ? (
+                  <span className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
+                    <Clock className="h-3 w-3 text-amber-600" />
+                    <span>Awaiting Supervisor Approval</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
+                    <Clock className="h-3 w-3 text-slate-400" />
+                    <span>Draft Workspace</span>
+                  </span>
+                )}
+
+                <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[11px] font-semibold text-slate-700">
+                  {completedDefinedSections}/{totalDefinedSections} sections ({overallProgressPct}%)
                 </span>
               </div>
-              <h3 className="text-base font-semibold text-slate-900 tracking-tight truncate">
-                {workspace.title || "Nutrition Enterprise"}
-              </h3>
-              <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
-                Click below to configure enterprise parameters and generate all 28 KNEC chapters with deterministic Chapter 5 cash flows, balance sheet, and localized market analysis.
-              </p>
-            </div>
-            <div className="shrink-0">
-              <BusinessPlanBuilderModal
-                workspaceId={workspaceId}
-                defaultCandidateName={workspace.student?.full_name || ""}
-                defaultAdmissionNumber={workspace.student?.admission_number || ""}
-                defaultInstitutionName={workspace.institution?.name || ""}
-                defaultSupervisorName={workspace.supervisor?.full_name || ""}
-                defaultCourse={workspace.course}
-                defaultLevel={workspace.level}
-                initialSpecs={workspace.business_plan_specs as Partial<BusinessPlanSpecs> | undefined}
-                triggerButton={
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    <span>Build Business Plan</span>
-                  </button>
-                }
-              />
-            </div>
-          </div>
-        </div>
-      )}
 
-      <div className="space-y-4">
-          {/* Stage 1: Project Topic & Approval / Business Plan Concept */}
-          <ContentCard
-            title={isBusiness ? "Enterprise Profile & Concept" : "Project topic"}
-            icon={isBusiness ? Building2 : Lightbulb}
-            headerRight={
-              isApproved ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                  <span>{isBusiness ? "Plan Approved" : "Topic Approved"}</span>
-                </span>
-              ) : isPending ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
-                  <Clock className="h-3.5 w-3.5 text-amber-600" />
-                  <span>{isBusiness ? "Pending Plan Approval" : "Pending Topic Approval"}</span>
-                </span>
-              ) : (
-                <form action={submitProposalForApproval}>
-                  <input type="hidden" name="workspaceId" value={workspaceId} />
-                  <button
-                    type="submit"
-                    disabled={!isTopicReady}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Send className="h-3.5 w-3.5" />
-                    <span>{isBusiness ? "Submit Plan for Approval" : "Submit Topic for Approval"}</span>
-                  </button>
-                </form>
-              )
-            }
-          >
-            <div className="p-4 rounded-lg border border-slate-200 bg-slate-50/50 space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                <div className="space-y-1 min-w-0">
-                  <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-indigo-700">
-                    {isBusiness ? "Approved Business Plan Title" : "Official Project Title"}
-                  </span>
-                  <h4 className="text-sm font-semibold text-slate-900 leading-snug">
-                    {workspace.title ||
-                      (isBusiness
-                        ? "No business plan concept formulated yet."
-                        : "No project topic formulated yet.")}
-                  </h4>
-                </div>
+              {/* Consolidated Action Toolbar */}
+              <div className="flex flex-wrap items-center gap-2">
+                {hasPlanContent && (
+                  <>
+                    <Link
+                      href={`/api/studio/${workspaceId}/export?format=pdf`}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors"
+                    >
+                      <Download className="h-3.5 w-3.5 text-[#087f8c]" />
+                      <span>PDF</span>
+                    </Link>
+                    <Link
+                      href={`/api/studio/${workspaceId}/export?format=docx`}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors"
+                    >
+                      <FileText className="h-3.5 w-3.5 text-[#087f8c]" />
+                      <span>Word (.docx)</span>
+                    </Link>
+                  </>
+                )}
 
-                {isBusiness ? (
+                {isBusiness && workspace.student_id === user.id ? (
                   <BusinessPlanBuilderModal
                     workspaceId={workspaceId}
                     defaultCandidateName={workspace.student?.full_name || ""}
@@ -342,190 +275,255 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                     triggerButton={
                       <button
                         type="button"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 shadow-xs transition-colors shrink-0 self-start cursor-pointer"
+                        className="inline-flex items-center gap-1.5 bp-btn-primary px-3.5 py-1.5 text-xs shadow-2xs cursor-pointer"
                       >
-                        <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
-                        <span>Edit Parameters & Build</span>
+                        <Sparkles className="h-3.5 w-3.5" />
+                        <span>{hasPlanContent ? "Configure & Rebuild" : "Build Business Plan"}</span>
                       </button>
                     }
                   />
                 ) : (
                   <Link
                     href={`/studio/${workspaceId}/problem`}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 shadow-xs transition-colors shrink-0 self-start"
+                    className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 transition-colors"
                   >
                     <span>{workspace.title ? "Edit Topic" : "Formulate Topic"}</span>
                     <ChevronRight className="h-3 w-3 text-slate-400" />
                   </Link>
                 )}
+
+                {!isApproved && !isPending && (
+                  <form action={submitProposalForApproval}>
+                    <input type="hidden" name="workspaceId" value={workspaceId} />
+                    <button
+                      type="submit"
+                      disabled={!isTopicReady}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      <Send className="h-3.5 w-3.5" />
+                      <span>Submit for Approval</span>
+                    </button>
+                  </form>
+                )}
+
+                {workspace.student_id === user.id && (
+                  <DeleteDraftButton
+                    workspaceId={workspaceId}
+                    title={workspace.title}
+                    redirectAfter
+                    compact
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Project Title, Course Info & Collapsible Concept Profile */}
+            <div className="space-y-2">
+              <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
+                <h1 className="text-base sm:text-lg font-semibold text-slate-900 tracking-tight leading-snug">
+                  {workspace.title || (isBusiness ? "Untitled Business Plan" : "Untitled Project Workspace")}
+                </h1>
+                <span className="text-xs font-medium text-slate-500 shrink-0">
+                  {workspace.course} · {levelLabel}
+                </span>
               </div>
 
               {workspace.problem_area && (
-                <div className="pt-2 border-t border-slate-200/80 space-y-1">
-                  <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-500">
-                    {isBusiness ? "Business Concept & Enterprise Profile" : "Problem Focus & Initial Objectives"}
-                  </span>
-                  <p className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">
+                <details className="group rounded-lg border border-slate-200/80 bg-slate-50/70 px-3 py-2 text-xs">
+                  <summary className="flex cursor-pointer list-none items-center justify-between font-semibold text-slate-700">
+                    <span>{isBusiness ? "Enterprise Profile & Concept Summary" : "Problem Focus & Objectives"}</span>
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#087f8c]">
+                      <span className="group-open:hidden">Show details</span>
+                      <span className="hidden group-open:inline">Hide details</span>
+                      <ChevronRight className="h-3.5 w-3.5 transition-transform group-open:rotate-90" />
+                    </span>
+                  </summary>
+                  <p className="mt-2 border-t border-slate-200/70 pt-2 text-xs text-slate-600 whitespace-pre-wrap leading-relaxed">
                     {workspace.problem_area}
                   </p>
-                </div>
+                </details>
               )}
             </div>
-          </ContentCard>
+          </div>
+        </section>
 
-          {/* Stage 2: KNEC Chapters (Starting at Chapter 1) */}
-          <ContentCard
-            title="Write your project"
-            headerRight={
-              !isApproved ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-600">
-                  <Lock className="h-3 w-3" />
-                  <span>Locked</span>
+        {/* 2. Supervisor Feedback Alert (Only when changes are requested) */}
+        {hasChangesRequested && latestReview && (
+          <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 space-y-2">
+            <div className="flex items-center gap-2 text-rose-800 font-semibold text-xs sm:text-sm">
+              <ShieldAlert className="h-4 w-4 text-rose-600" />
+              <span>Supervisor Feedback</span>
+            </div>
+            <p className="text-xs text-rose-950 leading-relaxed bg-white p-3 rounded-lg border border-rose-200">
+              &ldquo;{latestReview.comment}&rdquo;
+            </p>
+          </div>
+        )}
+
+        {/* 3. KNEC Chapters & Sections (Immediately Visible) */}
+        <ContentCard
+          title="Chapters & Sections"
+          subtitle="Select any section to review, edit, or refine its manuscript content."
+          headerRight={
+            !isApproved ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-600">
+                <Lock className="h-3 w-3" />
+                <span>Locked until approved</span>
+              </span>
+            ) : isSubmitted ||
+              workspace.final_project_status === "pending_review" ||
+              workspace.final_project_status === "approved" ||
+              workspace.final_project_status === "changes_requested" ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-[#e8f5f5] text-[#087f8c] border border-[#d8ebec]">
+                <CheckCircle2 className="h-3.5 w-3.5 text-[#087f8c]" />
+                <span>
+                  {workspace.final_project_status === "approved"
+                    ? "Finally Approved"
+                    : workspace.final_project_status === "pending_review"
+                    ? "Final Review Pending"
+                    : workspace.final_project_status === "changes_requested"
+                    ? "Final Changes Requested"
+                    : "Submitted for Review"}
                 </span>
-              ) : isSubmitted || workspace.final_project_status === "pending_review" || workspace.final_project_status === "approved" || workspace.final_project_status === "changes_requested" ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-800 border border-indigo-200">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-indigo-600" />
-                  <span>{workspace.final_project_status === "approved" ? "Finally Approved" : workspace.final_project_status === "pending_review" ? "Final Review Pending" : workspace.final_project_status === "changes_requested" ? "Final Changes Requested" : "Submitted for Review"}</span>
-                </span>
-              ) : (
-                <form action={submitChaptersForReview}>
-                  <input type="hidden" name="workspaceId" value={workspaceId} />
-                  <button
-                    type="submit"
-                    disabled={!hasDraftedChapterContent}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Send className="h-3.5 w-3.5" />
-                    <span>Submit for Supervisor Review</span>
-                  </button>
-                </form>
-              )
-            }
-          >
-            {!isApproved ? (
-            <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
-                <Lock className="h-4 w-4 shrink-0 text-slate-500" />
-                <p className="text-xs text-slate-700">
-                  Chapters unlock after your {isBusiness ? "plan concept" : "topic"} is approved.
-                </p>
-              </div>
+              </span>
             ) : (
-              <div className="space-y-5">
-                {chapterGroups.map((group) => {
-                  const completedCount = group.defs.filter((d) => {
-                    const sec = sectionsMap.get(d.key);
-                    const words = sec?.current_text
-                      ? sec.current_text.trim().split(/\s+/).length
-                      : 0;
-                    return words >= (d.minWords || 30);
-                  }).length;
+              <form action={submitChaptersForReview}>
+                <input type="hidden" name="workspaceId" value={workspaceId} />
+                <button
+                  type="submit"
+                  disabled={!hasDraftedChapterContent}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                  <span>Submit for Supervisor Review</span>
+                </button>
+              </form>
+            )
+          }
+        >
+          {!isApproved ? (
+            <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <Lock className="h-4 w-4 shrink-0 text-slate-500" />
+              <p className="text-xs text-slate-700">
+                Chapters unlock after your {isBusiness ? "plan concept" : "topic"} is approved.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {chapterGroups.map((group) => {
+                const completedCount = group.defs.filter((d) => {
+                  const sec = sectionsMap.get(d.key);
+                  const words = sec?.current_text
+                    ? sec.current_text.trim().split(/\s+/).length
+                    : 0;
+                  return words >= (d.minWords || 30);
+                }).length;
 
-                  return (
-                    <details
-                      key={group.chapterKey}
-                      open={group.chapterKey === firstIncompleteChapterKey}
-                      className="group rounded-lg border border-slate-200 bg-white"
-                    >
-                      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
-                        <span className="text-xs font-semibold text-slate-900">{group.chapterTitle}</span>
-                        <span className="flex items-center gap-2 text-[11px] text-slate-600">
-                          {completedCount}/{group.defs.length} done
-                          <ChevronRight className="h-3.5 w-3.5 transition-transform group-open:rotate-90" />
-                        </span>
-                      </summary>
+                return (
+                  <details
+                    key={group.chapterKey}
+                    open={group.chapterKey === firstIncompleteChapterKey}
+                    className="group rounded-xl border border-slate-200 bg-white overflow-hidden"
+                  >
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-3 bg-slate-50/70 px-4 py-3 hover:bg-slate-50 transition-colors">
+                      <span className="text-xs font-semibold text-slate-900">{group.chapterTitle}</span>
+                      <span className="flex items-center gap-2 text-[11px] font-medium text-slate-600">
+                        <span className="font-mono">{completedCount}/{group.defs.length} done</span>
+                        <ChevronRight className="h-3.5 w-3.5 transition-transform group-open:rotate-90" />
+                      </span>
+                    </summary>
 
-                      <div className="divide-y divide-slate-200/70 bg-white">
-                        {group.defs.map((def) => {
-                          const s = sectionsMap.get(def.key);
-                          const wordCount = s?.current_text
-                            ? s.current_text.trim().split(/\s+/).length
-                            : 0;
-                          const isDone = wordCount >= (def.minWords || 30);
-                          const sectionThreads = sectionReviewThreads.filter((thread) => thread.section_key === def.key);
-                          const openComments = sectionThreads.filter((thread) => thread.status !== "resolved").length;
+                    <div className="divide-y divide-slate-100 bg-white">
+                      {group.defs.map((def) => {
+                        const s = sectionsMap.get(def.key);
+                        const wordCount = s?.current_text
+                          ? s.current_text.trim().split(/\s+/).length
+                          : 0;
+                        const isDone = wordCount >= (def.minWords || 30);
+                        const sectionThreads = sectionReviewThreads.filter((thread) => thread.section_key === def.key);
+                        const openComments = sectionThreads.filter((thread) => thread.status !== "resolved").length;
 
-                          return (
-                            <div
-                              key={def.key}
-                              className="p-3.5 hover:bg-slate-50/70 transition-colors flex items-center justify-between gap-4"
-                            >
-                              <div className="space-y-0.5 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  {isDone ? (
-                                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                                  ) : (
-                                    <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                                  )}
-                                  <span className="text-xs font-semibold text-slate-900 truncate">
-                                    {def.title}
-                                  </span>
-                                  {def.rubricMarks !== undefined && (
-                                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
-                                      {def.rubricMarks}m
-                                    </span>
-                                  )}
-                                  {sectionThreads.length > 0 && (
-                                    <span className={`rounded-md border px-1.5 py-0.5 text-[10px] font-medium ${openComments ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>
-                                      {openComments ? `${openComments} comment${openComments === 1 ? "" : "s"} open` : `${sectionThreads.length} resolved`}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-3 shrink-0">
-                                <span className="text-[11px] font-mono text-slate-500">
-                                  {wordCount}w
+                        return (
+                          <div
+                            key={def.key}
+                            className="px-4 py-2.5 hover:bg-slate-50/70 transition-colors flex items-center justify-between gap-4"
+                          >
+                            <div className="space-y-0.5 min-w-0">
+                              <div className="flex items-center gap-2">
+                                {isDone ? (
+                                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                                ) : (
+                                  <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                                )}
+                                <span className="text-xs font-semibold text-slate-900 truncate">
+                                  {def.title}
                                 </span>
-                                <Link
-                                  href={`/studio/${workspaceId}/write/${encodeURIComponent(def.key)}`}
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition-colors"
-                                >
-                                  <span>{s?.current_text ? "Edit" : "Write"}</span>
-                                  <ChevronRight className="h-3 w-3" />
-                                </Link>
+                                {def.rubricMarks !== undefined && (
+                                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
+                                    {def.rubricMarks}m
+                                  </span>
+                                )}
+                                {sectionThreads.length > 0 && (
+                                  <span className={`rounded-md border px-1.5 py-0.5 text-[10px] font-medium ${openComments ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>
+                                    {openComments ? `${openComments} comment${openComments === 1 ? "" : "s"} open` : `${sectionThreads.length} resolved`}
+                                  </span>
+                                )}
                               </div>
                             </div>
-                          );
-                        })}
-                      </div>
-                    </details>
-                  );
-                })}
+
+                            <div className="flex items-center gap-3 shrink-0">
+                              <span className="text-[11px] font-mono text-slate-500">
+                                {wordCount}w
+                              </span>
+                              <Link
+                                href={`/studio/${workspaceId}/write/${encodeURIComponent(def.key)}`}
+                                className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold bg-[#e8f5f5] hover:bg-teal-100 text-[#087f8c] transition-colors"
+                              >
+                                <span>{s?.current_text ? "Edit" : "Write"}</span>
+                                <ChevronRight className="h-3 w-3" />
+                              </Link>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </details>
+                );
+              })}
+            </div>
+          )}
+        </ContentCard>
+
+        {/* 4. Final Project Approval Card */}
+        {workspace.student_id === user.id && (isProjectComplete || workspace.final_project_status !== "not_submitted") && (
+          <ContentCard title="Final Project Approval" icon={CheckCircle2}>
+            {workspace.final_project_status === "approved" ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50/60 p-4">
+                <div>
+                  <p className="text-sm font-semibold text-emerald-900">Final supervisor approval recorded</p>
+                  {isBusiness && marketplaceListing && <p className="mt-1 text-xs text-slate-700">Marketplace listing: {marketplaceListing.status.replaceAll("_", " ")} · KES {Number(marketplaceListing.price_kes).toLocaleString()}</p>}
+                  {isBusiness && !marketplaceListing && <p className="mt-1 text-xs text-slate-700">Marketplace listing is being prepared for admin review.</p>}
+                </div>
+                {marketplaceListing?.status === "published" && <Link href="/projects" className="text-xs font-semibold text-[#087f8c] hover:underline">View marketplace</Link>}
+              </div>
+            ) : workspace.final_project_status === "pending_review" ? (
+              <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">Completed project submitted. Waiting for final supervisor review.</p>
+            ) : workspace.status !== "approved" ? (
+              <p className="text-xs text-slate-700">Supervisor approval of the submitted chapters is required before final review.</p>
+            ) : (
+              <div className="space-y-3">
+                {workspace.final_project_status === "changes_requested" && latestReview?.review_stage === "final_project" && (
+                  <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-900">
+                    <p className="font-semibold">Final changes requested</p>
+                    <p className="mt-1">{latestReview.comment}</p>
+                  </div>
+                )}
+                <p className="text-xs text-slate-700">{isProjectComplete ? "Your completed project is ready for a separate final supervisor review." : `${incompleteProjectSections} section(s) still need content before final review.`}</p>
+                {isProjectComplete && <FinalProjectSubmissionForm workspaceId={workspaceId} isBusinessPlan={isBusiness} defaultPrice={workspace.marketplace_price_kes} />}
               </div>
             )}
           </ContentCard>
-
-          {workspace.student_id === user.id && (isProjectComplete || workspace.final_project_status !== "not_submitted") && (
-            <ContentCard title="Final Project Approval" icon={CheckCircle2}>
-              {workspace.final_project_status === "approved" ? (
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50/60 p-4">
-                  <div>
-                    <p className="text-sm font-semibold text-emerald-900">Final supervisor approval recorded</p>
-                    {isBusiness && marketplaceListing && <p className="mt-1 text-xs text-slate-700">Marketplace listing: {marketplaceListing.status.replaceAll("_", " ")} · KES {Number(marketplaceListing.price_kes).toLocaleString()}</p>}
-                    {isBusiness && !marketplaceListing && <p className="mt-1 text-xs text-slate-700">Marketplace listing is being prepared for admin review.</p>}
-                  </div>
-                  {marketplaceListing?.status === "published" && <Link href="/projects" className="text-xs font-semibold text-indigo-700 hover:text-indigo-900">View marketplace</Link>}
-                </div>
-              ) : workspace.final_project_status === "pending_review" ? (
-                <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">Completed project submitted. Waiting for final supervisor review.</p>
-              ) : workspace.status !== "approved" ? (
-                <p className="text-xs text-slate-700">Supervisor approval of the submitted chapters is required before final review.</p>
-              ) : (
-                <div className="space-y-3">
-                  {workspace.final_project_status === "changes_requested" && latestReview?.review_stage === "final_project" && (
-                    <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-900">
-                      <p className="font-semibold">Final changes requested</p>
-                      <p className="mt-1">{latestReview.comment}</p>
-                    </div>
-                  )}
-                  <p className="text-xs text-slate-700">{isProjectComplete ? "Your completed project is ready for a separate final supervisor review." : `${incompleteProjectSections} section(s) still need content before final review.`}</p>
-                  {isProjectComplete && <FinalProjectSubmissionForm workspaceId={workspaceId} isBusinessPlan={isBusiness} defaultPrice={workspace.marketplace_price_kes} />}
-                </div>
-              )}
-            </ContentCard>
-          )}
-
-
+        )}
       </div>
     </AppShell>
   );
