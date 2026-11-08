@@ -77,29 +77,56 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to initialize order." }, { status: 500 });
   }
 
-  const paystackKey = (
-    process.env.PAYSTACK_SECRET_KEY ||
-    process.env.NEXT_PUBLIC_PAYSTACK_SECRET_KEY ||
-    process.env.PAYSTACK_SECRET ||
-    process.env.PAYSTACK_KEY
-  )?.trim();
-
-  if (!paystackKey) {
-    console.warn("[Paystack Init] PAYSTACK_SECRET_KEY environment variable is missing or empty.");
-    return NextResponse.json({
-      message: "Order initiated. Paystack secret key not configured in environment.",
-      reference,
-      amountKes,
-      testMode: true,
-    });
-  }
-
   const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://brightpath-zc14.vercel.app";
   const siteUrl = rawSiteUrl.replace(/\/+$/, "");
 
+  // If resource is free (KES 0), fulfill immediately
+  if (amountKes <= 0) {
+    await adminClient
+      .from("orders")
+      .update({ status: "paid", paid_at: new Date().toISOString() })
+      .eq("paystack_reference", reference);
+
+    return NextResponse.json({
+      authorization_url: `${siteUrl}/library`,
+      reference,
+      amountKes: 0,
+    });
+  }
+
+  // Read Paystack Secret Key with fallbacks and quote-stripping
+  const rawKey =
+    process.env.PAYSTACK_SECRET_KEY ||
+    process.env.NEXT_PUBLIC_PAYSTACK_SECRET_KEY ||
+    process.env.PAYSTACK_SECRET ||
+    process.env.PAYSTACK_KEY;
+
+  const paystackKey = rawKey?.trim().replace(/^["']|["']$/g, "");
+
+  if (!paystackKey) {
+    const presentKeys = Object.keys(process.env).filter((k) =>
+      k.toUpperCase().includes("PAYSTACK")
+    );
+    console.warn(
+      `[Paystack Init] Missing PAYSTACK_SECRET_KEY. Relevant env keys found: [${presentKeys.join(", ")}]`
+    );
+
+    return NextResponse.json(
+      {
+        error: `PAYSTACK_SECRET_KEY is not detected in this Vercel deployment. Found keys: [${presentKeys.join(", ") || "none"}]. Please make sure PAYSTACK_SECRET_KEY is saved in Vercel Environment Variables and redeployed without build cache.`,
+        reference,
+        amountKes,
+        testMode: true,
+      },
+      { status: 400 }
+    );
+  }
+
+  const email = user.email || `${user.id.slice(0, 8)}@brightpath.ac.ke`;
+
   // Call Paystack API
   const paystackPayload: Record<string, unknown> = {
-    email: user.email,
+    email,
     amount: Math.round(amountKes * 100), // in kobo/cents
     currency: "KES",
     reference,
@@ -124,7 +151,11 @@ export async function POST(request: NextRequest) {
 
     const data = await res.json();
     if (!data.status) {
-      return NextResponse.json({ error: data.message || "Paystack error" }, { status: 502 });
+      console.error("[Paystack API Failure]", data);
+      return NextResponse.json(
+        { error: data.message || "Paystack initialization failed." },
+        { status: 502 }
+      );
     }
 
     return NextResponse.json({

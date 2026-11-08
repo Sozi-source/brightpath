@@ -31,13 +31,8 @@ export function BuyButton({ projectId, isOwner = false, className = "" }: BuyBut
       const data = await res.json();
       if (data.authorization_url) {
         window.location.href = data.authorization_url;
-      } else if (data.testMode) {
-        alert(
-          `Order ${data.reference} initiated for KES ${data.amountKes}. Paystack keys not set in .env.local (Test Mode).`
-        );
-        router.push("/library");
       } else {
-        alert(data.error || "Failed to initialize payment.");
+        alert(data.error || data.message || "Failed to initialize payment.");
       }
     } catch {
       alert("Network error. Please try again.");
