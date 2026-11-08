@@ -223,15 +223,20 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
 
                 <span className="text-slate-300">|</span>
 
-                {isApproved ? (
+                {workspace.final_project_status === "approved" ? (
                   <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
                     <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                    <span>{isBusiness ? "Plan Approved" : "Topic Approved"}</span>
+                    <span>Approved & Published</span>
                   </span>
-                ) : isPending ? (
+                ) : workspace.final_project_status === "pending_review" ? (
                   <span className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
                     <Clock className="h-3 w-3 text-amber-600" />
-                    <span>Awaiting Supervisor Approval</span>
+                    <span>Under Review</span>
+                  </span>
+                ) : workspace.final_project_status === "changes_requested" ? (
+                  <span className="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-[11px] font-semibold text-rose-800">
+                    <ShieldAlert className="h-3 w-3 text-rose-600" />
+                    <span>Revisions Requested</span>
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
@@ -296,19 +301,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                   </Link>
                 )}
 
-                {!isApproved && !isPending && (
-                  <form action={submitProposalForApproval}>
-                    <input type="hidden" name="workspaceId" value={workspaceId} />
-                    <button
-                      type="submit"
-                      disabled={!isTopicReady}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
-                    >
-                      <Send className="h-3.5 w-3.5" />
-                      <span>Submit for Approval</span>
-                    </button>
-                  </form>
-                )}
+
 
                 {workspace.student_id === user.id && (
                   <DeleteDraftButton
@@ -373,51 +366,26 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
           title="Chapters & Sections"
           subtitle="Select any section to review, edit, or refine its manuscript content."
           headerRight={
-            !isApproved ? (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-600">
-                <Lock className="h-3 w-3" />
-                <span>Locked until approved</span>
-              </span>
-            ) : isSubmitted ||
-              workspace.final_project_status === "pending_review" ||
-              workspace.final_project_status === "approved" ||
-              workspace.final_project_status === "changes_requested" ? (
+            workspace.final_project_status === "approved" ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-[#e8f5f5] text-[#087f8c] border border-[#d8ebec]">
                 <CheckCircle2 className="h-3.5 w-3.5 text-[#087f8c]" />
-                <span>
-                  {workspace.final_project_status === "approved"
-                    ? "Finally Approved"
-                    : workspace.final_project_status === "pending_review"
-                    ? "Final Review Pending"
-                    : workspace.final_project_status === "changes_requested"
-                    ? "Final Changes Requested"
-                    : "Submitted for Review"}
-                </span>
+                <span>Approved & Published</span>
               </span>
+            ) : workspace.final_project_status === "pending_review" ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                <Clock className="h-3.5 w-3.5 text-amber-600" />
+                <span>Under Review</span>
+              </span>
+            ) : isProjectComplete && workspace.student_id === user.id ? (
+              <FinalProjectSubmissionForm workspaceId={workspaceId} />
             ) : (
-              <form action={submitChaptersForReview}>
-                <input type="hidden" name="workspaceId" value={workspaceId} />
-                <button
-                  type="submit"
-                  disabled={!hasDraftedChapterContent}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Send className="h-3.5 w-3.5" />
-                  <span>Submit for Supervisor Review</span>
-                </button>
-              </form>
+              <span className="text-xs font-medium text-slate-500">
+                {totalDefinedSections - completedDefinedSections} section(s) remaining
+              </span>
             )
           }
         >
-          {!isApproved ? (
-            <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <Lock className="h-4 w-4 shrink-0 text-slate-500" />
-              <p className="text-xs text-slate-700">
-                Chapters unlock after your {isBusiness ? "plan concept" : "topic"} is approved.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
+          <div className="space-y-3">
               {chapterGroups.map((group) => {
                 const completedCount = group.defs.filter((d) => {
                   const sec = sectionsMap.get(d.key);
@@ -499,7 +467,6 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                 );
               })}
             </div>
-          )}
         </ContentCard>
 
         {/* 4. Final Project Approval Card */}
@@ -516,8 +483,6 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
               </div>
             ) : workspace.final_project_status === "pending_review" ? (
               <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">Completed project submitted. Waiting for final supervisor review.</p>
-            ) : workspace.status !== "approved" ? (
-              <p className="text-xs text-slate-700">Supervisor approval of the submitted chapters is required before final review.</p>
             ) : (
               <div className="space-y-3">
                 {workspace.final_project_status === "changes_requested" && latestReview?.review_stage === "final_project" && (

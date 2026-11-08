@@ -35,7 +35,13 @@ export async function createBusinessPlanPdf(params: BusinessPlanDocumentDetails)
       format: "A4",
       printBackground: true,
       preferCSSPageSize: true,
-      displayHeaderFooter: false,
+      displayHeaderFooter: true,
+      headerTemplate: "<div></div>",
+      footerTemplate: `
+        <div style="font-family: 'Times New Roman', serif; font-size: 10pt; width: 100%; text-align: center; color: #475569; padding-bottom: 4mm;">
+          <span class="pageNumber"></span>
+        </div>
+      `,
       margin: { top: "25.4mm", right: "25.4mm", bottom: "22mm", left: "25.4mm" },
     });
     return new Uint8Array(pdf);

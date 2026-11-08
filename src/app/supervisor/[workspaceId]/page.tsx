@@ -240,22 +240,22 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
             </Link>
             <span
               className={`text-xs font-semibold px-3 py-2 rounded-lg ${
-                isSubmitted
-                  ? "bg-indigo-50 text-indigo-800 border border-indigo-300"
-                  : isApproved
+                isApproved
                   ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
-                  : isPending
+                  : isReviewPending
                   ? "bg-amber-50 text-amber-800 border border-amber-300"
+                  : workspace.final_project_status === "changes_requested"
+                  ? "bg-rose-50 text-rose-800 border border-rose-300"
                   : "bg-slate-100 text-slate-700 border border-slate-300"
               }`}
             >
-              {isSubmitted
-                ? "Chapters Submitted"
-                : isApproved
-                ? "Topic Approved"
-                : isPending
-                ? "Topic Review Required"
-                : "Topic Ideation"}
+              {isApproved
+                ? "Approved & Published"
+                : isReviewPending
+                ? "Review Required"
+                : workspace.final_project_status === "changes_requested"
+                ? "Changes Requested"
+                : "Drafting"}
             </span>
           </div>
         }
@@ -272,165 +272,46 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
       )}
 
       <div className="space-y-6">
-        {/* 1. Candidate Topic & Moderation Decision Card */}
-        <ContentCard
-          title="Project Topic & Moderation Decision"
-          subtitle={`${rubric.scorecardName} • Approve topic to unlock Chapter 1 or review submitted chapters`}
-          icon={ShieldCheck}
-        >
-          <div className="space-y-4">
-            {/* Submitted Topic Summary */}
-            <div className="p-4 rounded-lg border border-slate-200 bg-slate-50/70 space-y-2.5">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Lightbulb className="h-4 w-4 text-amber-500" />
-                  <span className="text-xs font-semibold text-slate-900">
-                    Proposed Project Title &amp; Problem Focus
-                  </span>
-                </div>
-                <span className="text-[11px] font-mono text-slate-500">
-                  {isFinalReviewPending ? "Final Project Review" : isSubmitted ? "Chapter Review" : isApproved ? "Chapter Stage" : "Stage 1 Topic"}
-                </span>
-              </div>
-
-              <h3 className="text-sm font-semibold text-slate-900">
-                {workspace.title || "No project title submitted yet."}
-              </h3>
-
-              {workspace.problem_area ? (
-                <p className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed pt-2 border-t border-slate-200/80">
-                  {workspace.problem_area}
-                </p>
-              ) : (
-                <p className="text-xs text-slate-400 italic">
-                  No problem summary or initial objectives provided yet.
-                </p>
-              )}
-            </div>
-
-            {/* Moderation Action Forms */}
-            {topicChapterReviewLocked ? (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
-                Topic and chapter decisions are locked during final project review and after approval.
-                {isFinalReviewPending && <a href="#final-project-approval" className="ml-1 font-semibold underline">Go to final review</a>}
-              </div>
-            ) : (isPending || isSubmitted) ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Form 1: Approve Topic / Chapters */}
-              <div className="p-4 rounded-lg border border-emerald-200 bg-emerald-50/40 space-y-2.5">
-                <div className="flex items-center gap-2 text-emerald-800 font-semibold text-xs">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-700" />
-                  <span>{isApproved ? "Approve Chapter Submission" : "Approve Project Topic"}</span>
-                </div>
-                <p className="text-[11px] text-emerald-900/80 leading-relaxed">
-                  {isApproved
-                    ? "Confirms supervisor review of the candidate's drafted chapters."
-                    : "Approves the candidate's project topic and unlocks Chapter 1 for guided writing."}
-                </p>
-
-                <SupervisorDecisionForm
-                  action={approveProposal}
-                  successMessage={isApproved ? "Chapter submission approved." : "Project topic approved; Chapter 1 is unlocked."}
-                  submitLabel={isApproved ? "Approve Submitted Chapters" : "Approve Topic & Unlock Chapter 1"}
-                  pendingLabel="Saving approval..."
-                  className="space-y-2"
-                >
-                  <input type="hidden" name="workspaceId" value={workspaceId} />
-                  <textarea
-                    name="comment"
-                    rows={2}
-                    placeholder="Optional supervisor approval notes..."
-                    className="w-full text-xs bg-white border border-emerald-300 rounded-md p-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600"
-                  />
-                </SupervisorDecisionForm>
-              </div>
-
-              {/* Form 2: Request Revisions */}
-              <div className="p-4 rounded-lg border border-rose-200 bg-rose-50/40 space-y-2.5">
-                <div className="flex items-center gap-2 text-rose-800 font-semibold text-xs">
-                  <AlertCircle className="h-4 w-4 text-rose-700" />
-                  <span>Request Revisions</span>
-                </div>
-                <p className="text-[11px] text-rose-800 font-medium">
-                  {isApproved
-                    ? "Sends revision feedback to the candidate while keeping chapters unlocked."
-                    : "Returns topic to candidate for refinement before unlocking chapters."}
-                </p>
-
-                <SupervisorDecisionForm
-                  action={requestProposalChanges}
-                  successMessage="Revision request sent to the candidate."
-                  submitLabel="Request Revisions"
-                  pendingLabel="Sending request..."
-                  tone="danger"
-                  className="space-y-2"
-                >
-                  <input type="hidden" name="workspaceId" value={workspaceId} />
-                  <textarea
-                    name="comment"
-                    rows={2}
-                    required
-                    placeholder="Specify required revisions..."
-                    className="w-full text-xs bg-white border border-rose-300 rounded-md p-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-600"
-                  />
-                </SupervisorDecisionForm>
-              </div>
-            </div> : (
-              <div className={`rounded-lg border px-4 py-3 ${latestTopicChapterReview?.status === "changes_requested" ? "border-amber-200 bg-amber-50/70" : "border-emerald-200 bg-emerald-50/60"}`}>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className={`rounded-md border px-2 py-1 text-[11px] font-semibold ${latestTopicChapterReview?.status === "changes_requested" ? "border-amber-200 bg-white text-amber-900" : "border-emerald-200 bg-white text-emerald-800"}`}>
-                    {latestTopicChapterReview?.status === "changes_requested" ? "Revisions requested" : latestTopicChapterReview ? "Decision recorded" : isApproved ? "Approved" : "Awaiting candidate submission"}
-                  </span>
-                  {latestTopicChapterReview && <span className="text-[10px] text-slate-500">{new Date(latestTopicChapterReview.created_at).toLocaleString()}</span>}
-                </div>
-                {latestTopicChapterReview?.comment && <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-slate-700">{latestTopicChapterReview.comment}</p>}
-                {!latestTopicChapterReview && <p className="mt-1 text-xs text-slate-600">Supervisor actions will appear when a topic or chapter submission is ready for review.</p>}
-              </div>
-            )}
-
-            {/* Title Refinement Form */}
-            {isPending && !topicChapterReviewLocked && <div className="pt-3 border-t border-slate-200">
-              <form action={updateProposalTitle} className="space-y-1.5">
-                <input type="hidden" name="workspaceId" value={workspaceId} />
-                <label
-                  htmlFor="supTitle"
-                  className="block text-xs font-semibold text-slate-800"
-                >
-                  Refine Official Project Title
-                </label>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <input
-                    type="text"
-                    id="supTitle"
-                    name="title"
-                    defaultValue={workspace.title || ""}
-                    placeholder="Refined official project title..."
-                    required
-                    className="flex-1 text-xs bg-white border border-slate-300 rounded-md px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                  />
-                  <button
-                    type="submit"
-                    className="py-2 px-4 rounded-md text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white transition-colors cursor-pointer shrink-0"
-                  >
-                    Update Title
-                  </button>
-                </div>
-              </form>
-            </div>}
-          </div>
-        </ContentCard>
-
         {isBusiness && <WholeDocumentReviewPanel workspaceId={workspaceId} />}
 
-        <div id="final-project-approval" className="scroll-mt-20">
+        <div id="supervisor-moderation" className="scroll-mt-20">
         <ContentCard
-          title="Final Project Approval"
-          subtitle="Separate from topic and chapter approval"
+          title="Supervisor Review & Moderation"
+          subtitle={`${rubric.scorecardName} • Review completed manuscript and record decision`}
           icon={ShieldCheck}
-          headerRight={<span className={`rounded-md border px-2 py-1 text-[11px] font-semibold ${workspace.final_project_status === "approved" ? "border-emerald-200 bg-emerald-50 text-emerald-800" : isFinalReviewPending ? "border-amber-200 bg-amber-50 text-amber-800" : "border-slate-200 bg-slate-50 text-slate-700"}`}>{workspace.final_project_status.replaceAll("_", " ")}</span>}
+          headerRight={
+            <span className={`rounded-md border px-2 py-1 text-[11px] font-semibold ${
+              isApproved
+                ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                : isReviewPending
+                ? "border-amber-200 bg-amber-50 text-amber-800"
+                : workspace.final_project_status === "changes_requested"
+                ? "border-rose-200 bg-rose-50 text-rose-800"
+                : "border-slate-200 bg-slate-50 text-slate-700"
+            }`}>
+              {isApproved
+                ? "Approved & Published"
+                : isReviewPending
+                ? "Review Required"
+                : workspace.final_project_status === "changes_requested"
+                ? "Changes Requested"
+                : "Drafting"}
+            </span>
+          }
         >
-          {isFinalReviewPending ? (
+          {isApproved ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50/70 p-4">
+              <div>
+                <p className="text-sm font-semibold text-emerald-900">Project Approved &amp; Published Live to Marketplace</p>
+                <p className="mt-1 text-xs text-slate-600">This business plan meets all KNEC standards and is published live in the marketplace catalog.</p>
+              </div>
+              <Link href="/projects" className="rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-indigo-700 shadow-xs transition-colors">
+                View in Marketplace
+              </Link>
+            </div>
+          ) : isReviewPending || (isFinalProjectReady && (profile.role === "admin" || workspace.supervisor_id === user.id)) ? (
             <div className="space-y-3">
-              <p className="text-xs text-slate-700">All {templateDefs.length} required sections meet their minimums. Review the manuscript and record a final decision.</p>
+              <p className="text-xs text-slate-700">All {templateDefs.length} required sections meet their minimums. Review the manuscript below and record your moderation decision.</p>
               <div className="grid gap-3 md:grid-cols-2">
                 <SupervisorDecisionForm
                   action={approveCompletedProjectForMarketplace}
@@ -440,33 +321,37 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
                   className="space-y-2 rounded-lg border border-emerald-200 bg-emerald-50/50 p-3"
                 >
                   <input type="hidden" name="workspaceId" value={workspaceId} />
-                  <label className="grid gap-1 text-xs font-medium text-slate-700">Approval note<input name="comment" defaultValue="Completed project reviewed and approved." className="h-9 rounded-lg border border-slate-300 bg-white px-3 text-xs" /></label>
+                  <label className="grid gap-1 text-xs font-medium text-slate-700">
+                    Approval note
+                    <input name="comment" defaultValue="Completed project reviewed and approved." className="h-9 rounded-lg border border-slate-300 bg-white px-3 text-xs" />
+                  </label>
                 </SupervisorDecisionForm>
                 <SupervisorDecisionForm
                   action={requestFinalProjectChanges}
                   successMessage="Final review changes sent to the candidate."
-                  submitLabel="Request final changes"
+                  submitLabel="Request changes"
                   pendingLabel="Sending request..."
                   tone="danger"
                   className="space-y-2 rounded-lg border border-rose-200 bg-rose-50/50 p-3"
                 >
                   <input type="hidden" name="workspaceId" value={workspaceId} />
-                  <label className="grid gap-1 text-xs font-medium text-slate-700">Required changes<textarea name="comment" required rows={2} className="rounded-lg border border-slate-300 bg-white p-2 text-xs" /></label>
+                  <label className="grid gap-1 text-xs font-medium text-slate-700">
+                    Required changes
+                    <textarea name="comment" required rows={2} placeholder="Specify required revisions..." className="rounded-lg border border-slate-300 bg-white p-2 text-xs" />
+                  </label>
                 </SupervisorDecisionForm>
               </div>
             </div>
+          ) : workspace.final_project_status === "changes_requested" ? (
+            <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-xs text-rose-900 space-y-1">
+              <p className="font-semibold">Revisions Requested</p>
+              <p className="text-slate-700">{reviews[0]?.comment || "Candidate has been notified to revise the manuscript."}</p>
+            </div>
           ) : (
-            <p className="text-xs text-slate-700">
-              {workspace.final_project_status === "approved"
-                ? isBusiness ? "Final approval recorded. The business plan is published live on the marketplace." : "Final approval recorded."
-                : workspace.final_project_status === "changes_requested"
-                  ? "Final changes were requested. The student can revise and resubmit after topic or chapter approval."
-                  : !isApproved
-                    ? "Approve the project topic and submitted chapters before final project review."
-                    : !isFinalProjectReady
-                      ? `Waiting for the student to complete ${finalProjectIncomplete.length} section(s) before final review.`
-                      : "The completed project is ready for the student to submit for final review."}
-            </p>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-xs text-slate-700">
+              <p className="font-semibold text-slate-800">Drafting in Progress</p>
+              <p className="mt-1 text-slate-600">Candidate has completed {templateDefs.length - finalProjectIncomplete.length} of {templateDefs.length} required sections. Full approval unlocks when every section meets its minimum.</p>
+            </div>
           )}
         </ContentCard>
         </div>

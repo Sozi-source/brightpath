@@ -78,18 +78,27 @@ export async function GET(request: NextRequest) {
       : buyerInstitution?.name;
 
     // Under Option A: Personalize the white-labeled marketplace document with buyer details upon download
-    const sections = profile?.full_name
-      ? stampMarketplaceBusinessPlan(rawSections, {
-          candidateName: profile.full_name,
-          admissionNumber: profile.admission_number || "ADM/2026/001",
-          institutionName: buyerInstitutionName || "Technical and Vocational Education and Training (TVET) Institute",
-          townOrMarket: "Regional Center",
-          county: "Regional County",
-        })
-      : rawSections;
+    const candidateName = profile?.full_name || "Candidate";
+    const admissionNumber = profile?.admission_number || "ADM/2026/001";
+    const institutionName = buyerInstitutionName || "Kenya Education Cloud TVET Institute";
+    const supervisorName = "Institutional Supervisor";
+
+    const sections = stampMarketplaceBusinessPlan(rawSections, {
+      candidateName,
+      admissionNumber,
+      institutionName,
+      supervisorName,
+      townOrMarket: "Regional Center",
+      county: "Regional County",
+    });
+
     const document = {
       title: snapshot.title || project.title,
       businessName: snapshot.title || project.title,
+      candidate: candidateName,
+      admissionNumber,
+      institution: institutionName,
+      supervisor: supervisorName,
       course: snapshot.course,
       level: snapshot.level === "craft" ? "Certificate" : "Diploma",
       sections,
