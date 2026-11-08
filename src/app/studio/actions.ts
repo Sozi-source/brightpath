@@ -36,6 +36,7 @@ import {
   getBusinessModelConflictFindings,
   validateBusinessPlanModelSpecs,
 } from "@/lib/studio/businessPlanProfiles";
+import { queueApprovedBusinessPlanListing } from "@/lib/studio/marketplaceListing";
 
 function getBusinessPlanAIProvider(formData: FormData): BusinessPlanAIProvider {
   const value = formData.get("aiProvider")?.toString();
@@ -433,10 +434,13 @@ export async function submitCompletedProjectForFinalReview(formData: FormData) {
 
   let priceKes: number | null = null;
   if (workspace.workspace_type === "business_plan") {
+    // Under Option A: Standard institutional pricing (Diploma: KES 2,500, Craft/Certificate: KES 1,500)
     const rawPrice = formData.get("priceKes")?.toString().trim() || "";
-    priceKes = Number(rawPrice);
-    if (!rawPrice || !Number.isFinite(priceKes) || priceKes < 0 || priceKes > 1_000_000) {
-      throw new Error("Enter a valid marketplace price in KES.");
+    const parsed = Number(rawPrice);
+    if (rawPrice && Number.isFinite(parsed) && parsed >= 0 && parsed <= 1_000_000) {
+      priceKes = parsed;
+    } else {
+      priceKes = workspace.level === "craft" ? 1500 : 2500;
     }
   }
 
@@ -2005,100 +2009,17 @@ export async function publishBusinessPlanToMarketplace(formData: FormData) {
   if (!user) redirect("/login");
 
   const workspaceId = formData.get("workspaceId")?.toString();
-  const rawPrice = formData.get("priceKes")?.toString().trim() || "";
-  const priceKes = Number(rawPrice);
-  if (!workspaceId || !rawPrice || !Number.isFinite(priceKes) || priceKes < 0 || priceKes > 1000000) {
-    throw new Error("Enter a valid listing price in KES.");
-  }
+  if (!workspaceId) throw new Error("Missing workspace ID.");
 
   const db = getServerDbClient(supabase);
   const { data: workspace } = await db.from("project_workspaces")
-    .select("id, student_id, supervisor_id, institution_id, workspace_type, level, title, course, problem_area, status, final_project_status, business_plan_specs, student:student_id(full_name, admission_number), supervisor:supervisor_id(full_name), institution:institution_id(name)")
+    .select("id, student_id, workspace_type, final_project_status")
     .eq("id", workspaceId).maybeSingle();
   if (!workspace || workspace.student_id !== user.id) throw new Error("This business plan is not yours.");
   if (workspace.workspace_type !== "business_plan") throw new Error("Only business plans can be submitted from this workspace.");
-  if (workspace.final_project_status !== "approved") throw new Error("A supervisor must approve the complete project before marketplace submission.");
+  if (workspace.final_project_status !== "approved") throw new Error("A supervisor must approve the complete project before marketplace publication.");
 
-  const definitions = getWorkspaceSections("business_plan", workspace.level, resolveBusinessPlanModel(workspace.business_plan_specs as BusinessPlanSpecs | null));
-  const { data: rows, error: sectionsError } = await db.from("workspace_sections")
-    .select("section_key, current_text").eq("workspace_id", workspaceId);
-  if (sectionsError) throw new Error("Could not verify the plan sections.");
-  const planSpecs = workspace.business_plan_specs as BusinessPlanSpecs | null;
-  if (planSpecs) {
-    const conflicts = getBusinessModelConflictFindings(planSpecs, (rows || []).map((row) => ({
-      key: row.section_key,
-      content: row.current_text || "",
-    })));
-    if (conflicts.length) throw new Error(`Resolve the business-model mismatch in ${conflicts.map((item) => item.sectionKey).join(", ")} before publishing.`);
-  }
-  const sectionText = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
-  const incomplete = definitions.filter((definition) => {
-    const words = (sectionText.get(definition.key) || "").trim().split(/\s+/).filter(Boolean).length;
-    return words < (definition.minWords || 30);
-  });
-  if (incomplete.length) throw new Error(`Complete all sections before publishing. ${incomplete.length} section(s) need more content.`);
-
-  const { data: existing } = await db.from("project_plan_snapshots").select("project_id")
-    .eq("workspace_id", workspaceId).maybeSingle();
-  if (existing) throw new Error("This business plan has already been submitted to the marketplace.");
-
-  const specs = workspace.business_plan_specs as {
-    candidateName?: string;
-    admissionNumber?: string;
-    institutionName?: string;
-    supervisorName?: string;
-  } | null;
-  const student = workspace.student as unknown as { full_name?: string | null; admission_number?: string | null } | null;
-  const supervisor = workspace.supervisor as unknown as { full_name?: string | null } | null;
-  const institution = workspace.institution as unknown as { name?: string | null } | null;
-  const redact = (content: string, value: string | null | undefined, replacement: string) => {
-    const normalized = value?.trim();
-    if (!normalized || normalized.length < 2) return content;
-    const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    return content.replace(new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, "giu"), replacement);
-  };
-  const redactPrivateDetails = (content: string) => [
-    [specs?.candidateName, "[Candidate]"],
-    [student?.full_name, "[Candidate]"],
-    [specs?.admissionNumber, "[Admission number withheld]"],
-    [student?.admission_number, "[Admission number withheld]"],
-    [specs?.institutionName, "[Institution]"],
-    [institution?.name, "[Institution]"],
-    [specs?.supervisorName, "[Supervisor]"],
-    [supervisor?.full_name, "[Supervisor]"],
-  ].reduce((text, [value, replacement]) => redact(text, value, replacement as string), content);
-
-  const listingTitle = redactPrivateDetails(workspace.title || `${workspace.course} Business Plan`);
-  const listingDescription = redactPrivateDetails(
-    workspace.problem_area || `Completed ${workspace.course} business plan.`
-  );
-  const { data: listing, error } = await db.from("projects").insert({
-    trainer_id: user.id,
-    title: listingTitle,
-    description: listingDescription,
-    category: "Business Plan",
-    material_type: "business_plan",
-    price_kes: priceKes,
-    file_path: `workspace-export:${workspaceId}`,
-    status: "pending_review",
-  }).select("id").single();
-  if (error || !listing) throw new Error(error?.message || "Could not submit this plan for marketplace review.");
-
-  const { error: snapshotError } = await db.from("project_plan_snapshots").insert({
-    project_id: listing.id,
-    workspace_id: workspaceId,
-    title: listingTitle,
-    course: workspace.course,
-    level: workspace.level,
-    sections: definitions.map((definition) => ({
-      title: definition.title,
-      content: redactPrivateDetails(sectionText.get(definition.key) || ""),
-    })),
-  });
-  if (snapshotError) {
-    await db.from("projects").delete().eq("id", listing.id).eq("trainer_id", user.id);
-    throw new Error(snapshotError.message || "Could not save the private listing document.");
-  }
+  await queueApprovedBusinessPlanListing(workspaceId);
 
   revalidatePath(`/studio/${workspaceId}`);
   revalidatePath("/projects");

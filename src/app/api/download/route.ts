@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createBusinessPlanDocx } from "@/lib/studio/businessPlanDocx";
 import { createBusinessPlanPdf } from "@/lib/studio/businessPlanPdf";
+import { stampMarketplaceBusinessPlan } from "@/lib/studio/marketplaceListing";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -31,10 +32,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Project not found." }, { status: 404 });
   }
 
-  // Check admin privileges
+  // Check admin privileges and buyer profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, full_name, admission_number, institutions(name)")
     .eq("id", user.id)
     .single();
 
@@ -70,7 +71,22 @@ export async function GET(request: NextRequest) {
     if (!snapshot || !Array.isArray(snapshot.sections)) {
       return NextResponse.json({ error: "The published business plan is unavailable." }, { status: 404 });
     }
-    const sections = snapshot.sections as { title: string; content: string }[];
+    const rawSections = snapshot.sections as { title: string; content: string }[];
+    const buyerInstitution = profile?.institutions as { name?: string } | { name?: string }[] | null;
+    const buyerInstitutionName = Array.isArray(buyerInstitution)
+      ? buyerInstitution[0]?.name
+      : buyerInstitution?.name;
+
+    // Under Option A: Personalize the white-labeled marketplace document with buyer details upon download
+    const sections = profile?.full_name
+      ? stampMarketplaceBusinessPlan(rawSections, {
+          candidateName: profile.full_name,
+          admissionNumber: profile.admission_number || "ADM/2026/001",
+          institutionName: buyerInstitutionName || "Technical and Vocational Education and Training (TVET) Institute",
+          townOrMarket: "Regional Center",
+          county: "Regional County",
+        })
+      : rawSections;
     const document = {
       title: snapshot.title || project.title,
       businessName: snapshot.title || project.title,

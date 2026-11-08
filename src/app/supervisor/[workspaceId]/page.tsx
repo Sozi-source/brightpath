@@ -433,9 +433,9 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
               <div className="grid gap-3 md:grid-cols-2">
                 <SupervisorDecisionForm
                   action={approveCompletedProjectForMarketplace}
-                  successMessage="Completed project approved and queued for marketplace review."
-                  submitLabel="Approve completed project"
-                  pendingLabel="Saving final approval..."
+                  successMessage="Completed project approved and published live to marketplace."
+                  submitLabel="Approve & publish to marketplace"
+                  pendingLabel="Approving & publishing..."
                   className="space-y-2 rounded-lg border border-emerald-200 bg-emerald-50/50 p-3"
                 >
                   <input type="hidden" name="workspaceId" value={workspaceId} />
@@ -457,7 +457,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
           ) : (
             <p className="text-xs text-slate-700">
               {workspace.final_project_status === "approved"
-                ? isBusiness ? "Final approval recorded. The business plan is in the admin marketplace review queue." : "Final approval recorded."
+                ? isBusiness ? "Final approval recorded. The business plan is published live on the marketplace." : "Final approval recorded."
                 : workspace.final_project_status === "changes_requested"
                   ? "Final changes were requested. The student can revise and resubmit after topic or chapter approval."
                   : !isApproved

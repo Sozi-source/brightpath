@@ -118,7 +118,7 @@ export async function approveCompletedProjectForMarketplace(formData: FormData) 
   await db.from("project_log_entries").insert({
     workspace_id: workspaceId,
     activity: fullWorkspace.workspace_type === "business_plan"
-      ? "Supervisor approved the completed project; marketplace review queue created."
+      ? "Supervisor approved the completed project; business plan published live to marketplace."
       : "Supervisor approved the completed project.",
     supervisor_comment: comment,
     auto_generated: true,

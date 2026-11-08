@@ -41,6 +41,9 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
   const average = Number(rating?.rating_average || 0);
   const reviewCount = Number(rating?.review_count || 0);
   const publisher = product.profiles as unknown as { full_name?: string | null } | null;
+  const publisherName = product.material_type === "business_plan"
+    ? "BrightPath Academic Repository"
+    : (publisher?.full_name || "BrightPath Publisher");
   const extension = product.file_path.startsWith("workspace-export:")
     ? "PDF + Word"
     : product.file_path.split(".").pop()?.toUpperCase() || "Digital file";
@@ -72,7 +75,7 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
                   {product.category && <span className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-slate-700">{product.category}</span>}
                 </div>
                 <h1 className="mt-3 text-xl font-semibold leading-tight tracking-tight text-slate-900">{product.title}</h1>
-                <p className="mt-2 text-sm text-slate-600">By {publisher?.full_name || "BrightPath Publisher"}</p>
+                <p className="mt-2 text-sm text-slate-600">By {publisherName}</p>
                 <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-600">
                   <span className="inline-flex items-center gap-1 font-semibold text-slate-900"><Star className="h-4 w-4 fill-amber-400 text-amber-500" />{reviewCount ? average.toFixed(1) : "New"}{reviewCount > 0 && <span className="font-normal text-slate-600">({reviewCount} reviews)</span>}</span>
                   <span className="inline-flex items-center gap-1"><Download className="h-3.5 w-3.5" />{Number(product.download_count || 0).toLocaleString()} downloads</span>

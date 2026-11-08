@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   // Fetch project details
   const { data: project, error: projErr } = await supabase
     .from("projects")
-    .select("id, title, price_kes, trainer_id, status")
+    .select("id, title, price_kes, trainer_id, status, material_type")
     .eq("id", projectId)
     .single();
 
@@ -47,10 +47,17 @@ export async function POST(request: NextRequest) {
     adminClient.from("platform_settings").select("commission_percent").eq("id", 1).single(),
   ]);
 
+  const isBusinessPlan = project.material_type === "business_plan";
   const commissionPercent = Number(settings?.commission_percent ?? 20);
   const amountKes = Number(project.price_kes);
-  const commissionKes = Math.round((amountKes * (commissionPercent / 100)) * 100) / 100;
-  const trainerShareKes = Math.round((amountKes - commissionKes) * 100) / 100;
+
+  // Under Option A: Business plans are 100% platform property. Platform retains 100% of revenue.
+  const commissionKes = isBusinessPlan
+    ? amountKes
+    : Math.round((amountKes * (commissionPercent / 100)) * 100) / 100;
+  const trainerShareKes = isBusinessPlan
+    ? 0
+    : Math.round((amountKes - commissionKes) * 100) / 100;
 
   const reference = `BP_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
@@ -89,7 +96,8 @@ export async function POST(request: NextRequest) {
     callback_url: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/library`,
   };
 
-  if (trainerProfile?.paystack_subaccount_code) {
+  // Only route subaccount payouts for non-business-plan materials (trainer-owned resources)
+  if (!isBusinessPlan && trainerProfile?.paystack_subaccount_code) {
     paystackPayload.subaccount = trainerProfile.paystack_subaccount_code;
     paystackPayload.transaction_charge = Math.round(commissionKes * 100);
   }

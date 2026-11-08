@@ -13,10 +13,22 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
   if (workspace.workspace_type !== "business_plan" || workspace.final_project_status !== "approved") {
     throw new Error("Only finally approved business plans can enter marketplace review.");
   }
-  const priceKes = Number(workspace.marketplace_price_kes);
-  if (!Number.isFinite(priceKes) || priceKes < 0 || priceKes > 1_000_000) {
-    throw new Error("The student’s marketplace price is invalid.");
-  }
+
+  // Under Option A: All approved work remains 100% property of the platform/system.
+  // Query platform admin profile to own the listing.
+  const { data: adminProfile } = await db
+    .from("profiles")
+    .select("id")
+    .eq("role", "admin")
+    .limit(1)
+    .maybeSingle();
+
+  const platformOwnerId = adminProfile?.id || workspace.student_id;
+
+  // Standard institutional pricing: Diploma = KES 2,500, Certificate/Craft = KES 1,500
+  const defaultStandardPrice = workspace.level === "craft" ? 1500 : 2500;
+  const rawPrice = Number(workspace.marketplace_price_kes);
+  const priceKes = (Number.isFinite(rawPrice) && rawPrice > 0) ? rawPrice : defaultStandardPrice;
 
   const planSpecs = workspace.business_plan_specs as BusinessPlanSpecs | null;
   const definitions = getWorkspaceSections("business_plan", workspace.level, resolveBusinessPlanModel(planSpecs));
@@ -58,29 +70,70 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
     const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     return content.replace(new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, "giu"), replacement);
   };
-  const redactPrivateDetails = (content: string) => [
-    [specs?.candidateName, "{{CANDIDATE_NAME}}"],
-    [student?.full_name, "{{CANDIDATE_NAME}}"],
-    [specs?.admissionNumber, "{{ADMISSION_NUMBER}}"],
-    [student?.admission_number, "{{ADMISSION_NUMBER}}"],
-    [specs?.institutionName, "{{INSTITUTION_NAME}}"],
-    [institution?.name, "{{INSTITUTION_NAME}}"],
-    [specs?.supervisorName, "{{SUPERVISOR_NAME}}"],
-    [supervisor?.full_name, "{{SUPERVISOR_NAME}}"],
-    [specs?.streetOrBuilding, "{{STREET_ADDRESS}}"],
-    [specs?.townOrMarket, "{{TARGET_TOWN}}"],
-    [specs?.county, "{{TARGET_COUNTY}}"],
-    [specs?.phone, "{{PHONE_NUMBER}}"],
-    [specs?.email, "{{EMAIL_ADDRESS}}"],
-    [specs?.postalAddress, "{{POSTAL_ADDRESS}}"],
-  ].reduce((text, [value, replacement]) => redact(text, value, replacement as string), content);
 
-  const listingTitle = redactPrivateDetails(workspace.title || `${workspace.course} Business Plan`)
+  // Extract student name tokens (if multi-word like "Lydiah Kathesya", redact individual names too)
+  const studentNameWords = (student?.full_name || "")
+    .split(/\s+/)
+    .filter((w) => w.length >= 3 && !/^(and|the|for|with|from)$/i.test(w));
+
+  const redactPrivateDetails = (content: string) => {
+    let text = [
+      [specs?.candidateName, "{{CANDIDATE_NAME}}"],
+      [student?.full_name, "{{CANDIDATE_NAME}}"],
+      ...studentNameWords.map((namePart) => [namePart, "{{CANDIDATE_NAME}}"] as [string, string]),
+      [specs?.admissionNumber, "{{ADMISSION_NUMBER}}"],
+      [student?.admission_number, "{{ADMISSION_NUMBER}}"],
+      [specs?.institutionName, "{{INSTITUTION_NAME}}"],
+      [institution?.name, "{{INSTITUTION_NAME}}"],
+      [specs?.supervisorName, "{{SUPERVISOR_NAME}}"],
+      [supervisor?.full_name, "{{SUPERVISOR_NAME}}"],
+      [specs?.streetOrBuilding, "{{STREET_ADDRESS}}"],
+      [specs?.townOrMarket, "{{TARGET_TOWN}}"],
+      [specs?.county, "{{TARGET_COUNTY}}"],
+      [specs?.phone, "{{PHONE_NUMBER}}"],
+      [specs?.email, "{{EMAIL_ADDRESS}}"],
+      [specs?.postalAddress, "{{POSTAL_ADDRESS}}"],
+    ].reduce((acc, [value, replacement]) => redact(acc, value, replacement as string), content);
+
+    // Regex scrubbers for phone, email, postal address, and admission patterns
+    text = text
+      .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi, "{{EMAIL_ADDRESS}}")
+      .replace(/(?:\+254|0)[17]\d{8}\b/g, "{{PHONE_NUMBER}}")
+      .replace(/\bP\.?O\.?\s*Box\s*\d+[a-zA-Z0-9\s,-]*/gi, "{{POSTAL_ADDRESS}}")
+      .replace(/\b[A-Z]{2,5}\/\d{2,6}\/\d{2,4}\b/gi, "{{ADMISSION_NUMBER}}")
+      .replace(/\[Candidate\]/g, "{{CANDIDATE_NAME}}")
+      .replace(/\[Admission number withheld\]/g, "{{ADMISSION_NUMBER}}")
+      .replace(/\[Institution\]/g, "{{INSTITUTION_NAME}}")
+      .replace(/\[Supervisor\]/g, "{{SUPERVISOR_NAME}}");
+
+    return text;
+  };
+
+  const levelLabel = workspace.level === "craft" ? "Craft Certificate" : "Diploma";
+  const baseTitle = redactPrivateDetails(workspace.title || `${workspace.course} Enterprise`)
     .replace(/\{\{TARGET_TOWN\}\}/g, "Regional")
-    .replace(/\{\{TARGET_COUNTY\}\}/g, "County");
-  const listingDescription = redactPrivateDetails(workspace.problem_area || `Completed ${workspace.course} business plan.`)
-    .replace(/\{\{TARGET_TOWN\}\}/g, "local market")
-    .replace(/\{\{TARGET_COUNTY\}\}/g, "county catchment");
+    .replace(/\{\{TARGET_COUNTY\}\}/g, "County")
+    .replace(/\{\{INSTITUTION_NAME\}\}/g, "")
+    .replace(/\{\{CANDIDATE_NAME\}\}/g, "")
+    .replace(/\s*—\s*Complete KNEC Business Plan.*/i, "")
+    .trim();
+  const listingTitle = `${baseTitle} — Complete KNEC Business Plan (${levelLabel})`;
+
+  const listingDescription = redactPrivateDetails(
+    workspace.problem_area ||
+    `Complete KNEC business plan for ${baseTitle} (${levelLabel}). Includes comprehensive executive summary, marketing, operations, human resources, and financial schedules prepared in full compliance with KNEC TVET assessment regulations.`
+  )
+    .replace(/\{\{TARGET_TOWN\}\}/g, "regional market")
+    .replace(/\{\{TARGET_COUNTY\}\}/g, "county catchment")
+    .replace(/\{\{INSTITUTION_NAME\}\}/g, "Accredited TVET Institution")
+    .replace(/\{\{CANDIDATE_NAME\}\}/g, "Candidate")
+    .replace(/\{\{ADMISSION_NUMBER\}\}/g, "")
+    .replace(/\{\{SUPERVISOR_NAME\}\}/g, "Institutional Supervisor")
+    .replace(/\{\{STREET_ADDRESS\}\}/g, "Commercial Center")
+    .replace(/\{\{PHONE_NUMBER\}\}/g, "+254 700 000 000")
+    .replace(/\{\{EMAIL_ADDRESS\}\}/g, "info@enterprise.co.ke")
+    .replace(/\{\{POSTAL_ADDRESS\}\}/g, "P.O. Box 100");
+
   const filePath = `workspace-export:${workspaceId}`;
   const { data: existing, error: existingError } = await db.from("projects")
     .select("id, status").eq("file_path", filePath).maybeSingle();
@@ -89,39 +142,46 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
   let projectId = existing?.id;
   let createdProject = false;
   if (existing) {
-    if (existing.status !== "published") {
-      const { error } = await db.from("projects").update({
-        title: listingTitle, description: listingDescription, category: "Business Plan",
-        material_type: "business_plan", price_kes: priceKes, status: "pending_review",
-      }).eq("id", existing.id);
-      if (error) throw new Error(error.message || "Could not update the marketplace listing.");
-    }
+    const { error } = await db.from("projects").update({
+      trainer_id: platformOwnerId,
+      title: listingTitle,
+      description: listingDescription,
+      category: "Business Plan",
+      material_type: "business_plan",
+      price_kes: priceKes,
+      status: "published",
+    }).eq("id", existing.id);
+    if (error) throw new Error(error.message || "Could not update the marketplace listing.");
   } else {
     const { data: listing, error } = await db.from("projects").insert({
-      trainer_id: workspace.student_id, title: listingTitle, description: listingDescription,
-      category: "Business Plan", material_type: "business_plan", price_kes: priceKes, file_path: filePath, status: "pending_review",
+      trainer_id: platformOwnerId,
+      title: listingTitle,
+      description: listingDescription,
+      category: "Business Plan",
+      material_type: "business_plan",
+      price_kes: priceKes,
+      file_path: filePath,
+      status: "published",
     }).select("id").single();
-    if (error || !listing) throw new Error(error?.message || "Could not submit the plan for marketplace review.");
+    if (error || !listing) throw new Error(error?.message || "Could not publish the business plan.");
     projectId = listing.id;
     createdProject = true;
   }
 
-  if (existing?.status !== "published") {
-    const { error: snapshotError } = await db.from("project_plan_snapshots").upsert({
-      project_id: projectId,
-      workspace_id: workspaceId,
-      title: listingTitle,
-      course: workspace.course,
-      level: workspace.level,
-      sections: definitions.map((definition) => ({
-        title: definition.title,
-        content: redactPrivateDetails(sectionText.get(definition.key) || ""),
-      })),
-    }, { onConflict: "project_id" });
-    if (snapshotError) {
-      if (createdProject) await db.from("projects").delete().eq("id", projectId);
-      throw new Error(snapshotError.message || "Could not save the private marketplace document.");
-    }
+  const { error: snapshotError } = await db.from("project_plan_snapshots").upsert({
+    project_id: projectId,
+    workspace_id: workspaceId,
+    title: listingTitle,
+    course: workspace.course,
+    level: workspace.level,
+    sections: definitions.map((definition) => ({
+      title: definition.title,
+      content: redactPrivateDetails(sectionText.get(definition.key) || ""),
+    })),
+  }, { onConflict: "project_id" });
+  if (snapshotError) {
+    if (createdProject) await db.from("projects").delete().eq("id", projectId);
+    throw new Error(snapshotError.message || "Could not save the private marketplace document.");
   }
   return projectId;
 }
