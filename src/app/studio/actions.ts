@@ -761,9 +761,8 @@ export async function deleteDraftWorkspace(formData: FormData) {
     throw new Error("Unauthorized to delete this workspace.");
   }
 
-  if (ws.status === "approved" || ws.status === "submitted" || ws.status === "closed") {
-    throw new Error("Approved or submitted projects cannot be deleted.");
-  }
+  // Clean up any associated marketplace project entry
+  await db.from("projects").delete().eq("file_path", `workspace-export:${workspaceId}`);
 
   const { error } = await db
     .from("project_workspaces")

@@ -141,7 +141,7 @@ export default async function StudioDashboardPage() {
                       <p className="text-[11px] text-slate-500">{completedSections} of {totalSections} sections drafted · {progressPct}%</p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
-                      {!isApproved && <DeleteDraftButton workspaceId={ws.id} title={ws.title} />}
+                      <DeleteDraftButton workspaceId={ws.id} title={ws.title} compact />
                       <Link href={`/studio/${ws.id}`} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700">
                         <span>Continue</span><ArrowRight className="h-3.5 w-3.5" />
                       </Link>

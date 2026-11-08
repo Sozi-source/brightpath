@@ -201,7 +201,7 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                 initialSpecs={workspace.business_plan_specs as Partial<BusinessPlanSpecs> | undefined}
               />
             )}
-            {!isApproved && workspace.student_id === user.id && (
+            {workspace.student_id === user.id && (
               <DeleteDraftButton
                 workspaceId={workspaceId}
                 title={workspace.title}
