@@ -22,7 +22,7 @@ import {
   Send,
   ShieldAlert,
   ChevronRight,
-  Lightbulb,
+  Lightbulb, Sparkles,
 } from "lucide-react";
 import type { ProjectWorkspace, WorkspaceSection, SupervisorReview } from "@/types/database";
 import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
@@ -232,6 +232,55 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
           <p className="text-xs text-rose-950 leading-relaxed bg-white p-3 rounded-lg border border-rose-200">
             &ldquo;{latestReview.comment}&rdquo;
           </p>
+        </div>
+      )}
+
+      {isBusiness && workspace.student_id === user.id && (
+        <div className="relative overflow-hidden rounded-xl border border-indigo-200 bg-gradient-to-r from-indigo-50/90 via-blue-50/40 to-white p-5 shadow-xs mb-4">
+          <div className="absolute top-0 left-0 right-0 h-1 flex">
+            <div className="w-[60%] bg-indigo-600" />
+            <div className="w-[40%] bg-amber-500" />
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
+            <div className="space-y-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-600 text-white">
+                  <Sparkles className="h-3 w-3" />
+                  <span>KNEC Business Plan Engine</span>
+                </span>
+                <span className="text-xs font-semibold text-slate-600">
+                  25–30 Page Standard
+                </span>
+              </div>
+              <h3 className="text-base font-semibold text-slate-900 tracking-tight truncate">
+                {workspace.title || "Nutrition Enterprise"}
+              </h3>
+              <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
+                Click below to configure enterprise parameters and generate all 28 KNEC chapters with deterministic Chapter 5 cash flows, balance sheet, and localized market analysis.
+              </p>
+            </div>
+            <div className="shrink-0">
+              <BusinessPlanBuilderModal
+                workspaceId={workspaceId}
+                defaultCandidateName={workspace.student?.full_name || ""}
+                defaultAdmissionNumber={workspace.student?.admission_number || ""}
+                defaultInstitutionName={workspace.institution?.name || ""}
+                defaultSupervisorName={workspace.supervisor?.full_name || ""}
+                defaultCourse={workspace.course}
+                defaultLevel={workspace.level}
+                initialSpecs={workspace.business_plan_specs as Partial<BusinessPlanSpecs> | undefined}
+                triggerButton={
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    <span>Build Business Plan</span>
+                  </button>
+                }
+              />
+            </div>
+          </div>
         </div>
       )}
 

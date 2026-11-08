@@ -103,9 +103,9 @@ export function BusinessPlanBuilderModal({
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [aiProvider, setAIProvider] = useState<"gemini" | "groq">("groq");
-  const [activeTab, setActiveTab] = useState<
-    "presets" | "identity" | "products" | "operations" | "financials"
-  >("presets");
+  const [activeTab, setActiveTab] = useState<"presets" | "identity" | "products" | "operations" | "financials">(() => (initialSpecs?.businessName ? "identity" : "presets"));
+
+
 
   // Presets are optional examples; a new plan starts with candidate-owned values.
   const [specs, setSpecs] = useState<BusinessPlanSpecs>(() => ({
@@ -390,7 +390,7 @@ export function BusinessPlanBuilderModal({
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer"
         >
           <Sparkles className="h-4 w-4" />
-          <span>Business Plan Details</span>
+          <span>Build Business Plan</span>
         </button>
       )}
 
@@ -1638,7 +1638,7 @@ export function BusinessPlanBuilderModal({
                   ) : (
                     <>
                       <Sparkles className="h-3.5 w-3.5" />
-                      <span>Build Full Draft</span>
+                      <span>Build Business Plan</span>
                     </>
                   )}
                 </button>
