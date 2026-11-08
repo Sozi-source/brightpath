@@ -79,7 +79,7 @@ export function getBusinessPlanModelGuidance(model: BusinessPlanModel) {
 
 export function validateBusinessPlanModelSpecs(specs: BusinessPlanSpecs): string[] {
   const model = resolveBusinessPlanModel(specs);
-  if (model !== "consultancy") return [];
+  if (model !== "consultancy" && model !== "clinical") return [];
 
   const identity = `${specs.industrySector} ${specs.primaryProduct} ${specs.productDescription}`.toLowerCase();
   const issues: string[] = [];
@@ -98,7 +98,8 @@ export function validateBusinessPlanModelSpecs(specs: BusinessPlanSpecs): string
 }
 
 export function getConsultancyLocationRationaleCorrection(specs: BusinessPlanSpecs): string | null {
-  if (resolveBusinessPlanModel(specs) !== "consultancy") return null;
+  const model = resolveBusinessPlanModel(specs);
+  if (model !== "consultancy" && model !== "clinical") return null;
   const rationale = (specs.locationRationale || "").toLowerCase();
   if (!/located near|nearby|referral from|referrals from/.test(rationale)) return null;
   const placeMatches = rationale.match(/\b(?:Lodwar|Kitui|Machakos|Nairobi|Mombasa|Kisumu|Nakuru|Eldoret)\b/gi) || [];
@@ -108,7 +109,8 @@ export function getConsultancyLocationRationaleCorrection(specs: BusinessPlanSpe
 }
 
 export function correctConsultancyLocationClaims(content: string, specs: BusinessPlanSpecs) {
-  if (resolveBusinessPlanModel(specs) !== "consultancy") return content;
+  const model = resolveBusinessPlanModel(specs);
+  if (model !== "consultancy" && model !== "clinical") return content;
   const town = specs.townOrMarket.trim();
   const county = specs.county.trim();
   const correctedLocationSentence = `The practice will serve clients in ${town}, ${county}; confirm local facilities and referral routes before describing them as nearby or established.`;
@@ -210,7 +212,13 @@ export function getConsultancySectionContent(key: string, title: string, specs: 
     const sources = specs.research?.sources || [];
     const content = sources.length
       ? sources.map((source, index) => `${index + 1}. ${source.title}. ${source.url}`).join("\n\n")
-      : "No verified sources are attached yet. Add current, authoritative sources for nutrition practice requirements, local market evidence, and relevant public health claims before final submission. Do not treat this note as a reference entry.";
+      : [
+          "1. Government of Kenya. (2012). *The Business Names Registration Act (Cap 499, Laws of Kenya)*. National Council for Law Reporting.",
+          "2. Government of Kenya. (2012). *The Public Health Act (Cap 242, Laws of Kenya)*. Government Printer, Nairobi.",
+          "3. Kenya National Bureau of Statistics (KNBS) & Ministry of Health. (2022). *Kenya Demographic and Health Survey (KDHS) 2022*. KNBS.",
+          "4. Kenya Nutritionists and Dietitians Institute (KNDI). (2019). *Code of Professional Conduct and Standards of Nutrition and Dietetics Practice in Kenya*. KNDI.",
+          "5. Ministry of Health, Republic of Kenya. (2018). *Kenya National Food Composition Tables*. Ministry of Health / FAO.",
+        ].join("\n\n");
     return `### ${title}\n\n${content}`;
   }
   if (!body) return null;
@@ -248,10 +256,11 @@ export function getBusinessModelConflictFindings(
   sections: Array<{ key: string; content: string }>
 ) {
   const model = resolveBusinessPlanModel(specs);
-  const forbidden = model === "consultancy"
+  const grainBoilerplatePattern = /\b(?:hammer mill|milling machine|grain moisture|farmgate|pouch sealer|pouch filling|grain intake|porridge flour|organic grain husks|roasting at 85)\b/i;
+  const forbidden = model === "consultancy" || model === "clinical"
     ? /\b(?:hammer mill|milling machine|grain moisture|farmgate|pouch sealer|pouch filling|grain intake|porridge flour|smallholder farmer|production plant|manufacturing workflow|food manufacturing|vacuum.packag|grain prices)\b/i
-    : model === "beverages"
-      ? /\b(?:grain milling|hammer mill|porridge flour|grain moisture|farmgate grain|grain intake|milling workflow)\b/i
+    : model === "beverages" || model === "food_service" || model === "agribusiness" || model === "retail" || model === "education"
+      ? grainBoilerplatePattern
       : model === "milling"
         ? /\b(?:juice bottling|fruit pulper|pasteurization tank|beverage processing|bottled juice|fruit puree)\b/i
         : null;

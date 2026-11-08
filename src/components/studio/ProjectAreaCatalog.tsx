@@ -37,12 +37,12 @@ const GROUP_LABELS: Record<GroupFilter, string> = {
   ALL: "All Areas (35)",
   A: "A: Clinical (7)",
   B: "B: Food Processing (10)",
-  C: "C: Food Service (5)",
-  D: "D: Wellness & Safety (3)",
-  E: "E: Retail & Mart (3)",
-  F: "F: Agribusiness (2)",
-  G: "G: Digital & Ed (2)",
-  H: "H: Specialized (3)",
+  C: "C: Food Service (4)",
+  D: "D: Agribusiness (4)",
+  E: "E: Retail & Mart (2)",
+  F: "F: Community & Culinary Ed (4)",
+  G: "G: Wellness & Safety (3)",
+  H: "H: Therapeutic Feeds (1)",
 };
 
 export function ProjectAreaCatalog({

@@ -41,10 +41,10 @@ function chapterHeading(group: string): string | null {
 function cachedContentsText(sections: BusinessPlanDocxSection[]): string[] {
   const sectionKey = (value: string) => value.replace(/^\s*\d+(?:\.\d+)*\s*/, "").trim().toLowerCase();
   const sectionHeadings = (section: BusinessPlanDocxSection) => {
-    const sectionNumber = section.title.match(/^\s*(\d+(?:\.\d+)*)\b/)?.[1];
-    return Array.from(section.content.matchAll(/^#{2,6}\s+(.+)$/gm), (match) => match[1].trim())
+    const cleanContent = removeDuplicateLeadHeading(section.content, section.title);
+    return Array.from(cleanContent.matchAll(/^#{2,6}\s+(.+)$/gm), (match) => plainMarkdown(match[1].trim()))
       .filter((heading) => sectionKey(heading) !== sectionKey(section.title))
-      .map((heading) => `    ${/^\s*\d+(?:\.\d+)+\b/.test(heading) || !sectionNumber ? heading : `${sectionNumber} ${heading}`}`);
+      .map((heading) => `    ${heading}`);
   };
   const entries = [
     ...["dedication", "declaration", "acknowledgements"].flatMap((group) => sections.filter((section) => sectionGroup(section.title) === group).flatMap((section) => [section.title, ...sectionHeadings(section)])),
@@ -173,7 +173,7 @@ function diagram(lines: string[], mode = "flow"): string {
 }
 
 function markdownToWord(content: string): string {
-  const lines = content.replace(/\r/g, "").replace(/<br\s*\/?>/gi, "\n").split("\n");
+  const lines = content.replace(/\r/g, "").split("\n");
   const output: string[] = [];
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index].trim();
@@ -203,20 +203,24 @@ function markdownToWord(content: string): string {
 
     const heading = line.match(/^(#{1,6})\s+(.+)$/);
     if (heading) {
-      output.push(paragraph(plainMarkdown(heading[2]), heading[1].length <= 2 ? "Heading1" : "Heading2"));
+      output.push(paragraph(plainMarkdown(heading[2].replace(/<br\s*\/?>/gi, " ")), heading[1].length <= 2 ? "Heading1" : "Heading2"));
       continue;
     }
     const bullet = line.match(/^[-*+]\s+(.+)$/);
     if (bullet) {
-      output.push(paragraph(`-  ${plainMarkdown(bullet[1])}`));
+      for (const part of bullet[1].split(/<br\s*\/?>/gi)) {
+        if (part.trim()) output.push(paragraph(`-  ${plainMarkdown(part.trim())}`));
+      }
       continue;
     }
     const numbered = line.match(/^\d+[.)]\s+(.+)$/);
     if (numbered) {
-      output.push(paragraph(`${line.match(/^\d+/)?.[0]}.  ${plainMarkdown(numbered[1])}`));
+      output.push(paragraph(`${line.match(/^\d+/)?.[0]}.  ${plainMarkdown(numbered[1].replace(/<br\s*\/?>/gi, " "))}`));
       continue;
     }
-    output.push(paragraph(plainMarkdown(line)));
+    for (const part of line.split(/<br\s*\/?>/gi)) {
+      if (part.trim()) output.push(paragraph(plainMarkdown(part.trim())));
+    }
   }
   return output.join("");
 }
@@ -249,6 +253,9 @@ export function createBusinessPlanDocx(params: {
 }): Uint8Array {
   const sections = orderSections(params.sections);
   const brand = createBusinessPlanBrand({ name: params.businessName || params.title, industry: params.industrySector, product: params.primaryProduct });
+  const awardCourse = /^(?:certificate|diploma|craft|higher\s+diploma)\b/i.test(params.course.trim())
+    ? params.course.trim()
+    : `${params.level} in ${params.course}`.trim();
   const content: string[] = [
     brandMarkParagraph(brand.initials, brand.accent),
     ...(params.tagline ? [centeredParagraph(params.tagline)] : []),
@@ -257,7 +264,7 @@ export function createBusinessPlanDocx(params: {
     ...(params.candidate ? [centeredParagraph(params.candidate)] : []),
     ...(params.admissionNumber ? [centeredParagraph(`Index / Admission Number: ${params.admissionNumber}`)] : []),
     ...(params.institution ? [centeredParagraph(params.institution)] : []),
-    centeredParagraph(`Business plan submitted to Kenya National Examinations Council in partial fulfilment for the award of ${params.level} in ${params.course}.`),
+    centeredParagraph(`Business plan submitted to Kenya National Examinations Council in partial fulfilment for the award of ${awardCourse}.`),
     ...(params.supervisor ? [centeredParagraph(`Supervisor: ${params.supervisor}`)] : []),
     centeredParagraph(new Date().toLocaleString("en-GB", { month: "long", year: "numeric", timeZone: "Africa/Nairobi" })),
     sectionBreak(),

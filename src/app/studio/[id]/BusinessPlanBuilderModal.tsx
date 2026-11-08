@@ -226,6 +226,7 @@ export function BusinessPlanBuilderModal({
       formOfOwnership: (preset.formOfOwnership as "Sole Proprietorship") || prev.formOfOwnership,
       registrationType: preset.registrationType || prev.registrationType,
       ownerQualifications: preset.ownerQualifications || prev.ownerQualifications || "Diploma in Human Nutrition & Dietetics, KNDI Registered",
+      streetOrBuilding: preset.streetOrBuilding || prev.streetOrBuilding,
       locationRationale: preset.locationRationale || prev.locationRationale,
       primaryProduct: preset.primaryProduct || prev.primaryProduct,
       productDescription: preset.productDescription || prev.productDescription,
@@ -576,9 +577,9 @@ export function BusinessPlanBuilderModal({
                         { key: "C", label: "C. Catering (18-21)" },
                         { key: "D", label: "D. Agribusiness (22-25)" },
                         { key: "E", label: "E. Retail (26-27)" },
-                        { key: "F", label: "F. Education (28-31)" },
+                        { key: "F", label: "F. Community & Culinary Ed (28-31)" },
                         { key: "G", label: "G. Consultancy (32-34)" },
-                        { key: "H", label: "H. Digital (35)" },
+                        { key: "H", label: "H. Therapeutic Feeds (35)" },
                       ].map((grp) => (
                         <button
                           key={grp.key}

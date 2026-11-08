@@ -68,12 +68,60 @@ export interface ComputedFinancialModel {
 
 export function computeBusinessPlanFinancials(specs: BusinessPlanSpecs): ComputedFinancialModel {
   const model = resolveBusinessPlanModel(specs);
-  const isConsultancy = model === "consultancy";
+  const isConsultancy = model === "consultancy" || model === "clinical";
+  const isEducation = model === "education";
+  const isRetail = model === "retail";
+  const isFoodService = model === "food_service";
+  const isAgribusiness = model === "agribusiness";
   const isCustom = model === "custom";
-  const unitLabel = isConsultancy ? "consultation sessions" : isCustom ? "units or service engagements" : "units";
-  const variableCostLabel = isConsultancy ? "Consultation Delivery Costs" : isCustom ? "Direct Operating Inputs" : "Raw Material Purchases";
-  const assetLabel = isConsultancy ? "Clinical & Office Equipment" : isCustom ? "Business Assets & Equipment" : "Machinery & Tools";
-  const serviceLabel = isConsultancy ? "Cost of Services Delivered" : isCustom ? "Direct Cost of Sales or Services" : "Cost of Goods Sold (Raw Materials)";
+  const unitLabel = isConsultancy
+    ? "consultation sessions"
+    : isEducation
+      ? "training packages / enrollments"
+      : isRetail
+        ? "retail units / baskets"
+        : isFoodService
+          ? "meal portions / packages"
+          : isCustom
+            ? "units or service engagements"
+            : "units";
+  const variableCostLabel = isConsultancy
+    ? "Consultation Delivery Costs"
+    : isEducation
+      ? "Training Materials & Demo Inputs"
+      : isRetail
+        ? "Wholesale Stock Replenishment"
+        : isFoodService
+          ? "Food Ingredients & Meal Packaging"
+          : isAgribusiness
+            ? "Farm Inputs, Seeds & Packaging"
+            : isCustom
+              ? "Direct Operating Inputs"
+              : "Raw Material Purchases";
+  const assetLabel = isConsultancy
+    ? "Clinical & Office Equipment"
+    : isEducation
+      ? "Training & Demonstration Equipment"
+      : isRetail
+        ? "Store Fixtures, Chiller & POS Equipment"
+        : isFoodService
+          ? "Commercial Kitchen & Catering Equipment"
+          : isAgribusiness
+            ? "Agricultural & Post-Harvest Equipment"
+            : isCustom
+              ? "Business Assets & Equipment"
+              : "Machinery & Tools";
+  const serviceLabel = isConsultancy
+    ? "Cost of Services Delivered"
+    : isEducation
+      ? "Direct Cost of Training & Demonstration"
+      : isRetail
+        ? "Cost of Goods Sold (Merchandise Stock)"
+        : isFoodService
+          ? "Direct Food & Packaging Cost (COGS)"
+          : isCustom
+            ? "Direct Cost of Sales or Services"
+            : "Cost of Goods Sold (Raw Materials)";
   const formatKES = (n: number) => Math.round(n).toLocaleString("en-KE");
   const projectionYear = new Date().getFullYear();
   const yearLabels = [1, 2, 3].map((offset) => `Year ${offset} (${projectionYear + offset - 1})`);
@@ -86,11 +134,13 @@ export function computeBusinessPlanFinancials(specs: BusinessPlanSpecs): Compute
   const annualDepreciation = totalMachineryCost * 0.1; // 10% straight-line per KNEC standard
 
   // 2. Pre-operational expenses
-  const rentDeposit = specs.monthlyRent;
-  const installationRenovation = 15000;
-  const waterElectricityDeposit = 5000;
-  const licensesPermits = 12000;
-  const initialMarketing = 8000;
+  const enteredPreOp = Math.max(0, Math.round(specs.preOperationalCosts || 0));
+  const rentDeposit = specs.monthlyRent || 15000;
+  const waterElectricityDeposit = Math.min(5000, Math.max(2000, Math.round((enteredPreOp || 40000) * 0.1)));
+  const licensesPermits = Math.min(15000, Math.max(5000, Math.round((enteredPreOp || 40000) * 0.25)));
+  const initialMarketing = Math.min(10000, Math.max(3000, Math.round((enteredPreOp || 40000) * 0.18)));
+  const basePreOp = rentDeposit + waterElectricityDeposit + licensesPermits + initialMarketing;
+  const installationRenovation = enteredPreOp > basePreOp ? enteredPreOp - basePreOp : 15000;
   const totalPreOperationalCost =
     rentDeposit +
     installationRenovation +
@@ -401,7 +451,7 @@ ${makeRow("**Closing Balance c/f**", (m) => m.closing, part2Months)}
 | :--- | ---: | ---: | ---: |
 | **Opening Cash Balance** | ${formatKES(openingCash)} | ${formatKES(year1ClosingCash)} | ${formatKES(year2ClosingCash)} |
 | Cash Sales | ${formatKES(annualSalesYear1)} | ${formatKES(annualSalesYear2)} | ${formatKES(annualSalesYear3)} |
-| ${isConsultancy ? "Variable Consultation Costs" : isCustom ? "Direct Cost of Sales / Services" : "Raw Materials and Packaging"} | (${formatKES(annualCogsYear1)}) | (${formatKES(annualCogsYear2)}) | (${formatKES(annualCogsYear3)}) |
+| ${variableCostLabel} | (${formatKES(annualCogsYear1)}) | (${formatKES(annualCogsYear2)}) | (${formatKES(annualCogsYear3)}) |
 | Operating Expenses | (${formatKES(annualOperatingExpensesYear1)}) | (${formatKES(annualOperatingExpensesYear2)}) | (${formatKES(annualOperatingExpensesYear3)}) |
 | Loan Principal Repaid | (${formatKES(principalYear1)}) | (${formatKES(loanYear2.principal)}) | (${formatKES(loanYear3.principal)}) |
 | Loan Interest Paid | (${formatKES(totalLoanInterestYear1)}) | (${formatKES(annualLoanInterestYear2)}) | (${formatKES(annualLoanInterestYear3)}) |
@@ -439,9 +489,13 @@ ${makeRow("**Closing Balance c/f**", (m) => m.closing, part2Months)}
   const machNetY2 = totalMachineryCost - annualDepreciation * 2;
   const machNetY3 = totalMachineryCost - annualDepreciation * 3;
 
-  const stockY1 = Math.round(annualCogsYear1 / 12);
-  const stockY2 = Math.round(annualCogsYear2 / 12);
-  const stockY3 = Math.round(annualCogsYear3 / 12);
+  const stockY1 = isConsultancy || isEducation ? 0 : Math.round(annualCogsYear1 / 12);
+  const stockY2 = isConsultancy || isEducation ? 0 : Math.round(annualCogsYear2 / 12);
+  const stockY3 = isConsultancy || isEducation ? 0 : Math.round(annualCogsYear3 / 12);
+
+  const openingCurrentAssets = openingCash + totalPreOperationalCost;
+  const openingTotalAssets = openingCurrentAssets + totalMachineryCost;
+  const openingEquityAdjusted = openingTotalAssets - loanAmount;
 
   const totalAssetsY1 = year1ClosingCash + machNetY1 + stockY1;
   const loanBalY1 = Math.round(loanBalanceAfterYear1);
@@ -474,13 +528,14 @@ ${makeRow("**Closing Balance c/f**", (m) => m.closing, part2Months)}
 | :--- | :--- | :--- | :--- | :--- |
 | **CURRENT ASSETS:** | | | | |
 | - Cash at Hand & in Bank | ${formatKES(openingCash)} | ${formatKES(year1ClosingCash)} | ${formatKES(year2ClosingCash)} | ${formatKES(year3ClosingCash)} |
-| - ${isConsultancy ? "Consultation Supplies" : isCustom ? "Inventory / Operating Inputs (assumption)" : "Inventory / Stock of Goods"} | 0 | ${formatKES(isConsultancy ? 0 : stockY1)} | ${formatKES(isConsultancy ? 0 : stockY2)} | ${formatKES(isConsultancy ? 0 : stockY3)} |
-| **Total Current Assets** | **${formatKES(openingCash)}** | **${formatKES(year1ClosingCash + stockY1)}** | **${formatKES(year2ClosingCash + stockY2)}** | **${formatKES(year3ClosingCash + stockY3)}** |
+| - Prepaid Rent, Deposits & Setup Costs | ${formatKES(totalPreOperationalCost)} | 0 | 0 | 0 |
+| - ${isConsultancy || isEducation ? "Training & Assessment Consumables" : isCustom ? "Inventory / Operating Inputs" : "Inventory / Stock of Goods"} | 0 | ${formatKES(stockY1)} | ${formatKES(stockY2)} | ${formatKES(stockY3)} |
+| **Total Current Assets** | **${formatKES(openingCurrentAssets)}** | **${formatKES(year1ClosingCash + stockY1)}** | **${formatKES(year2ClosingCash + stockY2)}** | **${formatKES(year3ClosingCash + stockY3)}** |
 | **FIXED ASSETS:** | | | | |
 | - ${assetLabel} (At Cost) | ${formatKES(totalMachineryCost)} | ${formatKES(totalMachineryCost)} | ${formatKES(totalMachineryCost)} | ${formatKES(totalMachineryCost)} |
 | - Less: Accumulated Depreciation | (0) | (${formatKES(annualDepreciation)}) | (${formatKES(annualDepreciation * 2)}) | (${formatKES(annualDepreciation * 3)}) |
 | **Net Fixed Assets** | **${formatKES(totalMachineryCost)}** | **${formatKES(machNetY1)}** | **${formatKES(machNetY2)}** | **${formatKES(machNetY3)}** |
-| **TOTAL ASSETS** | **${formatKES(totalStartupCapital)}** | **${formatKES(totalAssetsY1)}** | **${formatKES(totalAssetsY2)}** | **${formatKES(totalAssetsY3)}** |
+| **TOTAL ASSETS** | **${formatKES(openingTotalAssets)}** | **${formatKES(totalAssetsY1)}** | **${formatKES(totalAssetsY2)}** | **${formatKES(totalAssetsY3)}** |
 | **LIABILITIES & EQUITY:** | | | | |
 | **Current Liabilities:** | | | | |
 | Trade Creditors & Accrued Payables | 0 | ${formatKES(creditorsY1)} | ${formatKES(creditorsY2)} | ${formatKES(creditorsY3)} |
@@ -488,10 +543,10 @@ ${makeRow("**Closing Balance c/f**", (m) => m.closing, part2Months)}
 | **Long-Term Liabilities:** | | | | |
 | Long-Term Loan Balance | ${formatKES(longTermLoanOpening)} | ${formatKES(longTermLoanY1)} | ${formatKES(longTermLoanY2)} | ${formatKES(longTermLoanY3)} |
 | **Owner's Equity:** | | | | |
-| - Initial Capital Employed | ${formatKES(ownerEquity)} | ${formatKES(ownerEquity)} | ${formatKES(ownerEquity)} | ${formatKES(ownerEquity)} |
+| - Initial Capital Employed | ${formatKES(openingEquityAdjusted)} | ${formatKES(ownerEquity)} | ${formatKES(ownerEquity)} | ${formatKES(ownerEquity)} |
 | - Retained Earnings & Reserves | 0 | ${formatKES(equityY1 - ownerEquity)} | ${formatKES(equityY2 - ownerEquity)} | ${formatKES(equityY3 - ownerEquity)} |
-| **Total Owner's Equity** | **${formatKES(ownerEquity)}** | **${formatKES(equityY1)}** | **${formatKES(equityY2)}** | **${formatKES(equityY3)}** |
-| **TOTAL LIABILITIES & OWNER'S EQUITY** | **${formatKES(totalStartupCapital)}** | **${formatKES(totalAssetsY1)}** | **${formatKES(totalAssetsY2)}** | **${formatKES(totalAssetsY3)}** |
+| **Total Owner's Equity** | **${formatKES(openingEquityAdjusted)}** | **${formatKES(equityY1)}** | **${formatKES(equityY2)}** | **${formatKES(equityY3)}** |
+| **TOTAL LIABILITIES & OWNER'S EQUITY** | **${formatKES(openingTotalAssets)}** | **${formatKES(totalAssetsY1)}** | **${formatKES(totalAssetsY2)}** | **${formatKES(totalAssetsY3)}** |
 `.trim();
 
   const breakEvenTable = `
@@ -570,7 +625,7 @@ ${makeRow("**Closing Balance c/f**", (m) => m.closing, part2Months)}
     breakEvenAchievable,
     grossProfitMarginPercent,
     netProfitMarginPercentYear1,
-    returnOnEquityYear1,
+    returnOnEquityYear1: roeY1 ?? returnOnEquityYear1,
     returnOnInvestmentYear1,
     preOperationalTable,
     capitalizationTable,

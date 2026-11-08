@@ -51,7 +51,7 @@ export function getWorkspaceSections(
 
       let guidance = sec.guidance;
       let title = sec.title;
-      if (type === "business_plan" && businessModel === "consultancy") {
+      if (type === "business_plan" && (businessModel === "consultancy" || businessModel === "clinical")) {
         const consultancyGuidance: Record<string, { title?: string; guidance: string }> = {
           "ch1.nature": { guidance: "Describe nutrition assessment, dietary counselling, service boundaries, and the local healthcare service opportunity." },
           "ch1.products": { guidance: "Specify consultation content, deliverables, duration, fee, variable cost, follow-up, and scope limits." },
@@ -100,7 +100,7 @@ export function getWorkspaceSections(
       return {
         ...sec,
         title,
-        chapterTitle: type === "business_plan" && businessModel === "consultancy" && sec.chapter === "ch4"
+        chapterTitle: type === "business_plan" && (businessModel === "consultancy" || businessModel === "clinical") && sec.chapter === "ch4"
           ? "Chapter 4: Consultancy Operations Plan"
           : sec.chapterTitle,
         minWords: scaledMinWords,

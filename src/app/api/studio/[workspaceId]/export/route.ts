@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
 import { getWorkspaceSections } from "@/lib/studio/templates";
+import { resolveBusinessPlanModel, type BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
 import { createBusinessPlanDocx } from "@/lib/studio/businessPlanDocx";
 import { createBusinessPlanPdf } from "@/lib/studio/businessPlanPdf";
 import { NextResponse, type NextRequest } from "next/server";
@@ -28,8 +29,10 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
     .select("section_key, current_text").eq("workspace_id", workspaceId);
   if (error) return NextResponse.json({ error: "Could not load the business plan." }, { status: 500 });
 
+  const businessSpecs = workspace.business_plan_specs as Partial<BusinessPlanSpecs> | null;
+  const businessModel = resolveBusinessPlanModel(businessSpecs);
   const sectionsByKey = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
-  const sections = getWorkspaceSections("business_plan", workspace.level)
+  const sections = getWorkspaceSections("business_plan", workspace.level, businessModel)
     .map((definition) => ({ title: definition.title, content: sectionsByKey.get(definition.key) || "" }))
     .filter((section) => section.content.trim());
   if (sections.length === 0) return NextResponse.json({ error: "Build the business plan before downloading." }, { status: 400 });
@@ -37,18 +40,17 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
   const student = workspace.student as unknown as { full_name?: string | null; admission_number?: string | null } | null;
   const supervisor = workspace.supervisor as unknown as { full_name?: string | null } | null;
   const institution = workspace.institution as unknown as { name?: string | null } | null;
-  const businessSpecs = workspace.business_plan_specs as { businessName?: string; tagline?: string; industrySector?: string; primaryProduct?: string } | null;
   const document = {
-    title: workspace.title || "Business Plan",
-    candidate: student?.full_name || "Candidate",
-    admissionNumber: student?.admission_number,
-    institution: institution?.name,
-    supervisor: supervisor?.full_name,
+    title: workspace.title || businessSpecs?.businessName || "Business Plan",
+    candidate: student?.full_name || businessSpecs?.candidateName || "Candidate",
+    admissionNumber: student?.admission_number || businessSpecs?.admissionNumber || null,
+    institution: institution?.name || businessSpecs?.institutionName || null,
+    supervisor: supervisor?.full_name || businessSpecs?.supervisorName || null,
     businessName: businessSpecs?.businessName || workspace.title,
     tagline: businessSpecs?.tagline,
     industrySector: businessSpecs?.industrySector,
     primaryProduct: businessSpecs?.primaryProduct,
-    course: workspace.course,
+    course: workspace.course || businessSpecs?.course || "Human Nutrition and Dietetics",
     level: workspace.level === "craft" ? "Certificate" : "Diploma",
     sections,
   };

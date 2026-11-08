@@ -56,10 +56,10 @@ export function resolveBusinessPlanModel(
   if (/cater|meal prep|cloud kitchen|restaurant|salad|juice bar/.test(businessDetails)) return "food_service";
   if (/farm|crop|egg|poultry|microgreen|sweet potato|post-harvest/.test(businessDetails)) return "agribusiness";
   if (/retail|store|shop|grocery|supplement|supermarket/.test(businessDetails)) return "retail";
-  if (/workshop|training|academy|course|prep|content|software|app/.test(businessDetails)) return "education";
-  if (/consult|clinical nutrition|dietary meal|nutrition therap|patient|clinic/.test(businessDetails)) return "consultancy";
-  if (/juice|beverage|puree/.test(businessDetails)) return "beverages";
-  if (/mill|flour|food manufactur|porridge|snack|bar|oil|butter|honey/.test(businessDetails)) return "milling";
+  if (/workshop|training|academy|course|school feeding|caregiver|iycf|demonstration/.test(businessDetails)) return "education";
+  if (/consult|clinical nutrition|dietary meal|nutrition therap|patient|clinic|telehealth|domiciliary/.test(businessDetails)) return "consultancy";
+  if (/juice|beverage|puree|herbal|tea|infusion/.test(businessDetails)) return "beverages";
+  if (/mill|flour|food manufactur|porridge|snack|bar|oil|butter|honey|kefir|dairy|therapeutic feed|enteral/.test(businessDetails)) return "milling";
 
   if (specs?.businessModel) return specs.businessModel;
   return "custom";

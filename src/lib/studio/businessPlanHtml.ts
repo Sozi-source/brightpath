@@ -174,13 +174,13 @@ export function createBusinessPlanHtml(params: BusinessPlanDocumentDetails): str
       return [
         { title: `${number ? `Chapter ${number}: ` : ""}${chapterNames[group]}`, level: 0 },
         ...chapter.flatMap((section) => {
-          const sectionNumber = section.title.match(/^\s*(\d+(?:\.\d+)*)\b/)?.[1];
           const titleKey = (value: string) => value.replace(/^\s*\d+(?:\.\d+)*\s*/, "").trim().toLowerCase();
-          const bodyHeadings = Array.from(section.content.matchAll(/^#{2,6}\s+(.+)$/gm), (match) => match[1].trim())
+          const cleanContent = section.content.replace(/^\s*#{1,6}\s+[^\r\n]+\s*(?:\r?\n)?/, "");
+          const bodyHeadings = Array.from(cleanContent.matchAll(/^#{2,6}\s+(.+)$/gm), (match) => match[1].trim().replace(/\*\*/g, ""))
             .filter((title) => titleKey(title) !== titleKey(section.title));
           return [
             { title: section.title, level: 1 },
-            ...bodyHeadings.map((title) => ({ title: /^\s*\d+(?:\.\d+)+\b/.test(title) || !sectionNumber ? title : `${sectionNumber} ${title}`, level: 2 })),
+            ...bodyHeadings.map((title) => ({ title, level: 2 })),
           ];
         }),
       ];
@@ -192,7 +192,9 @@ export function createBusinessPlanHtml(params: BusinessPlanDocumentDetails): str
   const front = frontGroups.flatMap((group) => sections.filter((s) => sectionGroup(s.title) === group));
   const executive = sections.filter((s) => sectionGroup(s.title) === "executive");
   const body = sections.filter((s) => ![...frontGroups, "executive"].includes(sectionGroup(s.title)));
-  const course = `${params.level} in ${params.course}`.trim();
+  const course = /^(?:certificate|diploma|craft|higher\s+diploma)\b/i.test(params.course.trim())
+    ? params.course.trim()
+    : `${params.level} in ${params.course}`.trim();
   const brand = createBusinessPlanBrand({ name: params.businessName || params.title, industry: params.industrySector, product: params.primaryProduct });
   const logo = businessPlanLogoSvg(brand);
   return `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(params.title)}</title><style>

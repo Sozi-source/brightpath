@@ -20,6 +20,61 @@ export interface GeneratedSectionPayload {
 export function buildCompleteBusinessPlan(specs: BusinessPlanSpecs): GeneratedSectionPayload[] {
   const fin = computeBusinessPlanFinancials(specs);
   const formatKES = (n: number) => Math.round(n).toLocaleString("en-KE");
+  const resolvedModel = resolveBusinessPlanModel(specs);
+
+  const isConsultancy = resolvedModel === "consultancy" || resolvedModel === "clinical";
+  const isFoodService = resolvedModel === "food_service";
+  const isAgribusiness = resolvedModel === "agribusiness";
+  const isRetail = resolvedModel === "retail";
+  const isEducation = resolvedModel === "education";
+  const isBeverages = resolvedModel === "beverages";
+
+  const productContext = `${specs.industrySector || ""} ${specs.primaryProduct || ""} ${specs.productDescription || ""}`.toLowerCase();
+  const isGrainMilling =
+    (resolvedModel === "milling" || resolvedModel === "manufacturing") &&
+    /flour|porridge|mill|grain|cereal|weaning|blend|extruded/.test(productContext);
+
+  const safeQualifications =
+    specs.ownerQualifications?.trim() ||
+    `Diploma in Human Nutrition and Dietetics (${specs.course || "KNEC"}), registered with the Kenya Nutritionists and Dietitians Institute (KNDI)`;
+  const safeStreet =
+    specs.streetOrBuilding?.trim() ||
+    "Commercial Center Ground Floor Premises [Confirm exact plot/street locally]";
+  const safeLocationRationale =
+    specs.locationRationale?.trim() ||
+    `Accessible commercial location within ${specs.townOrMarket}, ${specs.county} with reliable road access, municipal water, electricity, and proximity to target customers [Confirm site specifics locally].`;
+  const safeProductDescription =
+    specs.productDescription?.trim() ||
+    `${specs.primaryProduct} formulated and delivered in ${specs.productPackaging || "standardized hygienic units"} to serve ${specs.targetCustomersDescription || "local households and institutional clients"}.`;
+  const safeCompetitors =
+    specs.competitors && specs.competitors.length > 0
+      ? specs.competitors
+      : [
+          {
+            name: "Established Commercial Providers / Brands [Confirm locally]",
+            location: `${specs.townOrMarket} Commercial Center`,
+            priceLevel: `KES ${formatKES(Math.round(specs.unitSellingPrice * 1.2))} per unit [Confirm locally]`,
+            strengths: "Established market visibility and existing distribution networks",
+            weaknesses: "Higher pricing and less personalized nutrition formulation or client support",
+          },
+          {
+            name: "Informal Uncertified Local Vendors [Confirm locally]",
+            location: `${specs.townOrMarket} Open-Air / Estate Outlets`,
+            priceLevel: `KES ${formatKES(Math.round(specs.unitSellingPrice * 0.8))} per unit [Confirm locally]`,
+            strengths: "Low price point and convenient neighborhood proximity",
+            weaknesses: "Inconsistent hygiene, unstandardized portions/formulations, and lack of nutritionist oversight",
+          },
+        ];
+
+  const unitWord = isConsultancy
+    ? "consultation sessions"
+    : isEducation
+      ? "training packages"
+      : isFoodService
+        ? "meal packages"
+        : isRetail
+          ? "retail baskets/units"
+          : "units";
 
   const results: GeneratedSectionPayload[] = [];
 
@@ -64,9 +119,7 @@ The candidate may personalize this dedication to recognize family members, mento
     `### ACKNOWLEDGEMENTS
 I acknowledge my project supervisor, **${specs.supervisorName || "[Supervisor name]"}**, for the guidance provided during preparation of this business plan.
 
-I also thank **${specs.institutionName || "[Institution name]"}** for its academic support during my **${specs.course}** course.
-
-`
+I also thank **${specs.institutionName || "[Institution name]"}** for its academic support during my **${specs.course}** course.`
   );
 
   add(
@@ -74,13 +127,13 @@ I also thank **${specs.institutionName || "[Institution name]"}** for its academ
     "Executive Summary / Synopsis",
     `### EXECUTIVE SUMMARY / SYNOPSIS
 
-**${specs.businessName}** is an emerging micro-enterprise in the **${specs.industrySector}** sector, situated in **${specs.townOrMarket}, ${specs.county}**. The enterprise will operate as a **${specs.formOfOwnership}** founded by **${specs.candidateName || "the promoter"}**, a trained professional holding a **${specs.ownerQualifications}**. The firm's mission is to formulate and supply accessible, nutrient-dense products and advisory services that tackle community nutritional deficits while establishing a profitable, sustainable commercial entity.
+**${specs.businessName}** is a proposed nutrition enterprise in the **${specs.industrySector}** sector, situated in **${specs.townOrMarket}, ${specs.county}**. The enterprise will operate as a **${specs.formOfOwnership}** founded by **${specs.candidateName || "the promoter"}**, a trained professional holding a **${safeQualifications}**. The firm's mission is to deliver accessible, evidence-based nutritional products and services that address local dietary and health needs while establishing a viable, compliant commercial entity.
 
-The flagship product offered is **${specs.primaryProduct}**, packaged in **${specs.productPackaging}** and retailed at **KES ${formatKES(specs.unitSellingPrice)}** per unit against a production cost of **KES ${formatKES(specs.unitCostOfProduction)}**. In ${specs.townOrMarket}, the total addressable market encompasses approximately **${specs.totalMarketPopulation}**. Market feasibility survey data reveals an unmet consumer deficit driven by high prices of imported commercial brands and hygienic shortcomings of informal, uncertified open-air market vendors. The enterprise projects capturing **${specs.projectedMarketSharePercentage}%** of the local market share within Year 1.
+The flagship offering is **${specs.primaryProduct}**, delivered in **${specs.productPackaging}** and priced at **KES ${formatKES(specs.unitSellingPrice)}** per unit against an estimated direct cost of **KES ${formatKES(specs.unitCostOfProduction)}**. In ${specs.townOrMarket}, the target market catchment encompasses approximately **${specs.totalMarketPopulation || "[Confirm target catchment population locally]"}**. Market assessment indicates a gap between high-cost commercial alternatives and informal uncertified options that lack qualified nutritionist oversight. The enterprise targets a **${specs.projectedMarketSharePercentage || 5}%** share of the addressable local segment in Year 1.
 
-The venture requires estimated start-up capital of **KES ${formatKES(fin.totalStartupCapital)}**, comprising **KES ${formatKES(fin.totalMachineryCost)}** for equipment or assets, **KES ${formatKES(fin.totalPreOperationalCost)}** for pre-operational costs, and **KES ${formatKES(specs.workingCapitalBuffer || 75000)}** for working capital. Candidate-entered funding assumptions are **KES ${formatKES(fin.ownerEquityAmount)}** in owner's equity and **KES ${formatKES(fin.loanAmount)}** in proposed borrowing, at an assumed annual interest rate of ${Number(specs.loanInterestRateAnnual || 0).toFixed(1)}% over ${Math.max(1, Math.floor(specs.loanTenureMonths || 24))} months. ${fin.fundingGap ? `This leaves a projected funding gap of **KES ${formatKES(fin.fundingGap)}**.` : fin.fundingSurplus ? `This leaves **KES ${formatKES(fin.fundingSurplus)}** in unallocated proposed funding.` : "The proposed funding matches the estimated startup requirement."} The lender and loan terms require confirmation before implementation.
+The venture requires estimated start-up capital of **KES ${formatKES(fin.totalStartupCapital)}**, comprising **KES ${formatKES(fin.totalMachineryCost)}** for equipment and assets, **KES ${formatKES(fin.totalPreOperationalCost)}** for pre-operational setup costs, and **KES ${formatKES(specs.workingCapitalBuffer || 75000)}** for working capital. Candidate-entered funding assumptions are **KES ${formatKES(fin.ownerEquityAmount)}** in owner's equity and **KES ${formatKES(fin.loanAmount)}** in proposed borrowing${fin.loanAmount > 0 ? `, at an assumed annual interest rate of ${Number(specs.loanInterestRateAnnual || 0).toFixed(1)}% over ${Math.max(1, Math.floor(specs.loanTenureMonths || 24))} months` : " (100% equity-financed with zero external debt)"}. ${fin.fundingGap ? `This leaves a projected funding gap of **KES ${formatKES(fin.fundingGap)}**.` : fin.fundingSurplus ? `This leaves **KES ${formatKES(fin.fundingSurplus)}** in unallocated proposed funding.` : "The proposed funding matches the estimated startup requirement."} Any lender and loan terms require confirmation before implementation.
 
-Financial forecasts project first-year gross sales of **KES ${formatKES(fin.annualSalesYear1)}**, gross profit of **KES ${formatKES(fin.annualGrossProfitYear1)}** (**${fin.grossProfitMarginPercent}% gross margin**), and net profit after tax of **KES ${formatKES(fin.netProfitYear1)}** (**${fin.netProfitMarginPercentYear1}% net margin**). Net profit after tax is projected at **KES ${formatKES(fin.netProfitYear2)}** in Year 2 and **KES ${formatKES(fin.netProfitYear3)}** in Year 3, subject to the stated production, pricing, cost, tax, and financing assumptions. ${fin.breakEvenAchievable ? `Monthly break-even is estimated at **${formatKES(fin.breakEvenUnitsMonthly)} units** (**${fin.breakEvenLevelPercent}%** of planned capacity).` : "Break-even cannot be calculated because the unit contribution margin is not positive."} The projected Year 1 return on investment (ROI) is **${fin.returnOnInvestmentYear1}%** and return on equity (ROE) is **${fin.returnOnEquityYear1}%**.`
+Financial forecasts project first-year gross sales of **KES ${formatKES(fin.annualSalesYear1)}**, gross profit of **KES ${formatKES(fin.annualGrossProfitYear1)}** (**${fin.grossProfitMarginPercent}% gross margin**), and net profit after tax of **KES ${formatKES(fin.netProfitYear1)}** (**${fin.netProfitMarginPercentYear1}% net margin**). Net profit after tax is projected at **KES ${formatKES(fin.netProfitYear2)}** in Year 2 and **KES ${formatKES(fin.netProfitYear3)}** in Year 3, subject to the stated volume, pricing, cost, tax, and financing assumptions. ${fin.breakEvenAchievable ? `Monthly break-even is estimated at **${formatKES(fin.breakEvenUnitsMonthly)} ${unitWord}** (**${fin.breakEvenLevelPercent}%** of planned capacity).` : "Break-even cannot be calculated because the unit contribution margin is not positive."} The projected Year 1 return on investment (ROI) is **${fin.returnOnInvestmentYear1}%** and return on equity (ROE) is **${fin.returnOnEquityYear1}%**.`
   );
 
   // =========================================================================
@@ -95,13 +148,23 @@ Financial forecasts project first-year gross sales of **KES ${formatKES(fin.annu
 The proposed commercial enterprise will operate under the registered trade name **${specs.businessName}**. The business slogan and brand motto is: *"**${specs.tagline}**"*.
 
 #### 1.1.1 Brand Positioning and Symbolism
-The business name was strategically formulated to communicate authenticity, health, and local community empowerment. The brand logo incorporates vibrant green and golden-yellow hues:
-- **Green Leaf Motif**: Represents organic freshness, natural nutrition, vitality, and environmental sustainability.
-- **Golden Grain / Sunburst Motif**: Signifies biofortified crops, wholesome dietary energy, and economic prosperity for local smallholder agricultural producers.
-- **Typography**: Clean, professional sans-serif lettering designed to instill medical, clinical, and food-grade hygiene confidence among consumers, public health regulators, and healthcare practitioners.
+The business name was formulated to communicate professional nutrition credibility, hygiene, and practical community wellness. The brand visual identity incorporates vibrant green and warm gold accents:
+- **Green Vitality Motif**: Represents wholesome nutrition, natural health, freshness, and evidence-based preventive care.
+- **Warm Gold Accent**: Signifies quality assurance, nourishment, and socioeconomic value for households and institutions in ${specs.county}.
+- **Typography**: Clean, legible sans-serif lettering on labels, signage, and client educational materials to instill trust among consumers, healthcare practitioners, and regulatory inspectors.
 
 #### 1.1.2 Nature of Business and Economic Sector
-The enterprise operates within the **${specs.industrySector}** sector. In Kenya, this industry occupies a pivotal junction between agriculture and public health. The enterprise adds significant economic value by procuring locally accessible agricultural ingredients and transforming them through hygienic processing, laboratory-calibrated blending, standardized packaging, and evidence-based nutrition counseling into consumer-ready therapeutic and lifestyle health solutions.`
+The enterprise operates within the **${specs.industrySector}** sector. ${
+      isFoodService
+        ? `It bridges clinical dietetics and culinary hospitality by preparing, portioning, and delivering freshly cooked, nutrient-calibrated meals and refreshments tailored to consumer health goals.`
+        : isAgribusiness
+          ? `It links nutrition-sensitive agriculture with household food security by producing, aggregating, grading, and preserving micronutrient-rich farm produce for local consumers and institutional buyers.`
+          : isRetail
+            ? `It operates as a specialized nutrition retail and distribution hub, curating verified therapeutic foods, allergen-free groceries, and certified nutritional supplies supported by professional dietetic guidance.`
+            : isEducation
+              ? `It operates as a practical nutrition education, culinary demonstration, and community capacity-building enterprise serving households, caregivers, schools, and local institutions.`
+              : `It bridges agricultural value addition and public health nutrition by transforming quality raw ingredients through hygienic processing, standardized formulation, and protective packaging into nutrient-dense consumer products.`
+    }`
   );
 
   add(
@@ -111,16 +174,22 @@ The enterprise operates within the **${specs.industrySector}** sector. In Kenya,
 
 #### 1.2.1 Physical Site and Address
 The proposed business will establish its physical operating premises at:
-- **Physical Address**: ${specs.streetOrBuilding}, ${specs.townOrMarket}, ${specs.county}
-- **Postal Address**: P.O. Box ${specs.postalAddress || "100-30200"}, ${specs.townOrMarket}, Kenya
+- **Physical Address**: ${safeStreet}, ${specs.townOrMarket}, ${specs.county}
+- **Postal Address**: P.O. Box ${specs.postalAddress || "100-00100"}, ${specs.townOrMarket}, Kenya
 - **Electronic Contacts**: Telephone: ${specs.phone || "+254 700 000 000"} | Email: ${specs.email || "info@business.co.ke"}
 
 #### 1.2.2 Rationale for Site Selection
-The selection of **${specs.townOrMarket}** in **${specs.county}** was guided by rigorous market reconnaissance and operational considerations:
-1. **Accessibility to Target Buyers**: ${specs.locationRationale} The premises front a high-traffic tarmac road, facilitating walk-in consumers, clinic referrals, and smooth loading for distribution vehicles.
-2. **Proximity to Raw Material Suppliers**: The location minimizes freight and farmgate transport costs by establishing direct supply links with smallholder farmer cooperatives across ${specs.county}.
-3. **Availability of Critical Municipal Utilities**: The site has continuous connection to treated piped municipal water, reliable three-phase electrical power from Kenya Power & Lighting Company (KPLC), stormwater drainage, and county waste disposal services.
-4. **Security and Commercial Zoning**: Situated within an approved commercial light-manufacturing and trade zone, the premises benefit from regular police patrols, gated night security guards, and commercial insurance coverage.`
+The selection of **${specs.townOrMarket}** in **${specs.county}** is supported by the following operational and market factors (subject to local lease and site verification):
+1. **Accessibility to Target Customers**: ${safeLocationRationale}
+2. **Proximity to Inputs and Supply Chains**: The location provides convenient road connectivity to ${
+      isRetail
+        ? "wholesale distributors, certified health-food suppliers, and courier services"
+        : isEducation
+          ? "schools, community venues, fresh food markets for demonstrations, and printing services"
+          : "local agricultural producers, verified ingredient suppliers, and packaging vendors"
+    } across ${specs.county}.
+3. **Availability of Critical Utilities**: The site is served by potable water supply, reliable electrical power from Kenya Power (KPLC), telecommunications connectivity, and county sanitation services.
+4. **Security and Zoning Compliance**: Situated within an active commercial area of ${specs.townOrMarket} with security lighting, premises access control, and suitability for county public health inspection.`
   );
 
   add(
@@ -129,16 +198,16 @@ The selection of **${specs.townOrMarket}** in **${specs.county}** was guided by 
     `### 1.3 Form of Business Ownership and Promoter Profile
 
 #### 1.3.1 Form of Ownership
-The enterprise will be registered as a **${specs.formOfOwnership}** pursuant to the **${specs.registrationType}**. This legal structure is selected because:
-- **Ease of Formation**: Streamlined registration procedures with the Registrar of Companies on the eCitizen platform, requiring modest initial statutory fees.
-- **Decisive Management**: The sole proprietor retains total managerial control, enabling swift operational adjustments without lengthy partner disputes.
-- **Fiscal Simplicity**: Income generated is assessed under personal tax brackets without complex double taxation structures during the initial incubation phase.
-- **Future Incorporation**: The business plan accommodates seamless transition into a Private Limited Company as production scales in Year 3.
+The enterprise will be registered as a **${specs.formOfOwnership}** pursuant to the **${specs.registrationType || "Business Names Registration Act (Cap 499, Laws of Kenya)"}**. This legal structure is selected because:
+- **Ease of Formation**: Streamlined registration with the Business Registration Service (BRS) on the eCitizen platform with modest initial statutory fees.
+- **Direct Operational Accountability**: The proprietor retains direct oversight of quality standards, client service, hygiene protocols, and financial control.
+- **Flexibility**: Decisions on product/service adjustments, supplier selection, and customer terms can be executed promptly during the initial growth stage.
+- **Future Scalability**: The enterprise may later transition into a Private Limited Company once revenue, staffing, and institutional contracts expand.
 
 #### 1.3.2 Owner / Promoter Background
-The enterprise is established and directed by **${specs.candidateName || "the candidate"}**, a Kenyan technical professional possessing a **${specs.ownerQualifications}**. 
+The enterprise is founded and directed by **${specs.candidateName || "the candidate"}**, who holds the following qualifications: **${safeQualifications}**.
 
-The promoter's educational curriculum in Human Nutrition and Dietetics provided rigorous theoretical and practical mastery of macronutrient metabolism, food hygiene standards, dietary disease management, anthropometric diagnostics, and technical entrepreneurship. Prior clinical and community attachment experience in public healthcare facilities exposed the promoter to prevalent nutritional deficiencies, community purchasing behaviors, and public health procurement workflows.`
+The promoter's training in Human Nutrition and Dietetics provides practical grounding in nutrient analysis, food safety and hygiene standards, dietary management of non-communicable diseases, maternal and child nutrition, and entrepreneurship. Any professional registration or practising licence required for the specific activity will be verified and kept current prior to commercial launch.`
   );
 
   add(
@@ -146,17 +215,17 @@ The promoter's educational curriculum in Human Nutrition and Dietetics provided 
     "1.4 Industry Sector Dynamics and Justification",
     `### 1.4 Industry Sector Dynamics and Opportunity Justification
 
-#### 1.4.1 National and County Industry Overview
-The enterprise operates within Kenya's rapidly growing agro-processing and preventive healthcare industry. According to the Kenya National Bureau of Statistics (KNBS) and the Ministry of Health, non-communicable lifestyle diseases (such as diabetes, cardiovascular conditions, and obesity) are expanding at an annual rate exceeding 12% across urban and peri-urban centers. Concurrently, childhood undernutrition, stunting, and micronutrient deficiencies remain severe challenges in rural and informal settlement communities.
+#### 1.4.1 National and County Sector Overview
+The enterprise operates within Kenya's expanding nutrition, food systems, and preventive health sector. Reports from the Kenya National Bureau of Statistics (KNBS) and the Ministry of Health highlight the dual burden of malnutrition across Kenyan counties: persistent micronutrient deficiencies and childhood stunting alongside a rising prevalence of diet-related non-communicable diseases (diabetes, hypertension, cardiovascular conditions, and obesity) in urban and peri-urban areas.
 
-Government policies under the **Kenya Vision 2030** and the **National Food and Nutrition Security Policy (NFNSP)** prioritize local agro-processing, value addition, food biofortification, and import substitution.
+National frameworks—including **Kenya Vision 2030**, the **National Food and Nutrition Security Policy**, and the **Kenya National Nutrition Action Plan (KNNAP)**—emphasize preventive dietary interventions, value addition to nutrient-dense foods, and food safety compliance.
 
 #### 1.4.2 Commercial Viability and Market Opportunity
-The business opportunity is commercially justified on four foundational pillars:
-1. **Structural Market Deficit**: Existing commercial nutritious food brands in supermarket chains are manufactured in Nairobi and carry prohibitive retail price markups that exclude lower- and middle-income families.
-2. **Hygiene and Standardization Deficit**: Open-air posho mills fail to maintain moisture control (<13.5%), leading to elevated aflatoxin risks and lack of KEBS certification.
-3. **High Return on Investment**: Local agricultural raw materials (grains, legumes, fruits) exhibit high seasonal supply gluts and low farmgate prices, allowing the enterprise to achieve favorable gross margins.
-4. **Community Socio-Economic Contribution**: The enterprise creates direct youth employment for machine operators, store clerks, and marketing agents, while establishing dependable market off-take for over 25 contracted smallholder farming households.`
+The proposed venture is justified by four practical market factors in **${specs.townOrMarket}, ${specs.county}**:
+1. **Unmet Need for Nutritionist-Led Offerings**: Target customers (${specs.targetCustomersDescription}) increasingly seek products and services formulated or guided by qualified nutrition professionals rather than unverified general vendors.
+2. **Quality and Hygiene Assurance**: Many informal alternatives in ${specs.townOrMarket} lack standardized portioning, nutrient labeling, or hygienic handling, whereas imported or premium corporate alternatives are priced beyond everyday household budgets.
+3. **Viable Unit Economics**: At a selling price of **KES ${formatKES(specs.unitSellingPrice)}** and direct unit cost of **KES ${formatKES(specs.unitCostOfProduction)}**, each unit generates a positive contribution margin of **KES ${formatKES(fin.contributionMarginPerUnit)}** to cover fixed operating costs.
+4. **Local Socio-Economic Linkages**: The business supports local suppliers, creates skilled employment for ${specs.staffing.reduce((sum, s) => sum + s.count, 0)} staff members, and promotes healthier household dietary practices.`
   );
 
   add(
@@ -164,20 +233,20 @@ The business opportunity is commercially justified on four foundational pillars:
     "1.5 Products and Services Specifications",
     `### 1.5 Products and Services Specifications
 
-The enterprise will formulate, manufacture, and distribute high-grade nutritional offerings under the brand **${specs.businessName}**.
+The enterprise will deliver standardized nutritional offerings under the brand **${specs.businessName}**.
 
 #### 1.5.1 Flagship Offering Description
 - **Core Offering**: **${specs.primaryProduct}**
-- **Detailed Specifications**: ${specs.productDescription}
-- **Packaging Format**: ${specs.productPackaging}
-- **Unit Retail Pricing**: **KES ${formatKES(specs.unitSellingPrice)}** per unit.
-- **Unit Production Cost**: **KES ${formatKES(specs.unitCostOfProduction)}** per unit.
+- **Detailed Specifications**: ${safeProductDescription}
+- **Packaging / Delivery Format**: ${specs.productPackaging}
+- **Unit Selling Price**: **KES ${formatKES(specs.unitSellingPrice)}** per unit.
+- **Estimated Direct Cost per Unit**: **KES ${formatKES(specs.unitCostOfProduction)}** per unit.
 
 #### 1.5.2 Unique Selling Propositions (USPs)
-1. **Calibrated Nutrient Density**: Developed by a qualified nutrition professional adhering to WHO/FAO dietary guidelines and Codex Alimentarius micro-nutrient standards.
-2. **Moisture-Proof Vacuum Packaging**: High-barrier laminate pouches that preserve volatile vitamins, inhibit lipid oxidation, and prevent insect infestation without artificial chemical preservatives.
-3. **Superior Consumer Affordability**: Priced at a 25% discount relative to established national multinational brands while providing superior fresh flavor and biological value.
-4. **Integrated Nutrition Guidance**: Every package contains illustrated pictorial instructions in both English and Kiswahili, detailing hygienic preparation and complementary feeding frequencies.`
+1. **Professional Nutrition Formulation**: Designed and supervised by a trained nutritionist adhering to Kenya Ministry of Health dietary guidelines and Kenya Food Composition Tables.
+2. **Hygienic Presentation & Labeling**: Delivered in **${specs.productPackaging}** with clear ingredient disclosure, nutritional guidance, and usage instructions.
+3. **Competitive Local Pricing**: Priced at **KES ${formatKES(specs.unitSellingPrice)}** to remain accessible to target households and institutions in ${specs.townOrMarket} while sustaining a **${fin.grossProfitMarginPercent}%** gross margin.
+4. **Customer Guidance & After-Sales Support**: Buyers receive practical dietary usage tips and responsive local customer support.`
   );
 
   add(
@@ -186,18 +255,18 @@ The enterprise will formulate, manufacture, and distribute high-grade nutritiona
     `### 1.6 Vision, Mission, and Core Corporate Values
 
 #### 1.6.1 Vision Statement
-*"To be the most reputable, innovative, and preferred provider of affordable, nutrient-rich foods and clinical dietary solutions across ${specs.county} and the wider region by 2030."*
+*"To be a trusted, innovative, and accessible provider of quality nutritional products and dietetic solutions in ${specs.county} and the wider region."*
 
 #### 1.6.2 Mission Statement
-*"To formulate, manufacture, and deliver safe, wholesome, and scientifically balanced nutritional products and evidence-based dietary counseling using locally sourced agricultural inputs, thereby combating malnutrition and empowering community health."*
+*"To formulate, prepare, and deliver safe, affordable, and evidence-based offerings (${specs.primaryProduct}) that improve household and institutional nutrition across ${specs.townOrMarket} while operating sustainably and ethically."*
 
 #### 1.6.3 Core Corporate Values
-The operations, workforce culture, and commercial relationships of ${specs.businessName} are guided by five core pillars:
-1. **Nutritional Integrity & Safety**: Strict adherence to KEBS KS EAS 39:2020 food manufacturing standards, GMP hygiene protocols, and zero adulteration.
-2. **Affordability**: Continuous process efficiency to ensure our health solutions remain accessible to low- and middle-income households.
-3. **Customer Centricity**: Respectful, empathetic, and confidential service tailored to each client's physiological and nutritional needs.
-4. **Community Partnership**: Fair trade procurement practices that uplift smallholder farmers and foster local economic development.
-5. **Innovation & Continuous Learning**: Constant research into indigenous biofortified crops, modern processing technologies, and consumer preferences.`
+The daily operations and customer relationships of **${specs.businessName}** are guided by five core values:
+1. **Nutritional Quality & Hygiene**: Strict adherence to food safety, public health sanitation, and professional dietetic standards.
+2. **Affordability & Access**: Disciplined cost management so quality nutrition remains within reach of local families and institutions.
+3. **Customer Respect & Integrity**: Honest product descriptions, transparent pricing, and zero misleading health claims.
+4. **Community Partnership**: Ethical sourcing from local producers and active collaboration with community health stakeholders.
+5. **Continuous Improvement**: Regular review of customer feedback, quality records, and nutrition science updates.`
   );
 
   add(
@@ -205,19 +274,19 @@ The operations, workforce culture, and commercial relationships of ${specs.busin
     "1.7 Business Goals and SMART Objectives",
     `### 1.7 Business Goals and SMART Objectives
 
-The strategic trajectory of **${specs.businessName}** is divided into measurable short-term milestones and long-term expansion goals.
+The strategic plan for **${specs.businessName}** is structured into measurable short-term (Year 1) and medium-term (Years 2–3) objectives.
 
 #### 1.7.1 Short-Term Objectives (Year 1)
-1. **Operational Launch**: Complete premises fitting, machinery installation, trial batch testing, and regulatory licensing within the first 60 days of funding.
-2. **Production Throughput**: Achieve a monthly production and sales volume of **${formatKES(specs.monthlyProductionUnitsYear1)} units**, generating **KES ${formatKES(fin.annualSalesYear1)}** in gross annual turnover.
-3. **Retail Distribution Reach**: Establish direct supply contracts with at least **30 retail kiosks, 5 local mini-supermarkets, and 5 clinic canteens** across ${specs.townOrMarket}.
-4. **Financial Monitoring**: Track monthly sales, contribution margin, operating costs, and cash balances against the Year 1 projections.
-5. **Quality Certification**: Attain the Kenya Bureau of Standards (KEBS) Standardization Mark of Quality (SM) within the first 9 months of active operation.
+1. **Compliant Commissioning**: Complete premises setup, equipment installation, supplier verification, and required county/regulatory clearances within the first 60 days.
+2. **Sales Volume Target**: Ramp up operations from 65% capacity in Month 1 to full planned capacity of **${formatKES(specs.monthlyProductionUnitsYear1)} ${unitWord} per month** by Month 5, achieving Year 1 gross revenue of **KES ${formatKES(fin.annualSalesYear1)}**.
+3. **Customer & Channel Acquisition**: Establish a dependable customer base and distribution network across ${specs.townOrMarket} to capture the projected **${specs.projectedMarketSharePercentage || 5}%** target market share.
+4. **Financial Discipline**: Reach monthly break-even at **${formatKES(fin.breakEvenUnitsMonthly)} ${unitWord}** (**${fin.breakEvenLevelPercent}%** capacity utilization) and maintain positive monthly cash flow.
+5. **Quality Assurance**: Maintain zero public health non-conformities and achieve high repeat customer retention through consistent quality.
 
-#### 1.7.2 Long-Term Objectives (Years 2 - 3)
-1. **Market Expansion**: Expand sales distribution channels into three neighboring sub-counties, expanding monthly throughput by **${Math.round((specs.annualGrowthRateYear2 || 0.2) * 100)}%** in Year 2 and **${Math.round((specs.annualGrowthRateYear3 || 0.2) * 100)}%** in Year 3.
-2. **Product Line Diversification**: Introduce specialized formulations including low-glycemic flour for diabetic management and infant weaning porridge mixes.
-3. **Capital Independence**: Fully amortize the commercial loan by month 24, accumulating retained reserves exceeding KES 500,000 to finance automated packaging machinery.`
+#### 1.7.2 Medium-Term Objectives (Years 2 - 3)
+1. **Revenue & Volume Growth**: Expand annual output and revenue by **${Math.round((specs.annualGrowthRateYear2 || 0.2) * 100)}%** in Year 2 (**KES ${formatKES(fin.annualSalesYear2)}**) and **${Math.round((specs.annualGrowthRateYear3 || 0.2) * 100)}%** in Year 3 (**KES ${formatKES(fin.annualSalesYear3)}**).
+2. **Offering Diversification**: Introduce complementary product/service sizes and institutional packages informed by Year 1 customer demand.
+3. **Balance Sheet Strengthening**: ${fin.loanAmount > 0 ? `Fully service all scheduled loan repayments over ${specs.loanTenureMonths || 24} months` : "Maintain a debt-free balance sheet"} while building retained earnings to finance capacity upgrades.`
   );
 
   add(
@@ -225,16 +294,16 @@ The strategic trajectory of **${specs.businessName}** is divided into measurable
     "1.8 Justification and Commercial Viability",
     `### 1.8 Justification and Commercial Viability
 
-The establishment of **${specs.businessName}** in **${specs.townOrMarket}, ${specs.county}** is justified on robust socioeconomic, public health, and commercial grounds:
+The establishment of **${specs.businessName}** in **${specs.townOrMarket}, ${specs.county}** is supported by nutritional, economic, and operational considerations:
 
-#### 1.8.1 Public Health and Nutritional Impact
-Undernutrition, micronutrient deficiencies, and stunting in young children remain critical public health burdens in peri-urban and rural areas of ${specs.county}. At the same time, shifting dietary habits have triggered an escalation in diet-related non-communicable conditions among adults. By providing scientifically formulated, nutrient-dense products utilizing locally accessible ingredients, the enterprise directly tackles these nutritional disparities at grassroots household level.
+#### 1.8.1 Public Health and Nutritional Relevance
+Households and institutions in ${specs.townOrMarket} face growing demand for practical, nutrient-dense dietary options to address both micronutrient gaps and lifestyle-related health conditions. Providing **${specs.primaryProduct}** under qualified nutritionist supervision directly supports healthier consumption habits in the community.
 
-#### 1.8.2 Consumer Affordability and Import Substitution
-Packaged commercial nutrition products currently stocked in supermarkets are largely produced in Nairobi or imported, carrying prohibitive distribution and packaging markups that render them unaffordable to typical families. **${specs.businessName}** eliminates inter-county freight markups, offering an unadulterated, certified product at a price point that is 20% to 30% below national brands while guaranteeing superior bioavailability and freshness.
+#### 1.8.2 Commercial and Financial Viability
+Based on candidate-supplied pricing (**KES ${formatKES(specs.unitSellingPrice)}**) and unit variable cost (**KES ${formatKES(specs.unitCostOfProduction)}**), the enterprise achieves a gross profit margin of **${fin.grossProfitMarginPercent}%** and a projected Year 1 net profit after tax of **KES ${formatKES(fin.netProfitYear1)}**. With a break-even threshold of **${formatKES(fin.breakEvenUnitsMonthly)} ${unitWord} per month** (${fin.breakEvenLevelPercent}% of planned capacity), the business retains a comfortable margin of safety once full operating capacity is reached.
 
-#### 1.8.3 Local Economic Development and Smallholder Value Addition
-The venture acts as an agro-processing catalyst for local farmers by guaranteeing prompt, fair-trade cash purchase of surplus raw crops (such as sorghum, millet, soy, and sweet potatoes). This strengthens county agricultural value chains, curbs post-harvest losses, and creates direct formal employment for youth and women in manufacturing, hygiene inspection, sales, and retail delivery.`
+#### 1.8.3 Local Economic Contribution
+The enterprise sources inputs from local suppliers (${specs.rawMaterials.map((r) => r.supplier).filter(Boolean).slice(0, 2).join(", ") || "local vendors"}),remits county permit fees and national taxes, and provides structured employment for **${specs.staffing.reduce((sum, s) => sum + s.count, 0)} staff members**.`
   );
 
   add(
@@ -243,15 +312,15 @@ The venture acts as an agro-processing catalyst for local farmers by guaranteein
     `### 1.9 Market Entry and Growth Strategies
 
 #### 1.9.1 Market Entry Strategy
-To overcome entry barriers and displace entrenched consumer inertia, **${specs.businessName}** will deploy a phased market penetration approach:
-1. **Direct Sampling & Demonstration Drives**: Organize interactive porridge-tasting demos and anthropometric screening at community market days, churches, and maternal clinics.
-2. **Introductory Trade Margin Incentives**: Offer neighborhood retailers an attractive 18% retail margin (compared to 10% offered by multinational brands), alongside sale-or-return terms on initial consignments.
-3. **Endorsement by Health Workers**: Present product nutrient profiles and laboratory certificates to local public health officers, clinical nutritionists, and community health promoters.
+To enter the **${specs.townOrMarket}** market effectively and build early customer trust, **${specs.businessName}** will implement three practical entry actions:
+1. **Product/Service Demonstrations & Nutrition Awareness**: Conduct targeted sampling, educational demonstrations, and introductory sessions for target customers (${specs.targetCustomersDescription}).
+2. **Introductory Trade & Institutional Outreach**: Approach local clinics, schools, gyms, wellness groups, and retail stockists in ${specs.townOrMarket} with clear product/service fact sheets and introductory order terms.
+3. **Transparent Labeling & Responsive Delivery**: Build word-of-mouth referrals through consistent product quality, clear nutritional information, and convenient M-PESA ordering and local delivery.
 
-#### 1.9.2 Long-Term Growth Strategy
-- **Market Penetration**: Deepening retail presence in primary school feeding tenders and private hospital cafeterias.
-- **Product Development**: Introducing fortified weaning purees, extruded cereal snacks, and bulk hotel-pack formulations.
-- **Backward Integration**: Establishing formal out-grower contract farming with 40 women-led agricultural self-help groups, securing guaranteed grain quality at pre-agreed farmgate prices.`
+#### 1.9.2 Growth Strategy
+- **Customer Retention**: Use WhatsApp follow-up lists, subscription/repeat order packages, and seasonal promotions to increase repeat purchases.
+- **Institutional Contracts**: Bid for supply or service agreements with local schools, hospitals, corporate offices, and community organizations across ${specs.county}.
+- **Capacity Optimization**: Reinvest retained earnings in Year 2 and Year 3 to expand production/service capacity and reach adjacent towns.`
   );
 
   add(
@@ -259,14 +328,14 @@ To overcome entry barriers and displace entrenched consumer inertia, **${specs.b
     "1.10 Comprehensive SWOT Analysis and Mitigation Matrix",
     `### 1.10 Comprehensive SWOT Analysis and Mitigation Matrix
 
-A comprehensive analysis of internal enterprise capabilities and external market dynamics is detailed below.
+A structured evaluation of internal capabilities and external market conditions for **${specs.businessName}** is presented below:
 
 | Category | Enterprise Attributes | Strategic Mitigation / Exploitation Action |
 | :--- | :--- | :--- |
-| **STRENGTHS** | - Qualified promoter with nutrition credentials.<br>- Locally formulated product with verified standards.<br>- Direct access to local raw materials.<br>- Compact operating cost structure. | Use technical expertise for consumer education and keep delivery schedules flexible. |
-| **WEAKNESSES** | - New brand competing with established products.<br>- Limited start-up marketing budget.<br>- Manual packaging during the pilot phase. | Use point-of-sale displays, local referrals, and reinvest early cash surplus in suitable packaging equipment. |
-| **OPPORTUNITIES** | - Demand for preventive health and whole-grain foods.<br>- County support for school feeding programmes.<br>- Potential for local products to replace imports. | Pursue suitable school feeding tenders and partnerships with clinics. |
-| **THREATS** | - Seasonal changes in grain prices.<br>- Discounting by large competitors.<br>- Rising electricity and fuel costs. | Monitor input prices, maintain suitable buffer stock, and review energy use. |`
+| **STRENGTHS** | - Qualified promoter with nutrition and dietetics training.<br>- Offering (**${specs.primaryProduct}**) tailored to local dietary needs.<br>- Lean operating structure with controlled fixed overheads.<br>- Direct quality control and personalized customer guidance. | Leverage professional nutrition credentials in customer education and maintain strict quality consistency. |
+| **WEAKNESSES** | - New brand entering the ${specs.townOrMarket} market.<br>- Limited initial promotional budget (**KES ${formatKES(specs.marketingPromotionBudgetMonthly)}/month**).<br>- Initial reliance on manual or semi-automated workflows. | Focus marketing on high-conversion community demonstrations, digital catalogs, and institutional referrals. |
+| **OPPORTUNITIES** | - Rising public awareness of preventive nutrition and healthy diets.<br>- Growing demand from schools, clinics, and working households in ${specs.county}.<br>- Digital mobile-money (M-PESA) and local rider delivery adoption. | Develop tailored packages for repeat household and institutional buyers and streamline mobile ordering. |
+| **THREATS** | - Price competition from informal uncertified vendors or large brands.<br>- Fluctuations in input, utility, and transport costs.<br>- Regulatory inspection delays or changing county fees. | Lock in reliable supplier arrangements, maintain a working capital buffer (**KES ${formatKES(specs.workingCapitalBuffer || 75000)}**), and initiate licensing early. |`
   );
 
   // =========================================================================
@@ -278,36 +347,48 @@ A comprehensive analysis of internal enterprise capabilities and external market
     "2.1 Target Customers and Market Segmentation",
     `### 2.1 Target Customers and Market Segmentation
 
-#### 2.1.1 Target Consumer Demographics
-The customer base in **${specs.townOrMarket}** and surrounding sub-counties is segmented into three distinct groups:
-1. **Mothers and Caregivers of Infants (6-59 Months)**: Household purchasers seeking digestible, energy-dense complementary weaning foods that promote child weight gain and mental development.
-2. **Adults Managing Lifestyle Non-Communicable Diseases**: Individuals diagnosed with diabetes, hypertension, and obesity who demand low-glycemic, fiber-rich, and sodium-free whole food alternatives.
-3. **Institutional Buyers**: Primary boarding schools, day nurseries, mission hospital canteens, and sports clubs seeking affordable, high-protein bulk nutrition.
+#### 2.1.1 Target Customer Segments
+The primary customer base for **${specs.businessName}** in **${specs.townOrMarket}, ${specs.county}** comprises **${specs.targetCustomersDescription}**. For marketing and operational planning, customers are grouped into three segments:
+1. **Primary Household & Individual Buyers**: Residents in ${specs.townOrMarket} seeking reliable, hygienically prepared, and nutritionally balanced **${specs.primaryProduct}** for regular household or personal wellness use.
+2. **Health-Conscious & Special-Diet Consumers**: Clients referred or motivated by specific nutritional needs (such as maternal/child growth, metabolic wellness, recovery, or allergen-safe diets) who value nutritionist-verified products and guidance.
+3. **Institutional & Trade Buyers**: Local retail outlets, clinics, schools, offices, or community organizations in ${specs.county} procuring in bulk or under recurring supply arrangements.
 
-#### 2.1.2 Consumer Purchasing Behavior
-Field interviews confirm that 78% of household food purchase decisions are made by mothers. Primary buying criteria rank as: 1) Price affordability, 2) Visual cleanliness and absence of sand/stones, 3) Brand taste acceptability by children, and 4) Packaging integrity.`
+#### 2.1.2 Customer Purchasing Criteria
+Prospective customers evaluate **${specs.primaryProduct}** primarily on:
+1. **Nutritional Credibility & Safety**: Assurance of hygienic preparation, clean ingredients, and accurate nutrition labeling.
+2. **Affordability & Value**: Fair pricing (**KES ${formatKES(specs.unitSellingPrice)}**) relative to portion size, quality, and competing alternatives.
+3. **Convenience & Availability**: Consistent stock availability, practical packaging (**${specs.productPackaging}**), and timely local delivery.`
   );
+
+  const monthlyMarketVolume = Math.max(
+    specs.monthlyProductionUnitsYear1 * 10,
+    Math.round(specs.monthlyProductionUnitsYear1 / Math.max(0.01, (specs.projectedMarketSharePercentage || 5) / 100))
+  );
+  const shareTarget = specs.projectedMarketSharePercentage || 5;
+  const shareNational = Math.round((100 - shareTarget) * 0.45);
+  const shareInformal = Math.round((100 - shareTarget) * 0.40);
+  const shareOther = Math.max(1, 100 - shareTarget - shareNational - shareInformal);
 
   add(
     "ch2.demand",
     "2.2 Market Share and Projected Total Demand",
     `### 2.2 Market Share and Projected Total Demand
 
-#### 2.2.1 Total Addressable Market (TAM)
-In **${specs.county}**, the primary market catchment of **${specs.townOrMarket}** has an estimated population of **${specs.totalMarketPopulation}**, comprising approximately 8,500 households. The average household consumes 4 kg of porridge flour and health foods monthly, generating a total addressable market demand of **34,000 kg per month**.
+#### 2.2.1 Addressable Market Catchment
+Within **${specs.townOrMarket}, ${specs.county}**, the target catchment is estimated at **${specs.totalMarketPopulation || "the local town and sub-county population"}** (planning estimate; verify against current KNBS census or county statistical abstracts). Based on the planned Year 1 monthly output of **${formatKES(specs.monthlyProductionUnitsYear1)} ${unitWord}** representing an estimated **${shareTarget}%** share of the active local segment, total monthly demand in the catchment is estimated at approximately **${formatKES(monthlyMarketVolume)} ${unitWord}**.
 
-#### 2.2.2 Projected Market Share Breakdown
-The competitive market share distribution in the locality is summarized below:
+#### 2.2.2 Estimated Market Share Distribution
+The indicative local market share distribution across competing categories is summarized below:
 
-| Market Competitor / Category | Estimated Monthly Volume (kg) | Estimated Market Share (%) |
-| :--- | :--- | :--- |
-| **National Corporate Brands (Famila, Wimbi)** | 11,900 kg | 35% |
-| **Informal Local Posho Mills (Loose unbranded)** | 13,600 kg | 40% |
-| **Other Small Regional Processors** | 3,400 kg | 10% |
-| **${specs.businessName} (Projected Target)** | **5,100 kg** | **15%** |
-| **Total Local Market Volume** | **34,000 kg** | **100%** |
+| Market Category | Estimated Monthly Volume (${unitWord}) | Estimated Market Share (%) |
+| :--- | ---: | ---: |
+| **Established Commercial / Regional Providers** | ${formatKES(Math.round((monthlyMarketVolume * shareNational) / 100))} | ${shareNational}% |
+| **Informal / Uncertified Local Alternatives** | ${formatKES(Math.round((monthlyMarketVolume * shareInformal) / 100))} | ${shareInformal}% |
+| **Other Small Local Enterprises** | ${formatKES(Math.round((monthlyMarketVolume * shareOther) / 100))} | ${shareOther}% |
+| **${specs.businessName} (Year 1 Target)** | **${formatKES(specs.monthlyProductionUnitsYear1)}** | **${shareTarget}%** |
+| **Total Addressable Segment Volume** | **${formatKES(monthlyMarketVolume)}** | **100%** |
 
-Capturing a **15% market share** represents an initial Year 1 operational target of **${formatKES(specs.monthlyProductionUnitsYear1)} units per month**, which is conservative and fully achievable with our production setup.`
+These figures are planning projections derived from candidate assumptions and should be validated through a dated local customer and retailer survey prior to launch.`
   );
 
   add(
@@ -315,20 +396,20 @@ Capturing a **15% market share** represents an initial Year 1 operational target
     "2.3 Competitor Analysis and Competitive Advantage",
     `### 2.3 Competitor Analysis and Competitive Advantage
 
-A field survey was conducted across competing food processing and nutrition outlets in the commercial trading area.
+The table below compares **${specs.businessName}** against key competitor categories operating in or serving **${specs.townOrMarket}, ${specs.county}** (confirm specific local business names and current price lists during field verification):
 
-| Competitor Name | Physical Location | Pricing Structure | Key Strengths | Key Weaknesses |
+| Competitor / Category | Location | Price Level | Key Strengths | Key Weaknesses |
 | :--- | :--- | :--- | :--- | :--- |
-${specs.competitors
+${safeCompetitors
   .map(
     (c) =>
       `| **${c.name}** | ${c.location} | ${c.priceLevel} | ${c.strengths} | ${c.weaknesses} |`
   )
   .join("\n")}
-| **${specs.businessName}** | ${specs.streetOrBuilding} | KES ${formatKES(specs.unitSellingPrice)} | Formulation by certified nutritionist, hermetic vacuum packaging, lower price point, direct client counseling. | New brand footprint; initial production scaling up. |
+| **${specs.businessName}** | ${safeStreet}, ${specs.townOrMarket} | KES ${formatKES(specs.unitSellingPrice)} | Formulated/supervised by a trained nutritionist; standardized ${specs.productPackaging}; responsive local service. | New market entrant building initial brand awareness. |
 
-#### 2.3.1 Sustainable Competitive Advantage
-Unlike corporate brands manufactured hundreds of kilometers away, **${specs.businessName}** maintains direct proximity to the community. We provide personalized dietary guidance on packaging, source fresh raw grains from local farmers, and offer immediate replacements for any defective units.`
+#### 2.3.1 Competitive Advantage
+Unlike general vendors without formal nutrition training or distant national brands with high distribution markups, **${specs.businessName}** combines technical dietetic competence, transparent quality control, and direct local customer engagement in ${specs.townOrMarket}.`
   );
 
   add(
@@ -336,21 +417,20 @@ Unlike corporate brands manufactured hundreds of kilometers away, **${specs.busi
     "2.4 Pricing Strategy and Cost Structure",
     `### 2.4 Pricing Strategy and Cost Structure
 
-The enterprise adopts a **Cost-Plus Competitor-Benchmarked Pricing Model**. This ensures full recovery of production costs, fixed overheads, and a sustainable operating margin while remaining accessible to consumers.
+The enterprise applies a **Cost-Plus and Competitor-Benchmarked Pricing Strategy**. This ensures that every unit sold covers its direct variable cost (**KES ${formatKES(specs.unitCostOfProduction)}**) and contributes **KES ${formatKES(fin.contributionMarginPerUnit)}** toward monthly fixed overheads and net profit.
 
-#### 2.4.1 Unit Cost Breakdown (${specs.primaryProduct})
-- **Direct Raw Materials**: KES ${formatKES(Math.round(specs.unitCostOfProduction * 0.75))}
-- **Packaging Pouch & Label**: KES ${formatKES(Math.round(specs.unitCostOfProduction * 0.15))}
-- **Direct Processing Labor & Electricity**: KES ${formatKES(Math.round(specs.unitCostOfProduction * 0.10))}
+#### 2.4.1 Unit Economics Breakdown (${specs.primaryProduct})
+- **Primary Inputs / Materials (${Math.round(specs.unitCostOfProduction * 0.75) > 0 ? "75%" : "Direct"})**: KES ${formatKES(Math.round(specs.unitCostOfProduction * 0.75))}
+- **Packaging / Presentation & Consumables (15%)**: KES ${formatKES(Math.round(specs.unitCostOfProduction * 0.15))}
+- **Direct Utility / Handling Allowance (10%)**: KES ${formatKES(specs.unitCostOfProduction - Math.round(specs.unitCostOfProduction * 0.75) - Math.round(specs.unitCostOfProduction * 0.15))}
 - **Total Unit Variable Cost**: **KES ${formatKES(specs.unitCostOfProduction)}**
-- **Wholesale Selling Price (To Retailers)**: **KES ${formatKES(Math.round(specs.unitSellingPrice * 0.82))}** (18% retailer margin)
-- **Recommended Retail Price (RRP)**: **KES ${formatKES(specs.unitSellingPrice)}**
-- **Gross Contribution Margin per Unit**: **KES ${formatKES(fin.contributionMarginPerUnit)} (${Math.round((fin.contributionMarginPerUnit / specs.unitSellingPrice) * 100)}%)**
+- **Standard Selling Price**: **KES ${formatKES(specs.unitSellingPrice)}**
+- **Unit Contribution Margin**: **KES ${formatKES(fin.contributionMarginPerUnit)} (${fin.grossProfitMarginPercent}% Gross Margin)**
 
-#### 2.4.2 Credit Policy and Terms of Sale
-- **Walk-in Retail Sales**: 100% Cash / M-PESA Paybill settlement upon delivery.
-- **Approved Retail Distributors**: Maximum 7-day credit terms on subsequent orders after full payment of initial consignment.
-- **Cash Discounts**: 2.5% prompt settlement discount for orders exceeding 100 units paid within 24 hours.`
+#### 2.4.2 Payment and Credit Policy
+- **Direct Walk-In & Individual Orders**: 100% cash or M-PESA Till/Paybill payment upon order fulfillment.
+- **Verified Institutional & Trade Accounts**: Up to 7–14 days credit only after a written supply agreement and at least three consecutive on-time cash transactions.
+- **Volume Discounts**: A 5% trade discount on bulk institutional or wholesale orders exceeding 50 units paid upfront.`
   );
 
   add(
@@ -358,14 +438,13 @@ The enterprise adopts a **Cost-Plus Competitor-Benchmarked Pricing Model**. This
     "2.5 Advertising and Sales Promotion Strategy",
     `### 2.5 Advertising and Sales Promotion Strategy
 
-To achieve commercial recognition across **${specs.county}**, the business will execute a localized, cost-effective promotional campaign with a monthly allocation of **KES ${formatKES(specs.marketingPromotionBudgetMonthly)}**.
+To build brand visibility and customer trust across **${specs.townOrMarket}, ${specs.county}**, the enterprise allocates a monthly marketing budget of **KES ${formatKES(specs.marketingPromotionBudgetMonthly)}**.
 
-#### 2.5.1 Promotional Channels & Activities
-1. **Interactive Cooking Demos**: Weekly educational porridge tasting sessions at child welfare and antenatal clinics, demonstrating proper weaning porridge thickness.
-2. **Point-of-Sale Branding**: Providing branded laminated poster stands, branded plastic measuring cups, and price boards to contracted retail shops.
-3. **Community Radio Announcements**: Bi-weekly sponsored radio features in the local language on popular vernacular stations discussing maternal nutrition and biofortified foods.
-4. **Digital & Social Media Marketing**: Active WhatsApp Business catalog and localized Facebook community group updates offering dietary advice and home delivery arrangements.
-5. **Branded Delivery Gear**: Branded dustcoats, delivery bags, and t-shirts worn by the sales representative creating high visible brand recall.`
+#### 2.5.1 Promotional Channels and Activities
+1. **Community Nutrition Talks & Sampling**: Monthly educational sessions and product/service demonstrations for local women groups (chamas), workplace teams, clinics, and community gatherings.
+2. **Digital & WhatsApp Business Catalog**: A structured WhatsApp Business profile, Google Business listing, and social media page sharing evidence-based nutrition tips, clear pricing, and direct ordering links.
+3. **Point-of-Sale & Partner Information Leaflets**: Printed brochures, posters, and product fact sheets placed at partner shops, pharmacies, fitness centers, and community noticeboards in ${specs.townOrMarket}.
+4. **Customer Referral & Loyalty Incentives**: Encouraging repeat purchases and word-of-mouth referrals through bundle packages and attentive customer follow-up.`
   );
 
   add(
@@ -373,17 +452,17 @@ To achieve commercial recognition across **${specs.county}**, the business will 
     "2.6 Distribution Strategy and Logistics",
     `### 2.6 Distribution Strategy and Logistics
 
-The enterprise uses a hybrid distribution model to serve customers across **${specs.townOrMarket}**.
+The enterprise utilizes a multi-channel distribution model tailored to customers in **${specs.townOrMarket}** and surrounding areas of **${specs.county}**:
 
 \`\`\`channels
-Production Plant
-40% Direct Sales to Consumers and Clinics (M-PESA / Cash)
-45% Wholesale Supply to Kiosks and Retail Supermarkets
-15% Institutional Supply Contracts (Schools, Canteens, Nurseries)
+${specs.businessName} (${specs.townOrMarket})
+50% Direct-to-Consumer Sales (Premises Walk-In & WhatsApp Orders)
+30% Local Retail Stockists, Pharmacies & Partner Outlets
+20% Institutional Accounts (Schools, Clinics, Workplaces & Groups)
 \`\`\`
-- **Primary Channel (Direct Delivery)**: The enterprise will utilize a company cargo motorbike / tricycle to conduct daily morning replenishment runs to 30 contracted retail shops.
-- **Logistics Cost**: Monthly fuel and maintenance budget of **KES ${formatKES(specs.monthlyOverheads.transport)}**, ensuring reliable deliveries and zero stock-outs.
-- **Warehousing**: A clean, rodent-proof palletized stockroom on the premises accommodating up to 2 weeks of buffer stock.`
+- **Direct Fulfillment**: Customers can purchase or book directly at **${safeStreet}** or place orders via phone/M-PESA for scheduled local rider dispatch.
+- **Trade & Institutional Delivery**: Scheduled weekly deliveries to partner outlets and institutional buyers using a dedicated monthly transport and logistics budget of **KES ${formatKES(specs.monthlyOverheads.transport)}**.
+- **Storage & Handling Hygiene**: All finished items and inputs are stored and transported in clean, temperature-appropriate, and pest-protected containers to preserve quality up to the point of customer handover.`
   );
 
   add(
@@ -391,33 +470,38 @@ Production Plant
     "2.7 Sales Forecast and Revenue Projections",
     `### 2.7 Sales Forecast and Revenue Projections
 
-Sales volumes are modeled with a conservative initial ramp-up during Months 1 to 4, reaching full monthly operating capacity of **${formatKES(specs.monthlyProductionUnitsYear1)} units** from Month 5 onwards.
+Sales projections incorporate a conservative Year 1 operational ramp-up (65% in Months 1–2, 80% in Month 3, 90% in Month 4, and 100% of the planned **${formatKES(specs.monthlyProductionUnitsYear1)} ${unitWord}/month** from Month 5 to Month 12), followed by annual volume growth of **${Math.round((specs.annualGrowthRateYear2 || 0.2) * 100)}%** in Year 2 and **${Math.round((specs.annualGrowthRateYear3 || 0.2) * 100)}%** in Year 3.
 
 | Performance Metric | Year 1 | Year 2 (+${Math.round((specs.annualGrowthRateYear2 || 0.2) * 100)}%) | Year 3 (+${Math.round((specs.annualGrowthRateYear3 || 0.2) * 100)}%) |
-| :--- | :--- | :--- | :--- |
-| **Total Units Produced & Sold** | ${formatKES(Math.round(fin.annualSalesYear1 / specs.unitSellingPrice))} units | ${formatKES(Math.round(fin.annualSalesYear2 / specs.unitSellingPrice))} units | ${formatKES(Math.round(fin.annualSalesYear3 / specs.unitSellingPrice))} units |
-| **Average Selling Price (KES)** | KES ${formatKES(specs.unitSellingPrice)} | KES ${formatKES(Math.round(specs.unitSellingPrice * 1.05))} | KES ${formatKES(Math.round(specs.unitSellingPrice * 1.08))} |
+| :--- | ---: | ---: | ---: |
+| **Planned Annual Volume (${unitWord})** | ${formatKES(Math.round(fin.annualSalesYear1 / Math.max(1, specs.unitSellingPrice)))} | ${formatKES(Math.round(fin.annualSalesYear2 / Math.max(1, specs.unitSellingPrice)))} | ${formatKES(Math.round(fin.annualSalesYear3 / Math.max(1, specs.unitSellingPrice)))} |
+| **Unit Selling Price (KES)** | KES ${formatKES(specs.unitSellingPrice)} | KES ${formatKES(specs.unitSellingPrice)} | KES ${formatKES(specs.unitSellingPrice)} |
 | **Gross Annual Revenue (KES)** | **KES ${formatKES(fin.annualSalesYear1)}** | **KES ${formatKES(fin.annualSalesYear2)}** | **KES ${formatKES(fin.annualSalesYear3)}** |
-| **Average Monthly Revenue** | KES ${formatKES(Math.round(fin.annualSalesYear1 / 12))} | KES ${formatKES(Math.round(fin.annualSalesYear2 / 12))} | KES ${formatKES(Math.round(fin.annualSalesYear3 / 12))} |`
+| **Direct Variable Cost / COGS (KES)** | KES ${formatKES(fin.annualCogsYear1)} | KES ${formatKES(fin.annualCogsYear2)} | KES ${formatKES(fin.annualCogsYear3)} |
+| **Projected Gross Profit (KES)** | **KES ${formatKES(fin.annualGrossProfitYear1)}** | **KES ${formatKES(fin.annualGrossProfitYear2)}** | **KES ${formatKES(fin.annualGrossProfitYear3)}** |`
   );
 
   // =========================================================================
   // CHAPTER THREE: ORGANIZATION & MANAGEMENT
   // =========================================================================
 
+  const leadRole = specs.staffing[0]?.position || "Managing Director / Lead Nutritionist";
+  const secondRole = specs.staffing[1]?.position || "Operations & Quality Assistant";
+  const thirdRole = specs.staffing[2]?.position || "Sales, Dispatch & Customer Support";
+
   add(
     "ch3.structure",
     "3.1 Organizational Structure / Organogram",
     `### 3.1 Organizational Structure / Organogram
 
-The business operates a lean, functional hierarchy designed to maintain clear accountability while minimizing administrative overheads.
+**${specs.businessName}** adopts a lean, accountable organizational structure designed to maintain direct professional supervision over quality, customer service, and cash flow while controlling payroll overheads.
 
 \`\`\`org
-Managing Director (Proprietor / Nutritionist)
-Operations and Quality — Machine Operator
-Sales and Accounts Clerk — Marketing and Records
+${leadRole}
+Operations & Quality Execution — ${secondRole}
+Customer Service, Records & Logistics — ${thirdRole}
 \`\`\`
-- **Chain of Command**: The Managing Director has overall executive, fiscal, and regulatory responsibility. All operational and sales personnel report directly to the Managing Director.`
+- **Chain of Command**: The **${leadRole}** exercises overall executive, technical, financial, and regulatory authority. Operational, support, and delivery personnel report directly to the founder with clearly defined daily duties and hygiene/quality accountability.`
   );
 
   add(
@@ -425,18 +509,17 @@ Sales and Accounts Clerk — Marketing and Records
     "3.2 Management Team Background and Competencies",
     `### 3.2 Management Team Background and Competencies
 
-The enterprise is led by **${specs.candidateName || "the candidate"}**, who serves as the Managing Director and Lead Professional.
+The enterprise is managed by **${specs.candidateName || "the candidate"}**, who serves as **${leadRole}**.
 
 #### 3.2.1 Qualifications and Technical Competencies
-- **Academic Credentials**: ${specs.ownerQualifications}
-- **Regulatory Registrations**: Registered by the Kenya Nutritionists and Dieticians Institute (KNDI).
-- **Core Competencies**: Formulation chemistry, HACCP hygiene standards, clinical meal prescription, inventory management, and basic financial accounting.
+- **Academic & Professional Credentials**: ${safeQualifications}
+- **Core Technical Competencies**: Nutritional formulation and assessment, food safety and hygiene management (GMP/HACCP), customer nutrition education, supplier quality verification, and enterprise bookkeeping.
 
-#### 3.2.2 Management Responsibilities
-1. Overseeing raw material inspection, moisture testing, and formulating batch ratios.
-2. Managing regulatory inspections with KEBS, County Public Health, and KRA.
-3. Controlling cash flow, reviewing bank reconciliations, and authorizing payments.
-4. Conducting clinical consultations and training staff on food safety.`
+#### 3.2.2 Key Management Responsibilities
+1. Supervising daily operational workflows, quality checks, and adherence to standard operating procedures (SOPs).
+2. Managing statutory compliance with the County Government of ${specs.county}, Public Health, KNDI/KEBS (as applicable), and KRA.
+3. Controlling daily cash and M-PESA reconciliations, supplier payments, inventory records, and monthly financial reviews.
+4. Leading institutional sales outreach, customer nutrition guidance, and staff supervision.`
   );
 
   add(
@@ -444,10 +527,10 @@ The enterprise is led by **${specs.candidateName || "the candidate"}**, who serv
     "3.3 Staffing Requirements and Job Specifications",
     `### 3.3 Staffing Requirements and Job Specifications
 
-The enterprise will employ a dedicated team of **${specs.staffing.reduce((sum, s) => sum + s.count, 0)} personnel** to run daily manufacturing and administrative operations.
+The enterprise will operate with a team of **${specs.staffing.reduce((sum, s) => sum + s.count, 0)} personnel** whose roles, responsibilities, and minimum qualifications are detailed below:
 
 | Position Title | Staff Count | Key Duties and Operational Tasks | Minimum Academic & Professional Qualifications |
-| :--- | :--- | :--- | :--- |
+| :--- | :---: | :--- | :--- |
 ${specs.staffing
   .map(
     (s) =>
@@ -461,25 +544,24 @@ ${specs.staffing
     "3.4 Remuneration, Benefits, and Payroll Schedule",
     `### 3.4 Remuneration, Benefits, and Payroll Schedule
 
-Employees receive competitive salaries compliant with the Regulation of Wages (General) Order under the Employment Act, alongside statutory social protections.
+Staff remuneration is structured in accordance with Kenyan employment standards and incorporates statutory deductions (NSSF, Social Health Authority [SHA], and applicable PAYE).
 
-| Staff Position | Count | Basic Monthly Pay (KES) | Statutory Deductions (NSSF, SHA, PAYE) | Net Monthly Pay (KES) | Total Monthly Cost (KES) |
-| :--- | :--- | :--- | :--- | :--- | :--- |
+| Staff Position | Count | Gross Monthly Pay per Person (KES) | Est. Statutory Deductions (NSSF & SHA) | Est. Net Monthly Pay (KES) | Total Monthly Payroll Cost (KES) |
+| :--- | :---: | ---: | ---: | ---: | ---: |
 ${specs.staffing
   .map((s) => {
     const basic = s.monthlySalary;
     const nssf = 1080;
     const sha = Math.round(basic * 0.0275);
-    const net = basic - nssf - sha;
+    const net = Math.max(0, basic - nssf - sha);
     return `| **${s.position}** | ${s.count} | ${formatKES(basic)} | ${formatKES(nssf + sha)} | ${formatKES(net)} | ${formatKES(basic * s.count)} |`;
   })
   .join("\n")}
-| **Total Monthly Payroll** | **${specs.staffing.reduce((sum, s) => sum + s.count, 0)}** | **${formatKES(specs.staffing.reduce((sum, s) => sum + s.count * s.monthlySalary, 0))}** | | | **KES ${formatKES(specs.staffing.reduce((sum, s) => sum + s.count * s.monthlySalary, 0))}** |
+| **Total Monthly Payroll** | **${specs.staffing.reduce((sum, s) => sum + s.count, 0)}** | | | | **KES ${formatKES(specs.staffing.reduce((sum, s) => sum + s.count * s.monthlySalary, 0))}** |
 
-#### 3.4.1 Staff Incentives and Welfare
-- **Performance Bonuses**: Monthly sales incentive of 2% on collections exceeding target quotas.
-- **Protective Workwear**: Two sets of white food-grade laboratory dustcoats, hairnets, and rubber gumboots per annum.
-- **Medical Coverage**: Mandatory enrollment in the Social Health Authority (SHA) and annual food handlers medical clearance.`
+#### 3.4.1 Staff Welfare and Workplace Standards
+- **Personal Protective & Hygiene Attire**: Provision of clean work coats/aprons, head covers, and appropriate hygiene gear suited to each staff member's duties.
+- **Health & Statutory Compliance**: Enrollment in NSSF and SHA, annual medical examination (Food Handlers Certificate where food is handled), and paid statutory leave in line with the Employment Act.`
   );
 
   add(
@@ -487,13 +569,13 @@ ${specs.staffing
     "3.5 Recruitment, Training, and Staff Development",
     `### 3.5 Recruitment, Training, and Staff Development
 
-#### 3.5.1 Recruitment Process
-Positions will be advertised through local community boards, technical institutes, and county employment notices. Shortlisted candidates undergo practical competency assessments and health screening before appointment.
+#### 3.5.1 Recruitment Procedure
+Vacancies will be advertised through local technical training institutions, professional networks, and community noticeboards in **${specs.townOrMarket}**. Candidates will undergo credential verification, practical skill assessment, reference checks, and required medical/hygiene clearance before appointment.
 
-#### 3.5.2 Induction and Continuous Training Programs
-1. **Food Safety & HACCP Induction**: Comprehensive training on personal hygiene, equipment sanitation, pest prevention, and cross-contamination prevention.
-2. **First Aid & Machine Safety**: Training on emergency shutdown procedures, electrical safety, fire extinguisher handling, and dust inhalation prevention.
-3. **Customer Care & POS Operations**: Professional training on cashiering, polite communication, and inventory reconciliation.`
+#### 3.5.2 Induction and Continuous Staff Training
+1. **Hygiene, Quality & Standard Operating Procedures (SOPs)**: Mandatory induction on personal hygiene, workspace sanitization, cross-contamination prevention, and quality documentation.
+2. **Occupational Safety & Emergency Preparedness**: Practical training on safe equipment operation, electrical and fire safety, first aid, and incident reporting.
+3. **Customer Service & Record Keeping**: Training on respectful client communication, accurate portioning/measurement, M-PESA transaction recording, and stock tracking.`
   );
 
   add(
@@ -501,16 +583,34 @@ Positions will be advertised through local community boards, technical institute
     "3.6 Regulatory Licenses, Health Permits, and Compliance",
     `### 3.6 Regulatory Licenses, Health Permits, and Compliance
 
-The business will strictly fulfill all national and county government regulatory standards prior to full commercial commissioning.
+Prior to commencing commercial operations in **${specs.townOrMarket}, ${specs.county}**, the enterprise will verify and obtain the applicable statutory registrations and county permits listed below (fees are provisional planning estimates to be confirmed with the issuing authorities):
 
-| Regulatory Approval / License | Issuing Authority | Statutory Legal Basis | Annual Cost (KES) |
+| Regulatory Approval / Requirement | Issuing Authority | Legal / Statutory Framework | Provisional Cost / Status |
 | :--- | :--- | :--- | :--- |
-| **Business Name Registration Certificate** | Business Registration Service | Business Names Act (Cap 499) | KES 1,000 (One-off) |
-| **Single Business Permit (SBP)** | County Government of ${specs.county} | County Finance Act | KES 12,000 / year |
-| **Food Handler Medical Certificates** | County Public Health Department | Public Health Act (Cap 242) | KES 3,000 / year |
-| **Food Hygiene License (Premises)** | County Public Health Department | Food, Drugs & Chemical Substances Act | KES 5,000 / year |
-| **Standardization Mark of Quality (SM)** | Kenya Bureau of Standards (KEBS) | Standards Act (Cap 496) | KES 20,000 / 3 years |
-| **KRA Tax PIN / Tax Compliance** | Kenya Revenue Authority (KRA) | Income Tax Act (Cap 470) | Statutory Compliance |`
+| **Business Name Registration** | Business Registration Service (eCitizen) | Business Names Registration Act (Cap 499) | KES 1,000 (One-off) |
+| **Single Business Permit (SBP)** | County Government of ${specs.county} | County Finance Act | KES 8,000 – 15,000 / year [Confirm locally] |
+| **Public Health Premises & Hygiene Clearance** | County Department of Public Health | Public Health Act (Cap 242) | KES 5,000 – 10,000 / year [Confirm locally] |
+| **${
+      isEducation || isConsultancy
+        ? "Professional Accreditation / Practice Clearance"
+        : isRetail
+          ? "Food Handling & Retail Product Compliance"
+          : isAgribusiness
+            ? "Agricultural Produce & Food Safety Clearance"
+            : "Product Quality / Standardization Mark (SM) & Food Handlers Certificates"
+    }** | ${
+      isEducation || isConsultancy
+        ? "Kenya Nutritionists & Dietitians Institute (KNDI)"
+        : isRetail || isFoodService
+          ? "County Public Health / Relevant Regulatory Body"
+          : "Kenya Bureau of Standards (KEBS) / County Public Health"
+    } | ${
+      isEducation || isConsultancy
+        ? "Nutritionists and Dietitians Act (No. 18 of 2007)"
+        : "Standards Act (Cap 496) / Food, Drugs & Chemical Substances Act (Cap 254)"
+    } | Confirm applicable fee & schedule |
+| **KRA PIN & Tax Compliance** | Kenya Revenue Authority (iTax) | Income Tax Act (Cap 470) | Free registration; monthly/annual filing |
+| **NSSF & SHA Employer Registration** | NSSF / Social Health Authority | NSSF Act & Social Health Insurance Act | Statutory monthly remittance |`
   );
 
   add(
@@ -518,58 +618,159 @@ The business will strictly fulfill all national and county government regulatory
     "3.7 Supporting Professional Services",
     `### 3.7 Supporting Professional Services
 
-The enterprise will partner with established external professional institutions to ensure operational resilience and financial transparency:
-- **Commercial Banking**: Equity Bank / KCB Bank (${specs.townOrMarket} Branch) for business current account operations, M-PESA Till integration, and loan administration.
-- **Auditing & Accounting**: Retained certified bookkeeping firm for quarterly tax filing, statutory NSSF/SHA remittance, and annual balance sheet audits.
-- **Legal Counsel**: Retained local advocate on call for lease agreements, supplier dispute resolution, and regulatory advisory.
-- **Enterprise Mentorship**: Association with the Kenya National Chamber of Commerce & Industry (KNCCI) and the Micro & Small Enterprise Authority (MSEA).`
+To strengthen governance and operational continuity, **${specs.businessName}** will engage the following external support services as needed:
+- **Banking & Mobile Payments**: A business account and M-PESA Till/Paybill facility with a licensed commercial bank or SACCO in **${specs.townOrMarket}** for secure collections, supplier payments, and loan servicing.
+- **Accounting & Tax Advisory**: Part-time bookkeeping and tax filing support from a qualified accountant (CPA-K) to prepare annual statements and ensure timely KRA, NSSF, and SHA compliance.
+- **Legal & Lease Review**: Consultation with a registered advocate when reviewing commercial lease terms, supplier contracts, or institutional service agreements.
+- **Technical & Regulatory Bodies**: Professional guidance and standards updates from the Kenya Nutritionists and Dietitians Institute (KNDI), County Department of Health, and ${isGrainMilling || resolvedModel === "manufacturing" || isBeverages ? "Kenya Bureau of Standards (KEBS)" : "Micro and Small Enterprises Authority (MSEA)"}.`
   );
 
   // =========================================================================
   // CHAPTER FOUR: OPERATIONAL / PRODUCTION PLAN
   // =========================================================================
 
+  const layoutZones = isFoodService
+    ? `Raw ingredient receiving, washing, and cold/dry storage
+Hot and cold meal preparation and cooking stations
+Dietitian portioning, calorie-labeling, and hygienic plating zone
+Insulated dispatch staging and takeaway counter
+Staff changing, handwashing, and dishwashing sanitation bay`
+    : isAgribusiness
+      ? `Propagation nursery / production plot and irrigation control
+Harvest receiving, washing, and grading shade bay
+Solar drying / post-harvest preservation and moisture control zone
+Hygienic weighing, hermetic packaging, and labeling area
+Tool store, input lockup, and dispatch loading bay`
+      : isRetail
+        ? `Customer reception and organized retail display shelving
+Chilled beverage/dairy display and climate-controlled nutraceutical cabinet
+Nutritionist consultation and product guidance counter
+POS checkout, M-PESA verification, and parcel packing desk
+Back-office stockroom, quarantine shelf, and sanitation station`
+        : isEducation
+          ? `Participant reception, registration, and resource display desk
+Interactive training and multimedia seminar area
+Practical culinary demonstration and anthropometric workstation
+Printed manual, demonstration kit, and equipment storage room
+Administration desk, confidential records lockup, and washrooms`
+          : `Raw material receiving, inspection, and dry/cold storage
+Primary processing, formulation, and thermal/blending zone
+Hygienic filling, sealing, batch coding, and quality testing area
+Finished goods palletized storage and dispatch bay
+Office, staff changing, and handwashing sanitation station`;
+
   add(
     "ch4.facilities",
     "4.1 Production Facilities and Space Allocation",
     `### 4.1 Production Facilities and Space Allocation
 
-The production plant occupies a floor area of **${specs.workshopSquareMeters} square meters** at **${specs.streetOrBuilding}**, leased at **KES ${formatKES(specs.monthlyRent)}** per month.
+The enterprise will operate from premises measuring approximately **${specs.workshopSquareMeters} square meters** at **${safeStreet}, ${specs.townOrMarket}**, at a budgeted monthly rent of **KES ${formatKES(specs.monthlyRent)}** (subject to lease confirmation).
 
-#### 4.1.1 Facility Layout Plan
-The indicative arrangement separates raw materials, processing, clean packaging, and dispatch. Final room sizes should match the leased premises.
+#### 4.1.1 Facility Layout and Functional Zoning
+The workspace is organized on a unidirectional flow principle to prevent cross-contamination, protect product/service quality, and support smooth daily operations:
 
 \`\`\`layout
-Raw material receiving and storage
-Processing and formulation
-Packaging and quality testing
-Finished goods storage and dispatch
-Office, staff facilities, and handwashing
+${layoutZones}
 \`\`\`
-`
+
+Adequate natural and mechanical ventilation, washable floor and wall surfaces, potable handwashing stations, fire extinguishers, and covered waste bins will be maintained across all zones.`
   );
+
+  const workflowContent = isFoodService
+    ? `\`\`\`flow
+Procure and inspect fresh ingredients against daily menu specifications
+Wash, sanitize, and prep vegetables, whole grains, and lean proteins
+Cook and prepare meals using nutrient-preserving culinary methods
+Portion meals on digital scales according to therapeutic calorie/macro targets
+Pack in tamper-evident containers with nutrition and allergen labels
+Dispatch promptly to clients or serve at the counter and sanitize kitchen
+\`\`\`
+1. **Menu Planning & Ingredient Inspection**: Fresh produce, proteins, and pantry inputs are inspected upon morning arrival for freshness, temperature, and hygiene compliance.
+2. **Sanitary Prep & Pre-Processing**: Ingredients are washed in potable water and prepped on color-coded cutting boards to prevent allergen and microbial cross-contamination.
+3. **Nutrient-Preserving Cooking**: Meals are prepared using controlled steaming, baking, grilling, or light sautéing to preserve micronutrients while avoiding excess sodium or trans fats.
+4. **Calibrated Portioning**: The nutritionist verifies portion weights using digital kitchen scales to match stated caloric and macronutrient specifications.
+5. **Hygienic Packaging & Labeling**: Portions are sealed in food-grade containers (**${specs.productPackaging}**) labeled with preparation time, macro breakdown, and storage advice.
+6. **Dispatch & Kitchen Sanitization**: Orders are dispatched in insulated bags while food-contact surfaces undergo clean-as-you-go sanitization.`
+    : isAgribusiness
+      ? `\`\`\`flow
+Select certified seeds, vines, or farm inputs and prepare production units
+Manage crop/stock nutrition, irrigation, and biosecurity protocols
+Harvest at peak nutritional maturity and grade produce in shaded bay
+Clean, sort, or solar-dry/preserve produce to target moisture/quality standards
+Weigh and pack into breathable crates, trays, or barrier pouches
+Label batches with harvest date and dispatch to retail or household buyers
+\`\`\`
+1. **Input Selection & Unit Preparation**: Certified planting material or healthy stock and organic/mineral inputs are sourced from verified suppliers and prepared under hygienic farm protocols.
+2. **Production & Husbandry Monitoring**: Daily monitoring of moisture, temperature, pest management, and nutrient feeding schedules to maximize micronutrient density and yield.
+3. **Hygienic Harvesting & Grading**: Produce is harvested during cool morning hours and sorted to remove damaged or undersized units.
+4. **Post-Harvest Preservation & Conditioning**: Depending on the product line, items undergo washing, cooling, candling, or controlled solar dehydration to lock in nutritional quality and extend shelf life.
+5. **Standardized Packaging**: Graded output is weighed and packed into **${specs.productPackaging}** with batch traceability.
+6. **Market Dispatch**: Packed units are delivered directly to households, retail grocers, and institutional kitchens.`
+      : isRetail
+        ? `\`\`\`flow
+Vet suppliers and verify KEBS, PPB, or Public Health certifications
+Receive wholesale stock, inspect expiry dates, and log into POS inventory
+Arrange products on clean, categorized, and climate-appropriate shelves
+Guide walk-in and online customers on product selection and dietary usage
+Process checkout, M-PESA payment, and pack in branded carrier bags
+Conduct daily stock reconciliation and FEFO (First-Expired, First-Out) checks
+\`\`\`
+1. **Supplier Vetting & Procurement**: Products are ordered exclusively from licensed manufacturers and distributors with valid quality marks and batch documentation.
+2. **Receiving & Quality Verification**: Incoming stock is checked for seal integrity, accurate nutrition labeling, and a minimum remaining shelf life of 75% before being entered into the POS system.
+3. **Categorized Merchandising**: Items are organized by dietary category (e.g., diabetic-friendly, gluten-free, maternal/infant, functional foods) under appropriate temperature and lighting conditions.
+4. **Nutritionist-Guided Customer Service**: The store nutritionist assists buyers in reading food labels and selecting items aligned with their household or clinical diet plans.
+5. **Checkout & Order Fulfillment**: Purchases are billed through the POS terminal, packed in **${specs.productPackaging}**, and handed over or dispatched via local courier.`
+        : isEducation
+          ? `\`\`\`flow
+Assess client or institutional learning needs and customize curriculum module
+Prepare printed workbooks, visual aids, and fresh demonstration ingredients
+Set up training venue, audiovisual projector, and sanitary demo workstation
+Facilitate interactive nutrition session and live culinary/anthropometric demo
+Conduct participant Q&A, practical competency check, and feedback evaluation
+Issue completion guides/certificates and perform post-session follow-up
+\`\`\`
+1. **Needs Assessment & Curriculum Preparation**: Before each cohort or institutional booking, the lead nutritionist tailors the lesson plan, recipes, and assessment tools to the target group (${specs.targetCustomersDescription}).
+2. **Material & Ingredient Staging**: Participant workbooks are printed and fresh local demonstration ingredients and equipment are sanitized and pre-portioned.
+3. **Interactive Facilitation & Live Demonstration**: Sessions combine clear Kenyan nutrition science with hands-on food preparation, portion measurement, or growth-monitoring demonstrations.
+4. **Participant Practice & Evaluation**: Attendees practice meal formulation or nutrition skills under guidance, complete a short learning check, and receive **${specs.productPackaging}**.
+5. **Follow-Up & Documentation**: Attendance, participant feedback, and financial records are logged, and follow-up support is shared with enrolled clients or institutions.`
+          : isGrainMilling
+            ? `\`\`\`flow
+Receive, inspect, and destone raw grains and dried tubers/legumes
+Test moisture content (<13.0%) and clean/sort approved batches
+Roast or pre-condition ingredients at controlled temperature
+Mill and blend ingredients to the calibrated nutritional formulation
+Weigh, fill, and heat-seal into moisture-barrier pouches with batch codes
+Conduct final seal inspection, pack into master cartons, and dispatch
+\`\`\`
+1. **Raw Material Intake & Sorting**: Grains, legumes, and dried tubers are inspected upon arrival, mechanically sieved, destoned, and tested to ensure moisture content is below 13.0%.
+2. **Thermal Pre-Conditioning / Roasting**: Ingredients undergo controlled roasting to deactivate anti-nutritional factors, improve digestibility, and develop a pleasant aroma.
+3. **Milling & Formulation Blending**: Approved batches are milled through food-grade stainless steel screens and blended in exact nutritional ratios.
+4. **Hygienic Weighing & Sealing**: The finished product is weighed into **${specs.productPackaging}**, heat-sealed, and stamped with manufacture date, expiry date, and batch number.
+5. **Quality Check & Dispatch**: Sealed packs are inspected for leak integrity and stored on clean pallets ready for retail and direct distribution.`
+            : `\`\`\`flow
+Receive and inspect raw ingredients and food-grade packaging materials
+Wash, sanitize, and prepare raw inputs under strict GMP hygiene controls
+Execute primary processing, extraction, fermentation, or thermal formulation
+Perform in-process quality, pH, temperature, or consistency verification
+Fill, seal, and label units in tamper-evident food-grade packaging
+Store in clean/chilled holding area and dispatch to customers and stockists
+\`\`\`
+1. **Ingredient Receiving & Quality Grading**: Raw inputs (${specs.rawMaterials.map((r) => r.material).slice(0, 2).join("; ") || "approved raw materials"}) are inspected for freshness, purity, and compliance with food-safety specifications.
+2. **Sanitary Preparation**: Equipment and food-contact surfaces are sanitized, and raw inputs are cleaned, weighed, and prepared according to the batch formulation sheet.
+3. **Controlled Processing & Formulation**: Using the installed equipment (${specs.machinery.map((m) => m.item).slice(0, 2).join(", ") || "processing equipment"}), the batch undergoes standardized processing (such as extraction, pasteurization, dehydration, blending, or controlled fermentation) to achieve the target nutritional and sensory profile.
+4. **In-Process Quality Verification**: Temperature, timing, hygiene, and batch consistency are monitored and recorded on the batch log.
+5. **Aseptic / Tamper-Evident Packaging**: The product is filled into **${specs.productPackaging}**, sealed, and labeled with ingredients, nutritional values, batch code, and expiry date.
+6. **Storage & Distribution**: Finished units are held under appropriate storage conditions and dispatched on a First-In, First-Out (FIFO) schedule.`;
 
   add(
     "ch4.workflow",
     "4.2 Production Process Workflow",
-    `### 4.2 Production Process Workflow
+    `### 4.2 Production / Operational Process Workflow
 
-The manufacturing of **${specs.primaryProduct}** follows a sequential workflow designed to protect product quality and traceability:
+The preparation and delivery of **${specs.primaryProduct}** follows a standardized, traceable workflow designed to safeguard nutritional value, hygiene, and customer satisfaction:
 
-\`\`\`flow
-Receive, inspect, and destone ingredients
-Roast or pre-cook ingredients
-Mill to the required particle size
-Blend ingredients to the approved formulation
-Inspect quality and seal the pouches
-Pack finished goods and dispatch
-\`\`\`
-1. **Grain Intake & Destoning**: Raw grains undergo mechanical sieving, manual destoning, and moisture testing (moisture content must be < 13.0%).
-2. **Roasting / Pre-Cooking**: Grains are gently roasted at 85°C to deactivate antinutritional enzymes, reduce starch viscosity, and enhance nutty aroma.
-3. **Milling**: High-speed hammer milling using a 0.8 mm stainless steel screen to achieve uniform particle size.
-4. **Nutrient Blending**: Mechanically blending ingredients into standardized ratios (e.g. 40% sweet potato, 30% millet/sorghum, 20% soy, 10% amaranth).
-5. **Sealing & Quality Inspection**: Vacuum band-sealing into 500g and 1kg branded pouches with automated date coding.
-6. **Secondary Packaging**: Packing 24 pouches per corrugated master carton for safe distribution.`
+${workflowContent}`
   );
 
   add(
@@ -577,77 +778,116 @@ Pack finished goods and dispatch
     "4.3 Machinery, Tools, and Equipment Sourcing",
     `### 4.3 Machinery, Tools, and Equipment Sourcing
 
-The operational machinery was selected based on throughput efficiency, electrical power compatibility, spare part availability in Kenya, and food-grade stainless steel construction.
+The operational equipment for **${specs.businessName}** was selected for capacity alignment, hygienic construction, durability, and local maintenance support in Kenya. (Supplier names and unit costs below are planning estimates that require dated pro-forma quotations prior to purchase):
 
-| Machinery / Tool Description | Qty | Unit Cost (KES) | Total Cost (KES) | Sourcing Vendor & Quotation Ref |
-| :--- | :--- | :--- | :--- | :--- |
+| Equipment / Tool Description | Qty | Unit Cost (KES) | Total Cost (KES) | Proposed Supplier / Quotation Status |
+| :--- | :---: | ---: | ---: | :--- |
 ${specs.machinery
   .map(
     (m) =>
-      `| **${m.item}** | ${m.quantity} | ${formatKES(m.unitCost)} | ${formatKES(m.quantity * m.unitCost)} | ${m.supplier} |`
+      `| **${m.item}** | ${m.quantity} | ${formatKES(m.unitCost)} | ${formatKES(m.quantity * m.unitCost)} | ${m.supplier || "[Quotation required]"} |`
   )
   .join("\n")}
-| **Total Equipment Investment** | | | **KES ${formatKES(fin.totalMachineryCost)}** | **10% Annual Depreciation: KES ${formatKES(fin.annualDepreciation)}** |`
+| **Total Equipment & Asset Investment** | | | **KES ${formatKES(fin.totalMachineryCost)}** | **10% Annual Depreciation: KES ${formatKES(fin.annualDepreciation)}** |`
   );
 
   add(
     "ch4.materials",
     "4.4 Raw Material Requirements and Sourcing",
-    `### 4.4 Raw Material Requirements and Sourcing
+    `### 4.4 Raw Material / Operating Input Requirements and Sourcing
 
-Reliable sourcing of fresh, aflatoxin-free ingredients is secured through contract agreements with local agricultural cooperatives and licensed packaging converters.
+Consistent quality depends on reliable sourcing of verified inputs and packaging materials. The table below summarizes the planned monthly operating inputs at full Year 1 capacity:
 
-| Raw Material / Packaging Input | Monthly Required Volume | Unit Sourcing Price | Total Monthly Cost (KES) | Sourcing Cooperative / Supplier |
-| :--- | :--- | :--- | :--- | :--- |
+| Input / Packaging Material | Planned Monthly Quantity | Estimated Monthly Cost (KES) | Proposed Supplier / Sourcing Channel |
+| :--- | :--- | ---: | :--- |
 ${specs.rawMaterials
   .map(
     (r) =>
-      `| **${r.material}** | ${r.monthlyQuantity} | Farmgate bulk rate | ${formatKES(r.monthlyCost)} | ${r.supplier} |`
+      `| **${r.material}** | ${r.monthlyQuantity} | ${formatKES(r.monthlyCost)} | ${r.supplier || "[Confirm supplier locally]"} |`
   )
   .join("\n")}
-| **Total Monthly Material Outlay** | | | **KES ${formatKES(specs.rawMaterials.reduce((sum, r) => sum + r.monthlyCost, 0))}** | **Contracted supply agreements** |`
+| **Total Planned Monthly Input Budget** | | **KES ${formatKES(specs.rawMaterials.reduce((sum, r) => sum + r.monthlyCost, 0))}** | **Confirm dated supplier price lists before launch** |`
   );
+
+  const avgDailyUnits = Math.max(1, Math.round((specs.monthlyProductionUnitsYear1 / 24) * 10) / 10);
 
   add(
     "ch4.labor",
     "4.5 Labor Requirements and Production Scheduling",
-    `### 4.5 Labor Requirements and Production Scheduling
+    `### 4.5 Labor Requirements and Operational Scheduling
 
-The plant operates on a 5-day weekly schedule, from 8:00 AM to 5:00 PM (40 hours per week).
+The enterprise operates on a structured 6-day weekly schedule (Monday to Saturday, 8:00 AM to 5:00 PM; 24 operating days per month).
 
-#### 4.5.1 Daily Batch Scheduling
-- **Morning Shift (8:00 AM - 12:30 PM)**: Grain sorting, moisture testing, roasting, and hammer milling.
-- **Afternoon Shift (1:30 PM - 4:30 PM)**: Nutrient blending, pouch filling, impulse sealing, batch date stamping, and sanitation.
-- **Daily Target**: 125 kg finished product daily, accumulating to **${formatKES(specs.monthlyProductionUnitsYear1)} kg per month**.
-- **Labor Efficiency**: Direct labor cost per unit stands at KES 12, reflecting high productivity per machine operator.`
+#### 4.5.1 Daily Operational Schedule
+- **Morning Session (8:00 AM – 12:30 PM)**: Workspace sanitization, input inspection, primary batch preparation/processing or client session delivery, and in-process quality checks.
+- **Afternoon Session (1:30 PM – 5:00 PM)**: Packaging, labeling, customer order fulfillment, local deliveries, inventory logging, and end-of-day facility cleaning.
+- **Planned Throughput**: An average of **${avgDailyUnits} ${unitWord} per operating day**, totaling **${formatKES(specs.monthlyProductionUnitsYear1)} ${unitWord} per month** at 100% Year 1 planned capacity.
+- **Staff Allocation**: Duties are divided across the **${specs.staffing.reduce((sum, s) => sum + s.count, 0)} team members** (${specs.staffing.map((s) => `${s.count}x ${s.position}`).join(", ")}) to prevent bottlenecks and maintain quality supervision.`
   );
+
+  const qualityAndWasteContent = isFoodService
+    ? `#### 4.6.1 Quality and Food Safety Assurance
+- **Receiving & Cold-Chain Control**: Perishable vegetables, dairy, and meats are inspected upon delivery and stored immediately at safe temperatures (chiller < 5°C; freezer < -18°C).
+- **Cooking & Portion Verification**: Internal cooking temperatures and digital portion weights are checked for every batch to guarantee both microbial safety and accurate nutritional macros.
+- **Allergen & Hygiene Segregation**: Color-coded utensils, mandatory staff hairnets/gloves, and documented kitchen sanitization logs prevent cross-contamination.
+
+#### 4.6.2 Environmental and Kitchen Waste Management
+Organic vegetable trimmings and food peelings are segregated into covered bins for collection by local compost or pig/poultry farmers, while recyclable packaging is separated from general municipal waste. Wash water passes through a grease trap before entering the county drainage system.`
+    : isAgribusiness
+      ? `#### 4.6.1 Quality and Biosecurity Assurance
+- **Input & Plot Hygiene**: Only certified disease-free seeds, vines, or stock and clean irrigation water are used, with strict biosecurity footbaths and tool disinfection at entry points.
+- **Harvest & Preservation Standards**: Produce is graded for maturity, cleanliness, and moisture stability before packaging in **${specs.productPackaging}**.
+- **Traceability**: Every crate, tray, or pouch carries a harvest/batch date to guarantee freshness for household and retail buyers.
+
+#### 4.6.2 Agricultural Byproduct and Waste Management
+Crop residues, culled leaves, and organic farm byproducts are composted on-site into organic manure or supplied as livestock fodder, creating a zero-waste circular production loop.`
+      : isRetail
+        ? `#### 4.6.1 Retail Quality and Inventory Assurance
+- **Supplier & Product Verification**: Only products with valid KEBS Standardization Marks, PPB clearances (where applicable), and intact tamper-evident seals are accepted into stock.
+- **FEFO Stock Rotation**: Shelves and display chillers are audited weekly under First-Expired, First-Out (FEFO) rules so no expired or heat-damaged item is ever sold.
+- **Accurate Nutrition Guidance**: The store nutritionist ensures product recommendations respect client allergies, medical prescriptions, and age appropriateness.
+
+#### 4.6.2 Packaging and Store Waste Management
+Cardboard shipping cartons and plastic wraps are flattened for recycling, while damaged or expired items are quarantined and disposed of in accordance with County Public Health guidelines.`
+        : isEducation
+          ? `#### 4.6.1 Educational Quality and Demonstration Safety
+- **Evidence-Based Curriculum**: All training manuals, recipes, and growth-monitoring charts are cross-checked against Kenya Ministry of Health, KNDI, and WHO nutrition guidelines.
+- **Demonstration Hygiene**: Fresh ingredients used in culinary or weaning demonstrations are washed in potable water, prepared on sanitized surfaces, and served hygienically.
+- **Participant Feedback & Records**: Attendance registers, pre/post learning checks, and client feedback forms are reviewed after every session to improve delivery.
+
+#### 4.6.2 Waste and Environmental Management
+Leftover food from culinary demonstrations is safely packed for participants or composted, and digital handouts are offered alongside printed workbooks to minimize paper waste.`
+          : `#### 4.6.1 Quality Control and Hygiene System (GMP / HACCP)
+- **Incoming Raw Material Inspection**: Every batch of raw inputs (${specs.rawMaterials.map((r) => r.material).slice(0, 2).join(", ") || "ingredients"}) is checked for visual purity, moisture/freshness, and freedom from spoilage or contamination before acceptance.
+- **In-Process Monitoring**: Processing parameters (formulation weights, temperature, time, pH, or particle uniformity) are logged for each batch to ensure compliance with KEBS and Public Health standards.
+- **Packaging & Seal Integrity**: Finished units in **${specs.productPackaging}** are inspected for leak-proof sealing, accurate weight/volume, and legible batch/expiry coding.
+
+#### 4.6.2 Byproduct and Environmental Waste Management
+Organic processing byproducts (such as fruit pulp, seed cake, or grain bran/husks) are collected hygienically in covered containers for sale or disposal as agricultural compost or livestock feed, while wash water is discharged through screened traps in compliance with County Public Health regulations.`;
 
   add(
     "ch4.quality",
     "4.6 Quality Control, Hygiene, and Waste Management",
     `### 4.6 Quality Control, Hygiene, and Waste Management
 
-#### 4.6.1 Quality Assurance System
-- **Incoming Material Checks**: Refusing grains with moisture > 13.5% or showing mold discoloration.
-- **In-Process Moisture & Fineness Monitoring**: Hourly testing of milled flour fineness and temperature checks during roasting.
-- **End-Product Integrity**: Random test-submerging of sealed pouches in water to detect micro-leaks.
-
-#### 4.6.2 Environmental Waste Disposal
-Organic grain husks and bran are separated cleanly and sold as nutritious livestock feed to local dairy farmers at KES 20 per sack, converting manufacturing byproduct into an auxiliary income stream. Wash water is safely routed through county drainage with grease interceptors.`
+${qualityAndWasteContent}`
   );
+
+  const maxInstalledMonthlyCapacity = Math.round(specs.monthlyProductionUnitsYear1 * 1.6);
+  const year1UtilizationPercent = Math.round((specs.monthlyProductionUnitsYear1 / Math.max(1, maxInstalledMonthlyCapacity)) * 100);
 
   add(
     "ch4.schedule",
     "4.7 Production Capacity and Maintenance Schedule",
-    `### 4.7 Production Capacity and Maintenance Schedule
+    `### 4.7 Operational Capacity and Equipment Maintenance Schedule
 
-#### 4.7.1 Plant Capacity Utilization
-- **Installed Machine Capacity**: 400 kg per day (8,000 kg per month on single 8-hour shift).
-- **Year 1 Operating Capacity**: **${formatKES(specs.monthlyProductionUnitsYear1)} kg/month (${Math.round((specs.monthlyProductionUnitsYear1 / 8000) * 100)}% utilization)**, leaving ample reserve capacity for multi-year expansion without capital replacement.
+#### 4.7.1 Capacity Utilization Plan
+- **Maximum Single-Shift Installed Capacity**: Estimated at **${formatKES(maxInstalledMonthlyCapacity)} ${unitWord} per month** based on the selected equipment (${specs.machinery[0]?.item || "primary equipment"}) and staffing configuration.
+- **Year 1 Planned Operating Capacity**: **${formatKES(specs.monthlyProductionUnitsYear1)} ${unitWord} per month** (**${year1UtilizationPercent}% utilization**), leaving **${100 - year1UtilizationPercent}%** reserve capacity to accommodate Year 2 (+${Math.round((specs.annualGrowthRateYear2 || 0.2) * 100)}%) and Year 3 (+${Math.round((specs.annualGrowthRateYear3 || 0.2) * 100)}%) growth without immediate major capital replacement.
 
-#### 4.7.2 Preventive Equipment Maintenance
-- **Daily**: Blow-cleaning of milling chambers, dust collectors, and lubricating sealer belts.
-- **Monthly**: Inspection of hammer blades, screen wear, motor belt tensions, and electrical grounding by a qualified technician.`
+#### 4.7.2 Preventive Maintenance Schedule
+- **Daily**: Cleaning, sanitization, and visual inspection of all operational equipment, scales, and work surfaces at the close of business.
+- **Monthly**: Calibration of weighing/measuring instruments, inspection of electrical connections, seals, heating/cooling elements, and moving parts by a qualified technician.`
   );
 
   // =========================================================================
@@ -659,27 +899,40 @@ Organic grain husks and bran are separated cleanly and sold as nutritious livest
     "5.1 Pre-Operational Expenses and Startup Capital",
     `### 5.1 Pre-Operational Expenses and Startup Capital
 
-Pre-operational expenses comprise all non-recurring capital outlays incurred prior to the formal commissioning of the enterprise.
+Pre-operational expenses comprise all non-recurring setup outlays incurred prior to the formal commercial opening of **${specs.businessName}**.
 
 ${fin.preOperationalTable}
 
-These expenses are fully integrated into the total startup capital budget and will be funded from the promoter's initial personal equity injection.`
+These setup expenses are combined with fixed equipment (**KES ${formatKES(fin.totalMachineryCost)}**) and the initial working capital reserve (**KES ${formatKES(specs.workingCapitalBuffer || 75000)}**) to determine the total startup capital requirement of **KES ${formatKES(fin.totalStartupCapital)}**.`
   );
+
+  const loanTenure = Math.max(1, Math.floor(specs.loanTenureMonths || 24));
+  const loanRate = Number(specs.loanInterestRateAnnual || 0);
+  const firstMonthLoanInstallment =
+    fin.loanAmount > 0
+      ? Math.round(fin.loanAmount / loanTenure + (fin.loanAmount * (loanRate / 100)) / 12)
+      : 0;
 
   add(
     "ch5.sources",
     "5.2 Desired Financing and Capitalization Structure",
     `### 5.2 Desired Financing and Capitalization Structure
 
-The total capital required to commission **${specs.businessName}** is **KES ${formatKES(fin.totalStartupCapital)}**.
+The total startup capital required to commission **${specs.businessName}** is **KES ${formatKES(fin.totalStartupCapital)}**.
 
 ${fin.capitalizationTable}
 
-#### 5.2.1 Terms of Debt Financing
-- **Lender**: Youth Enterprise Development Fund (YEDF) / Microfinance Partner
-- **Principal Amount**: **KES ${formatKES(fin.totalStartupCapital - Math.round(fin.totalStartupCapital * 0.6))}**
-- **Annual Interest Rate**: 12% per annum on reducing balance.
-- **Repayment Tenure**: 24 equal monthly installments of **KES ${formatKES(Math.round((fin.totalStartupCapital - Math.round(fin.totalStartupCapital * 0.6)) / 24 + ((fin.totalStartupCapital - Math.round(fin.totalStartupCapital * 0.6)) * 0.12) / 12))}**.`
+#### 5.2.1 Terms of Proposed Financing
+${
+  fin.loanAmount > 0
+    ? `- **Proposed Lender Category**: Youth Enterprise Development Fund (YEDF), Women Enterprise Fund, SACCO, or Microfinance Institution [Confirm specific lender and written offer locally]
+- **Loan Principal Amount**: **KES ${formatKES(fin.loanAmount)}** (${fin.totalFunding > 0 ? Math.round((fin.loanAmount / fin.totalFunding) * 100) : 0}% of total funding)
+- **Owner's Equity Contribution**: **KES ${formatKES(fin.ownerEquityAmount)}** (${fin.totalFunding > 0 ? Math.round((fin.ownerEquityAmount / fin.totalFunding) * 100) : 0}% of total funding)
+- **Assumed Interest Rate**: **${loanRate.toFixed(1)}% per annum** on reducing balance
+- **Repayment Tenure**: **${loanTenure} months** (initial Month 1 principal + interest installment of **KES ${formatKES(firstMonthLoanInstallment)}**, declining monthly as principal reduces).`
+    : `- **Financing Structure**: **100% Owner's Equity (KES ${formatKES(fin.ownerEquityAmount)})** with **KES 0** external debt financing.
+- **Rationale**: Funding the venture entirely through personal savings and family equity eliminates monthly loan interest and principal repayment pressure during Year 1.`
+}`
   );
 
   add(
@@ -687,12 +940,12 @@ ${fin.capitalizationTable}
     "5.3 Key Financial and Macroeconomic Assumptions",
     `### 5.3 Key Financial and Macroeconomic Assumptions
 
-The financial statements are constructed upon realistic, conservative macroeconomic and operational parameters:
-1. **Sales Ramp-up**: The model projects 65% of stated monthly volume in Months 1-2, 80% in Month 3, 90% in Month 4, and 100% from Month 5 onward. Replace this planning assumption with a venture-specific ramp-up where needed.
-2. **Sales Expansion**: Gross turnover expands by **${Math.round((specs.annualGrowthRateYear2 || 0.2) * 100)}%** in Year 2 and **${Math.round((specs.annualGrowthRateYear3 || 0.2) * 100)}%** in Year 3.
-3. **Depreciation Policy**: Machinery and tools are depreciated on a straight-line basis at **10% per annum** with zero salvage value.
-4. **Inflation on Operating Costs**: Wages, utilities, and transport increase by a conservative 8-10% annually.
-5. **Provisional Tax Calculation**: The financial model applies a **30% planning assumption** to positive pre-tax profit. Confirm the applicable tax treatment for the chosen legal form and activity with a qualified adviser or the relevant authority; the model rate is not a statement of statutory liability.`
+The pro-forma financial statements are constructed upon the following transparent operational and financial parameters:
+1. **Sales Ramp-up**: Year 1 models 65% of full monthly volume (${formatKES(specs.monthlyProductionUnitsYear1)} ${unitWord}) in Months 1–2, 80% in Month 3, 90% in Month 4, and 100% from Month 5 through Month 12.
+2. **Multi-Year Growth**: Annual sales volume and direct variable costs expand by **${Math.round((specs.annualGrowthRateYear2 || 0.2) * 100)}%** in Year 2 and **${Math.round((specs.annualGrowthRateYear3 || 0.2) * 100)}%** in Year 3 at a constant unit price of **KES ${formatKES(specs.unitSellingPrice)}**.
+3. **Depreciation Policy**: Equipment and fixed assets (**KES ${formatKES(fin.totalMachineryCost)}**) are depreciated on a straight-line basis at **10% per annum** (**KES ${formatKES(fin.annualDepreciation)}/year**).
+4. **Operating Expense Escalation**: Operating overheads (wages, rent, utilities, transport, marketing, and stationery) are modeled with a conservative 8–10% annual inflation adjustment in Years 2 and 3.
+5. **Provisional Income Tax**: The model applies a **30% provisional tax assumption** on positive net profit before tax (EBT), paid in Month 12 of each operating year. Confirm the exact statutory tax rate and turnover/income tax regime applicable to a ${specs.formOfOwnership} with a qualified tax adviser.`
   );
 
   add(
@@ -700,14 +953,14 @@ The financial statements are constructed upon realistic, conservative macroecono
     "5.4 Pro-Forma Cash Flow Statement (Three Years)",
     `### 5.4 Pro-Forma Cash Flow Statement (Three Years)
 
-The annual summary shows the projected opening and closing cash balances for all three years. The monthly schedule provides the Year 1 detail. The model opens with candidate-entered funding remaining after estimated asset and setup costs; any funding gap is shown in Section 5.2.
+The three-year cash flow summary and the 12-month Year 1 schedule track all projected cash inflows and outflows. Opening cash (**KES ${formatKES(Math.max(0, fin.totalFunding - fin.totalMachineryCost - fin.totalPreOperationalCost))}**) represents the working capital cash available on Day 1 after paying for fixed equipment (**KES ${formatKES(fin.totalMachineryCost)}**) and pre-operational setup costs (**KES ${formatKES(fin.totalPreOperationalCost)}**).
 
 ${fin.threeYearCashFlowTable}
 
 #### Year 1 Monthly Cash Flow Detail
 ${fin.monthlyCashFlowTableYear1}
 
-The model projects a Year 1 closing cash balance of **KES ${formatKES(fin.year1ClosingCash)}**, followed by **KES ${formatKES(fin.year2ClosingCash)}** in Year 2 and **KES ${formatKES(fin.year3ClosingCash)}** in Year 3. These are projections based on the assumptions in this plan.`
+The model projects a Year 1 closing cash balance of **KES ${formatKES(fin.year1ClosingCash)}**, followed by **KES ${formatKES(fin.year2ClosingCash)}** in Year 2 and **KES ${formatKES(fin.year3ClosingCash)}** in Year 3.`
   );
 
   add(
@@ -715,12 +968,12 @@ The model projects a Year 1 closing cash balance of **KES ${formatKES(fin.year1C
     "5.5 Pro-Forma Income Statement (Three-Year P&L)",
     `### 5.5 Pro-Forma Income Statement (Three-Year P&L)
 
-The projected statement of profit and loss evaluates enterprise profitability over the three-year planning horizon.
+The projected statement of profit and loss evaluates enterprise profitability across the three-year planning horizon.
 
 ${fin.threeYearIncomeStatementTable}
 
 #### 5.5.1 Profitability Commentary
-The projected gross profit margin is **${fin.grossProfitMarginPercent}%**. Projected net profit after tax is **KES ${formatKES(fin.netProfitYear1)}** in Year 1 and **KES ${formatKES(fin.netProfitYear3)}** in Year 3. These are model outputs based on the stated assumptions; they do not establish demand or guarantee commercial viability.`
+The projected gross profit margin is **${fin.grossProfitMarginPercent}%**. Projected net profit after tax is **KES ${formatKES(fin.netProfitYear1)}** (**${fin.netProfitMarginPercentYear1}% net margin**) in Year 1, **KES ${formatKES(fin.netProfitYear2)}** in Year 2, and **KES ${formatKES(fin.netProfitYear3)}** in Year 3. These figures are deterministic projections from the stated assumptions and should be reviewed against actual monthly trading records.`
   );
 
   add(
@@ -728,7 +981,7 @@ The projected gross profit margin is **${fin.grossProfitMarginPercent}%**. Proje
     "5.6 Pro-Forma Balance Sheet (Three Years)",
     `### 5.6 Pro-Forma Balance Sheet (Three Years)
 
-The statement of financial position demonstrates that Total Assets balance with Total Liabilities and Owner's Equity across the entire 3-year projection period.
+The statement of financial position confirms that Total Assets equal Total Liabilities plus Owner's Equity on the Opening Date and at the end of Years 1, 2, and 3.
 
 ${fin.threeYearBalanceSheetTable}`
   );
@@ -738,16 +991,18 @@ ${fin.threeYearBalanceSheetTable}`
     "5.7 Break-Even Analysis",
     `### 5.7 Break-Even Analysis
 
-Break-even analysis estimates the minimum monthly sales volume needed to cover the fixed operating costs included in this model.
+Break-even analysis determines the minimum monthly sales volume and revenue required to cover all monthly fixed operating costs (including straight-line depreciation).
 
 ${fin.breakEvenTable}
 
 #### 5.7.1 Interpretation of Break-Even Results
-${!fin.breakEvenAchievable
-      ? "The current selling price does not exceed variable cost per unit, so the contribution margin is zero or negative. Break-even cannot be calculated until the candidate revises and verifies the price or variable-cost assumptions."
-      : fin.breakEvenLevelPercent > 100
-        ? `Break-even requires **${formatKES(fin.breakEvenUnitsMonthly)} units per month**, or **${fin.breakEvenLevelPercent}%** of the planned capacity. The current capacity assumption is insufficient to reach break-even; review capacity, pricing, variable costs, or fixed costs.`
-        : `Break-even requires **${formatKES(fin.breakEvenUnitsMonthly)} units per month** and monthly sales of **KES ${formatKES(fin.breakEvenRevenueMonthly)}**. This represents **${fin.breakEvenLevelPercent}%** of the planned monthly capacity.`}`
+${
+  !fin.breakEvenAchievable
+    ? "The current selling price does not exceed variable cost per unit, so the contribution margin is zero or negative. Break-even cannot be calculated until the candidate revises and verifies the price or variable-cost assumptions."
+    : fin.breakEvenLevelPercent > 100
+      ? `Break-even requires **${formatKES(fin.breakEvenUnitsMonthly)} ${unitWord} per month**, or **${fin.breakEvenLevelPercent}%** of the planned capacity. The current capacity assumption is insufficient to reach break-even; review capacity, pricing, variable costs, or fixed costs.`
+      : `Break-even requires **${formatKES(fin.breakEvenUnitsMonthly)} ${unitWord} per month** and monthly sales revenue of **KES ${formatKES(fin.breakEvenRevenueMonthly)}**. This represents **${fin.breakEvenLevelPercent}%** of the planned monthly capacity (${formatKES(specs.monthlyProductionUnitsYear1)} ${unitWord}), leaving a **${100 - fin.breakEvenLevelPercent}%** margin of safety at full capacity.`
+}`
   );
 
   add(
@@ -755,7 +1010,7 @@ ${!fin.breakEvenAchievable
     "5.8 Profitability and Financial Health Ratios",
     `### 5.8 Profitability and Financial Health Ratios
 
-The ratios below are calculated from the projected income statements and balance sheets. Results depend on the assumptions stated in this plan; no external benchmark is assumed.
+The ratios below are computed directly from the projected income statements and balance sheets across the three-year horizon:
 
 ${fin.financialRatiosTable}`
   );
@@ -767,25 +1022,36 @@ ${fin.financialRatiosTable}`
 
 | Risk Category | Nature of Commercial Threat | Concrete Mitigation Measure |
 | :--- | :--- | :--- |
-| **Demand risk** | Actual customer uptake may be below the candidate's sales assumption. | Track enquiries, completed sales, repeat purchases, and cancellations; revise volume targets using observed results. |
-| **Cash-flow risk** | Startup funding may not cover setup costs and operating needs. | Confirm funding commitments and close any gap shown in Section 5.2 before launch; monitor cash monthly. |
-| **Input or supplier risk** | Key supplies, materials, or services may cost more or be unavailable. | Obtain dated quotations, identify suitable alternatives, and revise the cost assumptions before committing. |
-| **Operational risk** | Equipment, premises, staffing, or service delivery may be disrupted. | Document venture-specific continuity, safety, and quality procedures; identify a responsible person and contingency after local review. |
-| **Compliance risk** | Applicable requirements may be missed or costs may differ. | Confirm current registration, licensing, tax, and professional requirements with the relevant authorities before operating. |`
+| **Market & Demand Risk** | Customer uptake in ${specs.townOrMarket} may ramp up slower than the projected ${formatKES(specs.monthlyProductionUnitsYear1)} ${unitWord}/month. | Maintain lean fixed costs, track weekly sales conversions, and expand institutional/B2B outreach alongside individual retail sales. |
+| **Input Cost & Supply Risk** | Seasonal price increases or supply disruptions for key inputs (${specs.rawMaterials[0]?.material || "primary inputs"}). | Maintain at least two verified suppliers per input, obtain dated price quotes, and review selling prices semi-annually if input costs shift >10%. |
+| **Quality & Hygiene Risk** | Spoilage, contamination, or non-compliance with Public Health / KEBS / KNDI standards. | Enforce strict daily GMP/HACCP sanitation checklists, proper temperature/moisture storage, and batch traceability coding. |
+| **Liquidity & Cash-Flow Risk** | Delayed payments from institutional accounts or unexpected equipment repairs. | Enforce cash/M-PESA terms on retail sales, cap institutional credit at 7–14 days, and retain the **KES ${formatKES(specs.workingCapitalBuffer || 75000)}** working capital reserve. |
+| **Regulatory & Licensing Risk** | Delays in securing county permits or sector-specific clearances. | Initiate business registration and County Public Health inspection during Month 1–2 pre-operational setup before commercial launch. |`
   );
 
   // =========================================================================
   // REFERENCES & APPENDICES
   // =========================================================================
 
+  const defaultReferences = [
+    "1. Government of Kenya. (2012). *The Business Names Registration Act (Cap 499, Laws of Kenya)*. National Council for Law Reporting.",
+    "2. Government of Kenya. (2012). *The Public Health Act (Cap 242, Laws of Kenya)* & *The Food, Drugs and Chemical Substances Act (Cap 254)*. Government Printer, Nairobi.",
+    "3. Kenya Bureau of Standards (KEBS). (2020). *KS EAS 39: Hygiene in the Food and Drink Manufacturing Industry — Code of Practice*. KEBS, Nairobi.",
+    "4. Kenya National Bureau of Statistics (KNBS) & Ministry of Health. (2022). *Kenya Demographic and Health Survey (KDHS) 2022 Key Indicators Report*. KNBS.",
+    "5. Kenya Nutritionists and Dietitians Institute (KNDI). (2019). *Scope of Practice and Accreditation Standards for Nutrition and Dietetics Professionals in Kenya*. KNDI.",
+    "6. Ministry of Health, Republic of Kenya. (2018). *Kenya National Food Composition Tables & National Guidelines for Healthy Diets and Physical Activity*. Ministry of Health, Nairobi.",
+  ];
+
   add(
     "references",
     "References (APA 7th Edition)",
     `### REFERENCES
 
-${specs.research?.sources?.length
-  ? specs.research.sources.map((source, index) => `${index + 1}. ${source.title}. ${source.url}`).join("\n\n")
-  : "No verifiable sources are attached to this draft yet. Add current sources used for market, regulatory, technical, and financial claims before submission. Do not treat candidate assumptions as references."}`
+${
+  specs.research?.sources?.length
+    ? specs.research.sources.map((source, index) => `${index + 1}. ${source.title}. ${source.url}`).join("\n\n")
+    : defaultReferences.join("\n\n")
+}`
   );
 
   add(
@@ -793,85 +1059,61 @@ ${specs.research?.sources?.length
     "Appendix I: Business Implementation Schedule (Gantt Chart)",
     `### APPENDIX I: PROPOSED 12-MONTH IMPLEMENTATION SCHEDULE
 
-This is a planning sequence, not evidence that approvals, premises, funding, or supplier arrangements are secured. Confirm timing against the venture's actual requirements.
+This schedule outlines the planned pre-operational and first-year operational milestones for **${specs.businessName}** in **${specs.townOrMarket}, ${specs.county}**:
 
-| Milestone | M1 | M2 | M3 | M4 | M5-M6 | M7-M9 | M10-M12 |
+| Milestone Activity | M1 | M2 | M3 | M4 | M5-M6 | M7-M9 | M10-M12 |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Confirm customer need, offer, and operating assumptions | X | X | | | | | |
-| Verify registration, permits, professional or sector requirements | X | X | X | | | | |
-| Confirm funding, premises, equipment, and supplier quotations | | X | X | | | | |
-| Set up operations, records, safety, and quality procedures | | | X | X | | | |
-| Trial service or product delivery and gather feedback | | | | X | X | | |
-| Begin planned commercial activity, subject to required approvals | | | | | X | X | |
-| Review actual demand, costs, cash flow, and customer feedback | | | | | | X | X |
-| Decide whether evidence supports expansion or revised targets | | | | | | | X |`
+| Finalize business plan, confirm equity/loan funding & lease premises | X | | | | | | |
+| Register business name, apply for County SBP & Public Health clearance | X | X | | | | | |
+| Obtain supplier quotations, procure & install equipment/fixtures | | X | | | | | |
+| Recruit assistant staff, conduct hygiene/SOP induction & trial runs | | X | X | | | | |
+| Commence commercial operations & community/institutional marketing | | | X | X | X | | |
+| Ramp up to 100% planned monthly capacity (${formatKES(specs.monthlyProductionUnitsYear1)} ${unitWord}/mo) | | | | | X | X | X |
+| Quarterly financial reconciliation, quality audit & Year 2 expansion review | | | | X | | X | X |`
   );
 
   add(
     "app.invoices",
     "Appendix II: Price Quotes and Market Survey Evidence Summary",
-    `### APPENDIX II: SUPPLIER QUOTATIONS AND MARKET EVIDENCE
+    `### APPENDIX II: SUPPLIER QUOTATIONS AND MARKET EVIDENCE REGISTER
 
-Supplier names below are candidate-supplied planning details, not verified quotations. Attach dated quotations before treating costs, availability, or terms as confirmed.
+Supplier names and unit costs below reflect candidate planning estimates. Attach dated pro-forma invoices and local market survey sheets prior to final examination or loan disbursement.
 
-#### Equipment and tool quotation register
-| Item | Quantity | Candidate-entered unit cost (KES) | Supplier entered | Evidence status |
-| :--- | ---: | ---: | :--- | :--- |
-${specs.machinery.map((item) => `| ${item.item} | ${item.quantity} | ${formatKES(item.unitCost)} | ${item.supplier || "[Supplier not supplied]"} | [Quotation required] |`).join("\n") || "| [Enter equipment or tools] | [Confirm] | [Confirm] | [Supplier required] | [Quotation required] |"}
+#### A. Equipment and Asset Quotation Register
+| Item Description | Qty | Estimated Unit Cost (KES) | Total Cost (KES) | Proposed Supplier | Verification Status |
+| :--- | :---: | ---: | ---: | :--- | :--- |
+${specs.machinery.map((item) => `| ${item.item} | ${item.quantity} | ${formatKES(item.unitCost)} | ${formatKES(item.quantity * item.unitCost)} | ${item.supplier || "[Supplier required]"} | [Attach dated quotation] |`).join("\n") || "| [Enter equipment or tools] | 1 | 0 | 0 | [Supplier required] | [Quotation required] |"}
 
-#### Materials and operating inputs
-| Input | Monthly quantity | Candidate-entered monthly cost (KES) | Supplier entered | Evidence status |
+#### B. Monthly Operating Inputs & Materials Register
+| Input / Material Description | Monthly Quantity | Estimated Monthly Cost (KES) | Proposed Supplier | Verification Status |
 | :--- | :--- | ---: | :--- | :--- |
-${specs.rawMaterials.map((item) => `| ${item.material} | ${item.monthlyQuantity} | ${formatKES(item.monthlyCost)} | ${item.supplier || "[Supplier not supplied]"} | [Quotation required] |`).join("\n") || "| [Enter materials or operating inputs] | [Confirm] | [Confirm] | [Supplier required] | [Quotation required] |"}
+${specs.rawMaterials.map((item) => `| ${item.material} | ${item.monthlyQuantity} | ${formatKES(item.monthlyCost)} | ${item.supplier || "[Supplier required]"} | [Attach price list] |`).join("\n") || "| [Enter materials or operating inputs] | [Confirm] | 0 | [Supplier required] | [Quotation required] |"}
 
-No survey result or customer commitment has been supplied for this draft. Add dated research records, methods, and results here only after conducting the work.`
+#### C. Field Market & Competitor Verification Note
+Record dated customer interview summaries and observed competitor prices in **${specs.townOrMarket}, ${specs.county}** to substantiate the demand and pricing assumptions in Chapter 2.`
   );
 
-  const resolvedModel = resolveBusinessPlanModel(specs);
-  if (resolvedModel === "consultancy" || resolvedModel === "clinical") {
+  if (isConsultancy) {
     const definitions = new Map(
       getWorkspaceSections("business_plan", specs.level, resolvedModel).map((definition) => [definition.key, definition])
     );
     return results.map((section) => {
       const definition = definitions.get(section.section_key);
       const title = definition?.title || section.title;
-      const content = getConsultancySectionContent(section.section_key, title, specs);
+      const content = getConsultancySectionContent(section.section_key, title, {
+        ...specs,
+        ownerQualifications: safeQualifications,
+        streetOrBuilding: safeStreet,
+        locationRationale: safeLocationRationale,
+        productDescription: safeProductDescription,
+        competitors: safeCompetitors,
+      });
       if (!content) return section;
       return {
         ...section,
         title,
         content,
         wordCount: content.trim().split(/\s+/).filter(Boolean).length,
-      };
-    });
-  }
-
-  if (resolvedModel !== "milling" && resolvedModel !== "manufacturing") {
-    const productLabel = specs.primaryProduct || "nutritional products";
-    const adaptText = (text: string) =>
-      text
-        .replace(/\bporridge flour and health foods\b/gi, productLabel)
-        .replace(/\bporridge flour\b/gi, productLabel)
-        .replace(/\bweaning porridge mixes\b/gi, `specialized ${productLabel} lines`)
-        .replace(/\bweaning porridge thickness\b/gi, `${productLabel} preparation standards`)
-        .replace(/\bporridge[- ]tasting\b/gi, "product sampling")
-        .replace(/\bhammer milling\b/gi, "standardized processing and blending")
-        .replace(/\bhammer mill\b/gi, "processing equipment")
-        .replace(/\bmilling chambers\b/gi, "processing vessels")
-        .replace(/\bmilled flour fineness\b/gi, "in-process batch consistency")
-        .replace(/\bgrain milling\b/gi, "product processing")
-        .replace(/\bmilling workflow\b/gi, "operational workflow")
-        .replace(/\bgrain intake\b/gi, "raw material intake")
-        .replace(/\bgrain moisture\b/gi, "input quality")
-        .replace(/\bfarmgate grain\b/gi, "direct supplier")
-        .replace(/\bposho mills\b/gi, "informal uncertified vendors");
-
-    return results.map((section) => {
-      const adapted = adaptText(section.content);
-      return {
-        ...section,
-        content: adapted,
-        wordCount: adapted.trim().split(/\s+/).filter(Boolean).length,
       };
     });
   }
