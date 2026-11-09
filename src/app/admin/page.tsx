@@ -2,11 +2,8 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import {
-  updateCommission,
   updateProjectStatus,
   updateUserRole,
-  createInstitution,
-  updateInstitutionAiMode,
   queueApprovedBusinessPlanForPublishing,
   purgePendingOrdersAction,
 } from "./actions";
@@ -19,12 +16,10 @@ import {
   GraduationCap,
   Briefcase,
   Layers,
-  Settings,
   CheckCircle2,
   XCircle,
   AlertCircle,
   Coins,
-  Building,
   Users,
   Download,
   FileText,
@@ -34,7 +29,6 @@ import type {
   Project,
   Order,
   ContentReport,
-  Institution,
 } from "@/types/database";
 import { getWorkspaceSections } from "@/lib/studio/templates";
 import { resolveBusinessPlanModel, type BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
@@ -69,16 +63,12 @@ export default async function AdminPage() {
     { data: allProjects },
     { data: allOrders },
     { data: allReports },
-    { data: settingsData },
-    { data: institutionsData },
     { data: approvedBusinessPlans },
   ] = await Promise.all([
     supabase.from("profiles").select("*").order("created_at", { ascending: false }),
     supabase.from("projects").select("*, profiles:trainer_id(full_name)").order("created_at", { ascending: false }),
     supabase.from("orders").select("*").order("created_at", { ascending: false }),
     supabase.from("reports").select("*").order("created_at", { ascending: false }),
-    supabase.from("platform_settings").select("*").eq("id", 1).single(),
-    supabase.from("institutions").select("*").order("name"),
     supabase.from("project_workspaces")
       .select("id, title, course, level, student_id, business_plan_specs, marketplace_price_kes, student:student_id(full_name, admission_number)")
       .eq("workspace_type", "business_plan")
@@ -107,8 +97,6 @@ export default async function AdminPage() {
   const projectsList: Project[] = (allProjects as unknown as Project[]) || [];
   const ordersList: Order[] = (allOrders as unknown as Order[]) || [];
   const reportsList: ContentReport[] = (allReports as unknown as ContentReport[]) || [];
-  const institutionsList: Institution[] = (institutionsData as unknown as Institution[]) || [];
-  const commissionPercent = settingsData?.commission_percent ?? 20;
 
   // Compute stats
   const studentCount = profilesList.filter((p) => p.role === "student").length;
@@ -118,7 +106,6 @@ export default async function AdminPage() {
   const paidOrders = ordersList.filter((o) => o.status === "paid");
   const pendingOrdersCount = ordersList.filter((o) => o.status === "pending").length;
   const totalVolumeKES = paidOrders.reduce((acc, o) => acc + Number(o.amount_kes || 0), 0);
-  const totalCommissionKES = paidOrders.reduce((acc, o) => acc + Number(o.commission_kes || 0), 0);
 
   return (
     <AppShell
@@ -135,8 +122,7 @@ export default async function AdminPage() {
         ]}
         metadata={[
           { label: "Admin", value: profile?.full_name || user.email || "Admin" },
-          { label: "Fee", value: `${commissionPercent}% Commission` },
-          { label: "Institutions", value: `${institutionsList.length} Centers` },
+          { label: "Role", value: "System Administrator" },
         ]}
         actions={
           <Link
@@ -172,49 +158,12 @@ export default async function AdminPage() {
           subtext={pendingProjects.length > 0 ? `${pendingProjects.length} pending approval` : undefined}
         />
         <StatCard
-          label="Commission"
-          value={`KES ${totalCommissionKES.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+          label="Total Sales"
+          value={`KES ${totalVolumeKES.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
           icon={Coins}
           color="amber"
-          subtext={`Vol: KES ${totalVolumeKES.toLocaleString()}`}
+          subtext={`${paidOrders.length} paid transactions`}
         />
-      </div>
-
-      {/* Platform Settings Bar */}
-      <div id="settings" className="scroll-mt-20">
-        <ContentCard
-          title="Platform Commission"
-          subtitle="Fee percentage on technical project sales"
-          icon={Settings}
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <span className="text-xs text-slate-500 font-medium">Standard deduction rate per checkout</span>
-
-            <form action={updateCommission} className="flex items-center gap-3">
-              <div className="relative">
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="100"
-                  name="commissionPercent"
-                  defaultValue={commissionPercent}
-                  required
-                  className="w-28 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-500">
-                  %
-                </span>
-              </div>
-              <button
-                type="submit"
-                className="rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-xs font-semibold transition-colors cursor-pointer"
-              >
-                Update Commission
-              </button>
-            </form>
-          </div>
-        </ContentCard>
       </div>
 
       {/* Pending Action Items */}
@@ -352,7 +301,6 @@ export default async function AdminPage() {
         >
           <AdminProjectsManager
             projects={projectsList}
-            commissionPercent={commissionPercent}
           />
         </ContentCard>
       </div>
@@ -430,120 +378,6 @@ export default async function AdminPage() {
               ))}
             </tbody>
           </table>
-        </div>
-      </ContentCard>
-      </div>
-
-      {/* Institutions Section */}
-      <div id="institutions" className="scroll-mt-20">
-        <ContentCard
-          title="Accredited Institutions"
-          subtitle="Registered TVET training centers"
-          icon={Building}
-        headerRight={
-          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-            {institutionsList.length} Institutions
-          </span>
-        }
-      >
-        <div className="space-y-6">
-          {/* New Institution Form */}
-          <form action={createInstitution} className="bg-slate-50 p-4 rounded-lg border border-slate-200 grid grid-cols-1 sm:grid-cols-4 gap-3">
-            <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Institution Name</label>
-              <input
-                type="text"
-                name="name"
-                required
-                placeholder="e.g. Kenya Coast National Polytechnic"
-                className="w-full text-xs rounded-md border border-slate-300 bg-white px-3 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Code / Abbr.</label>
-              <input
-                type="text"
-                name="code"
-                placeholder="e.g. KCNP"
-                className="w-full text-xs rounded-md border border-slate-300 bg-white px-3 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">AI Coaching Mode</label>
-              <select
-                name="aiMode"
-                defaultValue="feedback_and_polish"
-                className="w-full text-xs rounded-md border border-slate-300 bg-white px-3 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              >
-                <option value="feedback_and_polish">Feedback with Polish (Full)</option>
-                <option value="feedback_only">Feedback Only (No text edit)</option>
-                <option value="off">Off (AI disabled)</option>
-              </select>
-            </div>
-            <div className="flex items-end">
-              <button
-                type="submit"
-                className="w-full text-xs font-bold rounded-md bg-blue-700 hover:bg-blue-800 text-white px-3 py-2 transition-colors cursor-pointer"
-              >
-                + Register Institution
-              </button>
-            </div>
-          </form>
-
-          {/* Institutions Table */}
-          {institutionsList.length === 0 ? (
-            <p className="text-xs text-slate-400 italic text-center py-4">No institutions registered yet.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600 bg-slate-50">
-                  <tr>
-                    <th className="py-2.5 px-3">Institution Name</th>
-                    <th className="py-2.5 px-3">Code</th>
-                    <th className="py-2.5 px-3">Current AI Mode</th>
-                    <th className="py-2.5 px-3 text-right">Update AI Policy</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {institutionsList.map((inst) => (
-                    <tr key={inst.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-3 px-3 font-bold text-slate-900">
-                        {inst.name}
-                      </td>
-                      <td className="py-3 px-3 font-mono text-xs text-slate-600">
-                        {inst.code || "-"}
-                      </td>
-                      <td className="py-3 px-3">
-                        <span className="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200 font-mono font-medium">
-                          {inst.ai_mode}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-right">
-                        <form action={updateInstitutionAiMode} className="inline-flex gap-1.5">
-                          <input type="hidden" name="institutionId" value={inst.id} />
-                          <select
-                            name="aiMode"
-                            defaultValue={inst.ai_mode}
-                            className="rounded-md border border-slate-300 bg-white text-xs px-2 py-1 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
-                          >
-                            <option value="feedback_and_polish">Feedback with Polish</option>
-                            <option value="feedback_only">Feedback Only</option>
-                            <option value="off">Off</option>
-                          </select>
-                          <button
-                            type="submit"
-                            className="rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs px-2.5 py-1 font-bold cursor-pointer transition-colors"
-                          >
-                            Save
-                          </button>
-                        </form>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
         </div>
       </ContentCard>
       </div>

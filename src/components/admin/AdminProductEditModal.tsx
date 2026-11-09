@@ -22,7 +22,7 @@ import { adminUpdateMarketplaceProduct, adminDeleteMarketplaceProduct } from "@/
 
 interface AdminProductEditModalProps {
   project: Project;
-  commissionPercent: number;
+  commissionPercent?: number;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -48,7 +48,7 @@ const PRICE_PRESETS = [
 
 export function AdminProductEditModal({
   project,
-  commissionPercent,
+  commissionPercent = 20,
   isOpen,
   onClose,
 }: AdminProductEditModalProps) {

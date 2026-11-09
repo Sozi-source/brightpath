@@ -332,12 +332,10 @@ export function AppShell({
                   Admin Modules
                 </div>
                 {[
-                  { label: "Commission Fee", href: "#settings" },
                   { label: "Pending Approvals", href: "#pending" },
                   { label: "Ready Plans", href: "#ready-plans" },
                   { label: "Projects Catalog", href: "#projects" },
                   { label: "User Directory", href: "#users" },
-                  { label: "TVET Institutions", href: "#institutions" },
                   { label: "Transactions", href: "#orders" },
                   { label: "Disputes & Reports", href: "#reports" },
                 ].map((item) => (

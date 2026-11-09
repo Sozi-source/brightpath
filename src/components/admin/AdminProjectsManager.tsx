@@ -23,12 +23,12 @@ import { AmazonPrice } from "@/components/ui/AmazonPrice";
 
 interface AdminProjectsManagerProps {
   projects: Project[];
-  commissionPercent: number;
+  commissionPercent?: number;
 }
 
 export function AdminProjectsManager({
   projects,
-  commissionPercent,
+  commissionPercent = 20,
 }: AdminProjectsManagerProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");

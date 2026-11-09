@@ -21,6 +21,27 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-11-10] — Admin: Remove TVET Institutions & Platform Commission Fee Modules
+
+**Category:** Admin Dashboard Optimization, Modular Simplification, Layout Streamlining
+
+**Status:** Completed & Verified
+
+**Changes Implemented:**
+1. **Purged Platform Commission Fee Module**:
+   - In [`src/app/admin/page.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/app/admin/page.tsx), removed the `#settings` Platform Commission container and its deduction rate form.
+   - Replaced the 4th KPI StatCard from `Commission` to **"Total Sales"** (`KES ${totalVolumeKES.toLocaleString()}`), focusing directly on commercial volume.
+   - Removed `Fee` metadata pill in `PageHeaderCard`, retaining clean administrative profile and role badges.
+   - Made `commissionPercent` optional with default `20%` across [`AdminProjectsManager`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/components/admin/AdminProjectsManager.tsx) and [`AdminProductEditModal`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/components/admin/AdminProductEditModal.tsx).
+2. **Purged TVET Institutions Module**:
+   - In [`src/app/admin/page.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/app/admin/page.tsx), removed the `#institutions` Accredited Institutions registration form and centers table.
+   - Stripped unused database query from the parallel dashboard loader (`supabase.from("institutions")`).
+   - Cleaned up unused Lucide icons (`Settings`, `Building`) and database types (`Institution`).
+3. **Streamlined Admin Modules Sidebar Navigation**:
+   - In [`src/components/layout/AppShell.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/components/layout/AppShell.tsx), purged `Commission Fee` (`#settings`) and `TVET Institutions` (`#institutions`) from the `Admin Modules` quick jump list.
+
+---
+
 ## [2026-11-10] — Architecture: Hide Digital Library for Admins, Purge Redundant Routes & Clean Admin Modules
 
 **Category:** Route Optimization, Navigation Architecture, Access Control
