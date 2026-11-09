@@ -77,19 +77,22 @@ export async function GET(request: NextRequest) {
       ? buyerInstitution[0]?.name
       : buyerInstitution?.name;
 
-    // Under Option A: Personalize the white-labeled marketplace document with buyer details upon download
-    const candidateName = profile?.full_name || "Candidate";
-    const admissionNumber = profile?.admission_number || "ADM/2026/001";
-    const institutionName = buyerInstitutionName || "Kenya Education Cloud TVET Institute";
-    const supervisorName = "Institutional Supervisor";
+    // Personalize the document using user-provided customization parameters or account profile fallbacks
+    const candidateName = request.nextUrl.searchParams.get("candidateName")?.trim() || profile?.full_name || "Candidate";
+    const admissionNumber = request.nextUrl.searchParams.get("admissionNumber")?.trim() || profile?.admission_number || "ADM/2026/001";
+    const rawInstitution = request.nextUrl.searchParams.get("institutionName")?.trim();
+    const institutionName = rawInstitution || buyerInstitutionName || "Kenya Education Cloud TVET Institute";
+    const supervisorName = request.nextUrl.searchParams.get("supervisorName")?.trim() || "Institutional Supervisor";
+    const townOrMarket = request.nextUrl.searchParams.get("townOrMarket")?.trim() || "Regional Center";
+    const county = request.nextUrl.searchParams.get("county")?.trim() || "Regional County";
 
     const sections = stampMarketplaceBusinessPlan(rawSections, {
       candidateName,
       admissionNumber,
       institutionName,
       supervisorName,
-      townOrMarket: "Regional Center",
-      county: "Regional County",
+      townOrMarket,
+      county,
     });
 
     const document = {

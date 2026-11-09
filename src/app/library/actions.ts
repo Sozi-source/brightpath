@@ -33,3 +33,28 @@ export async function submitProjectReview(formData: FormData) {
   revalidatePath("/library");
   revalidatePath("/projects");
 }
+
+export async function updateStudentPersonalizationAction(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Sign in required.");
+
+  const fullName = formData.get("fullName")?.toString().trim();
+  const admissionNumber = formData.get("admissionNumber")?.toString().trim();
+  const institution = formData.get("institution")?.toString().trim();
+
+  const updates: Record<string, string> = {};
+  if (fullName) updates.full_name = fullName;
+  if (admissionNumber) updates.admission_number = admissionNumber;
+  if (institution) updates.institution = institution;
+
+  if (Object.keys(updates).length > 0) {
+    const { error } = await supabase.from("profiles").update(updates).eq("id", user.id);
+    if (error) console.error("Could not update profile:", error);
+  }
+
+  revalidatePath("/library");
+  return { success: true };
+}
