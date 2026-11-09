@@ -21,6 +21,30 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-11-10] — Refactor: Unify Project Studio Details with Marketplace Product Architecture & Purge Excessive Decoration
+
+**Category:** UI Consistency, Academic Content Presentation, Component Architecture
+
+**Status:** Completed & Verified
+
+**Changes Implemented:**
+1. **Architectural Alignment with Marketplace Details Page**:
+   - Re-architected the Project Studio venture details view in [`src/components/studio/ProjectAreaCatalog.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/components/studio/ProjectAreaCatalog.tsx) to match the layout and components of [`src/app/projects/[id]/page.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/app/projects/[id]/page.tsx).
+   - **Breadcrumb Navigation**: Header bar with `TVET Hub > Project Studio > [Business Name]` and quick `← All 35 project areas` navigation button.
+   - **Split Layout (`grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px]`)**:
+     - **Main Hero Card (`aspect-[3/4]` Dossier Cover + Details)**:
+       - Top subtle tri-color gradient accent bar (`from-[#087f8c] via-teal-500 to-amber-400`).
+       - Left aspect-[3/4] dossier cover with exact business title, qualification badge (`Diploma` / `Craft Certificate`), and `Area #[number]` marker.
+       - Right academic details: qualification badge, TVET subject area, in-studio availability chip, prominent title, tagline, and metadata chips (`5 KNEC Chapters`, `3-Year Financial Schedule`, `Word + PDF`).
+       - Bottom action row with Estimated Capital Requirement and primary `Select & Launch Workspace` button.
+     - **Aside ("What's included")**: Clean, un-decorated key-value definition list (`<dl className="divide-y divide-slate-100 text-xs">`) detailing Resource, Examination, TVET Field, Capital Tier, Primary Product, Unit Economics, Manuscript format, and Financial schedule, paired with a direct launch action.
+     - **Secondary Section ("KNEC Examination Structure")**: Clean 5-chapter manuscript breakdown mirroring the sample preview container on the marketplace details page without distracting visuals.
+2. **Purge of Excessive Academic Content Decoration**:
+   - Stripped loud rose/teal saturated callout boxes, heavy alert icons, and cluttered matrices.
+   - Restructured academic content under standard, clean typography (`Brief description` with clean paragraphs for `The Problem Solved:` and `Justification & Market Gap:`), ensuring a calm, professional, and authentic academic tone.
+
+---
+
 ## [2026-11-09] — Refactor: Exact Marketplace Titles, Brief Description Heading & Simplified Studio Details Layout
 
 **Category:** Marketplace UX, Studio Catalog Simplification, Presentation Consistency

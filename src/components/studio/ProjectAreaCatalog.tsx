@@ -10,6 +10,7 @@ import {
   DollarSign,
   ShieldCheck,
   CheckCircle2,
+  ChevronRight,
   X,
   Loader2,
   FlaskConical,
@@ -505,229 +506,277 @@ export function ProjectAreaCatalog({
 
       {/* Venture Details View */}
       {activeTrack === "business_plan" && detailVenture && (
-        <div className="space-y-4">
-          {/* Top Navigation Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 bp-card px-4 py-3">
+        <div className="space-y-5">
+          {/* Top Breadcrumb & Navigation */}
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+            <nav className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-slate-500">TVET Hub</span>
+              <ChevronRight className="h-3.5 w-3.5 text-slate-300 shrink-0" />
+              <button
+                type="button"
+                onClick={() => setDetailVenture(null)}
+                className="hover:text-slate-900 transition-colors cursor-pointer"
+              >
+                Project Studio
+              </button>
+              <ChevronRight className="h-3.5 w-3.5 text-slate-300 shrink-0" />
+              <span className="font-semibold text-slate-800 truncate max-w-[240px] sm:max-w-md">
+                {detailBusinessName}
+              </span>
+            </nav>
             <button
               type="button"
               onClick={() => setDetailVenture(null)}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-[#087f8c] transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 font-semibold text-indigo-600 hover:text-indigo-800 transition-colors shrink-0 cursor-pointer"
             >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back to All 35 Project Areas</span>
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>All 35 project areas</span>
             </button>
+          </div>
 
-            <div className="flex items-center gap-2">
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+            <main className="space-y-5">
+              {/* Main Product/Studio Card (Mirrors Marketplace Details Page 1:1) */}
+              <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+                <div className="h-1 bg-gradient-to-r from-[#087f8c] via-teal-500 to-amber-400" />
+                <div className="grid gap-5 p-5 md:grid-cols-[210px_1fr]">
+                  {/* Left: Aspect [3/4] Dossier Cover */}
+                  <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-teal-500/30 bg-gradient-to-br from-[#0c8ea0] via-[#087f8c] to-[#045963]">
+                    <div
+                      className={`relative h-full w-full overflow-hidden bg-gradient-to-br ${detailPalette?.bgGradient || "from-[#0c8ea0] via-[#087f8c] to-[#045963]"} p-4 text-white flex flex-col justify-between select-none shadow-inner`}
+                    >
+                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-200/30 via-transparent to-transparent pointer-events-none" />
+                      <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
+                      <div className="absolute inset-2 rounded border border-white/25 pointer-events-none" />
+
+                      <div className="relative z-10 text-center pt-1">
+                        <span className="inline-block text-[9.5px] font-bold tracking-[0.24em] uppercase !text-amber-300 drop-shadow-xs border-b border-amber-300/40 pb-0.5">
+                          BUSINESS PLAN
+                        </span>
+                      </div>
+
+                      <div className="relative z-10 my-auto text-center px-2 py-1">
+                        <p className="text-[13.5px] sm:text-[14px] font-bold tracking-tight !text-white line-clamp-3 leading-snug drop-shadow-sm font-sans">
+                          {detailBusinessName}
+                        </p>
+                        <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-[8.5px] font-semibold tracking-wider uppercase !text-white border border-white/30 shadow-2xs">
+                          {level === "craft" ? "Craft Certificate" : "Diploma"}
+                        </span>
+                      </div>
+
+                      <div className="relative z-10 flex items-center justify-between text-[8px] font-mono !text-teal-100 px-1 border-t border-white/20 pt-1 font-semibold">
+                        <span className="tracking-wider uppercase">KNEC Series</span>
+                        <span className="tracking-widest uppercase">Area #{detailVenture.number}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Un-decorated Academic Metadata & Actions */}
+                  <div className="flex min-w-0 flex-col font-sans">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded border border-sky-100 bg-sky-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#007185]">
+                        KNEC {level === "craft" ? "Craft Certificate" : "Diploma"}
+                      </span>
+                      <span className="rounded border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-[#565959]">
+                        {detailVenture.groupName}
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#007600] ml-auto">
+                        <CheckCircle2 className="h-3 w-3" /> Area #{detailVenture.number} · Available in Studio
+                      </span>
+                    </div>
+
+                    <h1 className="mt-3 text-xl sm:text-2xl font-semibold leading-snug tracking-tight text-[#0f1111]">
+                      {detailBusinessName}
+                    </h1>
+
+                    <p className="mt-1.5 text-xs text-[#565959]">
+                      Curricular Standard · <span className="text-[#007185] font-medium">{detailVenture.tagline}</span>
+                    </p>
+
+                    <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs text-[#565959]">
+                      <span className="inline-flex items-center gap-1 text-[#565959]">
+                        <FileText className="h-3.5 w-3.5 text-slate-400" /> 5 KNEC Chapters
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[#565959]">
+                        <Calculator className="h-3.5 w-3.5 text-slate-400" /> 3-Year Financial Schedule
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[#565959]">
+                        <BookOpen className="h-3.5 w-3.5 text-slate-400" /> Word (.docx) & PDF Export
+                      </span>
+                    </div>
+
+                    {/* Brief description: Plain, un-decorated academic prose */}
+                    <div className="mt-5 border-t border-slate-100 pt-4">
+                      <h2 className="text-xs font-semibold uppercase tracking-wider text-[#565959]">
+                        Brief description
+                      </h2>
+                      <div className="mt-2 whitespace-pre-line text-sm leading-6 text-[#0f1111] space-y-2.5">
+                        <p>
+                          <strong className="font-semibold text-slate-900">The Problem Solved: </strong>
+                          {ventureNarrative?.problemSolved}
+                        </p>
+                        <p>
+                          <strong className="font-semibold text-slate-900">Justification & Market Gap: </strong>
+                          {ventureNarrative?.justificationGap}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Action Footer */}
+                    <div className="mt-auto flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 pt-4">
+                      <div>
+                        <span className="block text-[10px] font-medium uppercase tracking-wider text-[#565959]">
+                          Est. Capital Requirement
+                        </span>
+                        <span className="font-mono text-lg font-bold text-slate-900">
+                          KES {formatKES(detailVenture.estimatedCapitalKES.min)} – {formatKES(detailVenture.estimatedCapitalKES.max)}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleOpenVentureModal(detailVenture)}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700 shadow-xs cursor-pointer"
+                      >
+                        <span>Select & Launch Workspace</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Sample Outline / Chapters Section (Mirrors "Sample preview" section in Marketplace) */}
+              <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+                <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-lg bg-indigo-50 p-2 text-indigo-700">
+                      <FileCheck className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <h2 className="text-sm font-semibold text-slate-900">KNEC Examination Structure</h2>
+                      <p className="text-xs text-slate-600">Standard 5-chapter business plan dossier</p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-semibold text-indigo-700">5 Chapters Included</span>
+                </div>
+
+                <div className="divide-y divide-slate-100 text-xs">
+                  <div className="p-4 flex items-start gap-3">
+                    <span className="font-mono font-semibold text-slate-400 shrink-0">Ch. 1</span>
+                    <div>
+                      <h3 className="font-semibold text-slate-900">Business Description & Enterprise Identity</h3>
+                      <p className="text-slate-600 mt-0.5 leading-relaxed">
+                        Form of ownership, business name justification, mission, vision, location evaluation, and primary products/services.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="p-4 flex items-start gap-3">
+                    <span className="font-mono font-semibold text-slate-400 shrink-0">Ch. 2</span>
+                    <div>
+                      <h3 className="font-semibold text-slate-900">Marketing & Sales Strategy</h3>
+                      <p className="text-slate-600 mt-0.5 leading-relaxed">
+                        Customer segmentation, market share analysis, competitor strengths & weaknesses, pricing strategy, distribution, and advertising plan.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="p-4 flex items-start gap-3">
+                    <span className="font-mono font-semibold text-slate-400 shrink-0">Ch. 3</span>
+                    <div>
+                      <h3 className="font-semibold text-slate-900">Organization & Management Plan</h3>
+                      <p className="text-slate-600 mt-0.5 leading-relaxed">
+                        Organizational chart, key personnel requirements, duties, staff recruitment, statutory licenses (single business permit, KEBS/public health), and remuneration.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="p-4 flex items-start gap-3">
+                    <span className="font-mono font-semibold text-slate-400 shrink-0">Ch. 4</span>
+                    <div>
+                      <h3 className="font-semibold text-slate-900">Operational & Production Plan</h3>
+                      <p className="text-slate-600 mt-0.5 leading-relaxed">
+                        Production process flow, machinery & equipment schedule, raw materials schedule, facility layout, waste management, and quality control.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="p-4 flex items-start gap-3">
+                    <span className="font-mono font-semibold text-slate-400 shrink-0">Ch. 5</span>
+                    <div>
+                      <h3 className="font-semibold text-slate-900">Financial Schedule & 3-Year Projections</h3>
+                      <p className="text-slate-600 mt-0.5 leading-relaxed">
+                        Pre-operational expenses, working capital estimation, 3-year cash flow projections, pro-forma income statement, pro-forma balance sheet, and break-even calculation.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </main>
+
+            {/* Aside: What's Included (Mirrors Marketplace Details Aside 1:1) */}
+            <aside className="h-fit rounded-xl border border-slate-200 bg-white p-4 shadow-xs xl:sticky xl:top-20">
+              <div className="mb-3 flex items-center gap-2">
+                <span className="rounded-lg bg-indigo-50 p-2 text-indigo-700">
+                  <BookOpen className="h-4 w-4" />
+                </span>
+                <h2 className="text-sm font-semibold text-slate-900">What’s included</h2>
+              </div>
+              <dl className="divide-y divide-slate-100 text-xs">
+                <div className="flex justify-between gap-3 py-2">
+                  <dt className="text-slate-600">Resource</dt>
+                  <dd className="text-right font-medium text-slate-900">Business Plan Studio</dd>
+                </div>
+                <div className="flex justify-between gap-3 py-2">
+                  <dt className="text-slate-600">Examination</dt>
+                  <dd className="text-right font-medium text-slate-900">
+                    KNEC {level === "craft" ? "Craft Certificate" : "Diploma"}
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-3 py-2">
+                  <dt className="text-slate-600">TVET Field</dt>
+                  <dd className="text-right font-medium text-slate-900 truncate max-w-[160px]">
+                    {detailVenture.groupName}
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-3 py-2">
+                  <dt className="text-slate-600">Capital Tier</dt>
+                  <dd className="text-right font-medium text-slate-900">{detailVenture.capitalTier}</dd>
+                </div>
+                <div className="flex justify-between gap-3 py-2">
+                  <dt className="text-slate-600">Primary Product</dt>
+                  <dd className="text-right font-medium text-slate-900 truncate max-w-[160px]">
+                    {detailVenture.defaultSpecs.primaryProduct || detailBusinessName}
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-3 py-2">
+                  <dt className="text-slate-600">Unit Economics</dt>
+                  <dd className="text-right font-medium text-slate-900">
+                    KES {formatKES(detailUnitPrice)} (~{detailGrossMargin}%)
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-3 py-2">
+                  <dt className="text-slate-600">Manuscript</dt>
+                  <dd className="text-right font-medium text-slate-900">5 Chapters (Word + PDF)</dd>
+                </div>
+                <div className="flex justify-between gap-3 py-2">
+                  <dt className="text-slate-600">Financials</dt>
+                  <dd className="text-right font-medium text-slate-900">3-Year Cash Flow</dd>
+                </div>
+              </dl>
               <button
                 type="button"
                 onClick={() => handleOpenVentureModal(detailVenture)}
-                className="inline-flex items-center gap-1.5 bp-btn-primary px-4 py-2 text-xs shadow-2xs cursor-pointer"
+                className="mt-4 w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#087f8c] px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-[#076c77] shadow-xs cursor-pointer"
               >
-                <span>Select & Launch This Area</span>
+                <span>Select This Area</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </button>
-            </div>
-          </div>
-
-          {/* Simple Layout: One Large Image on Left with Text Below and Sideway */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* Left Column: One Large Image Card + Fast Launch Action Below */}
-            <div className="lg:col-span-5 xl:col-span-5 space-y-4 lg:sticky lg:top-4">
-              {/* One Large Visual Card */}
-              <div
-                className={`rounded-2xl border border-slate-200/90 bg-white shadow-sm overflow-hidden ${detailPalette?.hoverBorder || ""}`}
+              <button
+                type="button"
+                onClick={() => setDetailVenture(null)}
+                className="mt-2.5 w-full text-center text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
               >
-                {/* Large Canvas Cover Banner */}
-                <div
-                  className={`relative h-52 sm:h-60 w-full bg-gradient-to-br ${detailPalette?.bgGradient || "from-[#087f8c] to-[#044e56]"} p-4 flex flex-col justify-between overflow-hidden select-none`}
-                >
-                  <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px]" />
-
-                  <div className="relative z-10 flex items-center justify-between gap-2">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/30 backdrop-blur-xs text-[11px] font-bold text-white tracking-wider uppercase border border-white/20">
-                      {DetailCategoryIcon && <DetailCategoryIcon className="h-3.5 w-3.5" />}
-                      <span>Area #{detailVenture.number}</span>
-                    </span>
-
-                    <span
-                      className={`h-8 w-8 rounded-full ${detailPalette?.circleMenuBg || "bg-teal-600"} flex items-center justify-center text-white border border-white/25 shadow-xs`}
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </span>
-                  </div>
-
-                  <div className="relative z-10">
-                    <span className="text-xs font-bold tracking-wider uppercase text-white/90 drop-shadow-xs block">
-                      {detailVenture.groupName}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Card Body */}
-                <div className="p-4 sm:p-5 space-y-2">
-                  <span
-                    style={{ color: detailPalette?.accentHex || "#087f8c" }}
-                    className="font-bold text-xs uppercase tracking-wider block"
-                  >
-                    KNEC {level === "craft" ? "CRAFT" : "DIPLOMA"} · {detailVenture.archetype.replace("_", " ")}
-                  </span>
-
-                  <h3 className="font-extrabold text-lg sm:text-xl leading-snug text-slate-900">
-                    {detailBusinessName}
-                  </h3>
-
-                  <p className="text-xs text-slate-500">
-                    {detailVenture.groupName} · TVET Project Series #{detailVenture.number}
-                  </p>
-                </div>
-
-                {/* Canvas Bottom Utility Tray */}
-                <div className="border-t border-slate-100 bg-slate-50/70 px-4 py-3 flex items-center justify-between text-xs text-slate-500">
-                  <div className="flex items-center gap-3.5 text-slate-400">
-                    <span title="KNEC Word (.docx) & PDF Manuscript">
-                      <FileText className="h-4 w-4 text-slate-600" />
-                    </span>
-                    <span title="3-Year Financial Schedules">
-                      <Calculator className="h-4 w-4 text-slate-600" />
-                    </span>
-                    <span title="KNEC Examination Syllabus">
-                      <Folder className="h-4 w-4 text-slate-600" />
-                    </span>
-                  </div>
-                  <span className="font-semibold text-slate-700">Area #{detailVenture.number}</span>
-                </div>
-              </div>
-
-              {/* Text & Button Below the Large Image */}
-              <div className="space-y-2.5">
-                <button
-                  type="button"
-                  onClick={() => handleOpenVentureModal(detailVenture)}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#087f8c] hover:bg-[#076c77] py-3 px-4 text-sm font-bold text-white shadow-sm transition-colors cursor-pointer"
-                >
-                  <span>Select & Launch This Project Area</span>
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-
-                <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] font-medium text-slate-500 pt-1">
-                  <span className="inline-flex items-center gap-1">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-teal-600" /> KNEC 5 Chapters
-                  </span>
-                  <span>·</span>
-                  <span className="inline-flex items-center gap-1">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-teal-600" /> 3-Year Financials
-                  </span>
-                  <span>·</span>
-                  <span className="inline-flex items-center gap-1">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-teal-600" /> Word & PDF
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Concise Exhaustive Information (Sideway) */}
-            <div className="lg:col-span-7 xl:col-span-7 space-y-4">
-              {/* 1. Business Identity Header */}
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center rounded-md bg-[#e8f5f5] px-2.5 py-0.5 font-mono text-[11px] font-bold text-[#087f8c] border border-[#d8ebec]">
-                    Area #{detailVenture.number}
-                  </span>
-                  <span className="inline-flex items-center rounded-md bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
-                    {detailVenture.groupName}
-                  </span>
-                  <span className="inline-flex items-center rounded-md bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200">
-                    {detailVenture.capitalTier} Capital Tier
-                  </span>
-                </div>
-
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                  {detailBusinessName}
-                </h1>
-
-                <p className="text-xs sm:text-sm font-semibold text-[#087f8c]">
-                  &ldquo;{detailVenture.tagline}&rdquo;
-                </p>
-                <p className="text-xs text-slate-500">
-                  {detailVenture.title} · KNEC {level === "craft" ? "Craft Certificate" : "Diploma"} Standard
-                </p>
-              </div>
-
-              {/* 2. The Problem Solved */}
-              <div className="rounded-xl border border-rose-200/80 bg-rose-50/40 p-4 space-y-1.5">
-                <div className="flex items-center gap-2 text-rose-800 font-bold text-xs uppercase tracking-wider">
-                  <AlertCircle className="h-4 w-4 text-rose-600" />
-                  <span>The Problem Solved</span>
-                </div>
-                <p className="text-xs sm:text-[13px] text-slate-700 leading-relaxed font-sans">
-                  {ventureNarrative?.problemSolved}
-                </p>
-              </div>
-
-              {/* 3. Justification or Gap */}
-              <div className="rounded-xl border border-teal-200/80 bg-teal-50/40 p-4 space-y-1.5">
-                <div className="flex items-center gap-2 text-teal-800 font-bold text-xs uppercase tracking-wider">
-                  <CheckCircle2 className="h-4 w-4 text-[#087f8c]" />
-                  <span>Justification & Market Gap</span>
-                </div>
-                <p className="text-xs sm:text-[13px] text-slate-700 leading-relaxed font-sans">
-                  {ventureNarrative?.justificationGap}
-                </p>
-              </div>
-
-              {/* 4. Commercial & Economics Snapshot */}
-              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-2.5">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                  Commercial & Investment Snapshot
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Startup Capital</span>
-                    <span className="font-mono text-sm font-bold text-slate-900 block">
-                      KES {formatKES(detailVenture.estimatedCapitalKES.min)} – {formatKES(detailVenture.estimatedCapitalKES.max)}
-                    </span>
-                    <span className="text-[10.5px] text-emerald-700 font-medium block">{detailVenture.capitalTier} Investment Tier</span>
-                  </div>
-
-                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Unit Economics</span>
-                    <span className="font-mono text-sm font-bold text-slate-900 block">
-                      KES {formatKES(detailUnitPrice)} / unit
-                    </span>
-                    <span className="text-[10.5px] text-indigo-700 font-medium block">Direct Cost: KES {formatKES(detailUnitCost)} (~{detailGrossMargin}% Margin)</span>
-                  </div>
-
-                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Primary Offering</span>
-                    <span className="font-semibold text-slate-800 block truncate">
-                      {detailVenture.defaultSpecs.primaryProduct || detailVenture.title}
-                    </span>
-                    <span className="text-[10.5px] text-slate-500 truncate block">
-                      {detailVenture.defaultSpecs.productPackaging || "Standard delivery format"}
-                    </span>
-                  </div>
-
-                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Target Customers & Catchment</span>
-                    <span className="text-slate-700 block line-clamp-2">
-                      {detailVenture.defaultSpecs.targetCustomersDescription || "Catchment population and institutional buyers"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Quick Launch Button */}
-              <div className="pt-1">
-                <button
-                  type="button"
-                  onClick={() => handleOpenVentureModal(detailVenture)}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-black py-2.5 px-4 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer"
-                >
-                  <span>Select & Launch This Project Area</span>
-                  <ArrowRight className="h-4 w-4 text-teal-400" />
-                </button>
-              </div>
-            </div>
+                ← Back to all 35 areas
+              </button>
+            </aside>
           </div>
         </div>
       )}
