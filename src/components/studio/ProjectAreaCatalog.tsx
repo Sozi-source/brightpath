@@ -36,6 +36,7 @@ import {
   BookOpen,
   HelpCircle,
   FileCheck,
+  AlertCircle,
 } from "lucide-react";
 import { NUTRITION_VENTURES, type NutritionVentureDefinition } from "@/lib/studio/catalog/nutritionVentures";
 import { createWorkspace } from "@/app/studio/actions";
@@ -74,6 +75,62 @@ const GROUP_VISUALS = {
   G: { Icon: ClipboardCheck, tile: "bg-indigo-50 text-indigo-700", accent: "border-indigo-100" },
   H: { Icon: PawPrint, tile: "bg-teal-50 text-teal-700", accent: "border-teal-100" },
 } as const;
+
+function getVentureProblemAndGap(venture: NutritionVentureDefinition) {
+  const group = venture.group;
+
+  let problemSolved = "";
+  let justificationGap = "";
+
+  switch (group) {
+    case "A": // Clinical
+      problemSolved = `Surging prevalence of non-communicable lifestyle conditions—notably hypertension, type-2 diabetes, gout, and maternal/child micro-nutrient deficiencies—compounded by an acute shortage of certified clinical dietary counseling in regional health centers.`;
+      justificationGap = `Conventional referral hospitals charge prohibitive consultation tariffs (KES 2,000+) with long outpatient delays, while informal fitness trainers lack statutory KNDI clinical credentials and medical safety. This clinic bridges the gap by providing affordable, evidence-based nutrition assessment and culturally adapted meal plans.`;
+      break;
+
+    case "B": // Food Processing
+      problemSolved = `High post-harvest perishability of farm produce (up to 35–40% seasonal wastage) alongside severe micronutrient malnutrition (Vitamin A, iron, and zinc deficits) among under-five children, school-age youth, and vulnerable households.`;
+      justificationGap = `Mass-market retail foods in Kenya are heavily dominated by refined carbohydrates and artificial additives with minimal bioavailable nutrition. This enterprise bridges the gap by sourcing raw biofortified produce directly from smallholders and utilizing hygienic processing to supply shelf-stable, nutrient-dense foods at prices competitive with basic staples.`;
+      break;
+
+    case "C": // Food Service & Catering
+      problemSolved = `Lack of wholesome, therapeutic meal options for recovering hospital patients, dietary-restricted workers, and urban commuters who are forced to rely on commercial fast foods characterized by saturated trans-fats, excess sodium, and high glycemic indices.`;
+      justificationGap = `Standard institutional cafeterias and caterers treat meal preparation as generic volume food service without professional portion control, nutrient preservation, or clinical meal prescription. This enterprise fills this unmet demand by offering calibrated, dietary-compliant menus prepared under strict HACCP hygiene protocols.`;
+      break;
+
+    case "D": // Agribusiness & Urban Farming
+      problemSolved = `Land scarcity, escalating fertilizer and animal feed costs, and seasonal climate shocks that create erratic shortages and price spikes of fresh microgreens, biofortified crops, and quality protein in peri-urban markets.`;
+      justificationGap = `Conventional rural agriculture suffers from prolonged logistical transit times, high transport shrinkage, and chemical pesticide over-reliance. This intensive urban production model utilizes vertical space, rapid harvesting cycles, and organic management to guarantee premium fresh supply directly to local retail and institutional clients.`;
+      break;
+
+    case "E": // Specialty Retail
+      problemSolved = `Severe regional scarcity of verified therapeutic supplements, gluten-free formulations, diabetic staples, and clinical infant weaning products outside Nairobi and Tier-1 private pharmacies.`;
+      justificationGap = `Mainstream supermarkets stock generic retail foods with ambiguous allergen labeling and untrained attendants unable to guide clients on specific dietary restrictions. This specialty retail shop bridges the gap with verified supply chains, KEBS-compliant products, and informed point-of-sale dietary guidance.`;
+      break;
+
+    case "F": // Nutrition Education & School Feeding
+      problemSolved = `Widespread dietary misinformation, low adherence to infant and young child feeding (IYCF) guidelines, and uncalibrated school meal programs that trigger stunting and reduced cognitive performance in developing children.`;
+      justificationGap = `Public school administrations and community daycare facilities lack in-house nutritionists to formulate balanced nutrient-dense menus within limited per-pupil capitation budgets. This enterprise provides structured menu audits, teacher/cook training, and institutional catering designs aligned with MOH and KNEC guidelines.`;
+      break;
+
+    case "G": // Advisory & Auditing
+      problemSolved = `Pervasive failure of food processing SMEs and commercial catering facilities to pass mandatory KEBS product standardisation, County public health hygiene audits, and NEMA environmental waste disposal criteria.`;
+      justificationGap = `Multinational food consultancy firms charge prohibitive corporate fees inaccessible to local medium-sized enterprises. This consultancy delivers affordable, hands-on compliance auditing, HACCP certification pathways, and proximate food testing facilitation.`;
+      break;
+
+    case "H": // Therapeutic Feeds
+      problemSolved = `High mortality rates and severe recovery delays among livestock, poultry, and specialty farm animals suffering from digestive disorders and malnutrition due to poor commercial feed formulations.`;
+      justificationGap = `Standard commercial millers produce bulk livestock feed with uniform, low-protein grains without therapeutic formulations. This venture bridges the gap with specialized, clinical formulations optimized for recovery and growth.`;
+      break;
+
+    default:
+      problemSolved = `Unmet community and commercial demand for specialized nutritional solutions, value-added food processing, and accessible health consultation in the local sub-county catchment area.`;
+      justificationGap = `Existing regional market options are either overpriced or lack accredited TVET technical standards. This enterprise provides a viable, scalable, and KNEC-compliant business model with audited financial viability.`;
+      break;
+  }
+
+  return { problemSolved, justificationGap };
+}
 
 export function ProjectAreaCatalog({
   admissionNumber = "",
@@ -173,6 +230,8 @@ export function ProjectAreaCatalog({
       ? Math.round(((detailUnitPrice - detailUnitCost) / detailUnitPrice) * 100)
       : 0;
   const DetailCategoryIcon = detailVenture ? GROUP_VISUALS[detailVenture.group].Icon : null;
+  const ventureNarrative = detailVenture ? getVentureProblemAndGap(detailVenture) : null;
+  const detailBusinessName = detailVenture?.defaultSpecs.businessName || detailVenture?.title || "Enterprise";
 
   return (
     <div className="space-y-4">
@@ -470,42 +529,42 @@ export function ProjectAreaCatalog({
             </div>
           </div>
 
-          {/* Amazon Kindle Split Layout: Accompanied Card (Left) + Concise Details (Right) */}
+          {/* Simple Layout: One Large Image on Left with Text Below and Sideway */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* Left Column: Accompanied Canvas Card & Quick Launch */}
-            <div className="lg:col-span-4 xl:col-span-4 space-y-4 lg:sticky lg:top-4">
-              {/* Accompanied Canvas Card */}
+            {/* Left Column: One Large Image Card + Fast Launch Action Below */}
+            <div className="lg:col-span-5 xl:col-span-5 space-y-4 lg:sticky lg:top-4">
+              {/* One Large Visual Card */}
               <div
-                className={`rounded-xl border border-slate-200/90 bg-white shadow-sm overflow-hidden ${detailPalette?.hoverBorder || ""}`}
+                className={`rounded-2xl border border-slate-200/90 bg-white shadow-sm overflow-hidden ${detailPalette?.hoverBorder || ""}`}
               >
-                {/* Top Cover Banner */}
+                {/* Large Canvas Cover Banner */}
                 <div
-                  className={`relative h-36 w-full bg-gradient-to-br ${detailPalette?.bgGradient || "from-[#087f8c] to-[#044e56]"} p-3.5 flex flex-col justify-between overflow-hidden select-none`}
+                  className={`relative h-52 sm:h-60 w-full bg-gradient-to-br ${detailPalette?.bgGradient || "from-[#087f8c] to-[#044e56]"} p-4 flex flex-col justify-between overflow-hidden select-none`}
                 >
                   <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px]" />
 
                   <div className="relative z-10 flex items-center justify-between gap-2">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/25 backdrop-blur-xs text-[10px] font-bold text-white tracking-wider uppercase border border-white/20">
-                      {DetailCategoryIcon && <DetailCategoryIcon className="h-3 w-3" />}
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/30 backdrop-blur-xs text-[11px] font-bold text-white tracking-wider uppercase border border-white/20">
+                      {DetailCategoryIcon && <DetailCategoryIcon className="h-3.5 w-3.5" />}
                       <span>Area #{detailVenture.number}</span>
                     </span>
 
                     <span
-                      className={`h-7 w-7 rounded-full ${detailPalette?.circleMenuBg || "bg-teal-600"} flex items-center justify-center text-white border border-white/25 shadow-xs`}
+                      className={`h-8 w-8 rounded-full ${detailPalette?.circleMenuBg || "bg-teal-600"} flex items-center justify-center text-white border border-white/25 shadow-xs`}
                     >
                       <MoreVertical className="h-4 w-4" />
                     </span>
                   </div>
 
                   <div className="relative z-10">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-white/90 drop-shadow-xs block">
+                    <span className="text-xs font-bold tracking-wider uppercase text-white/90 drop-shadow-xs block">
                       {detailVenture.groupName}
                     </span>
                   </div>
                 </div>
 
                 {/* Card Body */}
-                <div className="p-4 space-y-1.5">
+                <div className="p-4 sm:p-5 space-y-2">
                   <span
                     style={{ color: detailPalette?.accentHex || "#087f8c" }}
                     className="font-bold text-xs uppercase tracking-wider block"
@@ -513,333 +572,160 @@ export function ProjectAreaCatalog({
                     KNEC {level === "craft" ? "CRAFT" : "DIPLOMA"} · {detailVenture.archetype.replace("_", " ")}
                   </span>
 
-                  <h3 className="font-bold text-base leading-snug text-slate-900">
-                    {detailVenture.title}
+                  <h3 className="font-extrabold text-lg sm:text-xl leading-snug text-slate-900">
+                    {detailBusinessName}
                   </h3>
 
                   <p className="text-xs text-slate-500">
-                    {detailVenture.groupName} · TVET Standard Series #{detailVenture.number}
+                    {detailVenture.groupName} · TVET Project Series #{detailVenture.number}
                   </p>
                 </div>
 
-                {/* Bottom Utility Icons */}
-                <div className="border-t border-slate-100 bg-slate-50/70 px-4 py-2.5 flex items-center justify-between text-xs text-slate-500">
-                  <div className="flex items-center gap-3 text-slate-400">
+                {/* Canvas Bottom Utility Tray */}
+                <div className="border-t border-slate-100 bg-slate-50/70 px-4 py-3 flex items-center justify-between text-xs text-slate-500">
+                  <div className="flex items-center gap-3.5 text-slate-400">
                     <span title="KNEC Word (.docx) & PDF Manuscript">
-                      <FileText className="h-4 w-4 text-slate-500" />
+                      <FileText className="h-4 w-4 text-slate-600" />
                     </span>
                     <span title="3-Year Financial Schedules">
-                      <Calculator className="h-4 w-4 text-slate-500" />
+                      <Calculator className="h-4 w-4 text-slate-600" />
                     </span>
                     <span title="KNEC Examination Syllabus">
-                      <Folder className="h-4 w-4 text-slate-500" />
+                      <Folder className="h-4 w-4 text-slate-600" />
                     </span>
                   </div>
                   <span className="font-semibold text-slate-700">Area #{detailVenture.number}</span>
                 </div>
               </div>
 
-              {/* Fast Launch CTA Box */}
-              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-3">
+              {/* Text & Button Below the Large Image */}
+              <div className="space-y-2.5">
                 <button
                   type="button"
                   onClick={() => handleOpenVentureModal(detailVenture)}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#087f8c] hover:bg-[#076c77] py-2.5 px-4 text-xs font-bold text-white shadow-sm transition-colors cursor-pointer"
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#087f8c] hover:bg-[#076c77] py-3 px-4 text-sm font-bold text-white shadow-sm transition-colors cursor-pointer"
                 >
-                  <span>Select & Launch This Area</span>
+                  <span>Select & Launch This Project Area</span>
                   <ArrowRight className="h-4 w-4" />
                 </button>
 
-                {/* Quick Spec Attributes */}
-                <div className="space-y-2 pt-2 border-t border-slate-100 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Format</span>
-                    <span className="font-semibold text-slate-800">5-Chapter Dossier</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Examination</span>
-                    <span className="font-semibold text-slate-800">KNEC {level === "craft" ? "Craft" : "Diploma"}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Capital Tier</span>
-                    <span className="font-semibold text-emerald-700">{detailVenture.capitalTier} Capital</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Export Formats</span>
-                    <span className="font-semibold text-slate-800">Word (.docx) & PDF</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Financial Math</span>
-                    <span className="font-semibold text-slate-800">3-Year Audited Models</span>
-                  </div>
+                <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] font-medium text-slate-500 pt-1">
+                  <span className="inline-flex items-center gap-1">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-teal-600" /> KNEC 5 Chapters
+                  </span>
+                  <span>·</span>
+                  <span className="inline-flex items-center gap-1">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-teal-600" /> 3-Year Financials
+                  </span>
+                  <span>·</span>
+                  <span className="inline-flex items-center gap-1">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-teal-600" /> Word & PDF
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Right Column: Concise Product Details (Amazon Kindle Style) */}
-            <div className="lg:col-span-8 xl:col-span-8 space-y-5">
-              {/* Product Header */}
-              <div className="space-y-2">
+            {/* Right Column: Concise Exhaustive Information (Sideway) */}
+            <div className="lg:col-span-7 xl:col-span-7 space-y-4">
+              {/* 1. Business Identity Header */}
+              <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center rounded-md bg-[#e8f5f5] px-2 py-0.5 font-mono text-[11px] font-bold text-[#087f8c] border border-[#d8ebec]">
+                  <span className="inline-flex items-center rounded-md bg-[#e8f5f5] px-2.5 py-0.5 font-mono text-[11px] font-bold text-[#087f8c] border border-[#d8ebec]">
                     Area #{detailVenture.number}
                   </span>
-                  <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+                  <span className="inline-flex items-center rounded-md bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
                     {detailVenture.groupName}
                   </span>
-                  <span className="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200">
+                  <span className="inline-flex items-center rounded-md bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200">
                     {detailVenture.capitalTier} Capital Tier
                   </span>
-                  <span className="inline-flex items-center rounded-md bg-sky-50 px-2 py-0.5 text-[11px] font-semibold text-sky-700 capitalize">
-                    {detailVenture.archetype.replace("_", " ")} Model
-                  </span>
                 </div>
 
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                  {detailVenture.title}
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                  {detailBusinessName}
                 </h1>
 
-                <p className="text-xs text-slate-600">
-                  Default Enterprise: <span className="font-semibold text-slate-900">{detailVenture.defaultSpecs.businessName}</span> — &ldquo;{detailVenture.tagline}&rdquo;
+                <p className="text-xs sm:text-sm font-semibold text-[#087f8c]">
+                  &ldquo;{detailVenture.tagline}&rdquo;
+                </p>
+                <p className="text-xs text-slate-500">
+                  {detailVenture.title} · KNEC {level === "craft" ? "Craft Certificate" : "Diploma"} Standard
                 </p>
               </div>
 
-              {/* Amazon Quick Specs Metric Strip */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
-                <div className="p-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    Est. Capital
-                  </span>
-                  <span className="mt-0.5 font-mono text-xs font-bold text-slate-900 block truncate">
-                    KES {formatKES(detailVenture.estimatedCapitalKES.min)} - {formatKES(detailVenture.estimatedCapitalKES.max)}
-                  </span>
+              {/* 2. The Problem Solved */}
+              <div className="rounded-xl border border-rose-200/80 bg-rose-50/40 p-4 space-y-1.5">
+                <div className="flex items-center gap-2 text-rose-800 font-bold text-xs uppercase tracking-wider">
+                  <AlertCircle className="h-4 w-4 text-rose-600" />
+                  <span>The Problem Solved</span>
                 </div>
-
-                <div className="p-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    Unit Price
-                  </span>
-                  <span className="mt-0.5 font-mono text-xs font-bold text-slate-900 block truncate">
-                    KES {formatKES(detailUnitPrice)}
-                  </span>
-                </div>
-
-                <div className="p-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    Unit Cost
-                  </span>
-                  <span className="mt-0.5 font-mono text-xs font-bold text-slate-900 block truncate">
-                    KES {formatKES(detailUnitCost)}
-                  </span>
-                </div>
-
-                <div className="p-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    Gross Margin
-                  </span>
-                  <span className="mt-0.5 font-mono text-xs font-bold text-emerald-600 block truncate">
-                    ~{detailGrossMargin}%
-                  </span>
-                </div>
-
-                <div className="p-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    Monthly Vol
-                  </span>
-                  <span className="mt-0.5 font-mono text-xs font-bold text-indigo-600 block truncate">
-                    {formatKES(detailVenture.defaultSpecs.monthlyProductionUnitsYear1 || 0)} u/mo
-                  </span>
-                </div>
-
-                <div className="p-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    Premises / Rent
-                  </span>
-                  <span className="mt-0.5 font-mono text-xs font-bold text-slate-900 block truncate">
-                    {detailVenture.defaultSpecs.workshopSquareMeters || 30} m² (KES {formatKES(detailVenture.defaultSpecs.monthlyRent || 0)})
-                  </span>
-                </div>
-              </div>
-
-              {/* Concise Description & About This Project */}
-              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                  About This Project Area
-                </h4>
-                <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed font-sans">
-                  {detailVenture.summary}
+                <p className="text-xs sm:text-[13px] text-slate-700 leading-relaxed font-sans">
+                  {ventureNarrative?.problemSolved}
                 </p>
               </div>
 
-              {/* What's Included (Amazon-style Feature Checklist) */}
+              {/* 3. Justification or Gap */}
+              <div className="rounded-xl border border-teal-200/80 bg-teal-50/40 p-4 space-y-1.5">
+                <div className="flex items-center gap-2 text-teal-800 font-bold text-xs uppercase tracking-wider">
+                  <CheckCircle2 className="h-4 w-4 text-[#087f8c]" />
+                  <span>Justification & Market Gap</span>
+                </div>
+                <p className="text-xs sm:text-[13px] text-slate-700 leading-relaxed font-sans">
+                  {ventureNarrative?.justificationGap}
+                </p>
+              </div>
+
+              {/* 4. Commercial & Economics Snapshot */}
               <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-2.5">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Included in this KNEC Project Workspace
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                  Commercial & Investment Snapshot
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700">
-                  <div className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-teal-600 shrink-0 mt-0.5" />
-                    <span>Complete 5-Chapter manuscript structure (KNEC standard rubric)</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Startup Capital</span>
+                    <span className="font-mono text-sm font-bold text-slate-900 block">
+                      KES {formatKES(detailVenture.estimatedCapitalKES.min)} – {formatKES(detailVenture.estimatedCapitalKES.max)}
+                    </span>
+                    <span className="text-[10.5px] text-emerald-700 font-medium block">{detailVenture.capitalTier} Investment Tier</span>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-teal-600 shrink-0 mt-0.5" />
-                    <span>Itemized bill of quantities with Kenyan equipment suppliers</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-teal-600 shrink-0 mt-0.5" />
-                    <span>3-Year audited financial projections (Cashflow, P&L, Balance Sheet)</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-teal-600 shrink-0 mt-0.5" />
-                    <span>Statutory permitting breakdown (County Permit, KEBS, Public Health, KRA)</span>
-                  </div>
-                </div>
-              </div>
 
-              {/* Specifications: 2x2 Clean Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Offering & Market Catchment */}
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-2.5 text-xs">
-                  <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <Package className="h-4 w-4 text-indigo-600" />
-                    <h5 className="font-bold uppercase tracking-wider text-slate-700 text-[11px]">
-                      Product Offering & Market
-                    </h5>
+                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Unit Economics</span>
+                    <span className="font-mono text-sm font-bold text-slate-900 block">
+                      KES {formatKES(detailUnitPrice)} / unit
+                    </span>
+                    <span className="text-[10.5px] text-indigo-700 font-medium block">Direct Cost: KES {formatKES(detailUnitCost)} (~{detailGrossMargin}% Margin)</span>
                   </div>
-                  <div>
-                    <span className="text-slate-500 block text-[11px]">Primary Product:</span>
-                    <span className="font-semibold text-slate-900">{detailVenture.defaultSpecs.primaryProduct}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block text-[11px]">Packaging Format:</span>
-                    <span className="text-slate-700">{detailVenture.defaultSpecs.productPackaging}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block text-[11px]">Target Market Catchment:</span>
-                    <span className="text-slate-700">{detailVenture.defaultSpecs.totalMarketPopulation} ({detailVenture.defaultSpecs.projectedMarketSharePercentage}% Year 1 share)</span>
-                  </div>
-                </div>
 
-                {/* Capital & Financing Breakdown */}
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-2.5 text-xs">
-                  <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                    <h5 className="font-bold uppercase tracking-wider text-slate-700 text-[11px]">
-                      Financing & Statutory Compliance
-                    </h5>
-                  </div>
-                  <div className="grid grid-cols-3 gap-1.5 text-center">
-                    <div className="rounded bg-slate-50 p-1.5 border border-slate-100">
-                      <span className="text-[10px] text-slate-500 block">Owner Equity</span>
-                      <span className="font-mono font-bold text-slate-800 text-[11px]">
-                        KES {formatKES(detailVenture.defaultSpecs.ownerEquityAmount || 0)}
-                      </span>
-                    </div>
-                    <div className="rounded bg-slate-50 p-1.5 border border-slate-100">
-                      <span className="text-[10px] text-slate-500 block">SACCO/Loan</span>
-                      <span className="font-mono font-bold text-slate-800 text-[11px]">
-                        KES {formatKES(detailVenture.defaultSpecs.loanAmount || 0)}
-                      </span>
-                    </div>
-                    <div className="rounded bg-slate-50 p-1.5 border border-slate-100">
-                      <span className="text-[10px] text-slate-500 block">Buffer</span>
-                      <span className="font-mono font-bold text-emerald-700 text-[11px]">
-                        KES {formatKES(detailVenture.defaultSpecs.workingCapitalBuffer || 0)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-1 pt-1">
-                    <span className="text-[11px] text-slate-500 block">Statutory Licensing:</span>
-                    <div className="divide-y divide-slate-100 rounded border border-slate-200">
-                      {detailVenture.compliance.slice(0, 3).map((c, idx) => (
-                        <div key={idx} className="flex items-center justify-between px-2 py-1 text-[11px]">
-                          <span className="text-slate-700">{c.agency}: {c.requirement}</span>
-                          <span className="font-mono font-semibold text-slate-800">KES {formatKES(c.fee)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Equipment & Machinery Table */}
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-2.5 text-xs">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <div className="flex items-center gap-2">
-                      <Wrench className="h-4 w-4 text-blue-600" />
-                      <h5 className="font-bold uppercase tracking-wider text-slate-700 text-[11px]">
-                        Equipment & Tools
-                      </h5>
-                    </div>
-                    <span className="font-mono font-semibold text-slate-700 text-[11px]">
-                      Total: KES {formatKES((detailVenture.defaultSpecs.machinery || []).reduce((s, m) => s + m.quantity * m.unitCost, 0))}
+                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Primary Offering</span>
+                    <span className="font-semibold text-slate-800 block truncate">
+                      {detailVenture.defaultSpecs.primaryProduct || detailVenture.title}
+                    </span>
+                    <span className="text-[10.5px] text-slate-500 truncate block">
+                      {detailVenture.defaultSpecs.productPackaging || "Standard delivery format"}
                     </span>
                   </div>
-                  <div className="divide-y divide-slate-100 rounded border border-slate-200 max-h-48 overflow-y-auto">
-                    {(detailVenture.defaultSpecs.machinery || []).map((m, idx) => (
-                      <div key={idx} className="flex items-center justify-between px-2.5 py-1.5 text-[11px]">
-                        <div className="min-w-0">
-                          <p className="font-medium text-slate-800 truncate">{m.item}</p>
-                          <p className="text-[10px] text-slate-500">{m.quantity}× · {m.supplier}</p>
-                        </div>
-                        <span className="font-mono font-semibold text-slate-900 shrink-0">
-                          KES {formatKES(m.quantity * m.unitCost)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
 
-                {/* Operating Inputs & Staffing */}
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-2.5 text-xs">
-                  <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <Users className="h-4 w-4 text-amber-600" />
-                    <h5 className="font-bold uppercase tracking-wider text-slate-700 text-[11px]">
-                      Staffing & Monthly Inputs
-                    </h5>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[10px] text-slate-500 block uppercase font-bold">Staffing:</span>
-                    <div className="divide-y divide-slate-100 rounded border border-slate-200">
-                      {(detailVenture.defaultSpecs.staffing || []).slice(0, 3).map((st, idx) => (
-                        <div key={idx} className="flex items-center justify-between px-2.5 py-1 text-[11px]">
-                          <span className="text-slate-800">{st.count}× {st.position}</span>
-                          <span className="font-mono font-semibold text-slate-700">KES {formatKES(st.monthlySalary)}/mo</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="space-y-1 pt-1">
-                    <span className="text-[10px] text-slate-500 block uppercase font-bold">Key Monthly Inputs:</span>
-                    <div className="divide-y divide-slate-100 rounded border border-slate-200 max-h-24 overflow-y-auto">
-                      {(detailVenture.defaultSpecs.rawMaterials || []).slice(0, 3).map((rm, idx) => (
-                        <div key={idx} className="flex items-center justify-between px-2.5 py-1 text-[11px]">
-                          <span className="text-slate-700 truncate">{rm.material}</span>
-                          <span className="font-mono font-semibold text-slate-700 shrink-0">KES {formatKES(rm.monthlyCost)}/mo</span>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 space-y-0.5">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Target Customers & Catchment</span>
+                    <span className="text-slate-700 block line-clamp-2">
+                      {detailVenture.defaultSpecs.targetCustomersDescription || "Catchment population and institutional buyers"}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* Viva Voce Quick Examiner Notes */}
-              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 space-y-2 text-xs">
-                <div className="flex items-center gap-2">
-                  <FileCheck className="h-4 w-4 text-teal-700" />
-                  <h5 className="font-bold uppercase tracking-wider text-slate-800 text-[11px]">
-                    KNEC Oral Defense (Viva Voce) Moderator Guidance
-                  </h5>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-600 text-[11.5px] leading-relaxed">
-                  <div className="rounded bg-white p-2.5 border border-slate-200/80">
-                    <p className="font-bold text-slate-900">Working Capital Justification</p>
-                    <p className="mt-0.5">Defend that KES {formatKES(detailVenture.defaultSpecs.workingCapitalBuffer || 0)} covers 3 months of raw materials and rent before receipts stabilize.</p>
-                  </div>
-                  <div className="rounded bg-white p-2.5 border border-slate-200/80">
-                    <p className="font-bold text-slate-900">Break-Even & Gross Margin</p>
-                    <p className="mt-0.5">Unit selling price KES {formatKES(detailUnitPrice)} vs direct cost KES {formatKES(detailUnitCost)} yields ~{detailGrossMargin}% gross margin.</p>
-                  </div>
-                </div>
+              {/* Bottom Quick Launch Button */}
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => handleOpenVentureModal(detailVenture)}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-black py-2.5 px-4 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer"
+                >
+                  <span>Select & Launch This Project Area</span>
+                  <ArrowRight className="h-4 w-4 text-teal-400" />
+                </button>
               </div>
             </div>
           </div>

@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Download, Eye, Star, MoreVertical } from "lucide-react";
 import type { Project } from "@/types/database";
-import { getMaterialTypeLabel } from "@/lib/marketplace";
+import { getMaterialTypeLabel, getExactBusinessTitle } from "@/lib/marketplace";
 import { BuyButton } from "@/components/BuyButton";
 import { AmazonPrice } from "@/components/ui/AmazonPrice";
 import { getCanvasPalette } from "@/lib/canvasTheme";
@@ -34,16 +34,8 @@ export function MarketplaceProjectCard({
     ? "Craft Certificate"
     : "Diploma";
 
-  // Clean title for display by stripping repetitive trailing template labels
-  const cleanTitle = project.title
-    .replace(/\s*—\s*Complete KNEC Business Plan.*$/i, "")
-    .replace(/\s*\(Craft Certificate\)|\s*\(Diploma\)/gi, "")
-    .trim();
-
-  // Extract clean business/venture name from title (e.g. "Business Plan for MetabolicCare Dietary Clinic..." -> "MetabolicCare Dietary Clinic...")
-  const businessName = cleanTitle
-    .replace(/^business\s+plan\s+(for|on|of|:|-)?\s*/i, "")
-    .trim() || cleanTitle;
+  // Extract exact business or material title excluding extra information like regions and counties
+  const exactTitle = getExactBusinessTitle(project.title);
 
   const palette = getCanvasPalette(project.id || project.title);
 
@@ -56,13 +48,13 @@ export function MarketplaceProjectCard({
       <Link
         href={`/projects/${project.id}`}
         className="block relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#087f8c]"
-        aria-label={`View ${cleanTitle}`}
+        aria-label={`View ${exactTitle}`}
       >
         {project.cover_path ? (
           <div className="relative h-[200px] sm:h-[215px] w-full overflow-hidden bg-slate-100">
             <Image
               src={`/api/projects/${project.id}/cover`}
-              alt={`${cleanTitle} cover`}
+              alt={`${exactTitle} cover`}
               fill
               unoptimized
               sizes="(max-width: 640px) 220px, 240px"
@@ -90,10 +82,10 @@ export function MarketplaceProjectCard({
               </span>
             </div>
 
-            {/* Center: Business Name (High Contrast Brilliant White) */}
+            {/* Center: Exact Business Name (High Contrast Brilliant White) */}
             <div className="relative z-10 my-auto text-center px-2 py-1">
               <p className="text-[13.5px] sm:text-[14px] font-bold tracking-tight !text-white line-clamp-3 leading-snug drop-shadow-sm font-sans">
-                {businessName}
+                {exactTitle}
               </p>
               {levelLabel && (
                 <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-[8.5px] font-semibold tracking-wider uppercase !text-white border border-white/30 shadow-2xs">
@@ -126,7 +118,7 @@ export function MarketplaceProjectCard({
 
             <div className="relative z-10 my-auto text-center px-2 py-1">
               <p className="text-[13.5px] font-bold tracking-tight !text-white line-clamp-3 leading-snug drop-shadow-sm font-sans">
-                {cleanTitle}
+                {exactTitle}
               </p>
             </div>
 
@@ -180,7 +172,7 @@ export function MarketplaceProjectCard({
           {/* Tiny Title - 2 lines, Amazon E-Commerce Font Styling */}
           <Link href={`/projects/${project.id}`}>
             <h3 className="text-[11.5px] font-medium leading-[1.35] text-[#0f1111] group-hover:text-[#c7511f] line-clamp-2 transition-colors min-h-[31px]">
-              {cleanTitle}
+              {exactTitle}
             </h3>
           </Link>
         </div>

@@ -7,7 +7,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { BuyButton } from "@/components/BuyButton";
 import { AmazonPrice } from "@/components/ui/AmazonPrice";
 import { createClient } from "@/lib/supabase/server";
-import { getMaterialTypeLabel } from "@/lib/marketplace";
+import { getMaterialTypeLabel, getExactBusinessTitle } from "@/lib/marketplace";
 import type { UserProfile } from "@/types/database";
 
 type MarketplaceProductPageProps = { params: Promise<{ id: string }> };
@@ -54,13 +54,7 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
     : product.title.toLowerCase().includes("craft") || product.title.toLowerCase().includes("certificate")
     ? "Craft Certificate"
     : "Diploma";
-  const cleanTitle = product.title
-    .replace(/\s*—\s*Complete KNEC Business Plan.*$/i, "")
-    .replace(/\s*\(Craft Certificate\)|\s*\(Diploma\)/gi, "")
-    .trim();
-  const businessName = cleanTitle
-    .replace(/^business\s+plan\s+(for|on|of|:|-)?\s*/i, "")
-    .trim() || cleanTitle;
+  const exactTitle = getExactBusinessTitle(product.title);
 
   const extension = product.file_path.startsWith("workspace-export:")
     ? "PDF + Word"
@@ -75,7 +69,7 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
           <ChevronRight className="h-3.5 w-3.5 text-slate-300 shrink-0" />
           <Link href="/projects" className="hover:text-slate-900 transition-colors">Marketplace</Link>
           <ChevronRight className="h-3.5 w-3.5 text-slate-300 shrink-0" />
-          <span className="font-semibold text-slate-800 truncate max-w-[240px] sm:max-w-md">{cleanTitle}</span>
+          <span className="font-semibold text-slate-800 truncate max-w-[240px] sm:max-w-md">{exactTitle}</span>
         </nav>
         <Link
           href="/projects"
@@ -108,7 +102,7 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
 
                     <div className="relative z-10 my-auto text-center px-2 py-1">
                       <p className="text-[13.5px] sm:text-[14px] font-bold tracking-tight !text-white line-clamp-3 leading-snug drop-shadow-sm">
-                        {businessName}
+                        {exactTitle}
                       </p>
                       {levelLabel && (
                         <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-[8.5px] font-semibold tracking-wider uppercase !text-white border border-white/30 shadow-2xs">
@@ -133,7 +127,7 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
                     </div>
                     <div className="relative z-10 my-auto text-center px-2 py-1">
                       <p className="text-[13.5px] font-bold tracking-tight !text-white line-clamp-3 leading-snug drop-shadow-sm">
-                        {cleanTitle}
+                        {exactTitle}
                       </p>
                     </div>
                     <div className="relative z-10 flex items-center justify-between text-[8px] font-mono !text-teal-100 px-1 border-t border-white/20 pt-1 font-semibold">
@@ -151,7 +145,7 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
                     <CheckCircle2 className="h-3 w-3" /> In Stock · Instant Download
                   </span>
                 </div>
-                <h1 className="mt-3 text-xl sm:text-2xl font-semibold leading-snug tracking-tight text-[#0f1111]">{product.title}</h1>
+                <h1 className="mt-3 text-xl sm:text-2xl font-semibold leading-snug tracking-tight text-[#0f1111]">{exactTitle}</h1>
                 <p className="mt-1.5 text-xs text-[#565959]">By <span className="text-[#007185] hover:underline cursor-pointer font-medium">{publisherName}</span></p>
                 <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs text-[#565959]">
                   <span className="inline-flex items-center gap-1 font-semibold text-[#0f1111]"><Star className="h-4 w-4 fill-[#ffa41c] text-[#de7921]" />{reviewCount ? average.toFixed(1) : "New"}{reviewCount > 0 && <span className="font-normal text-[#007185] hover:underline">({reviewCount} customer reviews)</span>}</span>
@@ -159,7 +153,7 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
                   <span className="inline-flex items-center gap-1 text-[#565959]"><FileText className="h-3.5 w-3.5 text-slate-400" />{extension}</span>
                 </div>
                 <div className="mt-5 border-t border-slate-100 pt-4">
-                  <h2 className="text-xs font-semibold uppercase tracking-wider text-[#565959]">About this material</h2>
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-[#565959]">Brief description</h2>
                   <div className="mt-2 whitespace-pre-line text-sm leading-6 text-[#0f1111]">{product.description || "A verified digital resource for TVET learners."}</div>
                 </div>
                 <div className="mt-auto flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 pt-4">

@@ -21,6 +21,31 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-11-09] — Refactor: Exact Marketplace Titles, Brief Description Heading & Simplified Studio Details Layout
+
+**Category:** Marketplace UX, Studio Catalog Simplification, Presentation Consistency
+
+**Status:** Completed & Verified
+
+**Changes Implemented:**
+1. **Exact Business & Document Titles across Marketplace**:
+   - Implemented `getExactBusinessTitle()` in [`src/lib/marketplace.ts`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/lib/marketplace.ts) to clean verbose raw titles.
+   - Automatically excludes regional and county suffixes (e.g. `"in Regional, County"`, `"in [Town], [County]"`), leading prefixes (`"Business Plan for"`), and trailing qualification annotations (`"— Complete KNEC Business Plan (Craft Certificate)"` / `"(Diploma)"`).
+   - Applied across [`src/app/projects/MarketplaceProjectCard.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/app/projects/MarketplaceProjectCard.tsx) and [`src/app/projects/[id]/page.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/app/projects/[id]/page.tsx) for breadcrumbs, cover dossiers, card faces, and page headings (e.g. cleanly displaying `"MetabolicCare Dietary Clinic"`).
+2. **Marketplace Detail Section Heading Update**:
+   - Changed section heading in [`src/app/projects/[id]/page.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/app/projects/[id]/page.tsx) from `"About this material"` to **`"Brief description"`**.
+3. **Simplified Studio Details Layout (One Large Image with Text Below & Sideway)**:
+   - Overhauled the project area details view in [`src/components/studio/ProjectAreaCatalog.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/components/studio/ProjectAreaCatalog.tsx) to eliminate cluttered, multi-section tables (purged 2x2 grids, heavy equipment tables, and examiner Q&As).
+   - **Left Column (Visual & Direct Action)**: Large Canvas Course Card visual banner (`h-52 sm:h-60`) with custom jewel-tone palette, Area # badge, exact business title, and Canvas utility icons, accompanied by a prominent `"Select & Launch This Project Area"` CTA button with quick compliance pills.
+   - **Right Column (Concise Exhaustive Text Sideway)**:
+     - **Business Identity Glance**: Exact business name, tagline, Area number, and TVET group.
+     - **The Problem Solved**: Dedicated concise problem narrative card highlighting real-world technical and economic bottlenecks.
+     - **Justification & Market Gap**: Dedicated opportunity and market viability card.
+     - **Commercial & Investment Snapshot**: Clean 4-card matrix displaying Startup Capital range, Unit Economics & Gross Margin %, Primary Offering, and Target Customers/Catchment.
+     - Quick bottom launch button.
+
+---
+
 ## [2026-11-09] — Refactor: Amazon Kindle-Style Accompanied Card Details & Purge of Fake Reviews
 
 **Category:** Project Studio UI, E-Commerce Component Architecture, Content Integrity
