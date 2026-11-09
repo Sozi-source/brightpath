@@ -21,6 +21,57 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-11-09] — Refactor: Amazon Kindle-Style Accompanied Card Details & Purge of Fake Reviews
+
+**Category:** Project Studio UI, E-Commerce Component Architecture, Content Integrity
+
+**Status:** Completed & Verified
+
+**Changes Implemented:**
+1. **Amazon Kindle-Style Card Details Architecture**:
+   - Redesigned the project area details view (`detailVenture` in `ProjectAreaCatalog.tsx`) into an e-commerce split layout inspired by Amazon Kindle book product detail pages.
+   - **Accompanied Card Column (Left, Sticky)**: Renders the Canvas LMS course card alongside the specifications, featuring the jewel-tone cover banner, 3-dots circle action button, category code, bold title, and bottom Canvas utility icons (`FileText`, `Calculator`, `Folder`), paired with a primary launch button and quick attribute checklist (Format: 5-Chapter Dossier, Examination: KNEC Craft/Diploma, Capital Tier, Word & PDF Export, 3-Year Audited Models).
+   - **Concise Product Details Column (Right)**: Clean, non-wordy presentation featuring:
+     - Clear category breadcrumb & enterprise identity.
+     - 6-Metric quick specification strip (Estimated Capital, Unit Selling Price, Unit Direct Cost, Gross Profit Margin %, Planned Monthly Volume, Premises & Rent).
+     - Concise 2-3 sentence overview of the commercial opportunity.
+     - "Included in this KNEC Project Workspace" feature bullet points with checkmarks.
+     - 2x2 clean specifications grid (Product Offering & Target Market Catchment, Financing & Statutory Licensing, Equipment & Tools Table with Kenyan suppliers, Staffing & Monthly Operating Inputs).
+     - Concise Viva Voce Oral Defense preparation guidance (working capital justification, break-even volume, statutory licenses, and 5-year machinery depreciation).
+2. **Complete Purge of Fake Reviews & Mock Ratings**:
+   - Completely deleted `src/components/studio/VentureReviewsSection.tsx` and `src/lib/studio/catalog/ventureReviews.ts`.
+   - Purged all fabricated star ratings (e.g. 4.9 stars), fake candidate names, mock polytechnics, and generated testimonial reviews from the system to preserve authentic data integrity.
+
+---
+
+## [2026-11-09] — Feature: TVET Hub Rebrand, Canvas LMS Course Cards & Pay-to-Export Protection
+
+**Category:** Brand Identity, LMS UI Redesign, Monetization & Document Security
+
+**Status:** Completed & Verified
+
+**Changes Implemented:**
+1. **Rebranding to TVET Hub & Concise Motto**:
+   - Rebranded platform identity across `AppShell.tsx`, page metadata, authentication screens (`login/page.tsx`, `signup/page.tsx`), and home page to **TVET Hub**.
+   - Standardized company slogan to: `Simple · Reliable · Innovative`.
+   - Modernized and flattened `PageHeaderCard.tsx`, purging the multi-color gradient stripe and heavy card borders.
+2. **Instructure Canvas LMS Course Cards on Dashboard**:
+   - Built `src/lib/canvasTheme.ts` with 10 deterministic jewel-tone Canvas palettes (`navy`, `emerald`, `terracotta`, `amethyst`, `teal`, `ruby`, `cyan`, `ochre`, `indigo`, `fuchsia`).
+   - Cleaned the catalog card faces in `ProjectAreaCatalog.tsx` to mirror authentic Canvas LMS course cards: colored cover banner with circular action button, jewel-tone category code, bold title, muted institution/series subtitle, and bottom Canvas utility tray.
+   - Purged long paragraph summaries, capital tier pills, and `EST. CAPITAL` rows from the card grid face.
+3. **Pay-to-Export Workspace Unlock Gate (KES 350 Standard Fee)**:
+   - Enforced pay-to-export verification in `src/app/api/studio/[workspaceId]/export/route.ts` (returns HTTP 402 if locked; system admins exempt).
+   - Enhanced Paystack checkout in `src/app/api/paystack/initialize/route.ts` to support workspace export unlocks (`{ workspaceId }`).
+   - Added payment verification helpers in `src/lib/paystack.ts` and automated webhook unlocks in `src/app/api/paystack/webhook/route.ts`.
+   - Built `UnlockExportModal.tsx` and unlock status banners on the studio workspace dashboard.
+4. **Anti-Copy-Paste & Anti-Print Document Protection**:
+   - Enforced strict copy/cut/paste prevention (`onCopy`, `onCut`, `onContextMenu`) and blocked keyboard shortcuts (`Ctrl+C`, `Ctrl+X`, `Ctrl+A`, `Ctrl+P`) on draft workspaces in `SectionEditor.tsx`.
+   - Added `@media print` rules in `globals.css` and beforeprint listeners to prevent browser Print-to-PDF bypass.
+5. **Admin One-Click Purge of Pending Orders**:
+   - Added `purgePendingOrdersAction` in `src/app/admin/actions.ts` and purge button in `src/app/admin/page.tsx` to automatically purge abandoned pending orders.
+
+---
+
 ## [2026-10-31] — Feature: KNEC Word Export and Student Marketplace Listings
 
 **Category:** Project Studio, Document Export, Marketplace
