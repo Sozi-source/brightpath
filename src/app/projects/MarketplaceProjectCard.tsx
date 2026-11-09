@@ -1,10 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Download, Eye, Star } from "lucide-react";
+import { Download, Eye, Star, MoreVertical } from "lucide-react";
 import type { Project } from "@/types/database";
 import { getMaterialTypeLabel } from "@/lib/marketplace";
 import { BuyButton } from "@/components/BuyButton";
 import { AmazonPrice } from "@/components/ui/AmazonPrice";
+import { getCanvasPalette } from "@/lib/canvasTheme";
 
 export function MarketplaceProjectCard({
   project,
@@ -44,12 +45,14 @@ export function MarketplaceProjectCard({
     .replace(/^business\s+plan\s+(for|on|of|:|-)?\s*/i, "")
     .trim() || cleanTitle;
 
+  const palette = getCanvasPalette(project.id || project.title);
+
   return (
-    <article className={`group flex flex-col justify-between rounded-xl border border-slate-200/90 bg-white shadow-xs hover:border-slate-300 hover:shadow-md transition-all duration-200 overflow-hidden ${className}`}>
+    <article className={`group flex flex-col justify-between rounded-xl border border-slate-200/90 bg-white shadow-xs ${palette.hoverBorder} hover:shadow-md transition-all duration-200 overflow-hidden ${className}`}>
       {/* Top Signature Two-Tone Stripe: Signature Teal Blue (65%) + Kenyan Gold (35%) */}
       <div className="h-1 w-full bg-gradient-to-r from-[#087f8c] via-teal-500 to-amber-400" />
 
-      {/* Card Header / Manuscript Cover View - Industry Standard Height with Premium Teal Aesthetic */}
+      {/* Card Header / Manuscript Cover View - Canvas Style Header */}
       <Link
         href={`/projects/${project.id}`}
         className="block relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#087f8c]"
@@ -67,25 +70,29 @@ export function MarketplaceProjectCard({
             />
           </div>
         ) : isBusinessPlan ? (
-          /* Institutional Universal Business Plan Dossier - Vibrant Premium Teal Blue */
-          <div className="relative h-[200px] sm:h-[215px] w-full overflow-hidden bg-gradient-to-br from-[#0c8ea0] via-[#087f8c] to-[#045963] p-3.5 text-white flex flex-col justify-between select-none shadow-inner">
+          /* Institutional Universal Business Plan Dossier - Canvas Dynamic Jewel Tone Cover */
+          <div className={`relative h-[200px] sm:h-[215px] w-full overflow-hidden bg-gradient-to-br ${palette.bgGradient} p-3.5 text-white flex flex-col justify-between select-none shadow-inner`}>
             {/* Ambient luminous radial highlight */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-200/30 via-transparent to-transparent pointer-events-none" />
-            <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-0 opacity-[0.12] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
 
             {/* Crisp Inner Inset Border */}
-            <div className="absolute inset-2 rounded border border-white/25 pointer-events-none" />
+            <div className="absolute inset-2 rounded border border-white/20 pointer-events-none" />
 
-            {/* Top Central: Business Plan Label */}
-            <div className="relative z-10 text-center pt-1">
-              <span className="inline-block text-[9.5px] font-bold tracking-[0.24em] uppercase !text-amber-300 drop-shadow-xs border-b border-amber-300/40 pb-0.5">
+            {/* Top Bar on Cover: Business Plan Label + Canvas Floating 3-Dot Action Button */}
+            <div className="relative z-10 flex items-center justify-between">
+              <span className="inline-block text-[9px] font-bold tracking-[0.2em] uppercase text-white/90 drop-shadow-xs border-b border-white/30 pb-0.5">
                 BUSINESS PLAN
+              </span>
+
+              <span className={`h-6 w-6 rounded-full ${palette.circleMenuBg} flex items-center justify-center shadow-xs text-white border border-white/20`}>
+                <MoreVertical className="h-3.5 w-3.5" />
               </span>
             </div>
 
             {/* Center: Business Name (High Contrast Brilliant White) */}
-            <div className="relative z-10 my-auto text-center px-2.5 py-1">
-              <p className="text-[13.5px] sm:text-[14px] font-bold tracking-tight !text-white line-clamp-3 leading-snug drop-shadow-sm">
+            <div className="relative z-10 my-auto text-center px-2 py-1">
+              <p className="text-[13.5px] sm:text-[14px] font-bold tracking-tight !text-white line-clamp-3 leading-snug drop-shadow-sm font-sans">
                 {businessName}
               </p>
               {levelLabel && (
@@ -96,27 +103,34 @@ export function MarketplaceProjectCard({
             </div>
 
             {/* Bottom: Minimalist Hairline Specs */}
-            <div className="relative z-10 flex items-center justify-between text-[8px] font-mono !text-teal-100 px-1 border-t border-white/20 pt-1 font-semibold">
+            <div className="relative z-10 flex items-center justify-between text-[8px] font-mono !text-white/80 px-1 border-t border-white/20 pt-1 font-semibold">
               <span className="tracking-wider uppercase">KNEC Series</span>
               <span className="tracking-widest uppercase">Verified</span>
             </div>
           </div>
         ) : (
-          /* General Institutional Learning Material Cover - Vibrant Teal Theme */
-          <div className="relative h-[200px] sm:h-[215px] w-full overflow-hidden bg-gradient-to-br from-[#0284c7] via-[#087f8c] to-[#0f766e] p-3.5 text-white flex flex-col justify-between select-none shadow-inner">
-            <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
-            <div className="absolute inset-2 rounded border border-white/25 pointer-events-none" />
-            <div className="relative z-10 text-center pt-1">
-              <span className="inline-block text-[9.5px] font-bold tracking-[0.22em] uppercase !text-amber-300 drop-shadow-xs border-b border-amber-300/40 pb-0.5">
+          /* General Institutional Learning Material Cover - Canvas Theme */
+          <div className={`relative h-[200px] sm:h-[215px] w-full overflow-hidden bg-gradient-to-br ${palette.bgGradient} p-3.5 text-white flex flex-col justify-between select-none shadow-inner`}>
+            <div className="absolute inset-0 opacity-[0.12] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
+            <div className="absolute inset-2 rounded border border-white/20 pointer-events-none" />
+
+            <div className="relative z-10 flex items-center justify-between">
+              <span className="inline-block text-[9px] font-bold tracking-[0.2em] uppercase text-white/90 drop-shadow-xs border-b border-white/30 pb-0.5">
                 {getMaterialTypeLabel(project.material_type).toUpperCase()}
               </span>
+
+              <span className={`h-6 w-6 rounded-full ${palette.circleMenuBg} flex items-center justify-center shadow-xs text-white border border-white/20`}>
+                <MoreVertical className="h-3.5 w-3.5" />
+              </span>
             </div>
-            <div className="relative z-10 my-auto text-center px-2.5 py-1">
-              <p className="text-[13.5px] font-bold tracking-tight !text-white line-clamp-3 leading-snug drop-shadow-sm">
+
+            <div className="relative z-10 my-auto text-center px-2 py-1">
+              <p className="text-[13.5px] font-bold tracking-tight !text-white line-clamp-3 leading-snug drop-shadow-sm font-sans">
                 {cleanTitle}
               </p>
             </div>
-            <div className="relative z-10 flex items-center justify-between text-[8px] font-mono !text-teal-100 px-1 border-t border-white/20 pt-1 font-semibold">
+
+            <div className="relative z-10 flex items-center justify-between text-[8px] font-mono !text-white/80 px-1 border-t border-white/20 pt-1 font-semibold">
               <span className="tracking-wider uppercase">Learning Resource</span>
               <span className="tracking-widest uppercase">PDF</span>
             </div>
@@ -130,12 +144,15 @@ export function MarketplaceProjectCard({
         )}
       </Link>
 
-      {/* Card Body - Tiny, Clean Text Beneath 3/4 Image */}
+      {/* Card Body */}
       <div className="p-2.5 flex flex-col flex-1 justify-between font-sans">
         <div>
           {/* Metadata Row: Category & Metrics */}
           <div className="flex items-center justify-between gap-1.5 mb-1">
-            <span className="inline-flex items-center text-[9px] font-semibold uppercase tracking-wider text-[#007185] bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100/80 truncate max-w-[140px]">
+            <span
+              style={{ color: palette.accentHex }}
+              className="inline-flex items-center text-[9px] font-bold uppercase tracking-wider bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/80 truncate max-w-[140px]"
+            >
               {isBusinessPlan ? "Business Plan" : project.category || getMaterialTypeLabel(project.material_type)}
             </span>
 

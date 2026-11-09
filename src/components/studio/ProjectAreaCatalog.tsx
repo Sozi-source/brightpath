@@ -27,9 +27,14 @@ import {
   GraduationCap,
   ClipboardCheck,
   PawPrint,
+  MoreVertical,
+  Folder,
+  FileText,
+  Calculator,
 } from "lucide-react";
 import { NUTRITION_VENTURES, type NutritionVentureDefinition } from "@/lib/studio/catalog/nutritionVentures";
 import { createWorkspace } from "@/app/studio/actions";
+import { getCanvasPalette } from "@/lib/canvasTheme";
 
 interface ProjectAreaCatalogProps {
   candidateName?: string;
@@ -290,7 +295,7 @@ export function ProjectAreaCatalog({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
               {filteredVentures.map((venture) => {
                 const capitalBadgeColor =
                   venture.capitalTier === "Low"
@@ -300,74 +305,111 @@ export function ProjectAreaCatalog({
                     : "bg-rose-50 text-rose-700 border-rose-200";
                 const visual = GROUP_VISUALS[venture.group];
                 const CategoryIcon = visual.Icon;
+                const palette = getCanvasPalette(venture.id || venture.number);
 
                 return (
                   <article
                     key={venture.id}
-                    className="bp-card group flex min-w-0 flex-col justify-between p-4 sm:p-5 transition-all duration-200 hover:shadow-md hover:border-teal-200"
+                    className={`group flex min-w-0 flex-col justify-between rounded-lg border border-slate-200/90 bg-white shadow-2xs hover:shadow-md transition-all duration-200 overflow-hidden ${palette.hoverBorder}`}
                   >
                     <div>
-                      {/* Top Category Tag + Capital Pill */}
-                      <div className="mb-3 flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border ${visual.tile} ${visual.accent}`}>
-                            <CategoryIcon className="h-4 w-4" aria-hidden="true" />
+                      {/* 1. Canvas Signature Top Cover Banner (Dynamic Color Block) */}
+                      <div
+                        className={`relative h-32 sm:h-36 w-full bg-gradient-to-br ${palette.bgGradient} p-3.5 flex flex-col justify-between overflow-hidden cursor-pointer select-none`}
+                        onClick={() => setDetailVenture(venture)}
+                      >
+                        {/* Canvas Grid Dot Mesh Watermark */}
+                        <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px]" />
+
+                        {/* Top Ribbon on Banner: Area Number + Canvas 3-Dots Action Button */}
+                        <div className="relative z-10 flex items-center justify-between gap-2">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/25 backdrop-blur-xs text-[10px] font-bold text-white tracking-wider uppercase border border-white/20">
+                            <CategoryIcon className="h-3 w-3" />
+                            <span>Area #{venture.number}</span>
                           </span>
-                          <span className="text-[11px] font-semibold text-slate-600 truncate">
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDetailVenture(venture);
+                            }}
+                            title="View Course Details"
+                            className={`h-7 w-7 rounded-full ${palette.circleMenuBg} flex items-center justify-center shadow-xs hover:scale-105 transition-transform cursor-pointer border border-white/25`}
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </button>
+                        </div>
+
+                        {/* Bottom Tag on Banner */}
+                        <div className="relative z-10">
+                          <span className="text-[11px] font-bold tracking-wider uppercase text-white/90 drop-shadow-xs block">
                             {venture.groupName}
                           </span>
                         </div>
-                        <span className={`inline-flex shrink-0 items-center rounded-md border px-2 py-0.5 text-[10px] font-semibold ${capitalBadgeColor}`}>
-                          {venture.capitalTier} Capital
-                        </span>
                       </div>
 
-                      {/* Editorial Serif Heading */}
-                      <h4
-                        onClick={() => setDetailVenture(venture)}
-                        className="font-serif text-[15px] sm:text-base font-bold leading-snug text-slate-900 group-hover:text-[#087f8c] transition-colors cursor-pointer line-clamp-2"
-                      >
-                        {venture.title}
-                      </h4>
-
-                      <p className="mt-2 text-xs leading-relaxed text-slate-600 line-clamp-2 min-h-[2.25rem]">
-                        {venture.summary}
-                      </p>
-
-                      {/* Minimalist Unboxed Financial Metric */}
-                      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-                        <div>
-                          <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400 block">
-                            Est. Startup Capital
+                      {/* 2. Canvas Course Card Body */}
+                      <div className="p-4 space-y-2">
+                        {/* Colored Course / Category Code (Canvas Signature) */}
+                        <div className="flex items-center justify-between gap-2">
+                          <span
+                            style={{ color: palette.accentHex }}
+                            className="font-bold text-[11px] uppercase tracking-wider truncate"
+                          >
+                            KNEC {level === "craft" ? "CRAFT" : "DIPLOMA"} · {venture.archetype.replace("_", " ")}
                           </span>
-                          <span className="font-mono text-xs font-bold text-slate-900 block mt-0.5">
-                            KES {formatKES(venture.estimatedCapitalKES.min)} – {formatKES(venture.estimatedCapitalKES.max)}
+
+                          <span className={`inline-flex shrink-0 items-center rounded-md border px-1.5 py-0.5 text-[9px] font-semibold ${capitalBadgeColor}`}>
+                            {venture.capitalTier}
                           </span>
                         </div>
 
-                        <span className="text-[11px] text-slate-500 capitalize">
-                          {venture.archetype.replace("_", " ")}
-                        </span>
+                        {/* Course Title */}
+                        <h4
+                          onClick={() => setDetailVenture(venture)}
+                          className="font-bold text-sm sm:text-[15px] leading-snug text-slate-900 group-hover:underline transition-colors cursor-pointer line-clamp-2"
+                        >
+                          {venture.title}
+                        </h4>
+
+                        <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 min-h-[2rem]">
+                          {venture.summary}
+                        </p>
+
+                        {/* Minimalist Metric Strip */}
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                          <span className="text-[10px] uppercase font-medium text-slate-400">
+                            Est. Capital:
+                          </span>
+                          <span className="font-mono text-xs font-bold text-slate-900">
+                            KES {formatKES(venture.estimatedCapitalKES.min)} – {formatKES(venture.estimatedCapitalKES.max)}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Single Confident Action Button & Details Link */}
-                    <div className="mt-4 space-y-1.5 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenVentureModal(venture)}
-                        className="bp-btn-primary w-full inline-flex min-h-9 items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-semibold shadow-2xs cursor-pointer"
-                      >
-                        <span>Select Concept</span>
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </button>
+                    {/* 3. Canvas Bottom Utility Tray (Announcements / Files / Launch) */}
+                    <div className="border-t border-slate-100 bg-slate-50/70 px-4 py-2.5 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 text-slate-400">
+                        <span title="KNEC Word (.docx) & PDF Manuscript" className="hover:text-slate-600 cursor-pointer transition-colors">
+                          <FileText className="h-4 w-4" />
+                        </span>
+                        <span title="Financial Schedules & Math" className="hover:text-slate-600 cursor-pointer transition-colors">
+                          <Calculator className="h-4 w-4" />
+                        </span>
+                        <span title="KNEC Examination Syllabus" className="hover:text-slate-600 cursor-pointer transition-colors">
+                          <Folder className="h-4 w-4" />
+                        </span>
+                      </div>
 
                       <button
                         type="button"
-                        onClick={() => setDetailVenture(venture)}
-                        className="w-full text-center text-[11px] font-medium text-slate-400 hover:text-[#087f8c] transition-colors cursor-pointer py-0.5"
+                        onClick={() => handleOpenVentureModal(venture)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold bg-[#087f8c] hover:bg-[#076c77] text-white shadow-2xs transition-colors cursor-pointer"
                       >
-                        View specifications &rarr;
+                        <span>Select Area</span>
+                        <ArrowRight className="h-3 w-3" />
                       </button>
                     </div>
                   </article>
