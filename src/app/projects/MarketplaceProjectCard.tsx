@@ -67,56 +67,56 @@ export function MarketplaceProjectCard({
             />
           </div>
         ) : isBusinessPlan ? (
-          /* Institutional Universal Business Plan Dossier - Premium Minimalist Teal Theme */
-          <div className="relative h-[200px] sm:h-[215px] w-full overflow-hidden bg-gradient-to-b from-[#064e5b] via-[#093a42] to-[#041e24] p-3.5 text-white flex flex-col justify-between select-none">
-            {/* Subtle ambient radial light & micro-grid pattern */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-400/20 via-transparent to-transparent pointer-events-none" />
-            <div className="absolute inset-0 opacity-[0.05] bg-[radial-gradient(#2dd4bf_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
+          /* Institutional Universal Business Plan Dossier - Vibrant Premium Teal Blue */
+          <div className="relative h-[200px] sm:h-[215px] w-full overflow-hidden bg-gradient-to-br from-[#0c8ea0] via-[#087f8c] to-[#045963] p-3.5 text-white flex flex-col justify-between select-none shadow-inner">
+            {/* Ambient luminous radial highlight */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-200/30 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
 
-            {/* Elegant Inner Inset Hairline Border */}
-            <div className="absolute inset-2 rounded border border-teal-400/15 pointer-events-none" />
+            {/* Crisp Inner Inset Border */}
+            <div className="absolute inset-2 rounded border border-white/25 pointer-events-none" />
 
-            {/* Top Central: Business Plan Name */}
+            {/* Top Central: Business Plan Label */}
             <div className="relative z-10 text-center pt-1">
-              <span className="inline-block text-[9px] font-semibold tracking-[0.24em] uppercase text-teal-200/90 border-b border-teal-400/30 pb-0.5">
+              <span className="inline-block text-[9.5px] font-bold tracking-[0.24em] uppercase !text-amber-300 drop-shadow-xs border-b border-amber-300/40 pb-0.5">
                 BUSINESS PLAN
               </span>
             </div>
 
-            {/* Center: Business Name (Clean & Minimalist Typography) */}
-            <div className="relative z-10 my-auto text-center px-2 py-1">
-              <h4 className="text-[13px] sm:text-[13.5px] font-semibold tracking-tight text-white line-clamp-3 leading-snug drop-shadow-xs">
+            {/* Center: Business Name (High Contrast Brilliant White) */}
+            <div className="relative z-10 my-auto text-center px-2.5 py-1">
+              <p className="text-[13.5px] sm:text-[14px] font-bold tracking-tight !text-white line-clamp-3 leading-snug drop-shadow-sm">
                 {businessName}
-              </h4>
+              </p>
               {levelLabel && (
-                <span className="inline-block mt-1 text-[8.5px] font-medium tracking-widest uppercase text-teal-300/80">
+                <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-[8.5px] font-semibold tracking-wider uppercase !text-white border border-white/30 shadow-2xs">
                   {levelLabel}
                 </span>
               )}
             </div>
 
             {/* Bottom: Minimalist Hairline Specs */}
-            <div className="relative z-10 flex items-center justify-between text-[8px] font-mono text-teal-200/50 px-1 border-t border-teal-500/15 pt-1">
+            <div className="relative z-10 flex items-center justify-between text-[8px] font-mono !text-teal-100 px-1 border-t border-white/20 pt-1 font-semibold">
               <span className="tracking-wider uppercase">KNEC Series</span>
               <span className="tracking-widest uppercase">Verified</span>
             </div>
           </div>
         ) : (
-          /* General Institutional Learning Material Cover - Teal Minimalist Theme */
-          <div className="relative h-[200px] sm:h-[215px] w-full overflow-hidden bg-gradient-to-br from-teal-950 via-slate-900 to-teal-900 p-3.5 text-white flex flex-col justify-between select-none">
-            <div className="absolute inset-0 opacity-[0.05] bg-[radial-gradient(#2dd4bf_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
-            <div className="absolute inset-2 rounded border border-teal-400/15 pointer-events-none" />
+          /* General Institutional Learning Material Cover - Vibrant Teal Theme */
+          <div className="relative h-[200px] sm:h-[215px] w-full overflow-hidden bg-gradient-to-br from-[#0284c7] via-[#087f8c] to-[#0f766e] p-3.5 text-white flex flex-col justify-between select-none shadow-inner">
+            <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
+            <div className="absolute inset-2 rounded border border-white/25 pointer-events-none" />
             <div className="relative z-10 text-center pt-1">
-              <span className="inline-block text-[9px] font-semibold tracking-[0.22em] uppercase text-teal-200/90 border-b border-teal-400/30 pb-0.5">
+              <span className="inline-block text-[9.5px] font-bold tracking-[0.22em] uppercase !text-amber-300 drop-shadow-xs border-b border-amber-300/40 pb-0.5">
                 {getMaterialTypeLabel(project.material_type).toUpperCase()}
               </span>
             </div>
-            <div className="relative z-10 my-auto text-center px-2 py-1">
-              <h4 className="text-[13px] font-semibold tracking-tight text-white line-clamp-3 leading-snug">
+            <div className="relative z-10 my-auto text-center px-2.5 py-1">
+              <p className="text-[13.5px] font-bold tracking-tight !text-white line-clamp-3 leading-snug drop-shadow-sm">
                 {cleanTitle}
-              </h4>
+              </p>
             </div>
-            <div className="relative z-10 flex items-center justify-between text-[8px] font-mono text-teal-200/50 px-1 border-t border-teal-500/15 pt-1">
+            <div className="relative z-10 flex items-center justify-between text-[8px] font-mono !text-teal-100 px-1 border-t border-white/20 pt-1 font-semibold">
               <span className="tracking-wider uppercase">Learning Resource</span>
               <span className="tracking-widest uppercase">PDF</span>
             </div>

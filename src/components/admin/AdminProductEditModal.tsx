@@ -298,22 +298,22 @@ export function AdminProductEditModal({
                       </span>
                     </div>
                   ) : (
-                    /* Default Authentic KNEC Dossier Cover - Teal Minimalist Theme */
-                    <div className="relative h-full w-full bg-gradient-to-b from-[#064e5b] via-[#093a42] to-[#041e24] p-3 text-white flex flex-col justify-between select-none">
-                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-400/20 via-transparent to-transparent pointer-events-none" />
-                      <div className="absolute inset-0 opacity-[0.05] bg-[radial-gradient(#2dd4bf_1px,transparent_1px)] [background-size:8px_8px] pointer-events-none" />
-                      <div className="absolute inset-1.5 rounded border border-teal-400/15 pointer-events-none" />
+                    /* Default Authentic KNEC Dossier Cover - Vibrant Teal Blue Theme */
+                    <div className="relative h-full w-full bg-gradient-to-br from-[#0c8ea0] via-[#087f8c] to-[#045963] p-3 text-white flex flex-col justify-between select-none shadow-inner">
+                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-200/30 via-transparent to-transparent pointer-events-none" />
+                      <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:8px_8px] pointer-events-none" />
+                      <div className="absolute inset-1.5 rounded border border-white/25 pointer-events-none" />
                       <div className="relative z-10 text-center pt-0.5">
-                        <span className="inline-block text-[8px] font-semibold tracking-[0.2em] uppercase text-teal-200/90 border-b border-teal-400/30 pb-0.5">
+                        <span className="inline-block text-[8px] font-bold tracking-[0.2em] uppercase !text-amber-300 drop-shadow-xs border-b border-amber-300/40 pb-0.5">
                           BUSINESS PLAN
                         </span>
                       </div>
                       <div className="relative z-10 my-auto text-center px-1">
-                        <div className="text-[10px] font-semibold text-white line-clamp-3 leading-snug">
+                        <p className="text-[10px] font-bold !text-white line-clamp-3 leading-snug drop-shadow-sm">
                           {(title || "Business Plan").replace(/^business\s+plan\s+(for|on|of|:|-)?\s*/i, "").trim() || title || "Business Plan"}
-                        </div>
+                        </p>
                       </div>
-                      <div className="relative z-10 border-t border-teal-500/15 pt-1 flex items-center justify-between text-[7.5px] text-teal-200/50 font-mono px-0.5">
+                      <div className="relative z-10 border-t border-white/20 pt-1 flex items-center justify-between text-[7.5px] !text-teal-100 font-mono px-0.5 font-semibold">
                         <span>KNEC SERIES</span>
                         <span>VERIFIED</span>
                       </div>

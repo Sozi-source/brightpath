@@ -133,10 +133,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1,h2,h3,h4,h5,h6 {
-  letter-spacing: -0.015em;
-  color: var(--amazon-black);
-  font-family: var(--font-sans);
+@layer base {
+  h1,h2,h3,h4,h5,h6 {
+    letter-spacing: -0.015em;
+    color: var(--amazon-black);
+    font-family: var(--font-sans);
+  }
 }
 
 ::selection { background: #ccebed; color: #103c45; }
