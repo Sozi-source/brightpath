@@ -156,7 +156,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                       project={project}
                       viewerId={user?.id}
                       rating={ratingByProject.get(project.id)}
-                      className="w-[280px] shrink-0"
+                      className="w-[224px] sm:w-[232px] shrink-0"
                     />
                   ))}
                 </div>

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Download, Eye, Star, FileText, CheckCircle2, BookOpen } from "lucide-react";
+import { Download, Eye, Star } from "lucide-react";
 import type { Project } from "@/types/database";
 import { getMaterialTypeLabel } from "@/lib/marketplace";
 import { BuyButton } from "@/components/BuyButton";
@@ -10,7 +10,7 @@ export function MarketplaceProjectCard({
   project,
   viewerId,
   rating,
-  className = "w-[280px] shrink-0",
+  className = "w-[224px] sm:w-[232px] shrink-0",
 }: {
   project: Project;
   viewerId?: string;
@@ -39,78 +39,87 @@ export function MarketplaceProjectCard({
     .replace(/\s*\(Craft Certificate\)|\s*\(Diploma\)/gi, "")
     .trim();
 
+  // Extract clean business/venture name from title (e.g. "Business Plan for MetabolicCare Dietary Clinic..." -> "MetabolicCare Dietary Clinic...")
+  const businessName = cleanTitle
+    .replace(/^business\s+plan\s+(for|on|of|:|-)?\s*/i, "")
+    .trim() || cleanTitle;
+
   return (
     <article className={`group flex flex-col justify-between rounded-xl border border-slate-200/90 bg-white shadow-xs hover:border-slate-300 hover:shadow-md transition-all duration-200 overflow-hidden ${className}`}>
-      {/* Top Signature Two-Tone Stripe: Signature Blue (60%) + Kenyan Gold (40%) */}
-      <div className="h-1 w-full bg-gradient-to-r from-indigo-600 via-indigo-600 to-amber-400" />
+      {/* Top Signature Two-Tone Stripe: Signature Teal Blue (65%) + Kenyan Gold (35%) */}
+      <div className="h-1 w-full bg-gradient-to-r from-[#087f8c] via-teal-500 to-amber-400" />
 
-      {/* Card Header / Manuscript Cover View - 3/4 Portrait Ratio to Maximize Cover Visibility */}
+      {/* Card Header / Manuscript Cover View - Industry Standard Height with Premium Teal Aesthetic */}
       <Link
         href={`/projects/${project.id}`}
-        className="block relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+        className="block relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#087f8c]"
         aria-label={`View ${cleanTitle}`}
       >
         {project.cover_path ? (
-          <div className="relative aspect-[3/4] overflow-hidden bg-slate-100">
+          <div className="relative h-[200px] sm:h-[215px] w-full overflow-hidden bg-slate-100">
             <Image
               src={`/api/projects/${project.id}/cover`}
               alt={`${cleanTitle} cover`}
               fill
               unoptimized
-              sizes="280px"
+              sizes="(max-width: 640px) 220px, 240px"
               className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
             />
           </div>
         ) : isBusinessPlan ? (
-          /* Institutional KNEC Business Plan Manuscript Dossier Presentation */
-          <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-4 text-white flex flex-col justify-between select-none">
-            {/* Subtle background security pattern */}
-            <div className="absolute inset-0 opacity-[0.07] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
+          /* Institutional Universal Business Plan Dossier - Premium Minimalist Teal Theme */
+          <div className="relative h-[200px] sm:h-[215px] w-full overflow-hidden bg-gradient-to-b from-[#064e5b] via-[#093a42] to-[#041e24] p-3.5 text-white flex flex-col justify-between select-none">
+            {/* Subtle ambient radial light & micro-grid pattern */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-400/20 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-0 opacity-[0.05] bg-[radial-gradient(#2dd4bf_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
 
-            {/* Top Cover Bar */}
-            <div className="relative z-10 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-                <span className="text-[9px] font-semibold tracking-wider uppercase text-slate-300">KNEC SERIES</span>
-              </div>
-              <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-white/10 backdrop-blur-xs text-amber-300 border border-amber-400/30">
-                {levelLabel}
+            {/* Elegant Inner Inset Hairline Border */}
+            <div className="absolute inset-2 rounded border border-teal-400/15 pointer-events-none" />
+
+            {/* Top Central: Business Plan Name */}
+            <div className="relative z-10 text-center pt-1">
+              <span className="inline-block text-[9px] font-semibold tracking-[0.24em] uppercase text-teal-200/90 border-b border-teal-400/30 pb-0.5">
+                BUSINESS PLAN
               </span>
             </div>
 
-            {/* Center Cover Monogram & Folio Title */}
-            <div className="relative z-10 my-auto text-center px-2 py-2">
-              <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 border border-white/20 mb-2 shadow-xs backdrop-blur-xs">
-                <FileText className="h-5 w-5 text-amber-300" />
-              </div>
-              <div className="text-xs font-semibold tracking-tight text-white line-clamp-3 leading-snug">
-                {cleanTitle}
-              </div>
-              <div className="text-[9px] text-slate-300 font-mono mt-1 uppercase tracking-wider">
-                Assessment Project Dossier
-              </div>
+            {/* Center: Business Name (Clean & Minimalist Typography) */}
+            <div className="relative z-10 my-auto text-center px-2 py-1">
+              <h4 className="text-[13px] sm:text-[13.5px] font-semibold tracking-tight text-white line-clamp-3 leading-snug drop-shadow-xs">
+                {businessName}
+              </h4>
+              {levelLabel && (
+                <span className="inline-block mt-1 text-[8.5px] font-medium tracking-widest uppercase text-teal-300/80">
+                  {levelLabel}
+                </span>
+              )}
             </div>
 
-            {/* Bottom Cover Specs Bar */}
-            <div className="relative z-10 flex items-center justify-between text-[9px] text-slate-300 border-t border-white/10 pt-2">
-              <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
-                <CheckCircle2 className="h-3 w-3" /> 47 KNEC Sections
-              </span>
-              <div className="flex items-center gap-1 font-mono text-[8.5px] text-slate-300">
-                <span className="rounded bg-white/10 px-1.5 py-0.5 border border-white/10">PDF</span>
-                <span className="rounded bg-white/10 px-1.5 py-0.5 border border-white/10">DOCX</span>
-              </div>
+            {/* Bottom: Minimalist Hairline Specs */}
+            <div className="relative z-10 flex items-center justify-between text-[8px] font-mono text-teal-200/50 px-1 border-t border-teal-500/15 pt-1">
+              <span className="tracking-wider uppercase">KNEC Series</span>
+              <span className="tracking-widest uppercase">Verified</span>
             </div>
           </div>
         ) : (
-          /* General Institutional Learning Material Cover */
-          <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-blue-50 via-white to-slate-100 p-4 text-slate-900 flex flex-col items-center justify-center gap-2 text-center border-b border-slate-200/80">
-            <span className="rounded-xl bg-blue-100 p-2.5 text-blue-700 shadow-2xs">
-              <BookOpen className="h-6 w-6" />
-            </span>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600">
-              {getMaterialTypeLabel(project.material_type)}
-            </span>
+          /* General Institutional Learning Material Cover - Teal Minimalist Theme */
+          <div className="relative h-[200px] sm:h-[215px] w-full overflow-hidden bg-gradient-to-br from-teal-950 via-slate-900 to-teal-900 p-3.5 text-white flex flex-col justify-between select-none">
+            <div className="absolute inset-0 opacity-[0.05] bg-[radial-gradient(#2dd4bf_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
+            <div className="absolute inset-2 rounded border border-teal-400/15 pointer-events-none" />
+            <div className="relative z-10 text-center pt-1">
+              <span className="inline-block text-[9px] font-semibold tracking-[0.22em] uppercase text-teal-200/90 border-b border-teal-400/30 pb-0.5">
+                {getMaterialTypeLabel(project.material_type).toUpperCase()}
+              </span>
+            </div>
+            <div className="relative z-10 my-auto text-center px-2 py-1">
+              <h4 className="text-[13px] font-semibold tracking-tight text-white line-clamp-3 leading-snug">
+                {cleanTitle}
+              </h4>
+            </div>
+            <div className="relative z-10 flex items-center justify-between text-[8px] font-mono text-teal-200/50 px-1 border-t border-teal-500/15 pt-1">
+              <span className="tracking-wider uppercase">Learning Resource</span>
+              <span className="tracking-widest uppercase">PDF</span>
+            </div>
           </div>
         )}
 

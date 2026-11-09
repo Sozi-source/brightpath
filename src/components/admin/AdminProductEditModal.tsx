@@ -14,7 +14,6 @@ import {
   AlertCircle,
   Loader2,
   Sparkles,
-  FileText,
   RotateCcw,
 } from "lucide-react";
 import type { Project, ContentStatus } from "@/types/database";
@@ -299,23 +298,24 @@ export function AdminProductEditModal({
                       </span>
                     </div>
                   ) : (
-                    /* Default Authentic KNEC Dossier Cover */
-                    <div className="relative h-full w-full bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-3 text-white flex flex-col justify-between select-none">
-                      <div className="absolute inset-0 opacity-[0.08] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:8px_8px] pointer-events-none" />
-                      <div className="relative z-10 flex items-center justify-between text-[8px] uppercase tracking-wider text-slate-300">
-                        <span className="font-semibold text-amber-300">KNEC SERIES</span>
-                        <span className="rounded bg-white/10 px-1 py-0.5">Dossier</span>
+                    /* Default Authentic KNEC Dossier Cover - Teal Minimalist Theme */
+                    <div className="relative h-full w-full bg-gradient-to-b from-[#064e5b] via-[#093a42] to-[#041e24] p-3 text-white flex flex-col justify-between select-none">
+                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-400/20 via-transparent to-transparent pointer-events-none" />
+                      <div className="absolute inset-0 opacity-[0.05] bg-[radial-gradient(#2dd4bf_1px,transparent_1px)] [background-size:8px_8px] pointer-events-none" />
+                      <div className="absolute inset-1.5 rounded border border-teal-400/15 pointer-events-none" />
+                      <div className="relative z-10 text-center pt-0.5">
+                        <span className="inline-block text-[8px] font-semibold tracking-[0.2em] uppercase text-teal-200/90 border-b border-teal-400/30 pb-0.5">
+                          BUSINESS PLAN
+                        </span>
                       </div>
-                      <div className="relative z-10 text-center px-1">
-                        <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 mb-1 border border-white/20">
-                          <FileText className="h-4 w-4 text-amber-300" />
-                        </div>
-                        <div className="text-[10px] font-semibold text-white line-clamp-2 leading-tight">
-                          {title || "Assessment Dossier"}
+                      <div className="relative z-10 my-auto text-center px-1">
+                        <div className="text-[10px] font-semibold text-white line-clamp-3 leading-snug">
+                          {(title || "Business Plan").replace(/^business\s+plan\s+(for|on|of|:|-)?\s*/i, "").trim() || title || "Business Plan"}
                         </div>
                       </div>
-                      <div className="relative z-10 border-t border-white/10 pt-1 text-center text-[8px] text-slate-300 font-mono">
-                        Standard KNEC Format
+                      <div className="relative z-10 border-t border-teal-500/15 pt-1 flex items-center justify-between text-[7.5px] text-teal-200/50 font-mono px-0.5">
+                        <span>KNEC SERIES</span>
+                        <span>VERIFIED</span>
                       </div>
                     </div>
                   )}

@@ -58,6 +58,9 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
     .replace(/\s*—\s*Complete KNEC Business Plan.*$/i, "")
     .replace(/\s*\(Craft Certificate\)|\s*\(Diploma\)/gi, "")
     .trim();
+  const businessName = cleanTitle
+    .replace(/^business\s+plan\s+(for|on|of|:|-)?\s*/i, "")
+    .trim() || cleanTitle;
 
   const extension = product.file_path.startsWith("workspace-export:")
     ? "PDF + Word"
@@ -86,48 +89,57 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <main className="space-y-5">
           <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
-            <div className="h-1 bg-gradient-to-r from-indigo-600 via-indigo-600 to-amber-400" />
+            <div className="h-1 bg-gradient-to-r from-[#087f8c] via-teal-500 to-amber-400" />
             <div className="grid gap-5 p-5 md:grid-cols-[210px_1fr]">
-              <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950">
+              <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-teal-500/20 bg-gradient-to-b from-[#064e5b] via-[#093a42] to-[#041e24]">
                 {product.cover_path ? (
                   <Image src={`/api/projects/${product.id}/cover`} alt={`${product.title} cover`} fill unoptimized sizes="210px" className="object-cover" />
                 ) : isBusinessPlan ? (
-                  <div className="relative h-full w-full overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-4 text-white flex flex-col justify-between select-none">
-                    <div className="absolute inset-0 opacity-[0.08] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
-                    <div className="relative z-10 flex items-center justify-between gap-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
-                        <span className="text-[9px] font-bold tracking-widest uppercase text-slate-300">KNEC SERIES</span>
-                      </div>
-                      <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-white/10 text-amber-300 border border-amber-400/30">
-                        {levelLabel}
+                  <div className="relative h-full w-full overflow-hidden bg-gradient-to-b from-[#064e5b] via-[#093a42] to-[#041e24] p-4 text-white flex flex-col justify-between select-none">
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-400/20 via-transparent to-transparent pointer-events-none" />
+                    <div className="absolute inset-0 opacity-[0.05] bg-[radial-gradient(#2dd4bf_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
+                    <div className="absolute inset-2 rounded border border-teal-400/15 pointer-events-none" />
+
+                    <div className="relative z-10 text-center pt-1">
+                      <span className="inline-block text-[9px] font-semibold tracking-[0.24em] uppercase text-teal-200/90 border-b border-teal-400/30 pb-0.5">
+                        BUSINESS PLAN
                       </span>
                     </div>
-                    <div className="relative z-10 my-auto text-center px-1">
-                      <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 border border-white/20 mb-2 shadow-xs backdrop-blur-xs">
-                        <FileText className="h-5 w-5 text-amber-300" />
-                      </div>
-                      <div className="text-xs font-semibold tracking-tight text-white line-clamp-3 leading-snug">
-                        {cleanTitle}
-                      </div>
-                      <div className="text-[9px] text-slate-300 font-mono mt-1 uppercase tracking-wider">
-                        Curriculum Examination Dossier
-                      </div>
+
+                    <div className="relative z-10 my-auto text-center px-2 py-1">
+                      <h4 className="text-[13px] sm:text-[14px] font-semibold tracking-tight text-white line-clamp-3 leading-snug drop-shadow-xs">
+                        {businessName}
+                      </h4>
+                      {levelLabel && (
+                        <span className="inline-block mt-1 text-[8.5px] font-medium tracking-widest uppercase text-teal-300/80">
+                          {levelLabel}
+                        </span>
+                      )}
                     </div>
-                    <div className="relative z-10 flex items-center justify-between text-[9px] text-slate-300 border-t border-white/10 pt-2">
-                      <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
-                        <CheckCircle2 className="h-3 w-3" /> 47 KNEC Sections
-                      </span>
-                      <div className="flex items-center gap-1 font-mono text-[8.5px] text-slate-300">
-                        <span className="rounded bg-white/10 px-1.5 py-0.5 border border-white/10">PDF</span>
-                        <span className="rounded bg-white/10 px-1.5 py-0.5 border border-white/10">DOCX</span>
-                      </div>
+
+                    <div className="relative z-10 flex items-center justify-between text-[8px] font-mono text-teal-200/50 px-1 border-t border-teal-500/15 pt-1">
+                      <span className="tracking-wider uppercase">KNEC Series</span>
+                      <span className="tracking-widest uppercase">Verified</span>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex h-full flex-col items-center justify-center gap-3 p-4 text-center text-blue-800">
-                    <BookOpen className="h-10 w-10" />
-                    <span className="text-xs font-semibold uppercase tracking-wider">{getMaterialTypeLabel(product.material_type)}</span>
+                  <div className="relative h-full w-full overflow-hidden bg-gradient-to-br from-teal-950 via-slate-900 to-teal-900 p-4 text-white flex flex-col justify-between select-none">
+                    <div className="absolute inset-0 opacity-[0.05] bg-[radial-gradient(#2dd4bf_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
+                    <div className="absolute inset-2 rounded border border-teal-400/15 pointer-events-none" />
+                    <div className="relative z-10 text-center pt-1">
+                      <span className="inline-block text-[9px] font-semibold tracking-[0.22em] uppercase text-teal-200/90 border-b border-teal-400/30 pb-0.5">
+                        {getMaterialTypeLabel(product.material_type).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="relative z-10 my-auto text-center px-2 py-1">
+                      <h4 className="text-[13px] font-semibold tracking-tight text-white line-clamp-3 leading-snug">
+                        {cleanTitle}
+                      </h4>
+                    </div>
+                    <div className="relative z-10 flex items-center justify-between text-[8px] font-mono text-teal-200/50 px-1 border-t border-teal-500/15 pt-1">
+                      <span className="tracking-wider uppercase">Learning Resource</span>
+                      <span className="tracking-widest uppercase">PDF</span>
+                    </div>
                   </div>
                 )}
               </div>
