@@ -87,57 +87,92 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
           <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
             <div className="h-1 bg-gradient-to-r from-[#087f8c] via-teal-500 to-amber-400" />
             <div className="grid gap-5 p-5 md:grid-cols-[210px_1fr]">
-              <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-teal-500/30 bg-gradient-to-br from-[#0c8ea0] via-[#087f8c] to-[#045963]">
-                {product.cover_path ? (
-                  <Image src={`/api/projects/${product.id}/cover`} alt={`${product.title} cover`} fill unoptimized sizes="210px" className="object-cover" />
-                ) : isBusinessPlan ? (
-                  <div className="relative h-full w-full overflow-hidden bg-gradient-to-br from-[#0c8ea0] via-[#087f8c] to-[#045963] p-4 text-white flex flex-col justify-between select-none shadow-inner">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-200/30 via-transparent to-transparent pointer-events-none" />
-                    <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
-                    <div className="absolute inset-2 rounded border border-white/25 pointer-events-none" />
+              {/* Left Column: Aspect [3/4] Cover + Material Dossier Box to fill gap */}
+              <div className="flex flex-col gap-3">
+                <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-teal-500/30 bg-gradient-to-br from-[#0c8ea0] via-[#087f8c] to-[#045963] shrink-0">
+                  {product.cover_path ? (
+                    <Image src={`/api/projects/${product.id}/cover`} alt={`${product.title} cover`} fill unoptimized sizes="210px" className="object-cover" />
+                  ) : isBusinessPlan ? (
+                    <div className="relative h-full w-full overflow-hidden bg-gradient-to-br from-[#0c8ea0] via-[#087f8c] to-[#045963] p-4 text-white flex flex-col justify-between select-none shadow-inner">
+                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-200/30 via-transparent to-transparent pointer-events-none" />
+                      <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
+                      <div className="absolute inset-2 rounded border border-white/25 pointer-events-none" />
 
-                    <div className="relative z-10 text-center pt-1">
-                      <span className="inline-block text-[9.5px] font-bold tracking-[0.24em] uppercase !text-amber-300 drop-shadow-xs border-b border-amber-300/40 pb-0.5">
-                        BUSINESS PLAN
-                      </span>
-                    </div>
-
-                    <div className="relative z-10 my-auto text-center px-2 py-1">
-                      <p className="text-[13.5px] sm:text-[14px] font-bold tracking-tight !text-white line-clamp-3 leading-snug drop-shadow-sm">
-                        {exactTitle}
-                      </p>
-                      {levelLabel && (
-                        <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-[8.5px] font-semibold tracking-wider uppercase !text-white border border-white/30 shadow-2xs">
-                          {levelLabel}
+                      <div className="relative z-10 text-center pt-1">
+                        <span className="inline-block text-[9.5px] font-bold tracking-[0.24em] uppercase !text-amber-300 drop-shadow-xs border-b border-amber-300/40 pb-0.5">
+                          BUSINESS PLAN
                         </span>
-                      )}
-                    </div>
+                      </div>
 
-                    <div className="relative z-10 flex items-center justify-between text-[8px] font-mono !text-teal-100 px-1 border-t border-white/20 pt-1 font-semibold">
-                      <span className="tracking-wider uppercase">KNEC Series</span>
-                      <span className="tracking-widest uppercase">Verified</span>
+                      <div className="relative z-10 my-auto text-center px-2 py-1">
+                        <p className="text-[13.5px] sm:text-[14px] font-bold tracking-tight !text-white line-clamp-3 leading-snug drop-shadow-sm">
+                          {exactTitle}
+                        </p>
+                        {levelLabel && (
+                          <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-[8.5px] font-semibold tracking-wider uppercase !text-white border border-white/30 shadow-2xs">
+                            {levelLabel}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="relative z-10 flex items-center justify-between text-[8px] font-mono !text-teal-100 px-1 border-t border-white/20 pt-1 font-semibold">
+                        <span className="tracking-wider uppercase">KNEC Series</span>
+                        <span className="tracking-widest uppercase">Verified</span>
+                      </div>
                     </div>
+                  ) : (
+                    <div className="relative h-full w-full overflow-hidden bg-gradient-to-br from-[#0284c7] via-[#087f8c] to-[#0f766e] p-4 text-white flex flex-col justify-between select-none shadow-inner">
+                      <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
+                      <div className="absolute inset-2 rounded border border-white/25 pointer-events-none" />
+                      <div className="relative z-10 text-center pt-1">
+                        <span className="inline-block text-[9.5px] font-bold tracking-[0.22em] uppercase !text-amber-300 drop-shadow-xs border-b border-amber-300/40 pb-0.5">
+                          {getMaterialTypeLabel(product.material_type).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="relative z-10 my-auto text-center px-2 py-1">
+                        <p className="text-[13.5px] font-bold tracking-tight !text-white line-clamp-3 leading-snug drop-shadow-sm">
+                          {exactTitle}
+                        </p>
+                      </div>
+                      <div className="relative z-10 flex items-center justify-between text-[8px] font-mono !text-teal-100 px-1 border-t border-white/20 pt-1 font-semibold">
+                        <span className="tracking-wider uppercase">Learning Resource</span>
+                        <span className="tracking-widest uppercase">PDF</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Gap Filler: Clean Material Dossier Specifications */}
+                <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3 text-xs space-y-2 flex-1 flex flex-col justify-between">
+                  <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700 border-b border-slate-200/80 pb-1.5">
+                    <span className="uppercase tracking-wider text-[10px] text-slate-500 font-bold">Material Dossier</span>
+                    <span className="font-mono text-[10px] text-[#087f8c] font-bold">Verified</span>
                   </div>
-                ) : (
-                  <div className="relative h-full w-full overflow-hidden bg-gradient-to-br from-[#0284c7] via-[#087f8c] to-[#0f766e] p-4 text-white flex flex-col justify-between select-none shadow-inner">
-                    <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
-                    <div className="absolute inset-2 rounded border border-white/25 pointer-events-none" />
-                    <div className="relative z-10 text-center pt-1">
-                      <span className="inline-block text-[9.5px] font-bold tracking-[0.22em] uppercase !text-amber-300 drop-shadow-xs border-b border-amber-300/40 pb-0.5">
-                        {getMaterialTypeLabel(product.material_type).toUpperCase()}
-                      </span>
+
+                  <dl className="space-y-1.5 text-[11px]">
+                    <div className="flex justify-between items-start gap-1">
+                      <dt className="text-slate-500">Resource:</dt>
+                      <dd className="font-semibold text-slate-800 text-right">{getMaterialTypeLabel(product.material_type)}</dd>
                     </div>
-                    <div className="relative z-10 my-auto text-center px-2 py-1">
-                      <p className="text-[13.5px] font-bold tracking-tight !text-white line-clamp-3 leading-snug drop-shadow-sm">
-                        {exactTitle}
-                      </p>
+                    <div className="flex justify-between items-start gap-1">
+                      <dt className="text-slate-500">Format:</dt>
+                      <dd className="font-semibold text-slate-800 text-right">{extension}</dd>
                     </div>
-                    <div className="relative z-10 flex items-center justify-between text-[8px] font-mono !text-teal-100 px-1 border-t border-white/20 pt-1 font-semibold">
-                      <span className="tracking-wider uppercase">Learning Resource</span>
-                      <span className="tracking-widest uppercase">PDF</span>
+                    <div className="flex justify-between items-start gap-1">
+                      <dt className="text-slate-500">Access:</dt>
+                      <dd className="font-semibold text-slate-800 text-right">Lifetime Access</dd>
                     </div>
+                    <div className="flex justify-between items-start gap-1">
+                      <dt className="text-slate-500">Delivery:</dt>
+                      <dd className="font-semibold text-slate-800 text-right">Instant Download</dd>
+                    </div>
+                  </dl>
+
+                  <div className="pt-2 border-t border-slate-200/80 text-[10.5px] text-slate-500 flex items-center justify-between">
+                    <span>Category:</span>
+                    <span className="font-semibold text-slate-700 truncate max-w-[125px]">{product.category || "General"}</span>
                   </div>
-                )}
+                </div>
               </div>
               <div className="flex min-w-0 flex-col font-sans">
                 <div className="flex flex-wrap items-center gap-2">

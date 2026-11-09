@@ -551,34 +551,96 @@ export function ProjectAreaCatalog({
               {/* Main Product/Studio Card (Mirrors Marketplace Details Page 1:1) */}
               <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
                 <div className="h-1 bg-gradient-to-r from-[#087f8c] via-teal-500 to-amber-400" />
-                <div className="grid gap-5 p-5 md:grid-cols-[210px_1fr]">
-                  {/* Left: Aspect [3/4] Dossier Cover */}
-                  <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-teal-500/30 bg-gradient-to-br from-[#0c8ea0] via-[#087f8c] to-[#045963]">
-                    <div
-                      className={`relative h-full w-full overflow-hidden bg-gradient-to-br ${detailPalette?.bgGradient || "from-[#0c8ea0] via-[#087f8c] to-[#045963]"} p-4 text-white flex flex-col justify-between select-none shadow-inner`}
-                    >
-                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-200/30 via-transparent to-transparent pointer-events-none" />
-                      <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
-                      <div className="absolute inset-2 rounded border border-white/25 pointer-events-none" />
+                <div className="grid gap-6 p-5 md:grid-cols-[260px_1fr]">
+                  {/* Left Column: Aspect [3/4] Dossier Cover + Standard 5-Chapter Dossier to fill hanging space */}
+                  <div className="flex flex-col gap-3">
+                    <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-teal-500/30 bg-gradient-to-br from-[#0c8ea0] via-[#087f8c] to-[#045963] shrink-0">
+                      <div
+                        className={`relative h-full w-full overflow-hidden bg-gradient-to-br ${detailPalette?.bgGradient || "from-[#0c8ea0] via-[#087f8c] to-[#045963]"} p-4 text-white flex flex-col justify-between select-none shadow-inner`}
+                      >
+                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-200/30 via-transparent to-transparent pointer-events-none" />
+                        <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
+                        <div className="absolute inset-2 rounded border border-white/25 pointer-events-none" />
 
-                      <div className="relative z-10 text-center pt-1">
-                        <span className="inline-block text-[9.5px] font-bold tracking-[0.24em] uppercase !text-amber-300 drop-shadow-xs border-b border-amber-300/40 pb-0.5">
-                          BUSINESS PLAN
-                        </span>
+                        <div className="relative z-10 text-center pt-1">
+                          <span className="inline-block text-[9.5px] font-bold tracking-[0.24em] uppercase !text-amber-300 drop-shadow-xs border-b border-amber-300/40 pb-0.5">
+                            BUSINESS PLAN
+                          </span>
+                        </div>
+
+                        <div className="relative z-10 my-auto text-center px-2 py-1">
+                          <p className="text-[13.5px] sm:text-[14px] font-bold tracking-tight !text-white line-clamp-3 leading-snug drop-shadow-sm font-sans">
+                            {detailBusinessName}
+                          </p>
+                          <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-[8.5px] font-semibold tracking-wider uppercase !text-white border border-white/30 shadow-2xs">
+                            {level === "craft" ? "Craft Certificate" : "Diploma"}
+                          </span>
+                        </div>
+
+                        <div className="relative z-10 flex items-center justify-between text-[8px] font-mono !text-teal-100 px-1 border-t border-white/20 pt-1 font-semibold">
+                          <span className="tracking-wider uppercase">KNEC Series</span>
+                          <span className="tracking-widest uppercase">Area #{detailVenture.number}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Gap Filler: Standard 5-Chapter Business Plan Dossier */}
+                    <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3 text-xs flex-1 flex flex-col justify-between">
+                      <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700 border-b border-slate-200/80 pb-1.5 mb-2">
+                        <span className="uppercase tracking-wider text-[10px] text-slate-500 font-bold">Standard 5-Chapter Dossier</span>
+                        <span className="font-mono text-[10px] text-[#087f8c] font-bold">5 Chapters</span>
                       </div>
 
-                      <div className="relative z-10 my-auto text-center px-2 py-1">
-                        <p className="text-[13.5px] sm:text-[14px] font-bold tracking-tight !text-white line-clamp-3 leading-snug drop-shadow-sm font-sans">
-                          {detailBusinessName}
-                        </p>
-                        <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-[8.5px] font-semibold tracking-wider uppercase !text-white border border-white/30 shadow-2xs">
-                          {level === "craft" ? "Craft Certificate" : "Diploma"}
-                        </span>
-                      </div>
+                      <div className="space-y-2 text-[11px]">
+                        <div>
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="font-mono font-bold text-[#087f8c] text-[10px] shrink-0">Ch. 1</span>
+                            <span className="font-semibold text-slate-800 leading-tight">Business Description</span>
+                          </div>
+                          <p className="text-[10px] text-slate-500 leading-snug pl-4 mt-0.5">
+                            Form of ownership, business name justification, mission, vision, location evaluation, and primary products/services.
+                          </p>
+                        </div>
 
-                      <div className="relative z-10 flex items-center justify-between text-[8px] font-mono !text-teal-100 px-1 border-t border-white/20 pt-1 font-semibold">
-                        <span className="tracking-wider uppercase">KNEC Series</span>
-                        <span className="tracking-widest uppercase">Area #{detailVenture.number}</span>
+                        <div>
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="font-mono font-bold text-[#087f8c] text-[10px] shrink-0">Ch. 2</span>
+                            <span className="font-semibold text-slate-800 leading-tight">Marketing & Sales Strategy</span>
+                          </div>
+                          <p className="text-[10px] text-slate-500 leading-snug pl-4 mt-0.5">
+                            Customer segmentation, market share analysis, competitor strengths & weaknesses, pricing strategy, distribution, and advertising plan.
+                          </p>
+                        </div>
+
+                        <div>
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="font-mono font-bold text-[#087f8c] text-[10px] shrink-0">Ch. 3</span>
+                            <span className="font-semibold text-slate-800 leading-tight">Organization & Management</span>
+                          </div>
+                          <p className="text-[10px] text-slate-500 leading-snug pl-4 mt-0.5">
+                            Organizational chart, key personnel requirements, duties, staff recruitment, statutory licenses (single business permit, KEBS/public health), and remuneration.
+                          </p>
+                        </div>
+
+                        <div>
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="font-mono font-bold text-[#087f8c] text-[10px] shrink-0">Ch. 4</span>
+                            <span className="font-semibold text-slate-800 leading-tight">Operational & Production Plan</span>
+                          </div>
+                          <p className="text-[10px] text-slate-500 leading-snug pl-4 mt-0.5">
+                            Production process flow, machinery & equipment schedule, raw materials schedule, facility layout, waste management, and quality control.
+                          </p>
+                        </div>
+
+                        <div>
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="font-mono font-bold text-[#087f8c] text-[10px] shrink-0">Ch. 5</span>
+                            <span className="font-semibold text-slate-800 leading-tight">Financial Schedule & 3-Yr Projections</span>
+                          </div>
+                          <p className="text-[10px] text-slate-500 leading-snug pl-4 mt-0.5">
+                            Pre-operational expenses, working capital estimation, 3-year cash flow projections, pro-forma income statement, pro-forma balance sheet, and break-even calculation.
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -653,70 +715,6 @@ export function ProjectAreaCatalog({
                         <span>Select & Launch Workspace</span>
                         <ArrowRight className="h-4 w-4" />
                       </button>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              {/* Sample Outline / Chapters Section (Mirrors "Sample preview" section in Marketplace) */}
-              <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
-                <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-lg bg-indigo-50 p-2 text-indigo-700">
-                      <FileCheck className="h-4 w-4" />
-                    </span>
-                    <div>
-                      <h2 className="text-sm font-semibold text-slate-900">KNEC Examination Structure</h2>
-                      <p className="text-xs text-slate-600">Standard 5-chapter business plan dossier</p>
-                    </div>
-                  </div>
-                  <span className="text-xs font-semibold text-indigo-700">5 Chapters Included</span>
-                </div>
-
-                <div className="divide-y divide-slate-100 text-xs">
-                  <div className="p-4 flex items-start gap-3">
-                    <span className="font-mono font-semibold text-slate-400 shrink-0">Ch. 1</span>
-                    <div>
-                      <h3 className="font-semibold text-slate-900">Business Description & Enterprise Identity</h3>
-                      <p className="text-slate-600 mt-0.5 leading-relaxed">
-                        Form of ownership, business name justification, mission, vision, location evaluation, and primary products/services.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="p-4 flex items-start gap-3">
-                    <span className="font-mono font-semibold text-slate-400 shrink-0">Ch. 2</span>
-                    <div>
-                      <h3 className="font-semibold text-slate-900">Marketing & Sales Strategy</h3>
-                      <p className="text-slate-600 mt-0.5 leading-relaxed">
-                        Customer segmentation, market share analysis, competitor strengths & weaknesses, pricing strategy, distribution, and advertising plan.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="p-4 flex items-start gap-3">
-                    <span className="font-mono font-semibold text-slate-400 shrink-0">Ch. 3</span>
-                    <div>
-                      <h3 className="font-semibold text-slate-900">Organization & Management Plan</h3>
-                      <p className="text-slate-600 mt-0.5 leading-relaxed">
-                        Organizational chart, key personnel requirements, duties, staff recruitment, statutory licenses (single business permit, KEBS/public health), and remuneration.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="p-4 flex items-start gap-3">
-                    <span className="font-mono font-semibold text-slate-400 shrink-0">Ch. 4</span>
-                    <div>
-                      <h3 className="font-semibold text-slate-900">Operational & Production Plan</h3>
-                      <p className="text-slate-600 mt-0.5 leading-relaxed">
-                        Production process flow, machinery & equipment schedule, raw materials schedule, facility layout, waste management, and quality control.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="p-4 flex items-start gap-3">
-                    <span className="font-mono font-semibold text-slate-400 shrink-0">Ch. 5</span>
-                    <div>
-                      <h3 className="font-semibold text-slate-900">Financial Schedule & 3-Year Projections</h3>
-                      <p className="text-slate-600 mt-0.5 leading-relaxed">
-                        Pre-operational expenses, working capital estimation, 3-year cash flow projections, pro-forma income statement, pro-forma balance sheet, and break-even calculation.
-                      </p>
                     </div>
                   </div>
                 </div>

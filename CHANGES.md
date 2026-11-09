@@ -21,6 +21,26 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-11-10] — Layout: Fill Left Cover Hanging Gap with 5-Chapter Dossier & Remove Redundant Examination Section
+
+**Category:** Studio Details Layout, Content Positioning, Pedagogical Flow
+
+**Status:** Completed & Verified
+
+**Changes Implemented:**
+1. **Filled Left Column Hanging Gap with Standard 5-Chapter Dossier**:
+   - In [`src/components/studio/ProjectAreaCatalog.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/components/studio/ProjectAreaCatalog.tsx), expanded the left column grid layout to `md:grid-cols-[260px_1fr]` and filled the whitespace directly beneath the aspect-[3/4] cover card with the **Standard 5-chapter business plan dossier**:
+     - **Ch. 1**: Business Description & Enterprise Identity (form of ownership, name justification, mission, vision, location, products/services).
+     - **Ch. 2**: Marketing & Sales Strategy (customer segmentation, market share, competitor analysis, pricing, distribution, advertising).
+     - **Ch. 3**: Organization & Management Plan (organizational chart, key personnel, duties, recruitment, statutory licensing, remuneration).
+     - **Ch. 4**: Operational & Production Plan (process flow, machinery schedule, raw materials, facility layout, waste management, quality control).
+     - **Ch. 5**: Financial Schedule & 3-Year Projections (pre-operational expenses, working capital, 3-year cash flow, pro-forma P&L, balance sheet, break-even).
+   - This vertically balances the left column with the right column (Brief Description, Problem Solved, Justification, and Capital Requirement + Action CTA), eliminating the awkward hanging gap.
+2. **Removed Redundant Bottom "KNEC Examination Structure" Section**:
+   - Purged the duplicate bottom section completely to keep the page clean, concise, and focused.
+
+---
+
 ## [2026-11-10] — Feature: Utilise Hanging Sidebar Space with Related TVET Project Areas & Materials
 
 **Category:** UX Enhancement, Content Discovery, Navigation Flow
