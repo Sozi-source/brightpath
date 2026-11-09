@@ -21,6 +21,35 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-11-10] — Admin: Sticky Pinned KPI HUD Bar, Title Sanitization & Progressive Queue Tables
+
+**Category:** Admin Dashboard Architecture, Visual Typography, High-Volume Data Presentation
+
+**Status:** Completed & Verified
+
+**Changes Implemented:**
+1. **Sticky KPI Command Bar (`sticky top-16 z-20`)**:
+   - In [`src/app/admin/page.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/app/admin/page.tsx), purged `PageHeaderCard` and replaced it with a sleek, pinned administrative HUD bar.
+   - Pinned at `top-16` beneath the app shell header with `backdrop-blur-md bg-white/95 border-b border-slate-200/80 shadow-2xs`.
+   - Compact inline header featuring the console title and 4 live metric chips: Students (teal), Ready Plans (indigo), Projects Catalog (rose), and Total Sales (amber).
+   - Eliminated redundant profile badges (`Admin: Wilfred Osozi`, `Role: System Administrator`, `Studio Workspaces`) that are already permanently visible in the sidebar and top navbar.
+2. **Automated Business Title Sanitization (`cleanVentureTitle`)**:
+   - Added regex-based title purification stripping boilerplate prefixes (`"Business Plan for "`, `"A Business Plan on "`, `"Complete KNEC Business Plan for "`) and location qualifiers (`" in Juja, Kiambu"`, `", Kiambu County"`, `" in Regional, County"`).
+   - Restored pure venture identities (e.g. `MetabolicCare Dietary Clinic`).
+3. **Progressive High-Density Tables for Operational Queues**:
+   - **Approved Student Plans**:
+     - Empty: Slim single-row notice (`No approved student plans awaiting action`).
+     - Populated: Renders a progressive 4-column table (`Business Venture`, `Candidate`, `Status`, `Actions`).
+     - Stylish typography using `Amazon Ember` with `font-semibold tracking-tight text-slate-900 hover:text-[#087f8c]` for the venture title.
+     - Candidate displayed as clean student name + mono admission pill (`CND/S-0006/IC/26`). Purged repetitive course names.
+     - Compact actions: inline PDF/Word download chips and micro price queuing input.
+   - **Pending Approvals**:
+     - Empty: Slim single-row green check notice (`Approval queue clear · all submissions reviewed`).
+     - Populated: Progressively renders a 4-column review table (`Submitted Material`, `Author`, `Category & Price`, `Review Actions`).
+   - Both tables have sticky `thead` rows and bounded scrolling (`max-h-80 overflow-y-auto`) to scale gracefully for 50+ published student plans.
+
+---
+
 ## [2026-11-10] — Admin: Space-Conscious 2-Column Operational Queues Grid
 
 **Category:** Admin Layout Optimization, Space Conservation, UI Streamlining

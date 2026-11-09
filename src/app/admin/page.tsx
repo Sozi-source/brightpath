@@ -9,12 +9,9 @@ import {
 } from "./actions";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
-import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ContentCard } from "@/components/layout/ContentCard";
-import { StatCard } from "@/components/ui/StatCard";
 import {
   GraduationCap,
-  Briefcase,
   Layers,
   CheckCircle2,
   XCircle,
@@ -35,6 +32,16 @@ import { resolveBusinessPlanModel, type BusinessPlanSpecs } from "@/lib/studio/b
 import { AdminProjectsManager } from "@/components/admin/AdminProjectsManager";
 
 export const instant = false;
+
+function cleanVentureTitle(rawTitle?: string | null): string {
+  if (!rawTitle) return "Business Plan";
+  let title = rawTitle.trim();
+  title = title.replace(/^(?:Complete\s+KNEC\s+Business\s+Plan\s*(?:\([^)]*\))?\s*(?:for|on)?|Business\s+Plan\s*(?:for|on)?|A\s+Business\s+Plan\s*(?:for|on)?)\s+/i, "");
+  title = title.replace(/\s+in\s+([A-Z][a-zA-Z]+(?:\s*,\s*[A-Z][a-zA-Z]+|\s+[A-Z][a-zA-Z]+)*)\s*(?:County|Sub-county|Region)?$/i, "");
+  title = title.replace(/,\s*[A-Z][a-zA-Z\s]+(?:County|Region)$/i, "");
+  title = title.replace(/\s+Regional,\s*County$/i, "");
+  return title.trim() || rawTitle;
+}
 
 export default async function AdminPage() {
   await connection();
@@ -113,63 +120,69 @@ export default async function AdminPage() {
       profile={profile}
       activeContextTitle="System Administration"
     >
-      <PageHeaderCard
-        title="Administration"
-        subtitle="Institutional administration controls"
-        breadcrumbs={[
-          { label: "Home", href: "/" },
-          { label: "Administration", active: true },
-        ]}
-        metadata={[
-          { label: "Admin", value: profile?.full_name || user.email || "Admin" },
-          { label: "Role", value: "System Administrator" },
-        ]}
-        actions={
-          <Link
-            href="/studio"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white text-slate-800 border border-slate-200 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-colors"
-          >
-            <FileText className="h-4 w-4 text-[#087f8c]" />
-            <span>Studio Workspaces</span>
-          </Link>
-        }
-      />
+      {/* Sticky Administrative Command HUD */}
+      <div className="sticky top-16 z-20 -mt-2 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-2.5 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-2xs">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900">
+              Administration
+            </h1>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-semibold border border-slate-200/60">
+              Console
+            </span>
+          </div>
 
-      {/* KPI Metric Summary Strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          label="Students"
-          value={studentCount}
-          icon={GraduationCap}
-          color="indigo"
-        />
-        <StatCard
-          label="Approved Plans"
-          value={readyPlans.length}
-          icon={FileText}
-          color="emerald"
-          subtext={readyPlans.length > 0 ? `${readyPlans.length} ready for market` : undefined}
-        />
-        <StatCard
-          label="Projects"
-          value={projectsList.length}
-          icon={Layers}
-          color="rose"
-          subtext={pendingProjects.length > 0 ? `${pendingProjects.length} pending approval` : undefined}
-        />
-        <StatCard
-          label="Total Sales"
-          value={`KES ${totalVolumeKES.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
-          icon={Coins}
-          color="amber"
-          subtext={`${paidOrders.length} paid transactions`}
-        />
+          {/* 4 Compact Sticky Live KPI Chips */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-teal-50/60 border border-teal-100/80">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-teal-100/70 text-teal-800">
+                <GraduationCap className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-teal-900/70">Students</div>
+                <div className="text-xs sm:text-sm font-bold text-slate-900 tabular-nums leading-tight">{studentCount}</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-50/60 border border-indigo-100/80">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-indigo-100/70 text-indigo-800">
+                <FileText className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-indigo-900/70">Ready Plans</div>
+                <div className="text-xs sm:text-sm font-bold text-slate-900 tabular-nums leading-tight">{readyPlans.length}</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-rose-50/60 border border-rose-100/80">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-rose-100/70 text-rose-800">
+                <Layers className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-rose-900/70">Projects</div>
+                <div className="text-xs sm:text-sm font-bold text-slate-900 tabular-nums leading-tight">{projectsList.length}</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50/60 border border-amber-100/80">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-amber-100/70 text-amber-800">
+                <Coins className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-amber-900/70">Total Sales</div>
+                <div className="text-xs sm:text-sm font-bold text-slate-900 tabular-nums leading-tight">
+                  KES {totalVolumeKES.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Operational Queues: Pending Approvals & Ready Plans */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         {/* Pending Action Items */}
-        <div id="pending" className="scroll-mt-20">
+        <div id="pending" className="scroll-mt-28">
           <ContentCard
             title="Pending Approvals"
             icon={AlertCircle}
@@ -193,66 +206,91 @@ export default async function AdminPage() {
                 <span>Approval queue clear · all submissions reviewed</span>
               </div>
             ) : (
-              <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
-                {pendingProjects.map((p) => (
-                  <div key={p.id} className="p-3 flex items-center justify-between gap-3 hover:bg-slate-50/60 transition-colors">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-xs text-slate-900 truncate">{p.title}</p>
-                      <p className="text-[11px] text-slate-500 truncate">
-                        {p.profiles?.full_name || "Unknown"} · KES {Number(p.price_kes).toLocaleString()} · {p.category || "General"}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {p.file_path?.startsWith("workspace-export:") && (
-                        <>
-                          <Link
-                            href={`/api/download?projectId=${encodeURIComponent(p.id)}&format=pdf`}
-                            className="inline-flex items-center gap-0.5 rounded border border-slate-300 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
-                            title="Download PDF"
-                          >
-                            <Download className="h-3 w-3 text-slate-500" /> PDF
-                          </Link>
-                          <Link
-                            href={`/api/download?projectId=${encodeURIComponent(p.id)}&format=docx`}
-                            className="inline-flex items-center gap-0.5 rounded border border-slate-300 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
-                            title="Download Word"
-                          >
-                            <Download className="h-3 w-3 text-slate-500" /> Word
-                          </Link>
-                        </>
-                      )}
-                      <form action={updateProjectStatus}>
-                        <input type="hidden" name="projectId" value={p.id} />
-                        <input type="hidden" name="status" value="published" />
-                        <button
-                          type="submit"
-                          className="inline-flex items-center gap-1 rounded bg-emerald-700 hover:bg-emerald-800 text-white px-2.5 py-1 text-[11px] font-bold cursor-pointer transition-colors"
-                        >
-                          <CheckCircle2 className="h-3 w-3" />
-                          Publish
-                        </button>
-                      </form>
-                      <form action={updateProjectStatus}>
-                        <input type="hidden" name="projectId" value={p.id} />
-                        <input type="hidden" name="status" value="rejected" />
-                        <button
-                          type="submit"
-                          className="inline-flex items-center gap-1 rounded bg-rose-700 hover:bg-rose-800 text-white px-2 py-1 text-[11px] font-bold cursor-pointer transition-colors"
-                          title="Reject submission"
-                        >
-                          <XCircle className="h-3 w-3" />
-                        </button>
-                      </form>
-                    </div>
-                  </div>
-                ))}
+              <div className="overflow-x-auto max-h-80 overflow-y-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="sticky top-0 bg-slate-50/95 backdrop-blur-xs border-b border-slate-200 text-[10px] font-bold uppercase tracking-wider text-slate-500 z-10">
+                    <tr>
+                      <th className="py-2.5 px-3">Submitted Material</th>
+                      <th className="py-2.5 px-3">Author</th>
+                      <th className="py-2.5 px-3">Category & Price</th>
+                      <th className="py-2.5 px-3 text-right">Review Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {pendingProjects.map((p) => {
+                      const cleanTitle = cleanVentureTitle(p.title);
+                      return (
+                        <tr key={p.id} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="py-2.5 px-3 font-semibold text-slate-900 tracking-tight text-xs sm:text-[13px] max-w-[200px] truncate" title={cleanTitle}>
+                            {cleanTitle}
+                          </td>
+                          <td className="py-2.5 px-3 whitespace-nowrap text-slate-700 font-medium">
+                            {p.profiles?.full_name || "Unknown"}
+                          </td>
+                          <td className="py-2.5 px-3 whitespace-nowrap">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[11px] text-slate-500">{p.category || "General"}</span>
+                              <span className="font-semibold text-slate-800 font-mono text-[11px]">
+                                KES {Number(p.price_kes).toLocaleString()}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                            <div className="inline-flex items-center gap-1">
+                              {p.file_path?.startsWith("workspace-export:") && (
+                                <>
+                                  <Link
+                                    href={`/api/download?projectId=${encodeURIComponent(p.id)}&format=pdf`}
+                                    className="inline-flex items-center gap-0.5 rounded border border-slate-300 bg-white px-1.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
+                                    title="Download PDF"
+                                  >
+                                    <Download className="h-3 w-3 text-slate-500" /> PDF
+                                  </Link>
+                                  <Link
+                                    href={`/api/download?projectId=${encodeURIComponent(p.id)}&format=docx`}
+                                    className="inline-flex items-center gap-0.5 rounded border border-slate-300 bg-white px-1.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
+                                    title="Download Word"
+                                  >
+                                    <Download className="h-3 w-3 text-slate-500" /> Word
+                                  </Link>
+                                </>
+                              )}
+                              <form action={updateProjectStatus}>
+                                <input type="hidden" name="projectId" value={p.id} />
+                                <input type="hidden" name="status" value="published" />
+                                <button
+                                  type="submit"
+                                  className="inline-flex items-center gap-0.5 rounded bg-emerald-700 hover:bg-emerald-800 text-white px-2 py-1 text-[10px] font-bold cursor-pointer transition-colors"
+                                >
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  Publish
+                                </button>
+                              </form>
+                              <form action={updateProjectStatus}>
+                                <input type="hidden" name="projectId" value={p.id} />
+                                <input type="hidden" name="status" value="rejected" />
+                                <button
+                                  type="submit"
+                                  className="inline-flex items-center rounded bg-rose-700 hover:bg-rose-800 text-white p-1 text-[10px] font-bold cursor-pointer transition-colors"
+                                  title="Reject submission"
+                                >
+                                  <XCircle className="h-3.5 w-3.5" />
+                                </button>
+                              </form>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </ContentCard>
         </div>
 
         {/* Ready Plans Section */}
-        <div id="ready-plans" className="scroll-mt-20">
+        <div id="ready-plans" className="scroll-mt-28">
           <ContentCard
             title="Approved Student Plans"
             icon={FileText}
@@ -267,88 +305,110 @@ export default async function AdminPage() {
             {readyPlans.length === 0 ? (
               <div className="flex items-center gap-2 px-3.5 py-3 text-xs text-slate-500 bg-slate-50/40">
                 <FileText className="h-4 w-4 text-slate-400 shrink-0" />
-                <span>No approved student plans ready yet</span>
+                <span>No approved student plans awaiting action</span>
               </div>
             ) : (
-              <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
-                {readyPlans.map((workspace) => {
-                  const student = workspace.student as unknown as { full_name?: string | null; admission_number?: string | null } | null;
-                  const listing = projectsList.find((project) => project.file_path === `workspace-export:${workspace.id}`);
-                  return (
-                    <div key={workspace.id} className="p-3 flex items-center justify-between gap-3 hover:bg-slate-50/60 transition-colors">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-xs text-slate-900 truncate" title={workspace.title || "Business Plan"}>
-                          {workspace.title || "Business Plan"}
-                        </p>
-                        <p className="text-[11px] text-slate-500 truncate">
-                          {student?.full_name || "Student"}{student?.admission_number ? ` · ${student.admission_number}` : ""} · {workspace.course || "Business Plan"}
-                        </p>
-                        <span
-                          className={`inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                            listing?.status === "published"
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : listing?.status === "pending_review"
-                              ? "bg-amber-50 text-amber-700 border border-amber-200"
-                              : "bg-slate-100 text-slate-600 border border-slate-200"
-                          }`}
-                        >
-                          {listing?.status === "published"
-                            ? "Published in marketplace"
-                            : listing?.status === "pending_review"
-                            ? "Queued · awaiting publishing"
-                            : listing
-                            ? `Listing ${listing.status}`
-                            : "Unlisted"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        {listing && (
-                          <>
-                            <Link
-                              href={`/api/download?projectId=${encodeURIComponent(listing.id)}&format=pdf`}
-                              className="inline-flex items-center gap-0.5 rounded border border-slate-300 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs"
-                              title="Download PDF"
+              <div className="overflow-x-auto max-h-80 overflow-y-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="sticky top-0 bg-slate-50/95 backdrop-blur-xs border-b border-slate-200 text-[10px] font-bold uppercase tracking-wider text-slate-500 z-10">
+                    <tr>
+                      <th className="py-2.5 px-3">Business Venture</th>
+                      <th className="py-2.5 px-3">Candidate</th>
+                      <th className="py-2.5 px-3">Status</th>
+                      <th className="py-2.5 px-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {readyPlans.map((workspace) => {
+                      const student = workspace.student as unknown as { full_name?: string | null; admission_number?: string | null } | null;
+                      const listing = projectsList.find((project) => project.file_path === `workspace-export:${workspace.id}`);
+                      const cleanTitle = cleanVentureTitle(workspace.title);
+                      return (
+                        <tr key={workspace.id} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="py-2.5 px-3 font-semibold text-slate-900 tracking-tight text-xs sm:text-[13px] max-w-[200px] truncate" title={cleanTitle}>
+                            {cleanTitle}
+                          </td>
+                          <td className="py-2.5 px-3">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1.5">
+                              <span className="font-medium text-slate-700 truncate max-w-[130px]">
+                                {student?.full_name || "Student"}
+                              </span>
+                              {student?.admission_number && (
+                                <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200/60 w-fit">
+                                  {student.admission_number}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-2.5 px-3 whitespace-nowrap">
+                            <span
+                              className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                                listing?.status === "published"
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  : listing?.status === "pending_review"
+                                  ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                  : "bg-slate-100 text-slate-600 border border-slate-200"
+                              }`}
                             >
-                              <Download className="h-3 w-3 text-slate-500" /> PDF
-                            </Link>
-                            <Link
-                              href={`/api/download?projectId=${encodeURIComponent(listing.id)}&format=docx`}
-                              className="inline-flex items-center gap-0.5 rounded border border-slate-300 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs"
-                              title="Download Word"
-                            >
-                              <Download className="h-3 w-3 text-slate-500" /> Word
-                            </Link>
-                          </>
-                        )}
-                        {listing?.status !== "pending_review" && listing?.status !== "published" && (
-                          <form action={queueApprovedBusinessPlanForPublishing} className="flex items-center gap-1.5">
-                            <input type="hidden" name="workspaceId" value={workspace.id} />
-                            <label className="sr-only" htmlFor={`marketplace-price-${workspace.id}`}>
-                              Marketplace price in KES
-                            </label>
-                            <input
-                              id={`marketplace-price-${workspace.id}`}
-                              name="priceKes"
-                              type="number"
-                              min="0"
-                              max="1000000"
-                              step="1"
-                              required
-                              defaultValue={workspace.marketplace_price_kes ?? listing?.price_kes ?? 0}
-                              className="h-7 w-20 rounded border border-slate-300 px-1.5 text-xs font-semibold text-slate-900"
-                            />
-                            <button
-                              type="submit"
-                              className="rounded bg-indigo-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-indigo-700 cursor-pointer transition-colors"
-                            >
-                              {listing ? "Requeue" : "Queue"}
-                            </button>
-                          </form>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                              {listing?.status === "published"
+                                ? "Published"
+                                : listing?.status === "pending_review"
+                                ? "Queued"
+                                : "Unlisted"}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                            <div className="inline-flex items-center gap-1">
+                              {listing && (
+                                <>
+                                  <Link
+                                    href={`/api/download?projectId=${encodeURIComponent(listing.id)}&format=pdf`}
+                                    className="inline-flex items-center gap-0.5 rounded border border-slate-300 bg-white px-1.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
+                                    title="Download PDF"
+                                  >
+                                    <Download className="h-3 w-3 text-slate-500" /> PDF
+                                  </Link>
+                                  <Link
+                                    href={`/api/download?projectId=${encodeURIComponent(listing.id)}&format=docx`}
+                                    className="inline-flex items-center gap-0.5 rounded border border-slate-300 bg-white px-1.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
+                                    title="Download Word"
+                                  >
+                                    <Download className="h-3 w-3 text-slate-500" /> Word
+                                  </Link>
+                                </>
+                              )}
+                              {listing?.status !== "pending_review" && listing?.status !== "published" && (
+                                <form action={queueApprovedBusinessPlanForPublishing} className="inline-flex items-center gap-1">
+                                  <input type="hidden" name="workspaceId" value={workspace.id} />
+                                  <label className="sr-only" htmlFor={`marketplace-price-${workspace.id}`}>
+                                    Price KES
+                                  </label>
+                                  <input
+                                    id={`marketplace-price-${workspace.id}`}
+                                    name="priceKes"
+                                    type="number"
+                                    min="0"
+                                    max="1000000"
+                                    step="1"
+                                    required
+                                    defaultValue={workspace.marketplace_price_kes ?? listing?.price_kes ?? 0}
+                                    className="h-6 w-16 rounded border border-slate-300 px-1 text-[11px] font-semibold text-slate-900"
+                                  />
+                                  <button
+                                    type="submit"
+                                    className="rounded bg-indigo-600 px-2 py-1 text-[10px] font-bold text-white hover:bg-indigo-700 cursor-pointer transition-colors"
+                                  >
+                                    {listing ? "Requeue" : "Queue"}
+                                  </button>
+                                </form>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </ContentCard>
