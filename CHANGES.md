@@ -21,6 +21,26 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-11-10] — Admin: Space-Conscious 2-Column Operational Queues Grid
+
+**Category:** Admin Layout Optimization, Space Conservation, UI Streamlining
+
+**Status:** Completed & Verified
+
+**Changes Implemented:**
+1. **Responsive 2-Column Side-by-Side Queues Grid**:
+   - In [`src/app/admin/page.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/app/admin/page.tsx), placed **Pending Approvals** (`#pending`) and **Approved Student Plans** (`#ready-plans`) side-by-side in a responsive `grid grid-cols-1 lg:grid-cols-2 gap-4 items-start`.
+   - Reduced vertical height consumption on desktop by ~65% (from ~310px down to ~110px), eliminating massive whitespace and bringing main tables (Projects, Users, Transactions) higher on the page.
+2. **Compact ContentCard Component Mode**:
+   - In [`src/components/layout/ContentCard.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/components/layout/ContentCard.tsx), added a `compact?: boolean` prop that renders slim header padding (`px-3.5 py-2.5`), concise icon tiles (`h-7 w-7`), text-xs headers, and direct-edge container borders.
+3. **Streamlined Queue Items & Empty States**:
+   - Replaced nested full-width bordered cards with direct border-divided list rows (`divide-y divide-slate-100`).
+   - Added bounded scrolling (`max-h-72 overflow-y-auto`) to protect dashboard geometry if queue size increases.
+   - Refined empty queue states into single-line notification banners with green check / file icons instead of oversized empty paragraph boxes.
+   - Optimized actions with compact download chips (`PDF`, `Word`), tight price input fields, and inline status badges.
+
+---
+
 ## [2026-11-10] — Admin: Remove TVET Institutions & Platform Commission Fee Modules
 
 **Category:** Admin Dashboard Optimization, Modular Simplification, Layout Streamlining

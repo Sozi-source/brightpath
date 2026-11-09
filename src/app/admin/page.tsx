@@ -166,125 +166,193 @@ export default async function AdminPage() {
         />
       </div>
 
-      {/* Pending Action Items */}
-      <div id="pending" className="scroll-mt-20">
-        <ContentCard
-          title={`Pending Approvals (${pendingProjects.length})`}
-          subtitle="Submitted materials awaiting administrative review"
-          icon={AlertCircle}
-        >
-          {pendingProjects.length === 0 ? (
-            <p className="text-xs text-slate-500 py-2">
-              All project submissions have been reviewed. The approval queue is clear.
-            </p>
-          ) : (
-            <div className="space-y-6">
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Projects Submitted for Review ({pendingProjects.length})
-                </h4>
-                <div className="divide-y divide-slate-200 border border-slate-200 rounded-lg overflow-hidden bg-slate-50/50">
-                  {pendingProjects.map((p) => (
-                    <div key={p.id} className="p-3.5 flex items-center justify-between gap-4">
-                      <div>
-                        <p className="font-bold text-xs text-slate-900">{p.title}</p>
-                        <p className="text-xs text-slate-600">
-                          Author: {p.profiles?.full_name || "Unknown"} • Price: KES {Number(p.price_kes).toLocaleString()} • Category: {p.category || "General"}
+      {/* Operational Queues: Pending Approvals & Ready Plans */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+        {/* Pending Action Items */}
+        <div id="pending" className="scroll-mt-20">
+          <ContentCard
+            title="Pending Approvals"
+            icon={AlertCircle}
+            compact
+            noPadding
+            headerRight={
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  pendingProjects.length > 0
+                    ? "bg-amber-100 text-amber-800 border border-amber-200"
+                    : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                }`}
+              >
+                {pendingProjects.length} Pending
+              </span>
+            }
+          >
+            {pendingProjects.length === 0 ? (
+              <div className="flex items-center gap-2 px-3.5 py-3 text-xs text-slate-500 bg-slate-50/40">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                <span>Approval queue clear · all submissions reviewed</span>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
+                {pendingProjects.map((p) => (
+                  <div key={p.id} className="p-3 flex items-center justify-between gap-3 hover:bg-slate-50/60 transition-colors">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-xs text-slate-900 truncate">{p.title}</p>
+                      <p className="text-[11px] text-slate-500 truncate">
+                        {p.profiles?.full_name || "Unknown"} · KES {Number(p.price_kes).toLocaleString()} · {p.category || "General"}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {p.file_path?.startsWith("workspace-export:") && (
+                        <>
+                          <Link
+                            href={`/api/download?projectId=${encodeURIComponent(p.id)}&format=pdf`}
+                            className="inline-flex items-center gap-0.5 rounded border border-slate-300 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+                            title="Download PDF"
+                          >
+                            <Download className="h-3 w-3 text-slate-500" /> PDF
+                          </Link>
+                          <Link
+                            href={`/api/download?projectId=${encodeURIComponent(p.id)}&format=docx`}
+                            className="inline-flex items-center gap-0.5 rounded border border-slate-300 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+                            title="Download Word"
+                          >
+                            <Download className="h-3 w-3 text-slate-500" /> Word
+                          </Link>
+                        </>
+                      )}
+                      <form action={updateProjectStatus}>
+                        <input type="hidden" name="projectId" value={p.id} />
+                        <input type="hidden" name="status" value="published" />
+                        <button
+                          type="submit"
+                          className="inline-flex items-center gap-1 rounded bg-emerald-700 hover:bg-emerald-800 text-white px-2.5 py-1 text-[11px] font-bold cursor-pointer transition-colors"
+                        >
+                          <CheckCircle2 className="h-3 w-3" />
+                          Publish
+                        </button>
+                      </form>
+                      <form action={updateProjectStatus}>
+                        <input type="hidden" name="projectId" value={p.id} />
+                        <input type="hidden" name="status" value="rejected" />
+                        <button
+                          type="submit"
+                          className="inline-flex items-center gap-1 rounded bg-rose-700 hover:bg-rose-800 text-white px-2 py-1 text-[11px] font-bold cursor-pointer transition-colors"
+                          title="Reject submission"
+                        >
+                          <XCircle className="h-3 w-3" />
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </ContentCard>
+        </div>
+
+        {/* Ready Plans Section */}
+        <div id="ready-plans" className="scroll-mt-20">
+          <ContentCard
+            title="Approved Student Plans"
+            icon={FileText}
+            compact
+            noPadding
+            headerRight={
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                {readyPlans.length} Ready
+              </span>
+            }
+          >
+            {readyPlans.length === 0 ? (
+              <div className="flex items-center gap-2 px-3.5 py-3 text-xs text-slate-500 bg-slate-50/40">
+                <FileText className="h-4 w-4 text-slate-400 shrink-0" />
+                <span>No approved student plans ready yet</span>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
+                {readyPlans.map((workspace) => {
+                  const student = workspace.student as unknown as { full_name?: string | null; admission_number?: string | null } | null;
+                  const listing = projectsList.find((project) => project.file_path === `workspace-export:${workspace.id}`);
+                  return (
+                    <div key={workspace.id} className="p-3 flex items-center justify-between gap-3 hover:bg-slate-50/60 transition-colors">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-xs text-slate-900 truncate" title={workspace.title || "Business Plan"}>
+                          {workspace.title || "Business Plan"}
                         </p>
+                        <p className="text-[11px] text-slate-500 truncate">
+                          {student?.full_name || "Student"}{student?.admission_number ? ` · ${student.admission_number}` : ""} · {workspace.course || "Business Plan"}
+                        </p>
+                        <span
+                          className={`inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                            listing?.status === "published"
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : listing?.status === "pending_review"
+                              ? "bg-amber-50 text-amber-700 border border-amber-200"
+                              : "bg-slate-100 text-slate-600 border border-slate-200"
+                          }`}
+                        >
+                          {listing?.status === "published"
+                            ? "Published in marketplace"
+                            : listing?.status === "pending_review"
+                            ? "Queued · awaiting publishing"
+                            : listing
+                            ? `Listing ${listing.status}`
+                            : "Unlisted"}
+                        </span>
                       </div>
-                      <div className="flex flex-wrap items-center justify-end gap-2">
-                        {p.file_path?.startsWith("workspace-export:") && (
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {listing && (
                           <>
                             <Link
-                              href={`/api/download?projectId=${encodeURIComponent(p.id)}&format=pdf`}
-                              className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                              href={`/api/download?projectId=${encodeURIComponent(listing.id)}&format=pdf`}
+                              className="inline-flex items-center gap-0.5 rounded border border-slate-300 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs"
+                              title="Download PDF"
                             >
-                              <Download className="h-3.5 w-3.5" /> PDF
+                              <Download className="h-3 w-3 text-slate-500" /> PDF
                             </Link>
                             <Link
-                              href={`/api/download?projectId=${encodeURIComponent(p.id)}&format=docx`}
-                              className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                              href={`/api/download?projectId=${encodeURIComponent(listing.id)}&format=docx`}
+                              className="inline-flex items-center gap-0.5 rounded border border-slate-300 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs"
+                              title="Download Word"
                             >
-                              <Download className="h-3.5 w-3.5" /> Word
+                              <Download className="h-3 w-3 text-slate-500" /> Word
                             </Link>
                           </>
                         )}
-                        <form action={updateProjectStatus}>
-                          <input type="hidden" name="projectId" value={p.id} />
-                          <input type="hidden" name="status" value="published" />
-                          <button
-                            type="submit"
-                            className="inline-flex items-center gap-1 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-1.5 text-xs font-bold cursor-pointer"
-                          >
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            Publish
-                          </button>
-                        </form>
-                        <form action={updateProjectStatus}>
-                          <input type="hidden" name="projectId" value={p.id} />
-                          <input type="hidden" name="status" value="rejected" />
-                          <button
-                            type="submit"
-                            className="inline-flex items-center gap-1 rounded-md bg-rose-700 hover:bg-rose-800 text-white px-3 py-1.5 text-xs font-bold cursor-pointer"
-                          >
-                            <XCircle className="h-3.5 w-3.5" />
-                            Reject
-                          </button>
-                        </form>
+                        {listing?.status !== "pending_review" && listing?.status !== "published" && (
+                          <form action={queueApprovedBusinessPlanForPublishing} className="flex items-center gap-1.5">
+                            <input type="hidden" name="workspaceId" value={workspace.id} />
+                            <label className="sr-only" htmlFor={`marketplace-price-${workspace.id}`}>
+                              Marketplace price in KES
+                            </label>
+                            <input
+                              id={`marketplace-price-${workspace.id}`}
+                              name="priceKes"
+                              type="number"
+                              min="0"
+                              max="1000000"
+                              step="1"
+                              required
+                              defaultValue={workspace.marketplace_price_kes ?? listing?.price_kes ?? 0}
+                              className="h-7 w-20 rounded border border-slate-300 px-1.5 text-xs font-semibold text-slate-900"
+                            />
+                            <button
+                              type="submit"
+                              className="rounded bg-indigo-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-indigo-700 cursor-pointer transition-colors"
+                            >
+                              {listing ? "Requeue" : "Queue"}
+                            </button>
+                          </form>
+                        )}
                       </div>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            </div>
-          )}
-        </ContentCard>
-      </div>
-
-      {/* Projects Section */}
-      <div id="ready-plans" className="scroll-mt-20">
-        <ContentCard
-          title="Approved Student Plans"
-          subtitle="Final approved plans ready for download"
-          icon={FileText}
-          headerRight={<span className="text-[11px] font-semibold px-2.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">{readyPlans.length} Ready</span>}
-        >
-          {readyPlans.length === 0 ? (
-            <p className="py-6 text-center text-xs text-slate-600">No approved plans are ready yet.</p>
-          ) : (
-            <div className="divide-y divide-slate-200 border border-slate-200 rounded-lg overflow-hidden">
-              {readyPlans.map((workspace) => {
-                const student = workspace.student as unknown as { full_name?: string | null; admission_number?: string | null } | null;
-                const listing = projectsList.find((project) => project.file_path === `workspace-export:${workspace.id}`);
-                return (
-                  <div key={workspace.id} className="flex flex-wrap items-center justify-between gap-3 p-3.5">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">{workspace.title || "Business Plan"}</p>
-                      <p className="text-xs text-slate-600">{student?.full_name || "Student"}{student?.admission_number ? ` · ${student.admission_number}` : ""} · {workspace.course || "Business Plan"}</p>
-                      <p className={`mt-1 text-[11px] font-medium ${listing?.status === "published" ? "text-emerald-700" : listing?.status === "pending_review" ? "text-amber-700" : "text-slate-600"}`}>
-                        {listing?.status === "published" ? "Published in marketplace" : listing?.status === "pending_review" ? "Queued · awaiting publishing" : listing ? `Listing ${listing.status} · requeue required` : "Not queued for marketplace publishing"}
-                      </p>
-                    </div>
-                    {listing && <div className="flex items-center gap-2">
-                      <Link href={`/api/download?projectId=${encodeURIComponent(listing.id)}&format=pdf`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-3.5 w-3.5" /> PDF</Link>
-                      <Link href={`/api/download?projectId=${encodeURIComponent(listing.id)}&format=docx`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-3.5 w-3.5" /> Word</Link>
-                    </div>}
-                    {listing?.status !== "pending_review" && listing?.status !== "published" && (
-                      <form action={queueApprovedBusinessPlanForPublishing} className="flex items-center gap-2">
-                        <input type="hidden" name="workspaceId" value={workspace.id} />
-                        <label className="sr-only" htmlFor={`marketplace-price-${workspace.id}`}>Marketplace price in KES</label>
-                        <input id={`marketplace-price-${workspace.id}`} name="priceKes" type="number" min="0" max="1000000" step="1" required defaultValue={workspace.marketplace_price_kes ?? listing?.price_kes ?? 0} className="h-8 w-28 rounded-lg border border-slate-300 px-2 text-xs" />
-                        <button type="submit" className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700">
-                          {listing ? "Requeue for publishing" : "Queue for publishing"}
-                        </button>
-                      </form>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </ContentCard>
+            )}
+          </ContentCard>
+        </div>
       </div>
 
       {/* Projects Section */}
