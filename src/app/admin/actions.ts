@@ -397,3 +397,15 @@ export async function assignUserInstitution(formData: FormData) {
   if (error) throw error;
   revalidatePath("/admin");
 }
+
+export async function purgePendingOrdersAction() {
+  await verifyAdmin();
+  const adminClient = createAdminClient();
+  const { error } = await adminClient
+    .from("orders")
+    .delete()
+    .eq("status", "pending");
+
+  if (error) throw error;
+  revalidatePath("/admin");
+}

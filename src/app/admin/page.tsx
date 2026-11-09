@@ -8,6 +8,7 @@ import {
   createInstitution,
   updateInstitutionAiMode,
   queueApprovedBusinessPlanForPublishing,
+  purgePendingOrdersAction,
 } from "./actions";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
@@ -115,6 +116,7 @@ export default async function AdminPage() {
   const pendingProjects = projectsList.filter((p) => p.status === "pending_review");
 
   const paidOrders = ordersList.filter((o) => o.status === "paid");
+  const pendingOrdersCount = ordersList.filter((o) => o.status === "pending").length;
   const totalVolumeKES = paidOrders.reduce((acc, o) => acc + Number(o.amount_kes || 0), 0);
   const totalCommissionKES = paidOrders.reduce((acc, o) => acc + Number(o.commission_kes || 0), 0);
 
@@ -552,9 +554,21 @@ export default async function AdminPage() {
           subtitle="Paystack settlement ledger"
           icon={Coins}
         headerRight={
-          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-            {ordersList.length} Orders
-          </span>
+          <div className="flex items-center gap-2">
+            {pendingOrdersCount > 0 && (
+              <form action={purgePendingOrdersAction}>
+                <button
+                  type="submit"
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors cursor-pointer"
+                >
+                  <span>Purge {pendingOrdersCount} Pending</span>
+                </button>
+              </form>
+            )}
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+              {ordersList.length} Orders
+            </span>
+          </div>
         }
       >
         {ordersList.length === 0 ? (
