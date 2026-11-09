@@ -74,7 +74,7 @@ export function AppShell({
     { label: "Home", href: "/", icon: Home, brandIcon: "dashboard" },
     { label: "Project Studio", href: "/studio", icon: Layers, brandIcon: "projects" },
     { label: "Projects Marketplace", href: "/projects", icon: ShoppingBag, brandIcon: "marketplace" },
-    { label: "Digital Library", href: "/library", icon: Library, brandIcon: "library" },
+    ...(!isRoleAdmin ? [{ label: "Digital Library", href: "/library", icon: Library, brandIcon: "library" as BrandIconName }] : []),
   ];
 
   return (
@@ -131,15 +131,27 @@ export function AppShell({
                     </div>
                     <span className="text-xs font-bold text-slate-800">Marketplace</span>
                   </Link>
-                  <Link
-                    href="/library"
-                    className="p-2.5 rounded-lg hover:bg-sky-50 border border-transparent hover:border-sky-100 flex flex-col items-center text-center gap-1.5 transition-colors"
-                  >
-                    <div className="p-2 bg-sky-100 text-sky-700 rounded-lg">
-                      <BrandIcon name="library" size="xs" />
-                    </div>
-                    <span className="text-xs font-bold text-slate-800">Digital Library</span>
-                  </Link>
+                  {!isRoleAdmin ? (
+                    <Link
+                      href="/library"
+                      className="p-2.5 rounded-lg hover:bg-sky-50 border border-transparent hover:border-sky-100 flex flex-col items-center text-center gap-1.5 transition-colors"
+                    >
+                      <div className="p-2 bg-sky-100 text-sky-700 rounded-lg">
+                        <BrandIcon name="library" size="xs" />
+                      </div>
+                      <span className="text-xs font-bold text-slate-800">Digital Library</span>
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/admin"
+                      className="p-2.5 rounded-lg hover:bg-teal-50 border border-transparent hover:border-teal-100 flex flex-col items-center text-center gap-1.5 transition-colors"
+                    >
+                      <div className="p-2 bg-teal-100 text-teal-700 rounded-lg">
+                        <BrandIcon name="supervisor" size="xs" />
+                      </div>
+                      <span className="text-xs font-bold text-slate-800">Admin Console</span>
+                    </Link>
+                  )}
                   {isRoleSupervisor && <Link
                     href="/supervisor"
                     className="p-2.5 rounded-lg hover:bg-amber-50 border border-transparent hover:border-amber-100 flex flex-col items-center text-center gap-1.5 transition-colors"
@@ -321,7 +333,8 @@ export function AppShell({
                 </div>
                 {[
                   { label: "Commission Fee", href: "#settings" },
-                  { label: "Pending Queue", href: "#pending" },
+                  { label: "Pending Approvals", href: "#pending" },
+                  { label: "Ready Plans", href: "#ready-plans" },
                   { label: "Projects Catalog", href: "#projects" },
                   { label: "User Directory", href: "#users" },
                   { label: "TVET Institutions", href: "#institutions" },
@@ -344,14 +357,23 @@ export function AppShell({
             {/* 2. Unified Candidate Track + Active Projects Panel (Kept Together) */}
             <div className="px-3 border-t border-slate-100 pt-3">
               <div className="rounded-xl border border-[#d8ebec] bg-[#e8f5f5]/50 p-2.5 space-y-2.5">
-                {/* Compact Candidate & Track Header */}
+                {/* Compact Candidate / Admin Session Header */}
                 <div className="space-y-0.5 px-0.5">
                   <div className="flex items-center justify-between gap-1.5">
                     <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-[#087f8c]">
-                      <GraduationCap className="h-3.5 w-3.5 shrink-0" />
-                      <span>Candidate Workspace</span>
+                      {isRoleAdmin ? (
+                        <>
+                          <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+                          <span>System Administrator</span>
+                        </>
+                      ) : (
+                        <>
+                          <GraduationCap className="h-3.5 w-3.5 shrink-0" />
+                          <span>Candidate Workspace</span>
+                        </>
+                      )}
                     </span>
-                    {studioWorkspaces !== undefined && (
+                    {!isRoleAdmin && studioWorkspaces !== undefined && (
                       <Link
                         href="/studio/new"
                         onClick={() => setSidebarOpen(false)}

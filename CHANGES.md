@@ -21,6 +21,27 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-11-10] — Architecture: Hide Digital Library for Admins, Purge Redundant Routes & Clean Admin Modules
+
+**Category:** Route Optimization, Navigation Architecture, Access Control
+
+**Status:** Completed & Verified
+
+**Changes Implemented:**
+1. **Hide Digital Library for Administrators**:
+   - In [`src/components/layout/AppShell.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/components/layout/AppShell.tsx), updated `navItems` and the 9-dot App Launcher dropdown to strictly hide **"Digital Library"** when `profile.role === "admin"`.
+   - Administrators instead see a direct link to the **"Admin Console"** (`/admin`).
+2. **Replaced Misleading "Candidate Workspace" in Admin Sidebar**:
+   - For users with the `admin` role, updated the bottom sidebar card from *"🎓 Candidate Workspace"* to **"🛡️ System Administrator"**, avoiding misleading student/candidate badges on administrative sessions.
+3. **Purged Redundant Dead Routes**:
+   - Deleted [`src/app/learn/page.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/app/learn/page.tsx) (an obsolete 7-line skeleton that only redirected to `/studio`).
+   - Deleted [`src/app/trainer/page.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/app/trainer/page.tsx) and [`src/app/trainer/actions.ts`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/app/trainer/actions.ts) (legacy redirect and un-imported stub superseded by `/admin` and `AdminProjectsManager`).
+4. **Resolved Redundant & Broken Admin Module Anchors**:
+   - In [`src/app/admin/page.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/app/admin/page.tsx), ensured `#pending` (Pending Approvals) and `#reports` (Disputes & Flagged Content) always render with friendly empty states when queues are clear, eliminating broken anchor jumps.
+   - Added `Ready Plans` (`#ready-plans`) to the Admin Modules sidebar navigation list.
+
+---
+
 ## [2026-11-10] — Layout: Fill Left Cover Hanging Gap with 5-Chapter Dossier & Remove Redundant Examination Section
 
 **Category:** Studio Details Layout, Content Positioning, Pedagogical Flow

@@ -217,17 +217,19 @@ export default async function AdminPage() {
         </ContentCard>
       </div>
 
-      {/* Pending Action Items (if any) */}
-      {pendingProjects.length > 0 && (
-        <div id="pending" className="scroll-mt-20">
-          <ContentCard
-            title={`Pending Projects (${pendingProjects.length})`}
-            subtitle="Items awaiting review"
-            icon={AlertCircle}
-          >
-          <div className="space-y-6">
-            {/* Pending Projects */}
-            {pendingProjects.length > 0 && (
+      {/* Pending Action Items */}
+      <div id="pending" className="scroll-mt-20">
+        <ContentCard
+          title={`Pending Approvals (${pendingProjects.length})`}
+          subtitle="Submitted materials awaiting administrative review"
+          icon={AlertCircle}
+        >
+          {pendingProjects.length === 0 ? (
+            <p className="text-xs text-slate-500 py-2">
+              All project submissions have been reviewed. The approval queue is clear.
+            </p>
+          ) : (
+            <div className="space-y-6">
               <div className="space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
                   Projects Submitted for Review ({pendingProjects.length})
@@ -285,11 +287,10 @@ export default async function AdminPage() {
                   ))}
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </ContentCard>
-        </div>
-      )}
+      </div>
 
       {/* Projects Section */}
       <div id="ready-plans" className="scroll-mt-20">
@@ -620,14 +621,18 @@ export default async function AdminPage() {
       </ContentCard>
       </div>
 
-      {/* Content Reports (if any) */}
-      {reportsList.length > 0 && (
-        <div id="reports" className="scroll-mt-20">
-          <ContentCard
-            title={`Flagged Content (${reportsList.length})`}
-            subtitle="Reported items"
-            icon={AlertCircle}
-          >
+      {/* Content Reports */}
+      <div id="reports" className="scroll-mt-20">
+        <ContentCard
+          title={`Flagged Content (${reportsList.length})`}
+          subtitle="User-reported items and policy disputes"
+          icon={AlertCircle}
+        >
+          {reportsList.length === 0 ? (
+            <p className="text-xs text-slate-500 py-2">
+              No content reports or disputes filed. Platform materials are compliant.
+            </p>
+          ) : (
             <div className="divide-y divide-slate-200 border border-slate-200 rounded-lg overflow-hidden bg-slate-50/50">
               {reportsList.map((r) => (
                 <div key={r.id} className="p-3.5">
@@ -638,9 +643,9 @@ export default async function AdminPage() {
                 </div>
               ))}
             </div>
-          </ContentCard>
-        </div>
-      )}
+          )}
+        </ContentCard>
+      </div>
     </AppShell>
   );
 }
