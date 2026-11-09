@@ -8,6 +8,7 @@ import { BuyButton } from "@/components/BuyButton";
 import { AmazonPrice } from "@/components/ui/AmazonPrice";
 import { createClient } from "@/lib/supabase/server";
 import { getMaterialTypeLabel, getExactBusinessTitle } from "@/lib/marketplace";
+import { getCanvasPalette } from "@/lib/canvasTheme";
 import type { UserProfile } from "@/types/database";
 
 type MarketplaceProductPageProps = { params: Promise<{ id: string }> };
@@ -28,9 +29,10 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
     .select("*, profiles:trainer_id(full_name)").eq("id", id).eq("status", "published").maybeSingle();
   if (!product) notFound();
 
-  const [{ data: rating }, { data: reviews }] = await Promise.all([
+  const [{ data: rating }, { data: reviews }, { data: relatedProducts }] = await Promise.all([
     supabase.from("marketplace_project_rating_stats").select("rating_average, review_count").eq("project_id", id).maybeSingle(),
     supabase.from("marketplace_project_public_reviews").select("rating, comment, created_at").eq("project_id", id).order("created_at", { ascending: false }).limit(20),
+    supabase.from("projects").select("id, title, price_kes, category, material_type").neq("id", id).eq("status", "published").limit(3),
   ]);
   const isOwner = product.trainer_id === user?.id;
   const isAdmin = profile?.role === "admin";
@@ -180,15 +182,66 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
           </section>
         </main>
 
-        <aside className="h-fit rounded-xl border border-slate-200 bg-white p-4 shadow-xs xl:sticky xl:top-20">
-          <div className="mb-3 flex items-center gap-2"><span className="rounded-lg bg-indigo-50 p-2 text-indigo-700"><BookOpen className="h-4 w-4" /></span><h2 className="text-sm font-semibold text-slate-900">What’s included</h2></div>
-          <dl className="divide-y divide-slate-100 text-xs">
-            <div className="flex justify-between gap-3 py-2"><dt className="text-slate-600">Resource</dt><dd className="text-right font-medium text-slate-900">{getMaterialTypeLabel(product.material_type)}</dd></div>
-            <div className="flex justify-between gap-3 py-2"><dt className="text-slate-600">Subject</dt><dd className="text-right font-medium text-slate-900">{product.category || "General"}</dd></div>
-            <div className="flex justify-between gap-3 py-2"><dt className="text-slate-600">Format</dt><dd className="text-right font-medium text-slate-900">{extension}</dd></div>
-            <div className="flex justify-between gap-3 py-2"><dt className="text-slate-600">Access</dt><dd className="text-right font-medium text-slate-900">Lifetime download</dd></div>
-          </dl>
-          <Link href="/projects" className="mt-4 inline-flex text-xs font-semibold text-indigo-700 hover:text-indigo-900">← Continue browsing</Link>
+        <aside className="space-y-4 xl:sticky xl:top-20 h-fit">
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-lg bg-indigo-50 p-2 text-indigo-700"><BookOpen className="h-4 w-4" /></span>
+              <h2 className="text-sm font-semibold text-slate-900">What’s included</h2>
+            </div>
+            <dl className="divide-y divide-slate-100 text-xs">
+              <div className="flex justify-between gap-3 py-2"><dt className="text-slate-600">Resource</dt><dd className="text-right font-medium text-slate-900">{getMaterialTypeLabel(product.material_type)}</dd></div>
+              <div className="flex justify-between gap-3 py-2"><dt className="text-slate-600">Subject</dt><dd className="text-right font-medium text-slate-900">{product.category || "General"}</dd></div>
+              <div className="flex justify-between gap-3 py-2"><dt className="text-slate-600">Format</dt><dd className="text-right font-medium text-slate-900">{extension}</dd></div>
+              <div className="flex justify-between gap-3 py-2"><dt className="text-slate-600">Access</dt><dd className="text-right font-medium text-slate-900">Lifetime download</dd></div>
+            </dl>
+            <Link href="/projects" className="mt-4 inline-flex text-xs font-semibold text-indigo-700 hover:text-indigo-900">← Continue browsing</Link>
+          </div>
+
+          {relatedProducts && relatedProducts.length > 0 && (
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="rounded-lg bg-teal-50 p-2 text-[#087f8c]">
+                    <FileText className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <h2 className="text-sm font-semibold text-slate-900">Related Materials</h2>
+                    <p className="text-[11px] text-slate-500">From the marketplace</p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-mono font-medium text-slate-400">TVET Hub</span>
+              </div>
+
+              <div className="divide-y divide-slate-100">
+                {relatedProducts.map((item) => {
+                  const relTitle = getExactBusinessTitle(item.title);
+                  const palette = getCanvasPalette(item.id || item.title);
+                  return (
+                    <Link
+                      key={item.id}
+                      href={`/projects/${item.id}`}
+                      className="w-full text-left py-2.5 group flex items-start gap-2.5 transition-colors hover:bg-slate-50/70 -mx-1 px-1 rounded-md block"
+                    >
+                      <div
+                        className={`h-8 w-8 rounded shrink-0 flex items-center justify-center text-white text-[10px] font-mono font-bold bg-gradient-to-br ${palette.bgGradient}`}
+                      >
+                        TH
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-xs font-semibold text-slate-800 group-hover:text-[#087f8c] line-clamp-1 transition-colors">
+                          {relTitle}
+                        </h3>
+                        <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+                          KES {Number(item.price_kes).toLocaleString()} · {getMaterialTypeLabel(item.material_type)}
+                        </p>
+                      </div>
+                      <ChevronRight className="h-3.5 w-3.5 text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </aside>
       </div>
     </AppShell>

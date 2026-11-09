@@ -21,6 +21,23 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-11-10] — Feature: Utilise Hanging Sidebar Space with Related TVET Project Areas & Materials
+
+**Category:** UX Enhancement, Content Discovery, Navigation Flow
+
+**Status:** Completed & Verified
+
+**Changes Implemented:**
+1. **Studio Related Project Areas Card**:
+   - Utilised the empty hanging space in the Project Studio sidebar (`<aside className="space-y-4 xl:sticky xl:top-20 h-fit">` in [`src/components/studio/ProjectAreaCatalog.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/components/studio/ProjectAreaCatalog.tsx)) by adding a **Related Project Areas** card.
+   - Computes up to 3 complementary project areas from the same TVET cluster/department using `useMemo`.
+   - Each related card displays the project's `#Area` number in a Canvas-palette badge, exact business title, capital tier, estimated startup capital, and a one-click transition that smoothly switches the detail view.
+2. **Marketplace Related Materials Card**:
+   - In [`src/app/projects/[id]/page.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/app/projects/[id]/page.tsx), added a query fetching related materials and populated a **Related Materials** card in the sidebar hanging space directly below the "What's included" container.
+   - Provides students and trainers easy cross-referencing of related KNEC resources without having to navigate back to the main search grid.
+
+---
+
 ## [2026-11-10] — Refactor: Unify Project Studio Details with Marketplace Product Architecture & Purge Excessive Decoration
 
 **Category:** UI Consistency, Academic Content Presentation, Component Architecture
