@@ -42,8 +42,8 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
   const reviewCount = Number(rating?.review_count || 0);
   const publisher = product.profiles as unknown as { full_name?: string | null } | null;
   const publisherName = product.material_type === "business_plan"
-    ? "BrightPath Academic Repository"
-    : (publisher?.full_name || "BrightPath Publisher");
+    ? "TVET Hub Academic Repository"
+    : (publisher?.full_name || "TVET Hub Publisher");
   const isBusinessPlan =
     product.material_type === "business_plan" ||
     (product.category || "").toLowerCase().includes("business") ||

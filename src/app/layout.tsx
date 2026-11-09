@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BrightPath TVET",
-  description: "Accredited TVET Capstone Projects & Progressive Studio",
+  title: "TVET Hub - Kenya TVET Project Studio & Academic Repository",
+  description: "Kenya TVET Examination Projects, Business Plans, and Academic Studio standard.",
 };
 
 export default function RootLayout({

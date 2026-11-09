@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import Link from "next/link";
 import {
   Save,
@@ -48,6 +48,7 @@ interface SectionEditorProps {
   minWords?: number;
   phase: "proposal" | "project";
   isLocked: boolean;
+  isExportUnlocked?: boolean;
   currentText: string;
   reviewThreads: SectionReviewThread[];
   currentSectionUpdatedAt: string;
@@ -76,6 +77,7 @@ export function SectionEditor({
   guidance,
   minWords = 30,
   isLocked,
+  isExportUnlocked = true,
   currentText: initialText,
   reviewThreads,
   currentSectionUpdatedAt,
@@ -101,6 +103,19 @@ export function SectionEditor({
   const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
   const [isPolishing, startPolishing] = useTransition();
   const [polishResult, setPolishResult] = useState<SectionPolishResult | null>(null);
+  const [showCopyWarning, setShowCopyWarning] = useState(false);
+
+  useEffect(() => {
+    if (isExportUnlocked === false) {
+      const handleBeforePrint = (e: Event) => {
+        e.preventDefault();
+        setShowCopyWarning(true);
+        setTimeout(() => setShowCopyWarning(false), 4000);
+      };
+      window.addEventListener("beforeprint", handleBeforePrint);
+      return () => window.removeEventListener("beforeprint", handleBeforePrint);
+    }
+  }, [isExportUnlocked]);
 
   const wordsCount = text.trim() ? text.trim().split(/\s+/).length : 0;
   const isMinMet = wordsCount >= minWords;
@@ -511,18 +526,84 @@ export function SectionEditor({
               />
             </section>
 
+            {/* Locked Workspace Content Protection Notice */}
+            {isExportUnlocked === false && (
+              <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-2.5 text-xs text-amber-900 shadow-2xs">
+                <div className="flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-amber-700 shrink-0" />
+                  <span>
+                    <strong>Protected Draft View:</strong> Copying, clipboard export, and printing are disabled on draft plans. Unlock the official KNEC export to download the complete Word (.docx) &amp; PDF document.
+                  </span>
+                </div>
+                <Link
+                  href={`/studio/${workspaceId}`}
+                  className="inline-flex items-center gap-1 font-semibold text-amber-900 hover:text-amber-950 underline underline-offset-2 shrink-0"
+                >
+                  <span>Unlock Export (KES 350)</span>
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+            )}
+
+            {showCopyWarning && (
+              <div className="flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs text-rose-800 animate-in fade-in duration-150">
+                <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
+                <span>
+                  <strong>Copying disabled:</strong> Please unlock the official KNEC export in your workspace overview to download or export this document.
+                </span>
+              </div>
+            )}
+
             {/* Editor Textarea */}
-            <div>
+            <div className={isExportUnlocked === false ? "select-none relative" : "relative"}>
               <textarea
                 id="editorTextarea"
                 rows={14}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
+                onCopy={(e) => {
+                  if (isExportUnlocked === false) {
+                    e.preventDefault();
+                    setShowCopyWarning(true);
+                    setTimeout(() => setShowCopyWarning(false), 3500);
+                  }
+                }}
+                onCut={(e) => {
+                  if (isExportUnlocked === false) {
+                    e.preventDefault();
+                    setShowCopyWarning(true);
+                    setTimeout(() => setShowCopyWarning(false), 3500);
+                  }
+                }}
+                onContextMenu={(e) => {
+                  if (isExportUnlocked === false) {
+                    e.preventDefault();
+                    setShowCopyWarning(true);
+                    setTimeout(() => setShowCopyWarning(false), 3500);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (isExportUnlocked === false && (e.ctrlKey || e.metaKey)) {
+                    const key = e.key.toLowerCase();
+                    if (["c", "x", "a", "u", "p", "s"].includes(key)) {
+                      e.preventDefault();
+                      setShowCopyWarning(true);
+                      setTimeout(() => setShowCopyWarning(false), 3500);
+                    }
+                  }
+                }}
                 placeholder={
                   questionGuide?.placeholderExample ||
                   "Write your section draft here in clear, concise language..."
                 }
-                className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg p-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 leading-relaxed font-sans placeholder:text-slate-400 min-h-[320px]"
+                style={
+                  isExportUnlocked === false
+                    ? { userSelect: "none", WebkitUserSelect: "none" }
+                    : undefined
+                }
+                className={`w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg p-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 leading-relaxed font-sans placeholder:text-slate-400 min-h-[320px] ${
+                  isExportUnlocked === false ? "select-none" : ""
+                }`}
               />
             </div>
 

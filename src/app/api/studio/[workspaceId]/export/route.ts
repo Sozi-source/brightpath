@@ -29,7 +29,30 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
     .select("section_key, current_text").eq("workspace_id", workspaceId);
   if (error) return NextResponse.json({ error: "Could not load the business plan." }, { status: 500 });
 
-  const businessSpecs = workspace.business_plan_specs as Partial<BusinessPlanSpecs> | null;
+  const businessSpecs = workspace.business_plan_specs as (Partial<BusinessPlanSpecs> & {
+    export_unlocked?: boolean;
+    unlocked_at?: string;
+  }) | null;
+
+  // Enforce Pay-to-Export Gate:
+  // Admin role is exempt. Students must unlock KNEC Word (.docx) & PDF export for KES 350.
+  const isUnlocked = Boolean(
+    profile?.role === "admin" ||
+    businessSpecs?.export_unlocked === true ||
+    (workspace as unknown as { is_unlocked?: boolean })?.is_unlocked === true
+  );
+
+  if (!isUnlocked) {
+    return NextResponse.json(
+      {
+        error: "Export locked. Please unlock the official KNEC Word (.docx) & PDF export (KES 350) to download this business plan.",
+        locked: true,
+        price_kes: 350,
+      },
+      { status: 402 }
+    );
+  }
+
   const businessModel = resolveBusinessPlanModel(businessSpecs);
   const sectionsByKey = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
   const sections = getWorkspaceSections("business_plan", workspace.level, businessModel)

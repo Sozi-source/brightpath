@@ -98,7 +98,7 @@ export function AppShell({
               type="button"
               onClick={() => setAppLauncherOpen(!appLauncherOpen)}
               className="p-2 rounded-lg text-slate-700 hover:bg-slate-100 hover:text-[#087f8c] transition-colors flex items-center justify-center cursor-pointer"
-              title="BrightPath TVET Application Suite"
+              title="TVET Hub Application Suite"
             >
               <LayoutGrid className="h-5 w-5 text-[#13243a]" />
             </button>
@@ -110,7 +110,7 @@ export function AppShell({
                 onClick={() => setAppLauncherOpen(false)}
               >
                 <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-2 py-1">
-                  BrightPath TVET Suite
+                  TVET Hub Suite
                 </div>
                 <div className="grid grid-cols-2 gap-2 pt-1">
                   <Link
@@ -157,14 +157,14 @@ export function AppShell({
           {/* Official Portal Branding */}
           <Link href="/" className="flex items-center gap-2.5">
             <div className="h-9 w-9 rounded-xl bg-[#087f8c] flex items-center justify-center text-white font-bold text-sm shadow-xs">
-              <span className="text-amber-300">B</span>P
+              <span className="text-amber-300">T</span>H
             </div>
             <div className="flex flex-col">
               <span className="font-semibold text-base sm:text-lg text-slate-900 tracking-tight leading-none">
-                BrightPath
+                TVET Hub
               </span>
               <span className="text-[10px] font-medium text-[#087f8c] uppercase tracking-wider">
-                TVET Project Studio
+                Project &amp; Curriculum Studio
               </span>
             </div>
           </Link>
@@ -451,7 +451,7 @@ export function AppShell({
 
           {/* Sidebar Footer with National Accreditation Info */}
           <div className="p-3.5 border-t border-slate-100 text-[11px] text-slate-400 space-y-0.5">
-            <div className="font-semibold text-slate-700">BrightPath TVET</div>
+            <div className="font-semibold text-slate-700">TVET Hub</div>
             <div className="text-[10px] text-slate-400 leading-tight">
               KNEC Project Studio Standard
             </div>

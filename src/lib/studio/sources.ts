@@ -1,5 +1,5 @@
 /**
- * BrightPath Verified Source Library & Citation Engine
+ * TVET Hub Verified Source Library & Citation Engine
  *
  * Principle: the AI NEVER invents a citation. It may only cite entries in this library,
  * by id. The in-text citation and the APA 7th reference are generated here from fixed

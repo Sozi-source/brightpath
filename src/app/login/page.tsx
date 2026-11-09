@@ -28,14 +28,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           href="/"
           className="inline-flex items-center gap-2.5 font-semibold text-xl text-slate-900 tracking-tight"
         >
-          <div className="h-10 w-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-base shadow-xs">
-            <span className="text-amber-300">B</span>P
+          <div className="h-10 w-10 rounded-xl bg-[#087f8c] flex items-center justify-center text-white font-bold text-base shadow-xs">
+            <span className="text-amber-300">T</span>H
           </div>
           <div className="text-left">
             <span className="block font-semibold text-base sm:text-lg text-slate-900 leading-tight">
-              BrightPath TVET
+              TVET Hub
             </span>
-            <span className="block text-[10px] font-medium text-indigo-600 uppercase tracking-wider">
+            <span className="block text-[10px] font-medium text-[#087f8c] uppercase tracking-wider">
               Kenya Education Cloud Standard
             </span>
           </div>

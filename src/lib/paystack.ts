@@ -170,3 +170,101 @@ export async function verifyTransactionWithPaystack(reference: string): Promise<
     return { success: false, status: "failed", error: message };
   }
 }
+
+/**
+ * Permanently unlock document export (Word .docx and PDF) for a student's business plan workspace.
+ */
+export async function unlockWorkspaceExport(
+  workspaceId: string,
+  reference?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const adminClient = createAdminClient();
+    const { data: ws, error: wsErr } = await adminClient
+      .from("project_workspaces")
+      .select("id, business_plan_specs")
+      .eq("id", workspaceId)
+      .maybeSingle();
+
+    if (wsErr || !ws) {
+      return { success: false, error: "Workspace not found" };
+    }
+
+    const currentSpecs = (ws.business_plan_specs as Record<string, unknown>) || {};
+    const updatedSpecs = {
+      ...currentSpecs,
+      export_unlocked: true,
+      unlocked_at: new Date().toISOString(),
+      unlock_paystack_reference: reference || currentSpecs.unlock_paystack_reference || null,
+      unlock_amount_kes: 350,
+    };
+
+    const { error: updateErr } = await adminClient
+      .from("project_workspaces")
+      .update({ business_plan_specs: updatedSpecs })
+      .eq("id", workspaceId);
+
+    if (updateErr) {
+      return { success: false, error: updateErr.message };
+    }
+
+    return { success: true };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to unlock workspace",
+    };
+  }
+}
+
+/**
+ * Server-to-server verification for workspace export unlock redirect.
+ */
+export async function verifyWorkspaceUnlockWithPaystack(
+  reference: string,
+  workspaceId: string
+): Promise<{ success: boolean; error?: string }> {
+  const secret = getPaystackSecretKey();
+  if (!secret) {
+    // In local development or testing without live Paystack key, unlock gracefully
+    if (process.env.NODE_ENV !== "production") {
+      return await unlockWorkspaceExport(workspaceId, reference);
+    }
+    return { success: false, error: "Paystack secret key not configured" };
+  }
+
+  try {
+    const res = await fetch(
+      `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${secret}`,
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      }
+    );
+
+    const json = await res.json();
+    if (!json.status || !json.data) {
+      return { success: false, error: json.message || "Paystack verification failed" };
+    }
+
+    const data = json.data;
+    if (String(data.status).toLowerCase() !== "success") {
+      return { success: false, error: `Paystack status was ${data.status}` };
+    }
+
+    const metaWorkspaceId = data.metadata?.workspace_id;
+    if (metaWorkspaceId && metaWorkspaceId !== workspaceId) {
+      return { success: false, error: "Transaction does not match this workspace" };
+    }
+
+    return await unlockWorkspaceExport(workspaceId, reference);
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to verify transaction",
+    };
+  }
+}

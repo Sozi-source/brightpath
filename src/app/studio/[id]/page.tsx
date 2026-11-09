@@ -28,16 +28,29 @@ import {
 } from "lucide-react";
 import type { ProjectWorkspace, WorkspaceSection, SupervisorReview } from "@/types/database";
 import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
+import { UnlockExportModal } from "./UnlockExportModal";
+import { verifyWorkspaceUnlockWithPaystack } from "@/lib/paystack";
 
 export const instant = false;
 
 interface WorkspaceOverviewPageProps {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ reference?: string; trxref?: string; unlocked?: string }>;
 }
 
-export default async function WorkspaceOverviewPage({ params }: WorkspaceOverviewPageProps) {
+export default async function WorkspaceOverviewPage({
+  params,
+  searchParams,
+}: WorkspaceOverviewPageProps) {
   await connection();
   const { id: workspaceId } = await params;
+  const resolvedParams = searchParams ? await searchParams : {};
+  const redirectRef = (resolvedParams.reference || resolvedParams.trxref)?.trim();
+
+  if (redirectRef) {
+    await verifyWorkspaceUnlockWithPaystack(redirectRef, workspaceId);
+  }
+
   const supabase = await createClient();
 
   const {
@@ -137,6 +150,10 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
 
   const isBusiness = workspace.workspace_type === "business_plan";
   const hasPlanContent = isBusiness && sections.some((section) => section.current_text.trim());
+  const isUnlocked = Boolean(
+    profile?.role === "admin" ||
+    (workspace.business_plan_specs as Record<string, unknown> | null)?.export_unlocked === true
+  );
   const totalDefinedSections = templateDefs.length;
   const completedDefinedSections = templateDefs.filter((definition) => {
     const text = sectionsMap.get(definition.key)?.current_text || "";
@@ -205,6 +222,27 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
       studioWorkspaces={sidebarWorkspaces}
     >
       <div className="space-y-4">
+        {/* Payment Confirmation Banner */}
+        {isUnlocked && (resolvedParams.unlocked === "true" || redirectRef) && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-900 shadow-xs">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+              <span>
+                <strong>Payment confirmed!</strong> Official KNEC Word (.docx) and PDF export has been unlocked for this workspace.
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/api/studio/${workspaceId}/export?format=docx`}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 transition-colors"
+              >
+                <FileText className="h-3.5 w-3.5" />
+                <span>Download .docx</span>
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* 1. Unified Compact Workspace Bar & Concept Card (Replaces 4 stacked banners) */}
         <section className="bp-card overflow-hidden">
           <div className="h-1 w-full bg-gradient-to-r from-[#087f8c] via-[#0e9ba5] to-[#d9a441]" />
@@ -252,8 +290,12 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
 
               {/* Consolidated Action Toolbar */}
               <div className="flex flex-wrap items-center gap-2">
-                {hasPlanContent && (
+                {hasPlanContent && isUnlocked && (
                   <>
+                    <span className="hidden sm:inline-flex items-center gap-1 rounded-md bg-emerald-50 border border-emerald-200 px-2 py-1 text-[11px] font-semibold text-emerald-800">
+                      <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                      <span>KNEC Export Unlocked</span>
+                    </span>
                     <Link
                       href={`/api/studio/${workspaceId}/export?format=pdf`}
                       className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors"
@@ -269,6 +311,13 @@ export default async function WorkspaceOverviewPage({ params }: WorkspaceOvervie
                       <span>Word (.docx)</span>
                     </Link>
                   </>
+                )}
+
+                {hasPlanContent && !isUnlocked && isBusiness && (
+                  <UnlockExportModal
+                    workspaceId={workspaceId}
+                    businessTitle={cleanBusinessTitle}
+                  />
                 )}
 
                 {isBusiness && workspace.student_id === user.id ? (

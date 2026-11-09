@@ -58,11 +58,11 @@ export default async function HomePage() {
 
             <Link href="/" className="flex items-center gap-2.5">
               <div className="h-9 w-9 rounded-xl bg-[#087f8c] flex items-center justify-center text-white font-bold text-sm shadow-xs">
-                <span className="text-amber-300">B</span>P
+                <span className="text-amber-300">T</span>H
               </div>
               <div>
                 <span className="font-semibold text-sm tracking-tight text-slate-900 block leading-tight">
-                  BrightPath TVET
+                  TVET Hub
                 </span>
                 <span className="text-[10px] font-medium text-[#087f8c] uppercase tracking-wider block">
                   Kenya Education Cloud Standard
@@ -231,7 +231,7 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-[#087f8c]" />
-            <span>BrightPath TVET Examination & Projects Standard</span>
+            <span>TVET Hub Examination & Projects Standard</span>
           </div>
           <div className="flex items-center gap-5 font-medium text-slate-600">
             <Link href="/studio" className="hover:text-[#087f8c]">Project Studio</Link>

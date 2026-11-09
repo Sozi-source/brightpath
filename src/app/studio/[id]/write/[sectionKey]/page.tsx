@@ -60,7 +60,8 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
       status,
       student_id,
       supervisor_id,
-      final_project_status
+      final_project_status,
+      business_plan_specs
     `)
     .eq("id", workspaceId)
     .single();
@@ -156,6 +157,12 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
     workspaceType: workspace.workspace_type,
   });
 
+  const isBusiness = workspace.workspace_type === "business_plan";
+  const isExportUnlocked = !isBusiness || Boolean(
+    profile?.role === "admin" ||
+    (workspace.business_plan_specs as Record<string, unknown> | null)?.export_unlocked === true
+  );
+
   return (
     <AppShell
       user={user}
@@ -174,6 +181,7 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
         minWords={sectionDef.minWords}
         phase={sectionDef.phase}
         isLocked={isLocked}
+        isExportUnlocked={isExportUnlocked}
         currentText={textMap.get(sectionDef.key) || ""}
         reviewThreads={sectionReviewThreads.filter((thread) => thread.section_key === sectionDef.key)}
         currentSectionUpdatedAt={allSections.find((section) => section.section_key === sectionDef.key)?.updated_at || ""}

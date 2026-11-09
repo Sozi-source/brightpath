@@ -1,5 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { fulfillOrder, verifyPaystackSignature, getPaystackSecretKey } from "@/lib/paystack";
+import {
+  fulfillOrder,
+  verifyPaystackSignature,
+  getPaystackSecretKey,
+  unlockWorkspaceExport,
+} from "@/lib/paystack";
 
 export async function POST(request: NextRequest) {
   const secret = getPaystackSecretKey();
@@ -35,6 +40,11 @@ export async function POST(request: NextRequest) {
 
   if (event.event === "charge.success" && event.data?.reference) {
     const metadataModuleId = event.data.metadata?.module_id as string | undefined;
+    const metadataWorkspaceId = event.data.metadata?.workspace_id as string | undefined;
+
+    if (metadataWorkspaceId) {
+      await unlockWorkspaceExport(metadataWorkspaceId, event.data.reference);
+    }
 
     const result = await fulfillOrder({
       reference: event.data.reference,

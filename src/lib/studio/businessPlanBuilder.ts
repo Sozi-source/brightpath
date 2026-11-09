@@ -1,5 +1,5 @@
 /**
- * BrightPath KNEC 25-30 Page Complete Business Plan Builder
+ * TVET Hub KNEC 25-30 Page Complete Business Plan Builder
  * Generates all 28 sections conforming strictly to the KNEC Entrepreneurship syllabus notes
  * and official template (Business_Plan_Template_KNEC.docx).
  */

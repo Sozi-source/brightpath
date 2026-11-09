@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getPaystackSecretKey } from "@/lib/paystack";
+import { getPaystackSecretKey, unlockWorkspaceExport } from "@/lib/paystack";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -14,12 +14,108 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json().catch(() => ({}));
-  const projectId = body.projectId;
+  const { projectId, workspaceId } = body;
 
-  if (!projectId) {
-    return NextResponse.json({ error: "Missing projectId." }, { status: 400 });
+  if (!projectId && !workspaceId) {
+    return NextResponse.json({ error: "Missing projectId or workspaceId." }, { status: 400 });
   }
 
+  const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://tvethub.co.ke";
+  const siteUrl = rawSiteUrl.replace(/\/+$/, "");
+  const email = user.email || `${user.id.slice(0, 8)}@tvethub.ac.ke`;
+  const paystackKey = getPaystackSecretKey();
+
+  // CASE 1: Student Workspace KNEC Export Unlock (KES 350 standard fee)
+  if (workspaceId) {
+    const { data: workspace, error: wsErr } = await supabase
+      .from("project_workspaces")
+      .select("id, student_id, title, business_plan_specs")
+      .eq("id", workspaceId)
+      .maybeSingle();
+
+    if (wsErr || !workspace) {
+      return NextResponse.json({ error: "Workspace not found." }, { status: 404 });
+    }
+    if (workspace.student_id !== user.id) {
+      return NextResponse.json({ error: "Unauthorized to unlock this workspace." }, { status: 403 });
+    }
+
+    const currentSpecs = (workspace.business_plan_specs as Record<string, unknown>) || {};
+    if (currentSpecs.export_unlocked) {
+      return NextResponse.json({
+        alreadyUnlocked: true,
+        authorization_url: `${siteUrl}/studio/${workspaceId}?unlocked=true`,
+        message: "This workspace is already unlocked.",
+      });
+    }
+
+    const amountKes = 350;
+    const reference = `BP_WS_${workspaceId.replace(/-/g, "").slice(0, 8)}_${Date.now()}`;
+
+    if (!paystackKey) {
+      // In development or when Paystack gateway key is pending, enable instant unlock for seamless testing
+      if (process.env.NODE_ENV !== "production") {
+        await unlockWorkspaceExport(workspaceId, reference);
+        return NextResponse.json({
+          authorization_url: `${siteUrl}/studio/${workspaceId}?unlocked=true&dev=true`,
+          reference,
+          amountKes,
+        });
+      }
+      return NextResponse.json(
+        {
+          error: "Payment gateway is not configured yet. Please configure PAYSTACK_SECRET_KEY in server settings.",
+          reference,
+          amountKes,
+        },
+        { status: 503 }
+      );
+    }
+
+    // Call Paystack API
+    const paystackPayload: Record<string, unknown> = {
+      email,
+      amount: Math.round(amountKes * 100), // in kobo/cents (35,000 cents = KES 350)
+      currency: "KES",
+      reference,
+      callback_url: `${siteUrl}/studio/${workspaceId}?reference=${reference}&unlocked=true`,
+      metadata: {
+        type: "workspace_export_unlock",
+        workspace_id: workspaceId,
+        student_id: user.id,
+      },
+    };
+
+    try {
+      const res = await fetch("https://api.paystack.co/transaction/initialize", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${paystackKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(paystackPayload),
+      });
+
+      const data = await res.json();
+      if (!data.status) {
+        console.error("[Paystack API Failure]", data);
+        return NextResponse.json(
+          { error: data.message || "Paystack initialization failed." },
+          { status: 502 }
+        );
+      }
+
+      return NextResponse.json({
+        authorization_url: data.data.authorization_url,
+        reference,
+      });
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Paystack service unavailable";
+      return NextResponse.json({ error: errorMsg }, { status: 502 });
+    }
+  }
+
+  // CASE 2: Marketplace Project Purchase
   // Fetch project details
   const { data: project, error: projErr } = await supabase
     .from("projects")
@@ -78,9 +174,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to initialize order." }, { status: 500 });
   }
 
-  const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://brightpath-zc14.vercel.app";
-  const siteUrl = rawSiteUrl.replace(/\/+$/, "");
-
   // If resource is free (KES 0), fulfill immediately
   if (amountKes <= 0) {
     await adminClient
@@ -95,9 +188,6 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  // Read Paystack Secret Key with fallbacks and quote-stripping
-  const paystackKey = getPaystackSecretKey();
-
   if (!paystackKey) {
     console.error("[Paystack Init] Missing PAYSTACK_SECRET_KEY in server environment.");
     return NextResponse.json(
@@ -109,8 +199,6 @@ export async function POST(request: NextRequest) {
       { status: 503 }
     );
   }
-
-  const email = user.email || `${user.id.slice(0, 8)}@brightpath.ac.ke`;
 
   // Call Paystack API
   const paystackPayload: Record<string, unknown> = {

@@ -1,5 +1,5 @@
 /**
- * BrightPath KNEC Business Plan Mathematical Financial Engine
+ * TVET Hub KNEC Business Plan Mathematical Financial Engine
  * Strictly computes Chapters 5.1 to 5.8 according to KNEC syllabus notes and template.
  * Guarantees that:
  * 1. 12-Month Cash Flow Statement reconciles into Year 1 Income Statement.

@@ -1,5 +1,5 @@
 /**
- * BrightPath Dependable KNEC AI Engine
+ * TVET Hub Dependable KNEC AI Engine
  * 
  * Purpose: Carries technical TVET students (Nutrition & Dietetics, Food Science & Technology,
  * and Nutrition Enterprise) through the complete research lifecycle to final examination submission:

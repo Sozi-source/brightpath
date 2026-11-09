@@ -28,7 +28,7 @@ export function PageHeaderCard({ title, subtitle, breadcrumbs, metadata, actions
       <div className={compact ? "space-y-3 p-4" : "space-y-4 p-4 sm:p-5 lg:p-6"}>
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
           <div className="min-w-0 space-y-1.5">
-            <div className="bp-eyebrow">BrightPath TVET · Workspace</div>
+            <div className="bp-eyebrow">TVET Hub · Workspace</div>
             <h1 className={`${compact ? "text-xl" : "text-2xl sm:text-[1.75rem]"} font-semibold leading-tight text-slate-950`}>{title}</h1>
             {subtitle && <p className="max-w-3xl text-xs leading-relaxed text-slate-500 sm:text-sm">{subtitle}</p>}
           </div>

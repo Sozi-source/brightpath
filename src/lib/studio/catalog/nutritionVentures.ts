@@ -1,5 +1,5 @@
 /**
- * BrightPath Master Nutrition & Dietetics Venture Catalog
+ * TVET Hub Master Nutrition & Dietetics Venture Catalog
  * Complete 35-area taxonomy conforming to KNEC / TVET Entrepreneurship syllabus.
  * Contains realistic Kenyan equipment, raw materials, payroll, and statutory fees.
  */

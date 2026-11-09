@@ -1,5 +1,5 @@
 /**
- * BrightPath KNEC Business Plan Specification Types
+ * TVET Hub KNEC Business Plan Specification Types
  * Derived from official KNEC Entrepreneurship syllabus notes and template.
  */
 
@@ -423,7 +423,7 @@ export function normalizeBusinessPlanSpecs(
   const townOrMarket = str(s.townOrMarket, "Thika Town");
   const primaryProduct = str(s.primaryProduct, "Fortified Nutritional Products & Dietetic Services");
   const industrySector = str(s.industrySector, "Human Nutrition, Dietetics & Food Processing");
-  const businessName = str(s.businessName, "BrightPath Nutrition & Wellness Enterprise");
+  const businessName = str(s.businessName, "TVET Hub Nutrition & Wellness Enterprise");
   const unitSellingPrice = num(s.unitSellingPrice, 500, 0);
   const unitCostOfProduction = num(s.unitCostOfProduction, Math.round(unitSellingPrice * 0.45), 0);
   const monthlyRent = num(s.monthlyRent ?? s.monthlyOverheads?.rent, 15000, 0);
