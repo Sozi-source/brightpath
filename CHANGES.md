@@ -21,6 +21,30 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-11-10] — Admin: Purged Redundant Operational Cards & Consolidated Workflow in Catalog Table
+
+**Category:** Workflow Consolidation, UI Simplification, High-Density Table Architecture
+
+**Status:** Completed & Verified
+
+**Changes Implemented:**
+1. **Purged Redundant Operational Queue Cards**:
+   - In [`src/app/admin/page.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/app/admin/page.tsx), purged both the `#pending` (Pending Approvals) and `#ready-plans` (Approved Student Plans) cards.
+   - Removed expensive extra parallel database queries (`supabase.from("project_workspaces")`, `supabase.from("workspace_sections")`) and redundant verification logic.
+2. **Consolidated into Full-Width Projects Catalog Manager**:
+   - Administrative review and status management are now handled entirely by the full-width [`AdminProjectsManager`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/components/admin/AdminProjectsManager.tsx) component in `#projects`.
+   - Offers dedicated status filter tabs (`All Products`, `Published`, `Pending Review`, `Draft/Inactive`), full search by title/category/author, cover preview, and price/metadata modal setup without cramped columns or horizontal scrollbars.
+3. **Updated Sticky Command HUD**:
+   - The sticky command bar at `top-16` provides persistent live indicators for:
+     - 🎓 **Students** (`studentCount`)
+     - 📦 **Projects Catalog** (`projectsList.length`)
+     - ⏳ **Pending Review** (`pendingProjects.length`)
+     - 💰 **Total Sales** (`KES ${totalVolumeKES.toLocaleString()}`)
+4. **Streamlined Sidebar Admin Modules**:
+   - In [`src/components/layout/AppShell.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/components/layout/AppShell.tsx), purged `Pending Approvals` and `Ready Plans` links, leaving a clean 4-module navigation list: `Projects Catalog`, `User Directory`, `Transactions`, and `Disputes & Reports`.
+
+---
+
 ## [2026-11-10] — Admin: Sticky Pinned KPI HUD Bar, Title Sanitization & Progressive Queue Tables
 
 **Category:** Admin Dashboard Architecture, Visual Typography, High-Volume Data Presentation

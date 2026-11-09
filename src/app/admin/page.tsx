@@ -1,10 +1,7 @@
-import Link from "next/link";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import {
-  updateProjectStatus,
   updateUserRole,
-  queueApprovedBusinessPlanForPublishing,
   purgePendingOrdersAction,
 } from "./actions";
 import { redirect } from "next/navigation";
@@ -13,13 +10,9 @@ import { ContentCard } from "@/components/layout/ContentCard";
 import {
   GraduationCap,
   Layers,
-  CheckCircle2,
-  XCircle,
   AlertCircle,
   Coins,
   Users,
-  Download,
-  FileText,
 } from "lucide-react";
 import type {
   UserProfile,
@@ -27,21 +20,9 @@ import type {
   Order,
   ContentReport,
 } from "@/types/database";
-import { getWorkspaceSections } from "@/lib/studio/templates";
-import { resolveBusinessPlanModel, type BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
 import { AdminProjectsManager } from "@/components/admin/AdminProjectsManager";
 
 export const instant = false;
-
-function cleanVentureTitle(rawTitle?: string | null): string {
-  if (!rawTitle) return "Business Plan";
-  let title = rawTitle.trim();
-  title = title.replace(/^(?:Complete\s+KNEC\s+Business\s+Plan\s*(?:\([^)]*\))?\s*(?:for|on)?|Business\s+Plan\s*(?:for|on)?|A\s+Business\s+Plan\s*(?:for|on)?)\s+/i, "");
-  title = title.replace(/\s+in\s+([A-Z][a-zA-Z]+(?:\s*,\s*[A-Z][a-zA-Z]+|\s+[A-Z][a-zA-Z]+)*)\s*(?:County|Sub-county|Region)?$/i, "");
-  title = title.replace(/,\s*[A-Z][a-zA-Z\s]+(?:County|Region)$/i, "");
-  title = title.replace(/\s+Regional,\s*County$/i, "");
-  return title.trim() || rawTitle;
-}
 
 export default async function AdminPage() {
   await connection();
@@ -70,34 +51,12 @@ export default async function AdminPage() {
     { data: allProjects },
     { data: allOrders },
     { data: allReports },
-    { data: approvedBusinessPlans },
   ] = await Promise.all([
     supabase.from("profiles").select("*").order("created_at", { ascending: false }),
     supabase.from("projects").select("*, profiles:trainer_id(full_name)").order("created_at", { ascending: false }),
     supabase.from("orders").select("*").order("created_at", { ascending: false }),
     supabase.from("reports").select("*").order("created_at", { ascending: false }),
-    supabase.from("project_workspaces")
-      .select("id, title, course, level, student_id, business_plan_specs, marketplace_price_kes, student:student_id(full_name, admission_number)")
-      .eq("workspace_type", "business_plan")
-      .eq("final_project_status", "approved")
-      .order("updated_at", { ascending: false }),
   ]);
-
-  const readyPlanIds = (approvedBusinessPlans || []).map((workspace) => workspace.id);
-  const { data: approvedPlanSections } = readyPlanIds.length
-    ? await supabase.from("workspace_sections").select("workspace_id, section_key, current_text").in("workspace_id", readyPlanIds)
-    : { data: [] };
-  const sectionsByWorkspace = new Map<string, Map<string, string>>();
-  for (const section of approvedPlanSections || []) {
-    if (!sectionsByWorkspace.has(section.workspace_id)) sectionsByWorkspace.set(section.workspace_id, new Map());
-    sectionsByWorkspace.get(section.workspace_id)!.set(section.section_key, section.current_text || "");
-  }
-  const readyPlans = (approvedBusinessPlans || []).filter((workspace) => {
-    const sectionText = sectionsByWorkspace.get(workspace.id);
-    return getWorkspaceSections("business_plan", workspace.level, resolveBusinessPlanModel(workspace.business_plan_specs as BusinessPlanSpecs | null)).every((definition) =>
-      (sectionText?.get(definition.key) || "").trim().split(/\s+/).filter(Boolean).length >= (definition.minWords || 30)
-    );
-  });
 
   const profilesList: UserProfile[] = (allProfiles as unknown as UserProfile[]) || [];
   const adminCount = profilesList.filter((p) => p.role === "admin").length;
@@ -146,30 +105,30 @@ export default async function AdminPage() {
 
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-50/60 border border-indigo-100/80">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-indigo-100/70 text-indigo-800">
-                <FileText className="h-4 w-4" />
-              </span>
-              <div className="min-w-0">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-indigo-900/70">Ready Plans</div>
-                <div className="text-xs sm:text-sm font-bold text-slate-900 tabular-nums leading-tight">{readyPlans.length}</div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-rose-50/60 border border-rose-100/80">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-rose-100/70 text-rose-800">
                 <Layers className="h-4 w-4" />
               </span>
               <div className="min-w-0">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-rose-900/70">Projects</div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-indigo-900/70">Projects</div>
                 <div className="text-xs sm:text-sm font-bold text-slate-900 tabular-nums leading-tight">{projectsList.length}</div>
               </div>
             </div>
 
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-50/60 border border-amber-100/80">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-amber-100/70 text-amber-800">
+                <AlertCircle className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-amber-900/70">Pending Review</div>
+                <div className="text-xs sm:text-sm font-bold text-slate-900 tabular-nums leading-tight">{pendingProjects.length}</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50/60 border border-emerald-100/80">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-emerald-100/70 text-emerald-800">
                 <Coins className="h-4 w-4" />
               </span>
               <div className="min-w-0">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-amber-900/70">Total Sales</div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-900/70">Total Sales</div>
                 <div className="text-xs sm:text-sm font-bold text-slate-900 tabular-nums leading-tight">
                   KES {totalVolumeKES.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </div>
@@ -179,244 +138,8 @@ export default async function AdminPage() {
         </div>
       </div>
 
-      {/* Operational Queues: Pending Approvals & Ready Plans */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-        {/* Pending Action Items */}
-        <div id="pending" className="scroll-mt-28">
-          <ContentCard
-            title="Pending Approvals"
-            icon={AlertCircle}
-            compact
-            noPadding
-            headerRight={
-              <span
-                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                  pendingProjects.length > 0
-                    ? "bg-amber-100 text-amber-800 border border-amber-200"
-                    : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                }`}
-              >
-                {pendingProjects.length} Pending
-              </span>
-            }
-          >
-            {pendingProjects.length === 0 ? (
-              <div className="flex items-center gap-2 px-3.5 py-3 text-xs text-slate-500 bg-slate-50/40">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                <span>Approval queue clear · all submissions reviewed</span>
-              </div>
-            ) : (
-              <div className="overflow-x-auto max-h-80 overflow-y-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="sticky top-0 bg-slate-50/95 backdrop-blur-xs border-b border-slate-200 text-[10px] font-bold uppercase tracking-wider text-slate-500 z-10">
-                    <tr>
-                      <th className="py-2.5 px-3">Submitted Material</th>
-                      <th className="py-2.5 px-3">Author</th>
-                      <th className="py-2.5 px-3">Category & Price</th>
-                      <th className="py-2.5 px-3 text-right">Review Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {pendingProjects.map((p) => {
-                      const cleanTitle = cleanVentureTitle(p.title);
-                      return (
-                        <tr key={p.id} className="hover:bg-slate-50/70 transition-colors">
-                          <td className="py-2.5 px-3 font-semibold text-slate-900 tracking-tight text-xs sm:text-[13px] max-w-[200px] truncate" title={cleanTitle}>
-                            {cleanTitle}
-                          </td>
-                          <td className="py-2.5 px-3 whitespace-nowrap text-slate-700 font-medium">
-                            {p.profiles?.full_name || "Unknown"}
-                          </td>
-                          <td className="py-2.5 px-3 whitespace-nowrap">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-[11px] text-slate-500">{p.category || "General"}</span>
-                              <span className="font-semibold text-slate-800 font-mono text-[11px]">
-                                KES {Number(p.price_kes).toLocaleString()}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-2.5 px-3 text-right whitespace-nowrap">
-                            <div className="inline-flex items-center gap-1">
-                              {p.file_path?.startsWith("workspace-export:") && (
-                                <>
-                                  <Link
-                                    href={`/api/download?projectId=${encodeURIComponent(p.id)}&format=pdf`}
-                                    className="inline-flex items-center gap-0.5 rounded border border-slate-300 bg-white px-1.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
-                                    title="Download PDF"
-                                  >
-                                    <Download className="h-3 w-3 text-slate-500" /> PDF
-                                  </Link>
-                                  <Link
-                                    href={`/api/download?projectId=${encodeURIComponent(p.id)}&format=docx`}
-                                    className="inline-flex items-center gap-0.5 rounded border border-slate-300 bg-white px-1.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
-                                    title="Download Word"
-                                  >
-                                    <Download className="h-3 w-3 text-slate-500" /> Word
-                                  </Link>
-                                </>
-                              )}
-                              <form action={updateProjectStatus}>
-                                <input type="hidden" name="projectId" value={p.id} />
-                                <input type="hidden" name="status" value="published" />
-                                <button
-                                  type="submit"
-                                  className="inline-flex items-center gap-0.5 rounded bg-emerald-700 hover:bg-emerald-800 text-white px-2 py-1 text-[10px] font-bold cursor-pointer transition-colors"
-                                >
-                                  <CheckCircle2 className="h-3 w-3" />
-                                  Publish
-                                </button>
-                              </form>
-                              <form action={updateProjectStatus}>
-                                <input type="hidden" name="projectId" value={p.id} />
-                                <input type="hidden" name="status" value="rejected" />
-                                <button
-                                  type="submit"
-                                  className="inline-flex items-center rounded bg-rose-700 hover:bg-rose-800 text-white p-1 text-[10px] font-bold cursor-pointer transition-colors"
-                                  title="Reject submission"
-                                >
-                                  <XCircle className="h-3.5 w-3.5" />
-                                </button>
-                              </form>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </ContentCard>
-        </div>
-
-        {/* Ready Plans Section */}
-        <div id="ready-plans" className="scroll-mt-28">
-          <ContentCard
-            title="Approved Student Plans"
-            icon={FileText}
-            compact
-            noPadding
-            headerRight={
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
-                {readyPlans.length} Ready
-              </span>
-            }
-          >
-            {readyPlans.length === 0 ? (
-              <div className="flex items-center gap-2 px-3.5 py-3 text-xs text-slate-500 bg-slate-50/40">
-                <FileText className="h-4 w-4 text-slate-400 shrink-0" />
-                <span>No approved student plans awaiting action</span>
-              </div>
-            ) : (
-              <div className="overflow-x-auto max-h-80 overflow-y-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="sticky top-0 bg-slate-50/95 backdrop-blur-xs border-b border-slate-200 text-[10px] font-bold uppercase tracking-wider text-slate-500 z-10">
-                    <tr>
-                      <th className="py-2.5 px-3">Business Venture</th>
-                      <th className="py-2.5 px-3">Candidate</th>
-                      <th className="py-2.5 px-3">Status</th>
-                      <th className="py-2.5 px-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {readyPlans.map((workspace) => {
-                      const student = workspace.student as unknown as { full_name?: string | null; admission_number?: string | null } | null;
-                      const listing = projectsList.find((project) => project.file_path === `workspace-export:${workspace.id}`);
-                      const cleanTitle = cleanVentureTitle(workspace.title);
-                      return (
-                        <tr key={workspace.id} className="hover:bg-slate-50/70 transition-colors">
-                          <td className="py-2.5 px-3 font-semibold text-slate-900 tracking-tight text-xs sm:text-[13px] max-w-[200px] truncate" title={cleanTitle}>
-                            {cleanTitle}
-                          </td>
-                          <td className="py-2.5 px-3">
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1.5">
-                              <span className="font-medium text-slate-700 truncate max-w-[130px]">
-                                {student?.full_name || "Student"}
-                              </span>
-                              {student?.admission_number && (
-                                <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200/60 w-fit">
-                                  {student.admission_number}
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="py-2.5 px-3 whitespace-nowrap">
-                            <span
-                              className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                                listing?.status === "published"
-                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                  : listing?.status === "pending_review"
-                                  ? "bg-amber-50 text-amber-700 border border-amber-200"
-                                  : "bg-slate-100 text-slate-600 border border-slate-200"
-                              }`}
-                            >
-                              {listing?.status === "published"
-                                ? "Published"
-                                : listing?.status === "pending_review"
-                                ? "Queued"
-                                : "Unlisted"}
-                            </span>
-                          </td>
-                          <td className="py-2.5 px-3 text-right whitespace-nowrap">
-                            <div className="inline-flex items-center gap-1">
-                              {listing && (
-                                <>
-                                  <Link
-                                    href={`/api/download?projectId=${encodeURIComponent(listing.id)}&format=pdf`}
-                                    className="inline-flex items-center gap-0.5 rounded border border-slate-300 bg-white px-1.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
-                                    title="Download PDF"
-                                  >
-                                    <Download className="h-3 w-3 text-slate-500" /> PDF
-                                  </Link>
-                                  <Link
-                                    href={`/api/download?projectId=${encodeURIComponent(listing.id)}&format=docx`}
-                                    className="inline-flex items-center gap-0.5 rounded border border-slate-300 bg-white px-1.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
-                                    title="Download Word"
-                                  >
-                                    <Download className="h-3 w-3 text-slate-500" /> Word
-                                  </Link>
-                                </>
-                              )}
-                              {listing?.status !== "pending_review" && listing?.status !== "published" && (
-                                <form action={queueApprovedBusinessPlanForPublishing} className="inline-flex items-center gap-1">
-                                  <input type="hidden" name="workspaceId" value={workspace.id} />
-                                  <label className="sr-only" htmlFor={`marketplace-price-${workspace.id}`}>
-                                    Price KES
-                                  </label>
-                                  <input
-                                    id={`marketplace-price-${workspace.id}`}
-                                    name="priceKes"
-                                    type="number"
-                                    min="0"
-                                    max="1000000"
-                                    step="1"
-                                    required
-                                    defaultValue={workspace.marketplace_price_kes ?? listing?.price_kes ?? 0}
-                                    className="h-6 w-16 rounded border border-slate-300 px-1 text-[11px] font-semibold text-slate-900"
-                                  />
-                                  <button
-                                    type="submit"
-                                    className="rounded bg-indigo-600 px-2 py-1 text-[10px] font-bold text-white hover:bg-indigo-700 cursor-pointer transition-colors"
-                                  >
-                                    {listing ? "Requeue" : "Queue"}
-                                  </button>
-                                </form>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </ContentCard>
-        </div>
-      </div>
-
       {/* Projects Section */}
-      <div id="projects" className="scroll-mt-20">
+      <div id="projects" className="scroll-mt-28">
         <ContentCard
           title="Marketplace Catalog Setup"
           subtitle="Manage cover photos, prices, metadata, and publication status"

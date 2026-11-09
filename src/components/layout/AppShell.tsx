@@ -332,8 +332,6 @@ export function AppShell({
                   Admin Modules
                 </div>
                 {[
-                  { label: "Pending Approvals", href: "#pending" },
-                  { label: "Ready Plans", href: "#ready-plans" },
                   { label: "Projects Catalog", href: "#projects" },
                   { label: "User Directory", href: "#users" },
                   { label: "Transactions", href: "#orders" },
