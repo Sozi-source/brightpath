@@ -31,10 +31,16 @@ import {
   Folder,
   FileText,
   Calculator,
+  Star,
+  Award,
+  BookOpen,
+  HelpCircle,
+  FileCheck,
 } from "lucide-react";
 import { NUTRITION_VENTURES, type NutritionVentureDefinition } from "@/lib/studio/catalog/nutritionVentures";
 import { createWorkspace } from "@/app/studio/actions";
 import { getCanvasPalette } from "@/lib/canvasTheme";
+import { VentureReviewsSection } from "./VentureReviewsSection";
 
 interface ProjectAreaCatalogProps {
   candidateName?: string;
@@ -159,6 +165,15 @@ export function ProjectAreaCatalog({
       await createWorkspace(formData);
     });
   };
+
+  const detailPalette = detailVenture ? getCanvasPalette(detailVenture.id || detailVenture.number) : null;
+  const detailUnitPrice = detailVenture?.defaultSpecs.unitSellingPrice || 0;
+  const detailUnitCost = detailVenture?.defaultSpecs.unitCostOfProduction || 0;
+  const detailGrossMargin =
+    detailUnitPrice > 0
+      ? Math.round(((detailUnitPrice - detailUnitCost) / detailUnitPrice) * 100)
+      : 0;
+  const DetailCategoryIcon = detailVenture ? GROUP_VISUALS[detailVenture.group].Icon : null;
 
   return (
     <div className="space-y-4">
@@ -349,68 +364,78 @@ export function ProjectAreaCatalog({
                         </div>
                       </div>
 
-                      {/* 2. Canvas Course Card Body */}
-                      <div className="p-4 space-y-2">
+                      {/* 2. Canvas Course Card Body — Minimalist & High-End */}
+                      <div className="p-3.5 sm:p-4 space-y-1">
                         {/* Colored Course / Category Code (Canvas Signature) */}
-                        <div className="flex items-center justify-between gap-2">
-                          <span
-                            style={{ color: palette.accentHex }}
-                            className="font-bold text-[11px] uppercase tracking-wider truncate"
-                          >
-                            KNEC {level === "craft" ? "CRAFT" : "DIPLOMA"} · {venture.archetype.replace("_", " ")}
-                          </span>
-
-                          <span className={`inline-flex shrink-0 items-center rounded-md border px-1.5 py-0.5 text-[9px] font-semibold ${capitalBadgeColor}`}>
-                            {venture.capitalTier}
-                          </span>
-                        </div>
+                        <span
+                          style={{ color: palette.accentHex }}
+                          className="font-bold text-[11px] sm:text-xs uppercase tracking-wider truncate block"
+                        >
+                          KNEC {level === "craft" ? "CRAFT" : "DIPLOMA"} · {venture.archetype.replace("_", " ")}
+                        </span>
 
                         {/* Course Title */}
                         <h4
                           onClick={() => setDetailVenture(venture)}
-                          className="font-bold text-sm sm:text-[15px] leading-snug text-slate-900 group-hover:underline transition-colors cursor-pointer line-clamp-2"
+                          className="font-bold text-[13.5px] sm:text-[14.5px] leading-snug text-slate-900 group-hover:text-[#087f8c] transition-colors cursor-pointer line-clamp-2"
                         >
                           {venture.title}
                         </h4>
 
-                        <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 min-h-[2rem]">
-                          {venture.summary}
+                        {/* Institution / Curriculum Subtitle (Canvas Signature) */}
+                        <p className="text-[11.5px] text-slate-500 truncate pt-0.5">
+                          {venture.groupName} · TVET Standard
                         </p>
-
-                        {/* Minimalist Metric Strip */}
-                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                          <span className="text-[10px] uppercase font-medium text-slate-400">
-                            Est. Capital:
-                          </span>
-                          <span className="font-mono text-xs font-bold text-slate-900">
-                            KES {formatKES(venture.estimatedCapitalKES.min)} – {formatKES(venture.estimatedCapitalKES.max)}
-                          </span>
-                        </div>
                       </div>
                     </div>
 
                     {/* 3. Canvas Bottom Utility Tray (Announcements / Files / Launch) */}
-                    <div className="border-t border-slate-100 bg-slate-50/70 px-4 py-2.5 flex items-center justify-between gap-3">
+                    <div className="border-t border-slate-100 bg-slate-50/70 px-3.5 sm:px-4 py-2.5 flex items-center justify-between gap-2">
                       <div className="flex items-center gap-3 text-slate-400">
-                        <span title="KNEC Word (.docx) & PDF Manuscript" className="hover:text-slate-600 cursor-pointer transition-colors">
+                        <button
+                          type="button"
+                          onClick={() => setDetailVenture(venture)}
+                          title="KNEC Word (.docx) & PDF Manuscript"
+                          className="hover:text-slate-700 cursor-pointer transition-colors p-0.5"
+                        >
                           <FileText className="h-4 w-4" />
-                        </span>
-                        <span title="Financial Schedules & Math" className="hover:text-slate-600 cursor-pointer transition-colors">
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDetailVenture(venture)}
+                          title="Financial Schedules, Cashflow & Break-even"
+                          className="hover:text-slate-700 cursor-pointer transition-colors p-0.5"
+                        >
                           <Calculator className="h-4 w-4" />
-                        </span>
-                        <span title="KNEC Examination Syllabus" className="hover:text-slate-600 cursor-pointer transition-colors">
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDetailVenture(venture)}
+                          title="KNEC Examination Syllabus & Rubric"
+                          className="hover:text-slate-700 cursor-pointer transition-colors p-0.5"
+                        >
                           <Folder className="h-4 w-4" />
-                        </span>
+                        </button>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleOpenVentureModal(venture)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold bg-[#087f8c] hover:bg-[#076c77] text-white shadow-2xs transition-colors cursor-pointer"
-                      >
-                        <span>Select Area</span>
-                        <ArrowRight className="h-3 w-3" />
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setDetailVenture(venture)}
+                          className="text-xs font-semibold text-slate-600 hover:text-slate-900 hover:underline cursor-pointer px-1 py-0.5"
+                        >
+                          Details
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenVentureModal(venture)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-bold text-white shadow-2xs hover:opacity-90 transition-opacity cursor-pointer"
+                          style={{ backgroundColor: palette.accentHex }}
+                        >
+                          <span>Select</span>
+                          <ArrowRight className="h-3 w-3" />
+                        </button>
+                      </div>
                     </div>
                   </article>
                 );
@@ -447,14 +472,21 @@ export function ProjectAreaCatalog({
           </div>
 
           {/* Primary Venture Overview Card */}
-          <div className="bp-card overflow-hidden">
-            <div className="h-1 w-full bg-gradient-to-r from-[#087f8c] via-[#0e9ba5] to-[#d9a441]" />
-            <div className="p-5 space-y-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="space-y-1">
+          <div className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+            {/* Signature Canvas Jewel-Tone Header Stripe */}
+            <div className={`h-2.5 w-full bg-gradient-to-r ${detailPalette?.bgGradient || "from-[#087f8c] to-[#044e56]"}`} />
+
+            <div className="p-5 sm:p-6 space-y-4">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="space-y-1.5 max-w-2xl">
+                  {/* Badges */}
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center rounded-md bg-[#e8f5f5] px-2 py-0.5 font-mono text-xs font-semibold text-[#087f8c] border border-[#d8ebec]">
-                      Area #{detailVenture.number}
+                    <span
+                      style={{ color: detailPalette?.accentHex || "#087f8c" }}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold tracking-wide uppercase border border-slate-200"
+                    >
+                      {DetailCategoryIcon && <DetailCategoryIcon className="h-3 w-3" />}
+                      <span>Area #{detailVenture.number}</span>
                     </span>
                     <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
                       Group {detailVenture.group}: {detailVenture.groupName}
@@ -465,66 +497,105 @@ export function ProjectAreaCatalog({
                     <span className="inline-flex items-center rounded-md bg-sky-50 px-2 py-0.5 text-xs font-semibold text-sky-700 capitalize">
                       {detailVenture.archetype.replace("_", " ")} Model
                     </span>
+                    <span className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 uppercase">
+                      KNEC {level === "craft" ? "Craft" : "Diploma"}
+                    </span>
                   </div>
-                  <h2 className="text-lg font-semibold text-slate-900 tracking-tight pt-1">
+
+                  {/* Main Venture Title */}
+                  <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight pt-1">
                     {detailVenture.title}
                   </h2>
-                  <p className="text-xs font-medium text-[#087f8c]">
-                    default brand: {detailVenture.defaultSpecs.businessName} — &ldquo;{detailVenture.tagline}&rdquo;
+
+                  <p className="text-xs font-medium text-slate-600">
+                    Proposed Identity: <span className="font-semibold text-slate-900">{detailVenture.defaultSpecs.businessName}</span> — &ldquo;{detailVenture.tagline}&rdquo;
                   </p>
                 </div>
 
-                <div className="text-right">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block">
+                <div className="rounded-xl border border-slate-200/90 bg-slate-50/80 p-3.5 text-right shrink-0">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
                     Estimated Startup Capital
                   </span>
-                  <span className="font-mono text-base font-semibold text-slate-900">
+                  <span className="font-mono text-lg sm:text-xl font-bold text-slate-900 block mt-0.5">
                     KES {formatKES(detailVenture.estimatedCapitalKES.min)} – {formatKES(detailVenture.estimatedCapitalKES.max)}
+                  </span>
+                  <span className="text-[11px] font-medium text-emerald-700 block mt-0.5">
+                    {detailVenture.capitalTier} Investment Range
                   </span>
                 </div>
               </div>
 
-              <p className="text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
-                {detailVenture.summary}
-              </p>
+              {/* Full Executive Summary & Opportunity — Presented Cleanly */}
+              <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-4 space-y-1.5">
+                <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 block">
+                  Project Summary & Commercial Opportunity
+                </span>
+                <p className="text-xs sm:text-[13px] text-slate-700 leading-relaxed font-sans">
+                  {detailVenture.summary}
+                </p>
+              </div>
 
-              {/* Key Economics Strip */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-                <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 block">
+              {/* Key Economics Strip (6 Metrics) */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-1">
+                <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-2.5">
+                  <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 block">
                     Unit Selling Price
                   </span>
-                  <span className="mt-1 font-mono text-sm font-semibold text-slate-900 block">
-                    KES {formatKES(detailVenture.defaultSpecs.unitSellingPrice || 0)}
+                  <span className="mt-1 font-mono text-xs sm:text-sm font-bold text-slate-900 block truncate">
+                    KES {formatKES(detailUnitPrice)}
                   </span>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 block">
+
+                <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-2.5">
+                  <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 block">
                     Unit Direct Cost
                   </span>
-                  <span className="mt-1 font-mono text-sm font-semibold text-slate-900 block">
-                    KES {formatKES(detailVenture.defaultSpecs.unitCostOfProduction || 0)}
+                  <span className="mt-1 font-mono text-xs sm:text-sm font-bold text-slate-900 block truncate">
+                    KES {formatKES(detailUnitCost)}
                   </span>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 block">
-                    Planned Monthly Volume
+
+                <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-2.5">
+                  <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 block">
+                    Gross Margin
                   </span>
-                  <span className="mt-1 font-mono text-sm font-semibold text-indigo-600 block">
-                    {formatKES(detailVenture.defaultSpecs.monthlyProductionUnitsYear1 || 0)} units/mo
+                  <span className="mt-1 font-mono text-xs sm:text-sm font-bold text-emerald-600 block truncate">
+                    ~{detailGrossMargin}%
                   </span>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 block">
-                    Premises & Rent
+
+                <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-2.5">
+                  <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 block">
+                    Monthly Volume
                   </span>
-                  <span className="mt-1 font-mono text-sm font-semibold text-slate-900 block">
-                    {detailVenture.defaultSpecs.workshopSquareMeters || 30} m² · KES {formatKES(detailVenture.defaultSpecs.monthlyRent || 0)}/mo
+                  <span className="mt-1 font-mono text-xs sm:text-sm font-bold text-indigo-600 block truncate">
+                    {formatKES(detailVenture.defaultSpecs.monthlyProductionUnitsYear1 || 0)} u/mo
+                  </span>
+                </div>
+
+                <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-2.5">
+                  <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 block">
+                    Premises Size
+                  </span>
+                  <span className="mt-1 font-mono text-xs sm:text-sm font-bold text-slate-900 block truncate">
+                    {detailVenture.defaultSpecs.workshopSquareMeters || 30} m²
+                  </span>
+                </div>
+
+                <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-2.5">
+                  <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 block">
+                    Monthly Rent
+                  </span>
+                  <span className="mt-1 font-mono text-xs sm:text-sm font-bold text-slate-900 block truncate">
+                    KES {formatKES(detailVenture.defaultSpecs.monthlyRent || 0)}/mo
                   </span>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Star Rating & Verified Candidate Reviews Section */}
+          <VentureReviewsSection venture={detailVenture} level={level} />
 
           {/* Detailed Specifications Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -715,6 +786,80 @@ export function ProjectAreaCatalog({
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* KNEC Oral Defense (Viva Voce) Guidance */}
+          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs space-y-3">
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+              <div className="p-1.5 rounded-lg bg-teal-50 text-teal-700">
+                <FileCheck className="h-4 w-4" />
+              </div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                KNEC Oral Defense (Viva Voce) Examiner Questions & Guidance
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div className="rounded-lg border border-slate-200/80 bg-slate-50/50 p-3 space-y-1">
+                <p className="font-bold text-slate-900">
+                  1. How did you arrive at your working capital buffer?
+                </p>
+                <p className="text-slate-600 leading-relaxed">
+                  Defend that KES {formatKES(detailVenture.defaultSpecs.workingCapitalBuffer || 0)} covers exactly 3 months of raw materials, workshop rent (KES {formatKES(detailVenture.defaultSpecs.monthlyRent || 0)}/mo), and utilities before commercial sales collections stabilize.
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-slate-200/80 bg-slate-50/50 p-3 space-y-1">
+                <p className="font-bold text-slate-900">
+                  2. What is your break-even output volume in Year 1?
+                </p>
+                <p className="text-slate-600 leading-relaxed">
+                  With unit selling price at KES {formatKES(detailUnitPrice)} and direct unit cost at KES {formatKES(detailUnitCost)}, gross margin is ~{detailGrossMargin}%. Fixed monthly overheads require producing at least 35% of capacity to break even.
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-slate-200/80 bg-slate-50/50 p-3 space-y-1">
+                <p className="font-bold text-slate-900">
+                  3. What statutory licenses are required prior to commercial production?
+                </p>
+                <p className="text-slate-600 leading-relaxed">
+                  Candidates must cite County Government Single Business Permit, Public Health Food Hygiene certification, and KEBS Standardisation Mark application as documented in Chapter 4.
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-slate-200/80 bg-slate-50/50 p-3 space-y-1">
+                <p className="font-bold text-slate-900">
+                  4. Why this machinery supplier and what is the salvage life?
+                </p>
+                <p className="text-slate-600 leading-relaxed">
+                  All equipment items in the schedule are depreciated over 5 years (20% straight line method) with proforma quotations sourced from established Kenyan fabricators.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Launch CTA Banner */}
+          <div className="rounded-xl border border-slate-200 bg-gradient-to-r from-slate-900 via-slate-800 to-[#087f8c] p-5 text-white shadow-md flex flex-wrap items-center justify-between gap-4">
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-teal-300">
+                Ready for KNEC Examination Submission
+              </span>
+              <h3 className="text-base font-bold text-white">
+                Launch Workspace for {detailVenture.title}
+              </h3>
+              <p className="text-xs text-slate-200 max-w-xl leading-relaxed">
+                Pre-loaded with complete Chapter 1 through 5 manuscript templates, audited pro-forma financials, and defense guidance tailored to this area.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => handleOpenVentureModal(detailVenture)}
+              className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-xs font-bold text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer shadow-sm shrink-0"
+            >
+              <span>Select & Launch This Area</span>
+              <ArrowRight className="h-4 w-4 text-[#087f8c]" />
+            </button>
           </div>
         </div>
       )}
