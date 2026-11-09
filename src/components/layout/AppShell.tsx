@@ -163,8 +163,8 @@ export function AppShell({
               <span className="font-semibold text-base sm:text-lg text-slate-900 tracking-tight leading-none">
                 TVET Hub
               </span>
-              <span className="text-[10px] font-medium text-[#087f8c] uppercase tracking-wider">
-                Project &amp; Curriculum Studio
+              <span className="text-[10px] font-medium text-[#087f8c] tracking-wider">
+                Simple · Reliable · Innovative
               </span>
             </div>
           </Link>

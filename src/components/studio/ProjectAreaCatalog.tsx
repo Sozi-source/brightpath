@@ -168,11 +168,11 @@ export function ProjectAreaCatalog({
             }}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
               activeTrack === "business_plan"
-                ? "bg-white text-indigo-700 shadow-2xs"
+                ? "bg-white text-[#087f8c] shadow-2xs"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            <Briefcase className="h-3.5 w-3.5 text-indigo-600" />
+            <Briefcase className="h-3.5 w-3.5 text-[#087f8c]" />
             <span>Nutrition Enterprise (35 Areas)</span>
           </button>
           <button
@@ -183,11 +183,11 @@ export function ProjectAreaCatalog({
             }}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
               activeTrack === "trade_fabrication"
-                ? "bg-white text-indigo-700 shadow-2xs"
+                ? "bg-white text-[#087f8c] shadow-2xs"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            <FlaskConical className="h-3.5 w-3.5 text-indigo-600" />
+            <FlaskConical className="h-3.5 w-3.5 text-[#087f8c]" />
             <span>Food Science Formulation</span>
           </button>
           <button
@@ -198,11 +198,11 @@ export function ProjectAreaCatalog({
             }}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
               activeTrack === "research_secondary"
-                ? "bg-white text-indigo-700 shadow-2xs"
+                ? "bg-white text-[#087f8c] shadow-2xs"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            <LineChart className="h-3.5 w-3.5 text-indigo-600" />
+            <LineChart className="h-3.5 w-3.5 text-[#087f8c]" />
             <span>Nutrition Research</span>
           </button>
         </div>
@@ -227,7 +227,7 @@ export function ProjectAreaCatalog({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by venture name, porridge, weaning, clinic, kefir, honey..."
-                className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50/50 pl-9 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-teal-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-100"
               />
             </div>
 
@@ -298,82 +298,76 @@ export function ProjectAreaCatalog({
                     : venture.capitalTier === "Medium"
                     ? "bg-amber-50 text-amber-700 border-amber-200"
                     : "bg-rose-50 text-rose-700 border-rose-200";
-                const unitPrice = venture.defaultSpecs.unitSellingPrice;
                 const visual = GROUP_VISUALS[venture.group];
                 const CategoryIcon = visual.Icon;
 
                 return (
                   <article
                     key={venture.id}
-                    className="bp-card group flex min-w-0 flex-col justify-between p-4 transition-shadow hover:shadow-md"
+                    className="bp-card group flex min-w-0 flex-col justify-between p-4 sm:p-5 transition-all duration-200 hover:shadow-md hover:border-teal-200"
                   >
                     <div>
-                      <div className="mb-3 flex items-start justify-between gap-2">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${visual.tile} ${visual.accent}`}>
-                            <CategoryIcon className="h-5 w-5" aria-hidden="true" />
+                      {/* Top Category Tag + Capital Pill */}
+                      <div className="mb-3 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border ${visual.tile} ${visual.accent}`}>
+                            <CategoryIcon className="h-4 w-4" aria-hidden="true" />
                           </span>
-                          <div className="min-w-0">
-                            <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                              {venture.groupName}
-                            </span>
-                            <span className="font-mono text-[10px] text-slate-400">
-                              Opportunity #{venture.number}
-                            </span>
-                          </div>
+                          <span className="text-[11px] font-semibold text-slate-600 truncate">
+                            {venture.groupName}
+                          </span>
                         </div>
-                        <span className={`inline-flex shrink-0 whitespace-nowrap items-center rounded-md border px-2 py-1 text-[10px] font-semibold ${capitalBadgeColor}`}>
-                          {venture.capitalTier} capital
+                        <span className={`inline-flex shrink-0 items-center rounded-md border px-2 py-0.5 text-[10px] font-semibold ${capitalBadgeColor}`}>
+                          {venture.capitalTier} Capital
                         </span>
                       </div>
 
-                      <h4 className="text-sm font-semibold leading-snug text-slate-900 group-hover:text-[#087f8c]">
+                      {/* Editorial Serif Heading */}
+                      <h4
+                        onClick={() => setDetailVenture(venture)}
+                        className="font-serif text-[15px] sm:text-base font-bold leading-snug text-slate-900 group-hover:text-[#087f8c] transition-colors cursor-pointer line-clamp-2"
+                      >
                         {venture.title}
                       </h4>
-                      <p className="mt-1.5 min-h-[3.75rem] text-xs leading-relaxed text-slate-600 line-clamp-3">
+
+                      <p className="mt-2 text-xs leading-relaxed text-slate-600 line-clamp-2 min-h-[2.25rem]">
                         {venture.summary}
                       </p>
 
-                      <div className="mt-3 space-y-2 rounded-lg bg-slate-50 p-3">
+                      {/* Minimalist Unboxed Financial Metric */}
+                      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
                         <div>
-                          <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                            Estimated startup capital
+                          <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400 block">
+                            Est. Startup Capital
                           </span>
-                          <span className="mt-0.5 block font-mono text-sm font-semibold text-slate-900">
+                          <span className="font-mono text-xs font-bold text-slate-900 block mt-0.5">
                             KES {formatKES(venture.estimatedCapitalKES.min)} – {formatKES(venture.estimatedCapitalKES.max)}
                           </span>
                         </div>
-                        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-2">
-                          <span className="inline-flex min-w-0 items-center gap-1.5 text-[11px] text-slate-600">
-                            <Building2 className="h-3.5 w-3.5 shrink-0 text-[#087f8c]" aria-hidden="true" />
-                            <span><span className="text-slate-500">Business type: </span><span className="capitalize font-medium">{venture.archetype.replace("_", " ")}</span></span>
-                          </span>
-                          {typeof unitPrice === "number" && unitPrice > 0 && (
-                            <span className="font-mono text-[10px] font-semibold text-slate-700">
-                              KES {formatKES(unitPrice)} / unit
-                            </span>
-                          )}
-                        </div>
+
+                        <span className="text-[11px] text-slate-500 capitalize">
+                          {venture.archetype.replace("_", " ")}
+                        </span>
                       </div>
                     </div>
 
-                    <div className="mt-3.5 flex items-center gap-2 border-t border-slate-100 pt-3">
-                      <button
-                        type="button"
-                        onClick={() => setDetailVenture(venture)}
-                        aria-label={`View details for ${venture.title}`}
-                        className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-                      >
-                        <Eye className="h-3.5 w-3.5 text-slate-500" />
-                        <span>Details</span>
-                      </button>
+                    {/* Single Confident Action Button & Details Link */}
+                    <div className="mt-4 space-y-1.5 pt-1">
                       <button
                         type="button"
                         onClick={() => handleOpenVentureModal(venture)}
-                        className="bp-btn-primary inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 px-3 py-2 text-xs"
+                        className="bp-btn-primary w-full inline-flex min-h-9 items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-semibold shadow-2xs cursor-pointer"
                       >
-                        <span>Select Area</span>
+                        <span>Select Concept</span>
                         <ArrowRight className="h-3.5 w-3.5" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setDetailVenture(venture)}
+                        className="w-full text-center text-[11px] font-medium text-slate-400 hover:text-[#087f8c] transition-colors cursor-pointer py-0.5"
+                      >
+                        View specifications &rarr;
                       </button>
                     </div>
                   </article>

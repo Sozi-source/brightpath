@@ -27,8 +27,8 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
             <span className="block font-semibold text-base sm:text-lg text-slate-900 leading-tight">
               TVET Hub
             </span>
-            <span className="block text-[10px] font-medium text-[#087f8c] uppercase tracking-wider">
-              Kenya Education Cloud Standard
+            <span className="block text-[10px] font-medium text-[#087f8c] tracking-wider">
+              Simple · Reliable · Innovative
             </span>
           </div>
         </Link>

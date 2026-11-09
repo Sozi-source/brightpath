@@ -139,9 +139,9 @@ export default async function AdminPage() {
         actions={
           <Link
             href="/studio"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white text-indigo-900 border border-slate-300 shadow-xs hover:bg-slate-50 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white text-slate-800 border border-slate-200 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-colors"
           >
-            <FileText className="h-4 w-4 text-indigo-600" />
+            <FileText className="h-4 w-4 text-[#087f8c]" />
             <span>Studio Workspaces</span>
           </Link>
         }

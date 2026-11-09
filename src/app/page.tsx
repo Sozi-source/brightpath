@@ -64,8 +64,8 @@ export default async function HomePage() {
                 <span className="font-semibold text-sm tracking-tight text-slate-900 block leading-tight">
                   TVET Hub
                 </span>
-                <span className="text-[10px] font-medium text-[#087f8c] uppercase tracking-wider block">
-                  Kenya Education Cloud Standard
+                <span className="text-[10px] font-medium text-[#087f8c] tracking-wider block">
+                  Simple · Reliable · Innovative
                 </span>
               </div>
             </Link>
@@ -124,79 +124,64 @@ export default async function HomePage() {
         </div>
       </header>
 
-      {/* 2. Institutional Hero Section */}
-      <section className="px-4 sm:px-6 py-10 lg:py-14 max-w-7xl mx-auto w-full">
-        <div className="bp-card overflow-hidden">
-          {/* Enterprise Gradient Accent Stripe */}
-          <div className="h-1 w-full bg-gradient-to-r from-[#087f8c] via-[#0e9ba5] to-[#d9a441]" />
-
-          <div className="p-8 sm:p-12 lg:p-16 text-center max-w-4xl mx-auto space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#d8ebec] bg-[#e8f5f5] text-xs font-semibold text-[#13243a] mx-auto shadow-xs">
-              <ShieldCheck className="h-4 w-4 text-[#087f8c]" />
-              <span>TVET Projects & Marketplace</span>
-            </div>
-
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-[#13243a] leading-[1.15]">
-              Progressive Project Studio & Technical Marketplace
-            </h1>
-
-            <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
-              Build accredited TVET research projects and business plans step-by-step, or discover and publish complete capstones with instant delivery.
-            </p>
-
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link
-                href="/studio"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bp-btn-primary px-5 py-2.5 text-xs sm:text-sm shadow-xs"
-              >
-                <span>Project Studio</span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/projects"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 px-5 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 transition-colors shadow-xs"
-              >
-                <ShoppingBag className="h-4 w-4 text-[#087f8c]" />
-                <span>Browse Marketplace</span>
-              </Link>
-            </div>
+      {/* 2. Institutional Hero Section (Unboxed, Breathing, Premium) */}
+      <section className="relative overflow-hidden border-b border-slate-200/70 bg-gradient-to-b from-white via-[#f2fafb]/50 to-[#f5f7fa] py-14 lg:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center space-y-6">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-teal-200/80 bg-white text-xs font-semibold text-[#087f8c] shadow-2xs">
+            <ShieldCheck className="h-4 w-4 text-[#087f8c]" />
+            <span>Kenya TVET Examination &amp; Projects Standard</span>
           </div>
 
-          {/* Academic Metadata Strip */}
-          <div className="bg-slate-50/80 border-t border-slate-200/80 px-6 py-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-left">
-            <div className="flex items-center gap-2.5">
-              <span className="bp-icon-tile h-8 w-8"><BrandIcon name="students" size="xs" /></span>
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">TVET Levels</span>
-                <span className="text-xs font-semibold text-slate-900">Diploma & Craft Certificate</span>
-              </div>
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.12] max-w-4xl mx-auto">
+            The Modern Platform for <span className="text-[#087f8c]">TVET Excellence</span>
+          </h1>
+
+          <p className="text-sm sm:text-base lg:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            Build accredited KNEC research projects and 25–30 page business plans step-by-step, or discover and export verified curriculum capstones with instant M-Pesa delivery.
+          </p>
+
+          <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-3.5">
+            <Link
+              href="/studio"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bp-btn-primary px-6 py-3 text-sm font-semibold shadow-xs"
+            >
+              <span>Launch Project Studio</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/projects"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 px-6 py-3 text-sm font-semibold text-slate-800 transition-colors shadow-2xs"
+            >
+              <ShoppingBag className="h-4 w-4 text-[#087f8c]" />
+              <span>Browse Marketplace</span>
+            </Link>
+          </div>
+
+          {/* Academic Trust & Feature Badges */}
+          <div className="pt-8 max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
+            <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">TVET Levels</span>
+              <span className="text-xs font-bold text-slate-900 block mt-0.5">Diploma &amp; Craft</span>
             </div>
-            <div className="flex items-center gap-2.5">
-              <span className="bp-icon-tile h-8 w-8"><BrandIcon name="document" size="xs" /></span>
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Project Formats</span>
-                <span className="text-xs font-semibold text-slate-900">Research & Business Plan</span>
-              </div>
+            <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">KNEC Compliance</span>
+              <span className="text-xs font-bold text-slate-900 block mt-0.5">25–30 Page Standard</span>
             </div>
-            <div className="flex items-center gap-2.5">
-              <span className="bp-icon-tile h-8 w-8"><BrandIcon name="reports" size="xs" /></span>
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">KNEC Compliance</span>
-                <span className="text-xs font-semibold text-slate-900">28 Standard Sections</span>
-              </div>
+            <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Templates</span>
+              <span className="text-xs font-bold text-slate-900 block mt-0.5">35 Verified Ventures</span>
             </div>
-            <div className="flex items-center gap-2.5">
-              <span className="bp-icon-tile h-8 w-8"><BrandIcon name="analytics" size="xs" /></span>
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Instant Payment</span>
-                <span className="text-xs font-semibold text-slate-900">Paystack / M-PESA KES</span>
-              </div>
+            <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Instant Export</span>
+              <span className="text-xs font-bold text-slate-900 block mt-0.5">Word (.docx) &amp; PDF</span>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* 3. Core Institutional Pillars using FeatureCard & BrandIcon */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-5">
+      {/* 3. Core Institutional Pillars */}
+      <section className="px-4 sm:px-6 py-12 max-w-7xl mx-auto w-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <FeatureCard
             title="Project Studio"
             description="Formulate topics, draft section-by-section with KNEC chapter outlines, track words, and submit for moderation."
