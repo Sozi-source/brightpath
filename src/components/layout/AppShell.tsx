@@ -332,7 +332,7 @@ export function AppShell({
                   Admin Modules
                 </div>
                 {[
-                  { label: "Projects Catalog", href: "#projects" },
+                  { label: "Business Plans", href: "#business-plans" },
                   { label: "User Directory", href: "#users" },
                   { label: "Transactions", href: "#orders" },
                   { label: "Disputes & Reports", href: "#reports" },

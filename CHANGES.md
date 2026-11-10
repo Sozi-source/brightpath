@@ -21,6 +21,30 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-11-10] — Admin: Relabeled Business Plans Section, Purged Category Column & Streamlined Actions
+
+**Category:** UI Polish, Navigation Refinement, High-Density Table Spacing
+
+**Status:** Completed & Verified
+
+**Changes Implemented:**
+1. **Relabeled Catalog to "Business Plans"**:
+   - In [`src/app/admin/page.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/app/admin/page.tsx), relabeled the section header from `Marketplace Catalog Setup` to `Business Plans`, removed the redundant generic subtitle, added `compact` header styling, updated the count pill to `{projectsList.length} Total Plans`, and updated anchor ID to `#business-plans`.
+   - Updated the Sticky HUD counter label from `Projects` to `Business Plans`.
+   - In [`src/components/layout/AppShell.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/components/layout/AppShell.tsx), updated the `Admin Modules` sidebar navigation link from `Projects Catalog` (`#projects`) to `Business Plans` (`#business-plans`).
+2. **Purged Redundant "Category" Table Column**:
+   - In [`src/components/admin/AdminProjectsManager.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/components/admin/AdminProjectsManager.tsx), removed the Category `<th>` and `<td>` cells since all entries in this repository catalog are standardized KNEC Business Plans.
+   - Renamed column header `Title & Material` to `Business Venture` and `Author` to `Author / Candidate`.
+   - Refined venture title typography with sleek text hover effects (`hover:text-[#087f8c]`) and tracking.
+3. **Streamlined Row Actions (Shifting Heavy Controls to Modal)**:
+   - Purged duplicate inline download buttons and unpublish toggle from the table row.
+   - Retained a fast 1-click `Publish` shortcut for pending review items.
+   - Replaced bloated action button stack with a sleek `Manage` button (opening the setup modal where admins can upload covers, set prices, calculate splits, download PDF/Word exports, and delete listings) and an `ExternalLink` icon button.
+4. **Unlocked Draft/Pending Preview on Details Page**:
+   - In [`src/app/projects/[id]/page.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/app/projects/[id]/page.tsx), updated publication status guard to allow `isAdmin || isOwner` to review and preview draft and pending submissions without encountering a `404 notFound()`.
+
+---
+
 ## [2026-11-10] — Admin: Purged Redundant Operational Cards & Consolidated Workflow in Catalog Table
 
 **Category:** Workflow Consolidation, UI Simplification, High-Density Table Architecture

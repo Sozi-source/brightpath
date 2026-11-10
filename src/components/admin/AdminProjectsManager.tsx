@@ -8,7 +8,6 @@ import {
   SlidersHorizontal,
   FileText,
   Camera,
-  Download,
   ExternalLink,
   CheckCircle2,
   Clock,
@@ -80,7 +79,7 @@ export function AdminProjectsManager({
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >
-            All Products ({projects.length})
+            All Plans ({projects.length})
           </button>
           <button
             type="button"
@@ -124,7 +123,7 @@ export function AdminProjectsManager({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search by title, subject, author..."
+            placeholder="Search by venture title or author..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-1.5 text-xs text-slate-900 border border-slate-300 rounded-lg focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 outline-none bg-white placeholder:text-slate-400"
@@ -147,12 +146,11 @@ export function AdminProjectsManager({
             <thead className="border-b border-slate-200 text-[11px] font-semibold uppercase tracking-wider text-slate-500 bg-slate-50">
               <tr>
                 <th className="py-2.5 px-3 w-14 text-center">Cover</th>
-                <th className="py-2.5 px-3">Title & Material</th>
-                <th className="py-2.5 px-3">Category</th>
-                <th className="py-2.5 px-3">Author</th>
+                <th className="py-2.5 px-3">Business Venture</th>
+                <th className="py-2.5 px-3">Author / Candidate</th>
                 <th className="py-2.5 px-3">Price</th>
                 <th className="py-2.5 px-3">Status</th>
-                <th className="py-2.5 px-3 text-right">Setup Controls</th>
+                <th className="py-2.5 px-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -190,9 +188,13 @@ export function AdminProjectsManager({
                     </td>
 
                     {/* Title & Format */}
-                    <td className="py-2.5 px-3 max-w-xs">
+                    <td className="py-2.5 px-3 max-w-sm">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-semibold text-slate-900 line-clamp-1 hover:text-indigo-600 transition-colors cursor-pointer" onClick={() => handleOpenSetup(p)}>
+                        <span
+                          className="font-semibold text-slate-900 hover:text-[#087f8c] transition-colors cursor-pointer text-xs sm:text-[13px] tracking-tight"
+                          onClick={() => handleOpenSetup(p)}
+                          title={p.title}
+                        >
                           {p.title}
                         </span>
                       </div>
@@ -208,23 +210,18 @@ export function AdminProjectsManager({
                       </div>
                     </td>
 
-                    {/* Category */}
-                    <td className="py-2.5 px-3 text-slate-700 font-medium">
-                      {p.category || "General"}
-                    </td>
-
-                    {/* Author */}
-                    <td className="py-2.5 px-3 text-slate-600">
+                    {/* Author / Candidate */}
+                    <td className="py-2.5 px-3 text-slate-700 font-medium whitespace-nowrap">
                       {p.profiles?.full_name || "Institutional"}
                     </td>
 
                     {/* Price - Amazon E-Commerce Price */}
-                    <td className="py-2.5 px-3">
+                    <td className="py-2.5 px-3 whitespace-nowrap">
                       <AmazonPrice amount={p.price_kes || 0} size="sm" />
                     </td>
 
                     {/* Status Badge */}
-                    <td className="py-2.5 px-3">
+                    <td className="py-2.5 px-3 whitespace-nowrap">
                       <span
                         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold ${
                           p.status === "published"
@@ -242,18 +239,34 @@ export function AdminProjectsManager({
                       </span>
                     </td>
 
-                    {/* Setup Controls & Quick Actions */}
-                    <td className="py-2.5 px-3 text-right">
+                    {/* Actions */}
+                    <td className="py-2.5 px-3 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
-                        {/* Primary Setup & Edit Button */}
+                        {/* Quick One-Click Status Approval for Pending Items */}
+                        {p.status === "pending_review" && (
+                          <form action={updateProjectStatus} className="inline-block">
+                            <input type="hidden" name="projectId" value={p.id} />
+                            <input type="hidden" name="status" value="published" />
+                            <button
+                              type="submit"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white transition-colors cursor-pointer shadow-xs"
+                              title="Approve and publish to marketplace"
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              <span>Publish</span>
+                            </button>
+                          </form>
+                        )}
+
+                        {/* Primary Setup & Edit Workspace Button */}
                         <button
                           type="button"
                           onClick={() => handleOpenSetup(p)}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/80 hover:bg-indigo-600 hover:text-white transition-all shadow-xs"
-                          title="Open product setup to change cover, adjust price, and edit metadata"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all shadow-2xs cursor-pointer"
+                          title="Open product setup to change cover, adjust price, download files, and edit metadata"
                         >
-                          <SlidersHorizontal className="h-3.5 w-3.5" />
-                          <span>Setup & Edit</span>
+                          <SlidersHorizontal className="h-3.5 w-3.5 text-slate-500" />
+                          <span>Manage</span>
                         </button>
 
                         {/* Quick View Public Listing */}
@@ -261,52 +274,11 @@ export function AdminProjectsManager({
                           href={`/projects/${p.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-1.5 rounded-lg border border-slate-300 text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors"
-                          title="View live marketplace listing"
+                          className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-[#087f8c] hover:bg-slate-50 transition-colors"
+                          title="View marketplace details page"
                         >
                           <ExternalLink className="h-3.5 w-3.5" />
                         </Link>
-
-                        {/* Quick Workspace Export Downloads */}
-                        {isWorkspaceExport && (
-                          <>
-                            <Link
-                              href={`/api/download?projectId=${encodeURIComponent(p.id)}&format=pdf`}
-                              className="p-1.5 rounded-lg border border-slate-300 text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors"
-                              title="Download PDF"
-                            >
-                              <Download className="h-3.5 w-3.5" />
-                            </Link>
-                          </>
-                        )}
-
-                        {/* Quick One-Click Status Toggles */}
-                        {p.status !== "published" && (
-                          <form action={updateProjectStatus} className="inline-block">
-                            <input type="hidden" name="projectId" value={p.id} />
-                            <input type="hidden" name="status" value="published" />
-                            <button
-                              type="submit"
-                              className="px-2 py-1 rounded text-[11px] font-semibold text-emerald-700 hover:bg-emerald-50 border border-emerald-200 transition-colors cursor-pointer"
-                              title="Publish listing"
-                            >
-                              Publish
-                            </button>
-                          </form>
-                        )}
-                        {p.status === "published" && (
-                          <form action={updateProjectStatus} className="inline-block">
-                            <input type="hidden" name="projectId" value={p.id} />
-                            <input type="hidden" name="status" value="draft" />
-                            <button
-                              type="submit"
-                              className="px-2 py-1 rounded text-[11px] font-semibold text-slate-600 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
-                              title="Unpublish (move to draft)"
-                            >
-                              Unpublish
-                            </button>
-                          </form>
-                        )}
                       </div>
                     </td>
                   </tr>

@@ -24,18 +24,21 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
     const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
     profile = data as UserProfile | null;
   }
+  const isAdmin = profile?.role === "admin";
 
   const { data: product } = await supabase.from("projects")
-    .select("*, profiles:trainer_id(full_name)").eq("id", id).eq("status", "published").maybeSingle();
+    .select("*, profiles:trainer_id(full_name)").eq("id", id).maybeSingle();
   if (!product) notFound();
+  const isOwner = product.trainer_id === user?.id;
+  if (product.status !== "published" && !isAdmin && !isOwner) {
+    notFound();
+  }
 
   const [{ data: rating }, { data: reviews }, { data: relatedProducts }] = await Promise.all([
     supabase.from("marketplace_project_rating_stats").select("rating_average, review_count").eq("project_id", id).maybeSingle(),
     supabase.from("marketplace_project_public_reviews").select("rating, comment, created_at").eq("project_id", id).order("created_at", { ascending: false }).limit(20),
     supabase.from("projects").select("id, title, price_kes, category, material_type").neq("id", id).eq("status", "published").limit(3),
   ]);
-  const isOwner = product.trainer_id === user?.id;
-  const isAdmin = profile?.role === "admin";
   const { data: paidOrder } = user && !isOwner && !isAdmin
     ? await supabase.from("orders").select("id").eq("student_id", user.id).eq("project_id", id).eq("status", "paid").maybeSingle()
     : { data: null };

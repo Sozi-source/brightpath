@@ -108,7 +108,7 @@ export default async function AdminPage() {
                 <Layers className="h-4 w-4" />
               </span>
               <div className="min-w-0">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-indigo-900/70">Projects</div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-indigo-900/70">Business Plans</div>
                 <div className="text-xs sm:text-sm font-bold text-slate-900 tabular-nums leading-tight">{projectsList.length}</div>
               </div>
             </div>
@@ -138,15 +138,15 @@ export default async function AdminPage() {
         </div>
       </div>
 
-      {/* Projects Section */}
-      <div id="projects" className="scroll-mt-28">
+      {/* Business Plans Section */}
+      <div id="business-plans" className="scroll-mt-28">
         <ContentCard
-          title="Marketplace Catalog Setup"
-          subtitle="Manage cover photos, prices, metadata, and publication status"
+          title="Business Plans"
           icon={Layers}
+          compact
           headerRight={
             <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-              {projectsList.length} Listed
+              {projectsList.length} Total Plans
             </span>
           }
         >
