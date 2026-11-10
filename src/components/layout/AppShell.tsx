@@ -226,14 +226,14 @@ export function AppShell({
         {!fullScreenWorkspace && <>
         {/* Left Persistent Navigation Sidebar */}
         <aside
-          className={`fixed inset-y-0 left-0 top-16 z-30 w-64 bg-white border-r border-slate-200/80 text-slate-800 flex flex-col justify-between transition-transform duration-200 ease-in-out md:sticky md:top-16 md:h-[calc(100vh-4rem)] md:shrink-0 md:self-start md:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 top-16 z-30 w-56 lg:w-60 bg-white border-r border-slate-200/80 text-slate-800 flex flex-col justify-between transition-transform duration-200 ease-in-out md:sticky md:top-16 md:h-[calc(100vh-4rem)] md:shrink-0 md:self-start md:translate-x-0 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           } shadow-xl md:shadow-none`}
         >
-          <div className="flex-1 overflow-y-auto py-3.5 space-y-4">
+          <div className="flex-1 overflow-y-auto py-3 space-y-3">
             {/* 1. Primary Portal Navigation FIRST (Uncrowded & Prominent) */}
-            <div className="space-y-1 px-3">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-3 pb-1">
+            <div className="space-y-0.5 px-2.5">
+              <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 px-2.5 pb-1">
                 Main Portal
               </div>
               {navItems.map((item) => {
@@ -244,7 +244,7 @@ export function AppShell({
                     key={item.label}
                     href={item.href}
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                    className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
                       isActive
                         ? "bg-[#087f8c] text-white shadow-xs font-semibold"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
@@ -259,15 +259,15 @@ export function AppShell({
             </div>
 
             {pathname.startsWith("/projects") && marketplaceCategories?.length ? (
-              <nav aria-label="Marketplace categories" className="space-y-1 border-t border-slate-100 px-3 pt-3">
-                <div className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Marketplace</div>
+              <nav aria-label="Marketplace categories" className="space-y-0.5 border-t border-slate-100 px-2.5 pt-2.5">
+                <div className="px-2.5 pb-1 text-[9.5px] font-bold uppercase tracking-wider text-slate-400">Marketplace</div>
                 {marketplaceCategories.map((category) => (
                   <Link
                     key={category.label}
                     href={category.href}
                     onClick={() => setSidebarOpen(false)}
                     aria-current={category.active ? "page" : undefined}
-                    className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs transition-colors ${
+                    className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
                       category.active
                         ? "bg-[#087f8c] font-semibold text-white shadow-xs"
                         : "font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
@@ -282,22 +282,22 @@ export function AppShell({
 
             {/* Faculty / Supervisor / Governance Portals */}
             {isRoleSupervisor && (
-              <div className="space-y-1 px-3 border-t border-slate-100 pt-3">
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-3 pb-1">
-                  Faculty Portals
+              <div className="space-y-0.5 px-2.5 border-t border-slate-100 pt-2.5">
+                <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 px-2.5 pb-1">
+                  System Controls
                 </div>
 
                 {isRoleSupervisor && (
                   <Link
                     href="/supervisor"
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
+                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                       pathname.startsWith("/supervisor")
                         ? "bg-[#087f8c] text-white shadow-xs font-semibold"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5">
                       <ShieldCheck className={`h-4 w-4 shrink-0 ${pathname.startsWith("/supervisor") ? "text-white" : "text-slate-400"}`} />
                       <span>Supervisor Portal</span>
                     </div>
@@ -309,13 +309,13 @@ export function AppShell({
                   <Link
                     href="/admin"
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
+                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                       pathname === "/admin"
                         ? "bg-[#087f8c] text-white shadow-xs font-semibold"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5">
                       <Settings className={`h-4 w-4 shrink-0 ${pathname === "/admin" ? "text-white" : "text-slate-400"}`} />
                       <span>Administration</span>
                     </div>
@@ -327,8 +327,8 @@ export function AppShell({
 
             {/* Admin Modules Quick Jump Navigation */}
             {pathname.startsWith("/admin") && (
-              <div className="space-y-1 px-3 border-t border-slate-100 pt-3">
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-3 pb-1">
+              <div className="space-y-0.5 px-2.5 border-t border-slate-100 pt-2.5">
+                <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 px-2.5 pb-1">
                   Admin Modules
                 </div>
                 {[
@@ -341,7 +341,7 @@ export function AppShell({
                     key={item.href}
                     href={item.href}
                     onClick={() => setSidebarOpen(false)}
-                    className="flex items-center justify-between px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                    className="flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
                   >
                     <span className="truncate">{item.label}</span>
                     <ChevronRight className="h-3 w-3 text-slate-300" />
@@ -350,8 +350,9 @@ export function AppShell({
               </div>
             )}
 
-            {/* 2. Unified Candidate Track + Active Projects Panel (Kept Together) */}
-            <div className="px-3 border-t border-slate-100 pt-3">
+            {/* 2. Unified Candidate Track + Active Projects Panel (Only shown on candidate / learning workflows) */}
+            {!pathname.startsWith("/admin") && (
+              <div className="px-2.5 border-t border-slate-100 pt-2.5">
               <div className="rounded-xl border border-[#d8ebec] bg-[#e8f5f5]/50 p-2.5 space-y-2.5">
                 {/* Compact Candidate / Admin Session Header */}
                 <div className="space-y-0.5 px-0.5">
@@ -465,12 +466,13 @@ export function AppShell({
                 )}
               </div>
             </div>
+            )}
           </div>
 
           {/* Sidebar Footer with National Accreditation Info */}
-          <div className="p-3.5 border-t border-slate-100 text-[11px] text-slate-400 space-y-0.5">
+          <div className="p-3 border-t border-slate-100 text-[10px] text-slate-400 space-y-0.5">
             <div className="font-semibold text-slate-700">TVET Hub</div>
-            <div className="text-[10px] text-slate-400 leading-tight">
+            <div className="text-[9.5px] text-slate-400 leading-tight">
               KNEC Project Studio Standard
             </div>
           </div>
@@ -488,7 +490,7 @@ export function AppShell({
         {/* 3. Main Content Stage */}
         <main className={fullScreenWorkspace
           ? "h-[calc(100vh-4rem)] min-w-0 flex-1 overflow-y-auto"
-          : "flex-1 min-w-0 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6"}>
+          : "flex-1 min-w-0 px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6 xl:px-10 w-full max-w-[1600px] 2xl:max-w-[1800px] mx-auto space-y-5 sm:space-y-6"}>
           {children}
         </main>
       </div>

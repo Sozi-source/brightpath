@@ -67,15 +67,15 @@ export function AdminProjectsManager({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3.5">
       {/* Search and Status Filter Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 border-b border-slate-100 pb-2.5">
         {/* Status Filter Chips */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
           <button
             type="button"
             onClick={() => setStatusFilter("all")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition-all ${
               statusFilter === "all"
                 ? "bg-slate-900 text-white shadow-xs"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -86,31 +86,31 @@ export function AdminProjectsManager({
           <button
             type="button"
             onClick={() => setStatusFilter("published")}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition-all ${
               statusFilter === "published"
                 ? "bg-emerald-700 text-white shadow-xs"
                 : "bg-emerald-50 text-emerald-800 border border-emerald-200/60 hover:bg-emerald-100"
             }`}
           >
-            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
             Published ({publishedCount})
           </button>
           <button
             type="button"
             onClick={() => setStatusFilter("pending_review")}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition-all ${
               statusFilter === "pending_review"
                 ? "bg-amber-600 text-white shadow-xs"
                 : "bg-amber-50 text-amber-800 border border-amber-200/60 hover:bg-amber-100"
             }`}
           >
-            <span className="h-2 w-2 rounded-full bg-amber-400" />
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
             Pending ({pendingCount})
           </button>
           <button
             type="button"
             onClick={() => setStatusFilter("draft")}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition-all ${
               statusFilter === "draft"
                 ? "bg-slate-700 text-white shadow-xs"
                 : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -121,22 +121,22 @@ export function AdminProjectsManager({
         </div>
 
         {/* Search Input */}
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+        <div className="relative w-full sm:w-72 lg:w-80">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
           <input
             type="text"
             placeholder="Search by venture title or author..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs text-slate-900 border border-slate-300 rounded-lg focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 outline-none bg-white placeholder:text-slate-400"
+            className="w-full pl-8 pr-3 py-1 text-xs text-slate-900 border border-slate-300 rounded-lg focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 outline-none bg-white placeholder:text-slate-400"
           />
         </div>
       </div>
 
       {/* Catalog Table */}
       {filteredProjects.length === 0 ? (
-        <div className="text-center py-12 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-          <Layers className="h-8 w-8 mx-auto text-slate-400 mb-2" />
+        <div className="text-center py-10 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+          <Layers className="h-7 w-7 mx-auto text-slate-400 mb-2" />
           <p className="text-xs font-semibold text-slate-700">No marketplace products match your criteria</p>
           <p className="text-[11px] text-slate-500 mt-0.5">
             Try adjusting your search terms or status filters.
@@ -145,14 +145,14 @@ export function AdminProjectsManager({
       ) : (
         <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-xs">
           <table className="w-full text-left text-xs">
-            <thead className="border-b border-slate-200 text-[11px] font-semibold uppercase tracking-wider text-slate-500 bg-slate-50">
+            <thead className="border-b border-slate-200 text-[10.5px] font-semibold uppercase tracking-wider text-slate-500 bg-slate-50/80">
               <tr>
-                <th className="py-2.5 px-3 w-14 text-center">Cover</th>
-                <th className="py-2.5 px-3">Business Venture</th>
-                <th className="py-2.5 px-3">Author / Candidate</th>
-                <th className="py-2.5 px-3">Price</th>
-                <th className="py-2.5 px-3">Status</th>
-                <th className="py-2.5 px-3 text-right">Actions</th>
+                <th className="py-2 px-3 w-12 text-center">Cover</th>
+                <th className="py-2 px-3">Business Venture</th>
+                <th className="py-2 px-3">Author / Candidate</th>
+                <th className="py-2 px-3">Price</th>
+                <th className="py-2 px-3">Status</th>
+                <th className="py-2 px-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -161,11 +161,11 @@ export function AdminProjectsManager({
                 return (
                   <tr key={p.id} className="hover:bg-slate-50/60 transition-colors">
                     {/* Cover Thumbnail with Camera Overlay */}
-                    <td className="py-2.5 px-3">
+                    <td className="py-2 px-3">
                       <button
                         type="button"
                         onClick={() => handleOpenSetup(p)}
-                        className="group/thumb relative h-12 w-10 rounded-md border border-slate-200 overflow-hidden bg-slate-900 shadow-xs block focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="group/thumb relative h-10 w-8 rounded border border-slate-200 overflow-hidden bg-slate-900 shadow-2xs block focus:outline-none focus:ring-2 focus:ring-indigo-500 mx-auto"
                         title="Click to change cover photo or setup product"
                       >
                         {p.cover_path ? (
@@ -174,23 +174,23 @@ export function AdminProjectsManager({
                             alt={p.title}
                             fill
                             unoptimized
-                            sizes="40px"
+                            sizes="32px"
                             className="object-cover"
                           />
                         ) : (
-                          <div className="h-full w-full bg-gradient-to-br from-slate-900 to-indigo-950 flex flex-col items-center justify-center p-1 text-white">
-                            <FileText className="h-3.5 w-3.5 text-amber-300 mb-0.5" />
-                            <span className="text-[7px] font-mono text-slate-300 uppercase">KNEC</span>
+                          <div className="h-full w-full bg-gradient-to-br from-slate-900 to-indigo-950 flex flex-col items-center justify-center p-0.5 text-white">
+                            <FileText className="h-3 w-3 text-amber-300" />
+                            <span className="text-[6px] font-mono text-slate-300 uppercase">KNEC</span>
                           </div>
                         )}
                         <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-opacity text-white">
-                          <Camera className="h-3.5 w-3.5" />
+                          <Camera className="h-3 w-3" />
                         </div>
                       </button>
                     </td>
 
                     {/* Title & Format */}
-                    <td className="py-2.5 px-3 max-w-sm">
+                    <td className="py-2 px-3 max-w-md xl:max-w-xl 2xl:max-w-2xl">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span
                           className="font-semibold text-slate-900 hover:text-[#087f8c] transition-colors cursor-pointer text-xs sm:text-[13px] tracking-tight leading-snug"
@@ -217,19 +217,19 @@ export function AdminProjectsManager({
                     </td>
 
                     {/* Author / Candidate */}
-                    <td className="py-2.5 px-3 text-slate-700 font-medium whitespace-nowrap">
+                    <td className="py-2 px-3 text-slate-700 font-medium whitespace-nowrap">
                       {p.profiles?.full_name || "Institutional"}
                     </td>
 
                     {/* Price - Amazon E-Commerce Price */}
-                    <td className="py-2.5 px-3 whitespace-nowrap">
+                    <td className="py-2 px-3 whitespace-nowrap">
                       <AmazonPrice amount={p.price_kes || 0} size="sm" />
                     </td>
 
                     {/* Status Badge */}
-                    <td className="py-2.5 px-3 whitespace-nowrap">
+                    <td className="py-2 px-3 whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold ${
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold ${
                           p.status === "published"
                             ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
                             : p.status === "pending_review"
@@ -246,7 +246,7 @@ export function AdminProjectsManager({
                     </td>
 
                     {/* Actions */}
-                    <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                    <td className="py-2 px-3 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
                         {/* Quick One-Click Status Approval for Pending Items */}
                         {p.status === "pending_review" && (
@@ -255,7 +255,7 @@ export function AdminProjectsManager({
                             <input type="hidden" name="status" value="published" />
                             <button
                               type="submit"
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white transition-colors cursor-pointer shadow-xs"
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white transition-colors cursor-pointer shadow-xs"
                               title="Approve and publish to marketplace"
                             >
                               <CheckCircle2 className="h-3.5 w-3.5" />
@@ -268,7 +268,7 @@ export function AdminProjectsManager({
                         <button
                           type="button"
                           onClick={() => handleOpenSetup(p)}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all shadow-2xs cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-all shadow-2xs cursor-pointer"
                           title="Open product setup to change cover, adjust price, download files, and edit metadata"
                         >
                           <SlidersHorizontal className="h-3.5 w-3.5 text-slate-500" />
@@ -280,7 +280,7 @@ export function AdminProjectsManager({
                           href={`/projects/${p.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-[#087f8c] hover:bg-slate-50 transition-colors"
+                          className="p-1 rounded-md border border-slate-200 text-slate-500 hover:text-[#087f8c] hover:bg-slate-50 transition-colors"
                           title="View marketplace details page"
                         >
                           <ExternalLink className="h-3.5 w-3.5" />
