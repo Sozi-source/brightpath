@@ -15,7 +15,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import type { Project, ContentStatus } from "@/types/database";
-import { getMaterialTypeLabel } from "@/lib/marketplace";
+import { getMaterialTypeLabel, getExactBusinessTitle } from "@/lib/marketplace";
 import { AdminProductEditModal } from "./AdminProductEditModal";
 import { updateProjectStatus } from "@/app/admin/actions";
 import { AmazonPrice } from "@/components/ui/AmazonPrice";
@@ -36,8 +36,10 @@ export function AdminProjectsManager({
 
   // Filter projects
   const filteredProjects = projects.filter((project) => {
+    const exactTitle = getExactBusinessTitle(project.title);
     const matchesSearch =
       project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      exactTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (project.category || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
       (project.profiles?.full_name || "").toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -191,23 +193,27 @@ export function AdminProjectsManager({
                     <td className="py-2.5 px-3 max-w-sm">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span
-                          className="font-semibold text-slate-900 hover:text-[#087f8c] transition-colors cursor-pointer text-xs sm:text-[13px] tracking-tight"
+                          className="font-semibold text-slate-900 hover:text-[#087f8c] transition-colors cursor-pointer text-xs sm:text-[13px] tracking-tight leading-snug"
                           onClick={() => handleOpenSetup(p)}
                           title={p.title}
                         >
-                          {p.title}
+                          {getExactBusinessTitle(p.title)}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-500">
-                        <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-indigo-700 font-medium border border-indigo-100">
-                          {getMaterialTypeLabel(p.material_type)}
-                        </span>
-                        {isWorkspaceExport && (
-                          <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-emerald-700 font-medium border border-emerald-100">
-                            KNEC 47 Sections
-                          </span>
-                        )}
-                      </div>
+                      {(isWorkspaceExport || p.material_type !== "business_plan") && (
+                        <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-500">
+                          {p.material_type !== "business_plan" && (
+                            <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-indigo-700 font-medium border border-indigo-100">
+                              {getMaterialTypeLabel(p.material_type)}
+                            </span>
+                          )}
+                          {isWorkspaceExport && (
+                            <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-emerald-700 font-medium border border-emerald-100">
+                              KNEC 47 Sections
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </td>
 
                     {/* Author / Candidate */}

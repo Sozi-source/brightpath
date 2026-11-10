@@ -21,6 +21,26 @@ BrightPath is an educational and digital products marketplace platform built for
   - Unimplemented purchase routes (`/api/paystack/...`, `/api/download`, `/library`).
   - ESLint reports 19 warnings/errors regarding `@typescript-eslint/no-explicit-any` and unescaped entities.
 
+## [2026-11-10] — Admin: Exact Business Venture Name Parsing & Boilerplate Purging
+
+**Category:** Data Sanitization, Typography Precision, UI Cleanliness
+
+**Status:** Completed & Verified
+
+**Changes Implemented:**
+1. **Precise Business Venture Name Extraction**:
+   - In [`src/lib/marketplace.ts`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/lib/marketplace.ts), updated [`getExactBusinessTitle`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/lib/marketplace.ts#L27) with a comprehensive regex engine that strips:
+     - Leading verbose prefixes: `"Business Plan for / on / of / : / -"` and `"Complete KNEC Business Plan for"`.
+     - Trailing syllabus & qualification tags: `". Complete KNEC Business Plan"`, `" — Complete KNEC Business Plan"`, `"(Craft Certificate & Diploma)"`, `"(Craft Certificate)"`, `"(Diploma)"`, and `"(Higher Diploma)"`.
+     - Location clauses: `"in Regional, County"`, `"in Juja, Kiambu"`, `"in [Town], [County]"`, and trailing county identifiers.
+   - Preserves exact enterprise names such as **"MetabolicCare Dietary Clinic"** and **"First 1000 Days Maternal & Baby Nutrition Center"**.
+2. **Catalog Table Business Venture Column Update**:
+   - In [`src/components/admin/AdminProjectsManager.tsx`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/components/admin/AdminProjectsManager.tsx), wired [`getExactBusinessTitle`](file:///C:/Users/sozi/Desktop/projects/brightpath/src/lib/marketplace.ts#L27) into the `Business Venture` column cell.
+   - Purged the redundant `"Business plans"` pill underneath each row title (since the entire section is already dedicated to Business Plans), keeping only the informative `"KNEC 47 Sections"` badge for student workspace exports.
+   - Updated client-side search filtering to match both original and exact business names seamlessly.
+
+---
+
 ## [2026-11-10] — Admin: Relabeled Business Plans Section, Purged Category Column & Streamlined Actions
 
 **Category:** UI Polish, Navigation Refinement, High-Density Table Spacing
