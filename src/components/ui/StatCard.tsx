@@ -23,15 +23,15 @@ const colorVariants: Record<StatCardColor, { iconBg: string; iconColor: string; 
 export function StatCard({ label, value, icon: Icon, color = "indigo", className = "", subtext }: StatCardProps) {
   const styles = colorVariants[color] || colorVariants.indigo;
   return (
-    <article className={`bp-card bp-card-interactive relative flex min-w-0 items-center justify-between gap-3 overflow-hidden p-4 sm:p-5 ${className}`}>
+    <article className={`bp-card bp-card-interactive relative flex min-w-0 items-center justify-between gap-3 overflow-hidden p-4 sm:p-5 2xl:gap-4 2xl:p-6 ${className}`}>
       <div className={`absolute inset-y-4 left-0 w-[3px] rounded-r-full ${styles.accent}`} />
       <div className="min-w-0 pl-1">
-        <div className="text-[10px] font-bold uppercase tracking-[.1em] text-slate-500 sm:text-[11px]">{label}</div>
-        <div className="mt-1.5 break-words text-2xl font-semibold tracking-tight text-slate-900 tabular-nums sm:text-[1.8rem]">{value}</div>
-        {subtext && <div className="mt-1 truncate text-[11px] font-medium text-slate-500">{subtext}</div>}
+        <div className="text-[10px] font-bold uppercase tracking-[.1em] text-slate-500 sm:text-[11px] 2xl:text-xs">{label}</div>
+        <div className="mt-1.5 break-words text-2xl font-semibold tracking-tight text-slate-900 tabular-nums sm:text-[1.8rem] 2xl:text-3xl">{value}</div>
+        {subtext && <div className="mt-1 truncate text-[11px] font-medium text-slate-500 2xl:text-xs">{subtext}</div>}
       </div>
-      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:h-11 sm:w-11 ${styles.iconBg} ${styles.iconColor}`}>
-        <Icon className="h-5 w-5 sm:h-[21px] sm:w-[21px]" />
+      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:h-11 sm:w-11 2xl:h-12 2xl:w-12 ${styles.iconBg} ${styles.iconColor}`}>
+        <Icon className="h-5 w-5 sm:h-[21px] sm:w-[21px] 2xl:h-6 2xl:w-6" />
       </div>
     </article>
   );

@@ -141,7 +141,7 @@ export default async function HomePage() {
           </h1>
 
           <p className="text-sm sm:text-base lg:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Build accredited KNEC research projects and 25–30 page business plans step-by-step, or discover and export verified curriculum capstones with instant M-Pesa delivery.
+            Find trusted TVET resources, build supervisor-ready projects, and create polished business plans—from your first idea to a final Word-ready document.
           </p>
 
           <form action="/projects" className="mx-auto flex w-full max-w-3xl flex-col gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm sm:flex-row">

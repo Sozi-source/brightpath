@@ -61,11 +61,11 @@ export function PageHeaderCard({
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 space-y-1">
-          <h1 className={`${compact ? "text-lg sm:text-xl" : "text-xl sm:text-2xl"} font-bold tracking-tight text-slate-900`}>
+          <h1 className={`${compact ? "text-lg sm:text-xl" : "text-xl sm:text-2xl 2xl:text-3xl"} font-bold tracking-tight text-slate-900`}>
             {title}
           </h1>
           {subtitle && (
-            <p className="text-xs text-slate-500 leading-relaxed max-w-2xl">
+            <p className="text-xs text-slate-500 leading-relaxed max-w-2xl 2xl:text-sm">
               {subtitle}
             </p>
           )}
@@ -79,7 +79,7 @@ export function PageHeaderCard({
       </div>
 
       {metadata && metadata.length > 0 && (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-1 text-[11px]">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-1 text-[11px] 2xl:text-xs">
           {metadata.map((item) => (
             <div
               key={item.label}

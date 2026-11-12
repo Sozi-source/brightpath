@@ -26,7 +26,7 @@ export function ContentCard({
       {(title || Icon || headerRight || subtitle) && (
         <header
           className={`flex flex-col gap-2 border-b border-slate-100 ${
-            compact ? "px-3.5 py-2.5" : "px-4 py-4 sm:px-5"
+            compact ? "px-3.5 py-2.5" : "px-4 py-4 sm:px-5 2xl:px-6 2xl:py-5"
           } sm:flex-row sm:items-center sm:justify-between ${
             tone === "muted" ? "bg-slate-50/80" : "bg-white"
           }`}
@@ -41,14 +41,14 @@ export function ContentCard({
               {title && (
                 <h3
                   className={`${
-                    compact ? "text-xs font-bold" : "text-sm font-semibold"
+                    compact ? "text-xs font-bold" : "text-sm font-semibold 2xl:text-base"
                   } leading-snug text-slate-900`}
                 >
                   {title}
                 </h3>
               )}
               {subtitle && (
-                <p className={`mt-0.5 ${compact ? "text-[11px]" : "text-xs"} leading-relaxed text-slate-500`}>
+                <p className={`mt-0.5 ${compact ? "text-[11px]" : "text-xs 2xl:text-sm"} leading-relaxed text-slate-500`}>
                   {subtitle}
                 </p>
               )}
@@ -57,7 +57,7 @@ export function ContentCard({
           {headerRight && <div className="w-full min-w-0 sm:w-auto sm:shrink-0">{headerRight}</div>}
         </header>
       )}
-      <div className={noPadding ? "" : compact ? "p-3 sm:p-3.5" : "p-4 sm:p-5 lg:p-6"}>
+      <div className={noPadding ? "" : compact ? "p-3 sm:p-3.5" : "p-4 sm:p-5 lg:p-6 2xl:p-7"}>
         {children}
       </div>
     </section>

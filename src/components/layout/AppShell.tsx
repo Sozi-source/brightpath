@@ -269,12 +269,12 @@ export function AppShell({
                     aria-current={category.active ? "page" : undefined}
                     className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
                       category.active
-                        ? "bg-[#087f8c] font-semibold text-white shadow-xs"
-                        : "font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        ? "border border-teal-200 bg-teal-50 font-semibold text-[#087f8c]"
+                        : "border border-transparent font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     }`}
                   >
                     <span>{category.label}</span>
-                    <span className={category.active ? "text-teal-100" : "text-slate-500"}>{category.count}</span>
+                    <span className={category.active ? "text-[#087f8c]" : "text-slate-500"}>{category.count}</span>
                   </Link>
                 ))}
               </nav>
