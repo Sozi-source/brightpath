@@ -1,4 +1,6 @@
 import PizZip from "pizzip";
+import fs from "node:fs";
+import path from "node:path";
 import { createBusinessPlanBrand } from "./businessPlanBrand";
 import { getVerifiedBusinessPlanAbbreviations } from "./businessPlanGlossary";
 import { cleanDiagramLines, parseFlowSteps, parseOrgDiagram } from "./businessPlanDiagrams";
@@ -240,6 +242,10 @@ function brandMarkCard(initials: string, accent: string, sector?: string | null)
         )}</w:p>`
       : ""
   }</w:tc></w:tr></w:tbl>`;
+}
+
+function logoImageParagraph(rId: string, cx = 1600200, cy = 900000): string {
+  return `<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:before="120" w:after="160"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="1" name="ICMHS official logo"/><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="0" name="icmhs-logo.png"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="${rId}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;
 }
 
 /**
@@ -874,6 +880,7 @@ export function createBusinessPlanDocx(params: {
   tagline?: string | null;
   industrySector?: string | null;
   primaryProduct?: string | null;
+  isInstitutional?: boolean;
   course: string;
   level: string;
   sections: BusinessPlanDocxSection[];
@@ -884,6 +891,9 @@ export function createBusinessPlanDocx(params: {
     industry: params.industrySector,
     product: params.primaryProduct,
   });
+  const icmhsLogo = params.isInstitutional
+    ? fs.readFileSync(path.join(process.cwd(), "public", "branding", "icmhs-logo.png"))
+    : null;
   const rawCourse = (params.course || "Human Nutrition and Dietetics").trim();
   const rawLevel = (params.level || "Diploma").trim();
   const awardCourse = /^(?:certificate|diploma|craft|higher\s+diploma)\b/i.test(rawCourse)
@@ -908,6 +918,7 @@ export function createBusinessPlanDocx(params: {
   const content: string[] = [
     coverAccentStripe(),
     `<w:p><w:pPr><w:spacing w:before="240" w:after="120"/></w:pPr></w:p>`,
+    ...(icmhsLogo ? [logoImageParagraph("rId5")] : []),
     brandMarkCard(brand.initials, brand.accent, params.industrySector),
     ...(params.tagline
       ? [
@@ -925,12 +936,12 @@ export function createBusinessPlanDocx(params: {
       { bold: true, sizeHalfPt: 30, color: "0F172A" },
       '<w:spacing w:before="200" w:after="280" w:line="360" w:lineRule="auto"/>'
     ),
-    centeredParagraph("PRESENTED BY:", "Normal", {
+    centeredParagraph(params.isInstitutional ? "INSTITUTIONAL FEASIBILITY AND IMPLEMENTATION BRIEF" : "PRESENTED BY:", "Normal", {
       bold: true,
       sizeHalfPt: 20,
       color: "475569",
     }),
-    ...(params.candidate
+    ...(!params.isInstitutional && params.candidate
       ? [
           centeredParagraph(params.candidate.toUpperCase(), "Normal", {
             bold: true,
@@ -939,7 +950,7 @@ export function createBusinessPlanDocx(params: {
           }),
         ]
       : []),
-    ...(params.admissionNumber
+    ...(!params.isInstitutional && params.admissionNumber
       ? [
           centeredParagraph(`Index / Admission Number: ${params.admissionNumber}`, "Normal", {
             bold: true,
@@ -958,12 +969,14 @@ export function createBusinessPlanDocx(params: {
         ]
       : []),
     centeredParagraph(
-      `A Business Plan Submitted to the Kenya National Examinations Council (KNEC) in Partial Fulfilment of the Requirements for the Award of ${awardCourse}.`,
+      params.isInstitutional
+        ? "Prepared for internal management review. Not a student examination submission or marketplace product."
+        : `A Business Plan Submitted to the Kenya National Examinations Council (KNEC) in Partial Fulfilment of the Requirements for the Award of ${awardCourse}.`,
       "Normal",
       { bold: true, sizeHalfPt: 22, color: "0F172A" },
       '<w:spacing w:before="280" w:after="280" w:line="360" w:lineRule="auto"/>'
     ),
-    ...(params.supervisor
+    ...(!params.isInstitutional && params.supervisor
       ? [
           centeredParagraph(`Project Supervisor: ${params.supervisor}`, "Normal", {
             bold: true,
@@ -1098,7 +1111,7 @@ export function createBusinessPlanDocx(params: {
   const zip = new PizZip();
   zip.file(
     "[Content_Types].xml",
-    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/></Types>`
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/></Types>`
   );
   zip.file(
     "_rels/.rels",
@@ -1106,8 +1119,9 @@ export function createBusinessPlanDocx(params: {
   );
   zip.file(
     "word/_rels/document.xml.rels",
-    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/></Relationships>`
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>${icmhsLogo ? '<Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/icmhs-logo.png"/>' : ""}</Relationships>`
   );
+  if (icmhsLogo) zip.file("word/media/icmhs-logo.png", icmhsLogo);
   zip.file(
     "word/document.xml",
     `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:body>${content.join(

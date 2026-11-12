@@ -22,6 +22,13 @@ export function buildCompleteBusinessPlan(rawSpecs: Partial<BusinessPlanSpecs>):
   const fin = computeBusinessPlanFinancials(specs);
   const formatKES = (n: number) => Math.round(n).toLocaleString("en-KE");
   const resolvedModel = resolveBusinessPlanModel(specs);
+  const isInstitutional = specs.isInstitutional === true;
+  const institutionalCourses = specs.institutionalCourses || [];
+  const institutionalCourseTable = institutionalCourses.length > 0
+    ? `| Proposed course | Year 1 intake | Annual fee (planning estimate) | Direct cost/student (planning estimate) | Start-up equipment (planning estimate) |
+|---|---:|---:|---:|---:|
+${institutionalCourses.map((course) => `| ${course.courseName} | ${course.estimatedYear1Intake} | KES ${formatKES(course.proposedAnnualFeeKES)} | KES ${formatKES(course.directCostPerStudentKES)} | KES ${formatKES(course.startUpEquipmentBudgetKES)} |`).join("\n")}`
+    : "No course-level portfolio has been entered; add course assumptions before approval.";
 
   const isConsultancy = resolvedModel === "consultancy" || resolvedModel === "clinical";
   const isFoodService = resolvedModel === "food_service";
@@ -126,7 +133,9 @@ I also thank the administration and teaching faculty of **${specs.institutionNam
   add(
     "prelim.executive_summary",
     "Executive Summary / Synopsis",
-    `### EXECUTIVE SUMMARY / SYNOPSIS
+    `${isInstitutional ? "### INSTITUTIONAL DECISION BRIEF" : "### EXECUTIVE SUMMARY / SYNOPSIS"}
+${isInstitutional ? `**Institutional purpose:** ${specs.institutionalPlanObjective || "Evaluate the viability and implementation readiness of the proposed course portfolio."}` : ""}
+${isInstitutional ? `This is an internal management feasibility document, not a student examination submission. Course-level planning assumptions are shown below and must be replaced with verified demand, approvals, quotations, staffing costs and enrolment evidence before implementation.\n\n${institutionalCourseTable}` : ""}
 
 **${specs.businessName}** is a proposed nutrition enterprise in the **${specs.industrySector}** sector, situated in **${specs.townOrMarket}, ${specs.county}**. The enterprise will operate as a **${specs.formOfOwnership}** founded by **${specs.candidateName || "the promoter"}**, a trained professional holding a **${safeQualifications}**. The firm's mission is to deliver accessible, evidence-based nutritional products and services that address local dietary and health needs while establishing a viable, compliant commercial entity.
 

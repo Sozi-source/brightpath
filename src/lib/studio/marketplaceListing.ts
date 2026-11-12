@@ -31,6 +31,9 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
   const priceKes = (Number.isFinite(rawPrice) && rawPrice > 0) ? rawPrice : defaultStandardPrice;
 
   const planSpecs = workspace.business_plan_specs as BusinessPlanSpecs | null;
+  if (planSpecs?.isInstitutional || planSpecs?.adminOnly) {
+    throw new Error("Institutional and admin-only business plans cannot be published to the marketplace.");
+  }
   const definitions = getWorkspaceSections("business_plan", workspace.level, resolveBusinessPlanModel(planSpecs));
   const { data: rows, error: sectionsError } = await db.from("workspace_sections")
     .select("section_key, current_text").eq("workspace_id", workspaceId);

@@ -160,6 +160,7 @@ export function ProjectAreaCatalog({
   // Filtered ventures
   const filteredVentures = useMemo(() => {
     return NUTRITION_VENTURES.filter((venture) => {
+      if (venture.defaultSpecs.adminOnly) return false;
       if (selectedGroup !== "ALL" && venture.group !== selectedGroup) return false;
       if (selectedCapital !== "ALL" && venture.capitalTier !== selectedCapital) return false;
       if (searchQuery.trim()) {

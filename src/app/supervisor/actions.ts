@@ -99,7 +99,7 @@ export async function approveCompletedProjectForMarketplace(formData: FormData) 
   if (statusError) throw new Error(statusError.message || "Could not record final approval.");
 
   try {
-    if (fullWorkspace.workspace_type === "business_plan") {
+    if (fullWorkspace.workspace_type === "business_plan" && !specs?.isInstitutional && !specs?.adminOnly) {
       await queueApprovedBusinessPlanListing(workspaceId);
     }
   } catch (error) {
@@ -117,7 +117,9 @@ export async function approveCompletedProjectForMarketplace(formData: FormData) 
   if (reviewError) throw new Error(reviewError.message || "Final approval was saved but its review record could not be written.");
   await db.from("project_log_entries").insert({
     workspace_id: workspaceId,
-    activity: fullWorkspace.workspace_type === "business_plan"
+    activity: fullWorkspace.workspace_type === "business_plan" && (specs?.isInstitutional || specs?.adminOnly)
+      ? "Institutional business plan approved for internal management use; marketplace publication blocked."
+      : fullWorkspace.workspace_type === "business_plan"
       ? "Supervisor approved the completed project; business plan published live to marketplace."
       : "Supervisor approved the completed project.",
     supervisor_comment: comment,

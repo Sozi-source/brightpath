@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Coins,
   Users,
+  ShieldCheck,
 } from "lucide-react";
 import type {
   UserProfile,
@@ -21,6 +22,7 @@ import type {
   ContentReport,
 } from "@/types/database";
 import { AdminProjectsManager } from "@/components/admin/AdminProjectsManager";
+import { AdminInstitutionalPlans, type AdminInstitutionalPlanRow } from "@/components/admin/AdminInstitutionalPlans";
 
 export const instant = false;
 
@@ -51,11 +53,13 @@ export default async function AdminPage() {
     { data: allProjects },
     { data: allOrders },
     { data: allReports },
+    { data: institutionalWorkspaces },
   ] = await Promise.all([
     supabase.from("profiles").select("*").order("created_at", { ascending: false }),
     supabase.from("projects").select("*, profiles:trainer_id(full_name)").order("created_at", { ascending: false }),
     supabase.from("orders").select("*").order("created_at", { ascending: false }),
     supabase.from("reports").select("*").order("created_at", { ascending: false }),
+    supabase.from("project_workspaces").select("id, title, status, final_project_status, updated_at, workspace_type, business_plan_specs").eq("workspace_type", "business_plan").order("updated_at", { ascending: false }),
   ]);
 
   const profilesList: UserProfile[] = (allProfiles as unknown as UserProfile[]) || [];
@@ -63,6 +67,9 @@ export default async function AdminPage() {
   const projectsList: Project[] = (allProjects as unknown as Project[]) || [];
   const ordersList: Order[] = (allOrders as unknown as Order[]) || [];
   const reportsList: ContentReport[] = (allReports as unknown as ContentReport[]) || [];
+  const institutionalPlans: AdminInstitutionalPlanRow[] = ((institutionalWorkspaces || []) as Array<AdminInstitutionalPlanRow & { workspace_type?: string; business_plan_specs?: { isInstitutional?: boolean } | null }>)
+    .filter((workspace) => workspace.business_plan_specs?.isInstitutional === true)
+    .map(({ id, title, status, final_project_status, updated_at }) => ({ id, title, status, final_project_status, updated_at }));
 
   // Compute stats
   const studentCount = profilesList.filter((p) => p.role === "student").length;
@@ -153,6 +160,18 @@ export default async function AdminPage() {
           <AdminProjectsManager
             projects={projectsList}
           />
+        </ContentCard>
+      </div>
+
+      <div id="institutional-plans" className="scroll-mt-20">
+        <ContentCard
+          title="Institutional Plans"
+          subtitle="ICMHS feasibility workspaces"
+          icon={ShieldCheck}
+          compact
+          headerRight={<span className="text-[11px] font-semibold rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-blue-800">Admin only</span>}
+        >
+          <AdminInstitutionalPlans plans={institutionalPlans} />
         </ContentCard>
       </div>
 

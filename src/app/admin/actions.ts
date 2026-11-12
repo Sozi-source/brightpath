@@ -3,9 +3,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { queueApprovedBusinessPlanListing } from "@/lib/studio/marketplaceListing";
 import { isMarketplaceMaterialType } from "@/lib/marketplace";
 import type { ContentStatus } from "@/types/database";
+import { BUSINESS_PLAN_PRESETS, resolveBusinessPlanModel, type BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
+import { getWorkspaceSections, getSectionStarterContent } from "@/lib/studio/templates";
 
 async function verifyAdmin() {
   const supabase = await createClient();
@@ -46,6 +49,40 @@ export async function updateCommission(formData: FormData) {
   revalidatePath("/admin");
 }
 
+export async function createIcmhsInstitutionalPlan() {
+  const { supabase, user } = await verifyAdmin();
+  const db = createAdminClient();
+  const preset = BUSINESS_PLAN_PRESETS.imperial_college_new_courses;
+  const businessSpecs = { ...preset, candidateName: "", admissionNumber: "", supervisorName: "" } as Partial<BusinessPlanSpecs>;
+  const { data: profile } = await supabase.from("profiles").select("institution_id").eq("id", user.id).maybeSingle();
+  const { data: workspace, error } = await db.from("project_workspaces").insert({
+    student_id: user.id,
+    supervisor_id: null,
+    institution_id: profile?.institution_id || null,
+    workspace_type: "business_plan",
+    level: "diploma",
+    course: "Institutional Course Expansion Feasibility",
+    title: businessSpecs.businessName,
+    problem_area: businessSpecs.institutionalPlanObjective,
+    business_plan_specs: businessSpecs,
+    status: "approved",
+  }).select("id").single();
+  if (error || !workspace) throw new Error(error?.message || "Could not create the ICMHS institutional plan.");
+
+  const definitions = getWorkspaceSections("business_plan", "diploma", resolveBusinessPlanModel(businessSpecs));
+  const { error: sectionsError } = await db.from("workspace_sections").insert(definitions.map((definition, index) => ({
+    workspace_id: workspace.id,
+    section_key: definition.key,
+    phase: definition.phase,
+    position: index + 1,
+    current_text: getSectionStarterContent("business_plan", "diploma", definition.key, resolveBusinessPlanModel(businessSpecs)),
+    status: "draft",
+  })));
+  if (sectionsError) throw new Error(sectionsError.message || "Could not initialize institutional plan sections.");
+  revalidatePath("/admin");
+  redirect(`/studio/${workspace.id}`);
+}
+
 export async function updateProjectStatus(formData: FormData) {
   const { supabase } = await verifyAdmin();
   const projectId = formData.get("projectId")?.toString();
@@ -58,8 +95,11 @@ export async function updateProjectStatus(formData: FormData) {
     if (project?.file_path?.startsWith("workspace-export:")) {
       const { data: snapshot } = await supabase.from("project_plan_snapshots").select("workspace_id").eq("project_id", projectId).maybeSingle();
       const { data: workspace } = snapshot
-        ? await supabase.from("project_workspaces").select("final_project_status").eq("id", snapshot.workspace_id).maybeSingle()
+        ? await supabase.from("project_workspaces").select("final_project_status, business_plan_specs").eq("id", snapshot.workspace_id).maybeSingle()
         : { data: null };
+      if ((workspace?.business_plan_specs as { isInstitutional?: boolean; adminOnly?: boolean } | null)?.isInstitutional || (workspace?.business_plan_specs as { isInstitutional?: boolean; adminOnly?: boolean } | null)?.adminOnly) {
+        throw new Error("Institutional and admin-only plans cannot be published to the marketplace.");
+      }
       if (workspace?.final_project_status !== "approved") {
         throw new Error("Supervisor final project approval is required before marketplace publication.");
       }
@@ -155,8 +195,12 @@ export async function adminUpdateMarketplaceProduct(formData: FormData) {
       .maybeSingle();
 
     const { data: workspace } = snapshot
-      ? await supabase.from("project_workspaces").select("final_project_status").eq("id", snapshot.workspace_id).maybeSingle()
+      ? await supabase.from("project_workspaces").select("final_project_status, business_plan_specs").eq("id", snapshot.workspace_id).maybeSingle()
       : { data: null };
+
+    if ((workspace?.business_plan_specs as { isInstitutional?: boolean; adminOnly?: boolean } | null)?.isInstitutional || (workspace?.business_plan_specs as { isInstitutional?: boolean; adminOnly?: boolean } | null)?.adminOnly) {
+      throw new Error("Institutional and admin-only plans cannot be published to the marketplace.");
+    }
 
     if (workspace?.final_project_status !== "approved") {
       throw new Error("Supervisor final project approval is required before marketplace publication.");

@@ -196,6 +196,7 @@ export function BusinessPlanBuilderModal({
 
   const filteredVentures = useMemo(() => {
     return NUTRITION_VENTURES.filter((v) => {
+      if (v.defaultSpecs.adminOnly) return false;
       if (selectedGroupFilter !== "ALL" && v.group !== selectedGroupFilter) return false;
       if (selectedCapitalFilter !== "ALL" && v.capitalTier !== selectedCapitalFilter) return false;
       if (searchQuery.trim()) {

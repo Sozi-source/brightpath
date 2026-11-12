@@ -73,6 +73,7 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
     tagline: businessSpecs?.tagline,
     industrySector: businessSpecs?.industrySector,
     primaryProduct: businessSpecs?.primaryProduct,
+    isInstitutional: businessSpecs?.isInstitutional === true,
     course: workspace.course || businessSpecs?.course || "Human Nutrition and Dietetics",
     level: workspace.level === "craft" ? "Certificate" : "Diploma",
     sections,

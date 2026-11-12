@@ -95,6 +95,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
       workspace_type,
       level,
       course,
+      business_plan_specs,
       title,
       problem_area,
       status,
@@ -115,6 +116,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
 
   const workspace = workspaceData as unknown as ProjectWorkspace;
   const isBusiness = workspace.workspace_type === "business_plan";
+  const isInstitutional = isBusiness && Boolean((workspace.business_plan_specs as { isInstitutional?: boolean } | null)?.isInstitutional);
 
   // Load sections
   const { data: sectionsData } = await db
@@ -250,7 +252,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
               }`}
             >
               {isApproved
-                ? "Approved & Published"
+                ? (isInstitutional ? "Approved for Internal Use" : "Approved & Published")
                 : isReviewPending
                 ? "Review Required"
                 : workspace.final_project_status === "changes_requested"
@@ -302,12 +304,18 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
           {isApproved ? (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50/70 p-4">
               <div>
-                <p className="text-sm font-semibold text-emerald-900">Project Approved &amp; Published Live to Marketplace</p>
-                <p className="mt-1 text-xs text-slate-600">This business plan meets all KNEC standards and is published live in the marketplace catalog.</p>
+                <p className="text-sm font-semibold text-emerald-900">{isInstitutional ? "Institutional Plan Approved" : "Project Approved &amp; Published Live to Marketplace"}</p>
+                <p className="mt-1 text-xs text-slate-600">{isInstitutional ? "Approved for internal ICMHS management use. Marketplace publication is blocked." : "This business plan meets all KNEC standards and is published live in the marketplace catalog."}</p>
               </div>
-              <Link href="/projects" className="rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-indigo-700 shadow-xs transition-colors">
-                View in Marketplace
-              </Link>
+              {isInstitutional ? (
+                <Link href={`/api/studio/${workspaceId}/export?format=docx`} className="rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-indigo-700 shadow-xs transition-colors">
+                  Download Word
+                </Link>
+              ) : (
+                <Link href="/projects" className="rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-indigo-700 shadow-xs transition-colors">
+                  View in Marketplace
+                </Link>
+              )}
             </div>
           ) : isReviewPending || (isFinalProjectReady && (profile.role === "admin" || workspace.supervisor_id === user.id)) ? (
             <div className="space-y-3">
@@ -315,8 +323,8 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
               <div className="grid gap-3 md:grid-cols-2">
                 <SupervisorDecisionForm
                   action={approveCompletedProjectForMarketplace}
-                  successMessage="Completed project approved and published live to marketplace."
-                  submitLabel="Approve & publish to marketplace"
+                  successMessage={isInstitutional ? "Institutional plan approved for internal use." : "Completed project approved and published live to marketplace."}
+                  submitLabel={isInstitutional ? "Approve for internal use" : "Approve & publish to marketplace"}
                   pendingLabel="Approving & publishing..."
                   className="space-y-2 rounded-lg border border-emerald-200 bg-emerald-50/50 p-3"
                 >

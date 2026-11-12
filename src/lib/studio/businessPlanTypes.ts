@@ -45,6 +45,18 @@ export type BusinessPlanModel =
   | "education"
   | "custom";
 
+export interface InstitutionalCoursePlan {
+  courseName: string;
+  rationale: string;
+  proposedLevel: string;
+  deliveryModel: string;
+  estimatedYear1Intake: number;
+  proposedAnnualFeeKES: number;
+  directCostPerStudentKES: number;
+  startUpEquipmentBudgetKES: number;
+  regulatoryStatus: string;
+}
+
 export function resolveBusinessPlanModel(
   specs: Partial<BusinessPlanSpecs> | null | undefined
 ): BusinessPlanModel {
@@ -68,6 +80,15 @@ export function resolveBusinessPlanModel(
 export interface BusinessPlanSpecs {
   /** The selected venture model controls business-plan language and labels. */
   businessModel?: BusinessPlanModel;
+  /** When true, indicates an institutional/corporate feasibility plan rather than a student examination plan. */
+  isInstitutional?: boolean;
+  /** Restricts access and selection exclusively to admin users. */
+  adminOnly?: boolean;
+  /** Institution-level decision brief fields, separate from student venture assumptions. */
+  institutionalPlanObjective?: string;
+  institutionalBackground?: string;
+  institutionalCourses?: InstitutionalCoursePlan[];
+  implementationHorizonMonths?: number;
   research?: {
     summary: string;
     sources: Array<{ title: string; url: string }>;
@@ -144,6 +165,100 @@ export interface BusinessPlanSpecs {
 
 /** Example starting points. Candidate-specific facts and quotations must be verified. */
 export const BUSINESS_PLAN_PRESETS: Record<string, Partial<BusinessPlanSpecs>> = {
+  imperial_college_new_courses: {
+    businessModel: "education",
+    isInstitutional: true,
+    adminOnly: true,
+    businessName: "Imperial College of Medical and Health Sciences — New Course Expansion Feasibility Plan",
+    tagline: "Committed to Professional Excellence",
+    industrySector: "Private Medical, Health Sciences and Applied Technology Education",
+    formOfOwnership: "Private Limited Company",
+    registrationType: "Existing institution; current legal, TVETA and programme-approval records to be verified before launch",
+    institutionName: "Imperial College of Medical and Health Sciences (ICMHS)",
+    ownerQualifications: "Existing institutional leadership, academic management and qualified programme faculty; individual credentials and regulator approvals to be verified in the implementation pack.",
+    county: "Kiambu County",
+    townOrMarket: "Thika Town",
+    streetOrBuilding: "Thika Main Campus; confirm room allocations and campus-level capacity before implementation",
+    postalAddress: "[Confirm ICMHS postal address]",
+    email: "info@icmhs.co.ke",
+    phone: "+254 719 223 223",
+    locationRationale: "The feasibility case builds on ICMHS's existing Thika and Nakuru campus footprint, health-sciences identity, practical-training facilities and stated healthcare-sector partnerships. Campus capacity, room compliance and programme-specific approvals must be confirmed before launch.",
+    primaryProduct: "Four-course academic expansion: Mortuary Science, Optometry, Orthopedic and Trauma Medicine, and Artificial Intelligence",
+    productDescription: "A staged institutional expansion portfolio designed to test demand, regulatory readiness, staffing, equipment requirements, clinical placement capacity and financial viability before full programme rollout.",
+    productPackaging: "Certificate, diploma or other approved delivery level per regulator and curriculum decision; day, evening or blended delivery to be validated course by course",
+    unitSellingPrice: 7500,
+    unitCostOfProduction: 2800,
+    monthlyProductionUnitsYear1: 20,
+    annualGrowthRateYear2: 0.2,
+    annualGrowthRateYear3: 0.2,
+    targetCustomersDescription: "KCSE school leavers, working healthcare assistants seeking progression, practicing health workers requiring specialization, technology-oriented learners, sponsors, employers and county or private health-service partners.",
+    totalMarketPopulation: "Market size to be established through a documented enquiry survey, competitor review, employer interviews and regulator-verified programme demand evidence across Kiambu, Nairobi, Nakuru and adjacent counties.",
+    projectedMarketSharePercentage: 3,
+    competitors: [
+      {
+        name: "Existing accredited medical training colleges offering comparable programmes [Confirm locally]",
+        location: "Thika, Nairobi, Nakuru and other target catchments",
+        priceLevel: "[Collect current fee schedules before approval]",
+        strengths: "Existing programme approvals, established faculty and clinical placement networks",
+        weaknesses: "Potentially higher fees, limited intake flexibility or less integrated health-technology positioning",
+      },
+      {
+        name: "Universities and specialist professional training providers [Confirm locally]",
+        location: "Kenya-wide / online and blended options",
+        priceLevel: "[Collect current fee schedules before approval]",
+        strengths: "Brand recognition, specialist faculty and established qualification pathways",
+        weaknesses: "Longer routes, higher entry thresholds or less accessible delivery for working learners",
+      },
+    ],
+    marketingPromotionBudgetMonthly: 85000,
+    machinery: [
+      { item: "Mortuary science teaching laboratory: cadaveric anatomy models, embalming demonstration station, mortuary trolley, PPE and infection-control fixtures", quantity: 1, unitCost: 2850000, supplier: "Specialist medical-equipment suppliers [Quotation required]" },
+      { item: "Optometry skills laboratory: slit lamp, trial lens sets, autorefractor/keratometer, tonometer, retinoscope, visual acuity and refraction equipment", quantity: 1, unitCost: 4200000, supplier: "Optometric equipment suppliers [Quotation required]" },
+      { item: "Orthopedic and trauma skills lab: fracture fixation models, traction and splinting sets, orthopedic instruments, casting station and simulation manikins", quantity: 1, unitCost: 3600000, supplier: "Orthopedic simulation suppliers [Quotation required]" },
+      { item: "Artificial intelligence and health-informatics lab: workstation computers, GPU-capable servers, networking, power backup and secure data environment", quantity: 1, unitCost: 3200000, supplier: "ICT systems integrators [Quotation required]" },
+      { item: "Shared skills-lab consumables starter stock: gloves, masks, gowns, syringes, dressings, casts, lenses, disinfectants and simulation disposables", quantity: 1, unitCost: 1250000, supplier: "Medical consumables suppliers [Quotation required]" },
+    ],
+    rawMaterials: [
+      { material: "Mortuary and infection-control consumables", monthlyQuantity: "Planning allowance for practical cohorts", monthlyCost: 65000, supplier: "Licensed medical consumables supplier [Quotation required]" },
+      { material: "Optometry practice consumables and disposable diagnostic supplies", monthlyQuantity: "Planning allowance for practical cohorts", monthlyCost: 90000, supplier: "Optometric supplier [Quotation required]" },
+      { material: "Orthopedic casting, splinting and trauma simulation consumables", monthlyQuantity: "Planning allowance for practical cohorts", monthlyCost: 110000, supplier: "Orthopedic supplier [Quotation required]" },
+      { material: "AI lab cloud, software, data-governance and cybersecurity allowance", monthlyQuantity: "Monthly platform and support requirement", monthlyCost: 140000, supplier: "ICT provider [Quotation required]" },
+    ],
+    workshopSquareMeters: 650,
+    monthlyRent: 0,
+    staffing: [
+      { position: "Programme Director / Academic Lead", count: 1, monthlySalary: 180000, duties: "Own the portfolio business case, academic quality, regulator engagement, launch gates and performance reporting.", qualifications: "Relevant postgraduate qualification and verified experience in health-sciences academic leadership [Confirm]." },
+      { position: "Course Coordinators", count: 4, monthlySalary: 110000, duties: "Coordinate curriculum delivery, timetables, assessments, practicum readiness and course-level budgets.", qualifications: "Relevant professional qualification, teaching experience and regulator-recognized credentials [Confirm]." },
+      { position: "Skills Laboratory Technologists / Technicians", count: 4, monthlySalary: 65000, duties: "Prepare practical sessions, maintain equipment, manage consumables, enforce safety and record utilization.", qualifications: "Relevant technical qualification and practical laboratory experience [Confirm]." },
+      { position: "Admissions, Marketing and Industry Liaison Officers", count: 2, monthlySalary: 55000, duties: "Validate demand, manage enquiries, coordinate employer links and track conversion by course.", qualifications: "Diploma or degree in marketing, admissions, business or related field." },
+      { position: "AI Lab Systems Administrator", count: 1, monthlySalary: 100000, duties: "Maintain hardware, networks, software access, data governance and learner support for the AI programme.", qualifications: "Relevant ICT/AI qualification and systems administration experience [Confirm]." },
+    ],
+    preOperationalCosts: 1800000,
+    workingCapitalBuffer: 4200000,
+    ownerEquityAmount: 7500000,
+    loanAmount: 4000000,
+    loanInterestRateAnnual: 14,
+    loanTenureMonths: 36,
+    monthlyOverheads: { rent: 0, electricity: 260000, water: 50000, transport: 70000, marketing: 85000, stationeryMisc: 80000 },
+    institutionalPlanObjective: "Determine whether ICMHS should introduce the four proposed courses, in what sequence, at which campus, with what approval pathway, investment, staffing, intake and break-even conditions.",
+    institutionalBackground: "ICMHS is presented on its official website as a registered private tertiary medical training institution regulated by TVETA, with Thika and Nakuru campuses, practical health-sciences training, and a stated focus on transformative, relevant medical and health training in Africa. These institutional claims should be supported in the final plan by current certificates, approvals, partnership records and internal management data.",
+    implementationHorizonMonths: 18,
+    institutionalCourses: [
+      { courseName: "Mortuary Science", rationale: "Assess demand for structured mortuary operations, anatomy, embalming, bereavement support, infection prevention and compliant mortuary practice training.", proposedLevel: "Level and curriculum to be confirmed with the relevant regulator", deliveryModel: "Skills-lab demonstrations plus supervised field/practicum placement", estimatedYear1Intake: 25, proposedAnnualFeeKES: 95000, directCostPerStudentKES: 28000, startUpEquipmentBudgetKES: 2850000, regulatoryStatus: "Approval pathway, curriculum and practice-site requirements [Confirm locally]" },
+      { courseName: "Optometry", rationale: "Assess demand for eye-care support and optometric training linked to community screening, refraction and supervised clinical practice.", proposedLevel: "Level and curriculum to be confirmed with the relevant regulator", deliveryModel: "Optometry skills laboratory plus supervised clinical placement", estimatedYear1Intake: 25, proposedAnnualFeeKES: 125000, directCostPerStudentKES: 36000, startUpEquipmentBudgetKES: 4200000, regulatoryStatus: "Approval pathway, professional-body requirements and clinical-site capacity [Confirm locally]" },
+      { courseName: "Orthopedic and Trauma Medicine", rationale: "Assess demand for practical orthopedic, fracture-care, trauma-response and rehabilitation-support skills across health facilities and emergency-care settings.", proposedLevel: "Level and curriculum to be confirmed with the relevant regulator", deliveryModel: "Simulation-based skills training plus supervised clinical placement", estimatedYear1Intake: 25, proposedAnnualFeeKES: 135000, directCostPerStudentKES: 42000, startUpEquipmentBudgetKES: 3600000, regulatoryStatus: "Approval pathway, scope of practice and clinical placement requirements [Confirm locally]" },
+      { courseName: "Artificial Intelligence for Health and Medical Applications", rationale: "Assess demand for applied AI, health informatics, data literacy and responsible automation skills supporting modern healthcare delivery.", proposedLevel: "Level and curriculum to be confirmed with the relevant regulator", deliveryModel: "Computer laboratory, project-based learning and industry-linked delivery", estimatedYear1Intake: 35, proposedAnnualFeeKES: 110000, directCostPerStudentKES: 24000, startUpEquipmentBudgetKES: 3200000, regulatoryStatus: "Curriculum ownership, certification route, data-protection and laboratory requirements [Confirm locally]" },
+    ],
+    research: {
+      summary: "Initial institutional background taken from the official ICMHS website. Course demand, regulator requirements, competitor fees, staffing credentials, supplier costs, clinical placements and enrolment assumptions remain to be validated.",
+      sources: [
+        { title: "ICMHS — Mission, Vision and Values", url: "https://icmhs.co.ke/mission-and-values" },
+        { title: "ICMHS — Official Home Page and Academic Programmes", url: "https://icmhs.co.ke/" },
+        { title: "ICMHS — Faculty and Leadership", url: "https://icmhs.co.ke/faculty-and-leadership" },
+      ],
+      searchedAt: "2026-11-12",
+    },
+  },
   consultancy: {
     businessModel: "consultancy",
     businessName: "Afya Bora Nutrition & Dietetics Consultancy Practice",
@@ -534,6 +649,24 @@ export function normalizeBusinessPlanSpecs(
 
   return {
     businessModel: resolveBusinessPlanModel(s),
+    isInstitutional: s.isInstitutional === true,
+    adminOnly: s.adminOnly === true,
+    institutionalPlanObjective: s.institutionalPlanObjective,
+    institutionalBackground: s.institutionalBackground,
+    institutionalCourses: Array.isArray(s.institutionalCourses)
+      ? s.institutionalCourses.map((course) => ({
+          courseName: str(course?.courseName, "Proposed Course [Name required]"),
+          rationale: str(course?.rationale, "Course demand and strategic fit require validation."),
+          proposedLevel: str(course?.proposedLevel, "Level and curriculum to be confirmed"),
+          deliveryModel: str(course?.deliveryModel, "Blended classroom, skills laboratory and supervised practice"),
+          estimatedYear1Intake: Math.max(0, Math.round(num(course?.estimatedYear1Intake, 0, 0))),
+          proposedAnnualFeeKES: num(course?.proposedAnnualFeeKES, 0, 0),
+          directCostPerStudentKES: num(course?.directCostPerStudentKES, 0, 0),
+          startUpEquipmentBudgetKES: num(course?.startUpEquipmentBudgetKES, 0, 0),
+          regulatoryStatus: str(course?.regulatoryStatus, "Approval pathway and scope of practice [Confirm locally]"),
+        }))
+      : undefined,
+    implementationHorizonMonths: Math.max(1, Math.round(num(s.implementationHorizonMonths, 12, 1))),
     research: s.research,
     businessName,
     tagline: str(s.tagline, "Evidence-Based Nutrition for Everyday Wellness"),
