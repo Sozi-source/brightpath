@@ -182,6 +182,7 @@ export function BusinessPlanBuilderModal({
   } | null>(null);
 
   const modelGuidance = getBusinessPlanModelGuidance(resolveBusinessPlanModel(specs));
+  const isInstitutional = specs.isInstitutional === true;
   const isConsultancy = resolveBusinessPlanModel(specs) === "consultancy";
   const isCustomModel = resolveBusinessPlanModel(specs) === "custom";
   const locationRationaleCorrection = getConsultancyLocationRationaleCorrection(specs);
@@ -295,7 +296,10 @@ export function BusinessPlanBuilderModal({
     setDocumentReview(null);
     setDocumentReviewError(null);
 
-    const missing = REQUIRED_FIELDS.filter(({ key }) => !String(specs[key] ?? "").trim());
+    const missing = REQUIRED_FIELDS.filter(({ key }) =>
+      (!isInstitutional || (key !== "candidateName" && key !== "admissionNumber")) &&
+      !String(specs[key] ?? "").trim()
+    );
     if (missing.length > 0) {
       const errors = Object.fromEntries(
         missing.map(({ key, label }) => [key, `Enter ${label.toLowerCase()}.`])
@@ -392,7 +396,7 @@ export function BusinessPlanBuilderModal({
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer"
         >
           <Sparkles className="h-4 w-4" />
-          <span>Build Business Plan</span>
+          <span>{isInstitutional ? "Build Institutional Plan" : "Build Business Plan"}</span>
         </button>
       )}
 
@@ -414,10 +418,10 @@ export function BusinessPlanBuilderModal({
                 </div>
                 <div>
                   <h3 className="text-base font-semibold text-slate-900 leading-tight">
-                    Build Business Plan
+                    {isInstitutional ? "Build Institutional Plan" : "Build Business Plan"}
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Research sources and build an editable draft.
+                    {isInstitutional ? "Evaluate course viability for internal approval." : "Research sources and build an editable draft."}
                   </p>
                 </div>
               </div>
@@ -740,12 +744,12 @@ export function BusinessPlanBuilderModal({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className={`grid grid-cols-1 ${isInstitutional ? "sm:grid-cols-1" : "sm:grid-cols-3"} gap-4`}>
                     {([
                       ["candidateName", "Candidate name", specs.candidateName],
                       ["admissionNumber", "Admission number", specs.admissionNumber],
                       ["course", "Course", specs.course],
-                    ] as const).map(([field, label, value]) => (
+                    ] as const).filter(([field]) => !isInstitutional || (field !== "candidateName" && field !== "admissionNumber")).map(([field, label, value]) => (
                       <div key={field}>
                         <label htmlFor={field} className="text-xs font-medium text-slate-700 block mb-1">{label} *</label>
                         <input
@@ -1640,7 +1644,7 @@ export function BusinessPlanBuilderModal({
                   ) : (
                     <>
                       <Sparkles className="h-3.5 w-3.5" />
-                      <span>Build Business Plan</span>
+                      <span>{isInstitutional ? "Build Institutional Plan" : "Build Business Plan"}</span>
                     </>
                   )}
                 </button>

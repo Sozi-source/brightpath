@@ -821,6 +821,7 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
     throw new Error("Invalid business plan specifications payload.");
   }
   specs.businessModel = resolveBusinessPlanModel(specs);
+  const isInstitutionalPlan = specs.isInstitutional === true;
   const modelIssues = validateBusinessPlanModelSpecs(specs);
   if (modelIssues.length) throw new Error(modelIssues.join(" "));
 
@@ -895,17 +896,9 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
     specs.course = ws.course;
   }
 
-  const requiredText: Array<keyof BusinessPlanSpecs> = [
-    "businessName",
-    "industrySector",
-    "candidateName",
-    "admissionNumber",
-    "institutionName",
-    "course",
-    "county",
-    "townOrMarket",
-    "primaryProduct",
-  ];
+  const requiredText: Array<keyof BusinessPlanSpecs> = isInstitutionalPlan
+    ? ["businessName", "industrySector", "institutionName", "course", "county", "townOrMarket", "primaryProduct"]
+    : ["businessName", "industrySector", "candidateName", "admissionNumber", "institutionName", "course", "county", "townOrMarket", "primaryProduct"];
   const requiredFieldLabels: Partial<Record<keyof BusinessPlanSpecs, string>> = {
     businessName: "Business name",
     industrySector: "Industry sector",
@@ -1352,6 +1345,7 @@ async function runCompleteBusinessPlanBuild(
     return { success: false, error: "Invalid business plan specifications payload." };
   }
   specs.businessModel = resolveBusinessPlanModel(specs);
+  const isInstitutionalPlan = specs.isInstitutional === true;
   const modelIssues = validateBusinessPlanModelSpecs(specs);
   if (modelIssues.length) return { success: false, error: modelIssues.join(" ") };
 
@@ -1416,17 +1410,9 @@ async function runCompleteBusinessPlanBuild(
   if (!specs.course) specs.course = ws.course;
 
   // ── Validation ────────────────────────────────────────────────────────────
-  const requiredText: Array<keyof BusinessPlanSpecs> = [
-    "businessName",
-    "industrySector",
-    "candidateName",
-    "admissionNumber",
-    "institutionName",
-    "course",
-    "county",
-    "townOrMarket",
-    "primaryProduct",
-  ];
+  const requiredText: Array<keyof BusinessPlanSpecs> = isInstitutionalPlan
+    ? ["businessName", "industrySector", "institutionName", "course", "county", "townOrMarket", "primaryProduct"]
+    : ["businessName", "industrySector", "candidateName", "admissionNumber", "institutionName", "course", "county", "townOrMarket", "primaryProduct"];
   const requiredFieldLabels: Partial<Record<keyof BusinessPlanSpecs, string>> = {
     businessName: "Business name",
     industrySector: "Industry sector",
