@@ -970,7 +970,7 @@ export function createBusinessPlanDocx(params: {
       : []),
     centeredParagraph(
       params.isInstitutional
-        ? "Prepared for internal management review. Not a student examination submission or marketplace product."
+        ? "Prepared for internal management review. Not an examination submission or marketplace product."
         : `A Business Plan Submitted to the Kenya National Examinations Council (KNEC) in Partial Fulfilment of the Requirements for the Award of ${awardCourse}.`,
       "Normal",
       { bold: true, sizeHalfPt: 22, color: "0F172A" },

@@ -1140,5 +1140,37 @@ Record dated customer interview summaries and observed competitor prices in **${
     });
   }
 
+  if (isInstitutional) {
+    return results.map((section) => {
+      if (section.section_key === "prelim.declaration") {
+        const content = `### MANAGEMENT USE AND APPROVAL NOTE
+This document is an institutional feasibility and implementation brief for **${specs.institutionName}**. It is not an examination submission or marketplace product.
+
+**Decision owner:** [Board / Managing Director / Academic Committee — confirm]<br>**Approval status:** Draft feasibility study — internal review required<br>**Review date:** ______________________________
+
+Management should approve each proposed course only after validating regulatory scope, curriculum, faculty credentials, clinical or industry placement capacity, equipment quotations, demand evidence and the final financial model.
+
+Decision owner signature: ______________________________<br>Date: ______________________________`;
+        return { ...section, title: "Management Use and Approval", content, wordCount: content.trim().split(/\s+/).length };
+      }
+      if (section.section_key === "prelim.dedication") {
+        const content = `### DOCUMENT PURPOSE
+This feasibility plan supports management's decision on whether and how to introduce the proposed ICMHS course portfolio. It converts institutional strategy into approval gates, investment requirements, operating controls and measurable launch outcomes.`;
+        return { ...section, title: "Document Purpose", content, wordCount: content.trim().split(/\s+/).length };
+      }
+      if (section.section_key === "prelim.acknowledgements") {
+        const content = `### BASIS OF PREPARATION
+This institutional brief uses the official ICMHS website for initial background only. Internal enrolment records, current fee schedules, campus capacity, staff files, regulator correspondence, partner agreements, supplier quotations and management accounts must be added before a final investment decision.`;
+        return { ...section, title: "Basis of Preparation", content, wordCount: content.trim().split(/\s+/).length };
+      }
+      const content = section.content
+        .replace(/\bcandidates?\b/gi, "management")
+        .replace(/\bstudents?\b/gi, "learners")
+        .replace(/candidate-entered/gi, "management planning")
+        .replace(/final examination/gi, "final implementation review");
+      return { ...section, content, wordCount: content.trim().split(/\s+/).length };
+    });
+  }
+
   return results;
 }
