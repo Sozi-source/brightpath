@@ -1252,3 +1252,24 @@ Inserts pending orders and updates `orders.status` to `paid`.
 
 **Security Impact:**
 Prevents unauthorized downloads of proprietary source code by enforcing server-side RLS and signed download tokens.
+### 2026-11-12: Integrated ICMHS Mortuary Science and Optometry Equipment Schedule
+
+**Summary:**
+- Replaced the institutional preset's dummy Mortuary Science and Optometry equipment aggregates with the line items from the supplied `OPTOMETRY.xlsx` workbook.
+- Applied VAT-inclusive workbook totals of KES 6,481,981.40 for Mortuary Science and KES 7,614,634.40 for Optometry to the course investment assumptions.
+- Kept supplier quotations, zero-cost rows, fees, and course durations explicitly open for verification and the next data injection.
+
+**Modified:**
+- `src/lib/studio/businessPlanTypes.ts`
+### 2026-11-12: Applied ICMHS Course Fees and Programme Durations
+
+**Summary:**
+- Replaced dummy annual fee assumptions with the supplied fee-per-semester schedule for all six ICMHS programmes.
+- Added the supplied programme durations: 5 semesters for certificates, 8 semesters for diplomas, and 6 semesters for Artificial Intelligence and Data Science.
+- Updated the institutional business-plan tables and viability narrative to show semester fees and full-programme tuition value rather than inventing annual cash receipts.
+- Removed dummy direct-cost values from the six institutional course rows; course-level costing is now explicitly marked as required.
+
+**Modified:**
+- `src/lib/studio/businessPlanTypes.ts`
+- `src/lib/studio/businessPlanBuilder.ts`
+

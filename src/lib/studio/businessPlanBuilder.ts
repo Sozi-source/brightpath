@@ -24,10 +24,12 @@ function buildInstitutionalCoursePlan(specs: BusinessPlanSpecs): GeneratedSectio
   const monthlyConsumables = specs.rawMaterials.reduce((sum, item) => sum + item.monthlyCost, 0);
   const monthlyPayroll = specs.staffing.reduce((sum, item) => sum + item.count * item.monthlySalary, 0);
   const monthlyOverheads = Object.values(specs.monthlyOverheads).reduce((sum, value) => sum + value, 0);
-  const annualTuition = courses.reduce((sum, course) => sum + course.estimatedYear1Intake * course.proposedAnnualFeeKES, 0);
-  const annualDirectCosts = courses.reduce((sum, course) => sum + course.estimatedYear1Intake * course.directCostPerStudentKES, 0);
+  const feePerSemester = (course: typeof courses[number]) => course.feePerSemesterKES ?? ((course.proposedAnnualFeeKES ?? 0) / 2);
+  const programmeFee = (course: typeof courses[number]) => feePerSemester(course) * (course.durationSemesters ?? 0);
+  const programmeTuition = courses.reduce((sum, course) => sum + course.estimatedYear1Intake * programmeFee(course), 0);
+  const programmeDirectCosts = courses.reduce((sum, course) => sum + course.estimatedYear1Intake * (course.directCostPerStudentKES ?? 0), 0);
   const annualOperatingCost = (monthlyPayroll + monthlyConsumables + monthlyOverheads) * 12;
-  const annualOperatingSurplus = annualTuition - annualDirectCosts - annualOperatingCost;
+  const programmeOperatingSurplus = programmeTuition - programmeDirectCosts - annualOperatingCost;
   const totalInitialFunding = equipmentTotal + specs.preOperationalCosts + specs.workingCapitalBuffer;
   const fundingGap = Math.max(0, totalInitialFunding - specs.ownerEquityAmount - specs.loanAmount);
   const equipmentRows = specs.machinery.map((item) => `| ${item.item} | ${item.quantity} | KES ${formatKES(item.unitCost)} | KES ${formatKES(item.quantity * item.unitCost)} | ${item.supplier} |`).join("\n");
@@ -46,13 +48,13 @@ function buildInstitutionalCoursePlan(specs: BusinessPlanSpecs): GeneratedSectio
 
 ICMHS is an existing private medical and health-sciences training institution with an established institutional identity and practical-training orientation. All six proposed programme offerings in this plan are assigned to the **Thika Main Campus in Thika Town**, approximately 600 metres from Thika Level 5 Hospital, subject to final capacity and approval checks. The expansion should be treated as a staged portfolio decision rather than an automatic launch. Each offering requires a separate approval gate covering curriculum, entry requirements, staffing, facilities, equipment, placement capacity, learner demand, pricing and contribution to institutional sustainability.
 
-The current planning case models Year 1 tuition income of **KES ${formatKES(annualTuition)}**, direct course delivery costs of **KES ${formatKES(annualDirectCosts)}**, and recurring operating costs of approximately **KES ${formatKES(annualOperatingCost)}**. Indicative initial funding is **KES ${formatKES(totalInitialFunding)}**, comprising equipment, pre-operational setup and working capital. The planning case therefore produces an indicative Year 1 operating surplus of **KES ${formatKES(annualOperatingSurplus)}** before financing, tax and depreciation; this is not a confirmed forecast.
+The current planning case models full-programme tuition value of **KES ${formatKES(programmeTuition)}** for the planning intake, based on the supplied fee-per-semester and duration data. Course-level direct delivery costs remain uncosted until Finance supplies approved budgets. Recurring annual operating costs are approximately **KES ${formatKES(annualOperatingCost)}**. Indicative initial funding is **KES ${formatKES(totalInitialFunding)}**, comprising equipment, pre-operational setup and working capital. The resulting comparison of programme tuition value against one year of operating cost is **KES ${formatKES(programmeOperatingSurplus)}** before financing, tax and depreciation; it is not a cash forecast.
 
 ${courseNames} should proceed through a controlled stage-gate process: validate demand; confirm regulator and professional-body requirements; secure curriculum and academic leadership; confirm campus and placement capacity; obtain quotations; authorize a pilot intake; review results; and approve scale-up only if the agreed thresholds are met.
 
-| Proposed course | Year 1 intake | Annual fee estimate | Direct cost estimate | Start-up equipment estimate |
-|---|---:|---:|---:|---:|
-${courses.map((course) => `| ${course.courseName} | ${course.estimatedYear1Intake} | KES ${formatKES(course.proposedAnnualFeeKES)} | KES ${formatKES(course.directCostPerStudentKES)} | KES ${formatKES(course.startUpEquipmentBudgetKES)} |`).join("\n")}`);
+| Proposed course | Planning intake | Duration | Fee per semester | Full programme fee | Start-up equipment |
+|---|---:|---:|---:|---:|---:|
+${courses.map((course) => `| ${course.courseName} | ${course.estimatedYear1Intake} | ${course.durationSemesters ? `${course.durationSemesters} semesters` : "[Confirm]"} | KES ${formatKES(feePerSemester(course))} | KES ${formatKES(programmeFee(course))} | KES ${formatKES(course.startUpEquipmentBudgetKES)} |`).join("\n")}`);
 
   const contentByKey: Record<string, { title: string; content: string }> = {
     "ch1.name": { title: "1.1 Institutional Identity and Expansion Scope", content: `### 1.1 INSTITUTIONAL IDENTITY AND EXPANSION SCOPE
@@ -125,11 +127,11 @@ The relevant comparison set includes accredited medical training colleges, unive
 
 ICMHS should position the portfolio around verified practical training, accessible delivery, accountable learner support, employer relevance and responsible use of health technology. These are planning propositions, not confirmed competitive advantages.` },
     "ch2.pricing": { title: "2.4 Fee and Cost Structure", content: `### 2.4 FEE AND COST STRUCTURE
-| Course | Annual fee estimate | Direct cost per learner | Indicative contribution per learner |
-|---|---:|---:|---:|
-${courses.map((course) => `| ${course.courseName} | KES ${formatKES(course.proposedAnnualFeeKES)} | KES ${formatKES(course.directCostPerStudentKES)} | KES ${formatKES(course.proposedAnnualFeeKES - course.directCostPerStudentKES)} |`).join("\n")}
+| Course | Fee per semester | Duration | Full programme fee | Direct cost per learner |
+|---|---:|---:|---:|---:|
+${courses.map((course) => `| ${course.courseName} | KES ${formatKES(feePerSemester(course))} | ${course.durationSemesters ? `${course.durationSemesters} semesters` : "[Confirm]"} | KES ${formatKES(programmeFee(course))} | ${course.directCostPerStudentKES == null ? "[Costing required]" : `KES ${formatKES(course.directCostPerStudentKES)}`} |`).join("\n")}
 
-Fees must be tested against competitor evidence, affordability, payment timing, scholarships, placement costs, consumables, assessment charges, technology subscriptions and the institution's required margin. Finance should replace all estimates with an approved fee schedule and course-level cost centre model.` },
+The supplied figures are the current ICMHS fee schedule: fee per semester multiplied by the stated number of semesters gives the full-programme fee. Finance should still confirm payment timing, scholarships, placement costs, consumables, assessment charges, technology subscriptions and the institution's required margin. Direct course costs are intentionally left as **[Costing required]** until approved course-level budgets are supplied.` },
     "ch2.promotion": { title: "2.5 Recruitment and Communications", content: `### 2.5 RECRUITMENT AND COMMUNICATIONS
 Recruitment should use the ICMHS website, approved prospectus, open days, school and employer outreach, professional networks and direct enquiry follow-up. Communications must identify the course, approved award, campus, entry requirements, duration, fee basis, intake date and contact channel.
 
@@ -139,7 +141,7 @@ Delivery may combine campus teaching, skills-lab practice, supervised clinical o
 
 The operating model must include admissions, timetabling, attendance, assessment, placement coordination, safeguarding, disability support, complaints handling, records management and progression monitoring.` },
     "ch2.forecast": { title: "2.7 Enrolment and Revenue Projections", content: `### 2.7 ENROLMENT AND REVENUE PROJECTIONS
-The planning case estimates Year 1 tuition income of **KES ${formatKES(annualTuition)}** from the proposed portfolio. This figure is an assumption based on the draft intake and fee values above; it excludes grants, short courses, ancillary charges and bad-debt adjustments.
+The planning case estimates full-programme tuition value of **KES ${formatKES(programmeTuition)}** from the proposed intake. This is calculated from the supplied semester fees and course durations; it is not a Year 1 cash receipt forecast. The cash model must stage collections by semester and exclude grants, short courses, ancillary charges and bad-debt adjustments until confirmed.
 
 Finance should model conservative, base and upside cases for each course, including delayed launch, lower intake, fee discounts, payment arrears, staffing delays, equipment inflation and placement costs. Revenue should be recognized against confirmed registration and the institution's approved accounting policy.` },
     "ch3.structure": { title: "3.1 Governance Structure", content: `### 3.1 GOVERNANCE STRUCTURE
@@ -220,9 +222,9 @@ These are dummy planning amounts. Replace them with approved quotations, interna
     "ch5.sources": { title: "5.2 Financing and Capitalization", content: `### 5.2 FINANCING AND CAPITALIZATION
 The draft capitalization assumes **KES ${formatKES(specs.ownerEquityAmount)}** in institutional equity and **KES ${formatKES(specs.loanAmount)}** in proposed borrowing. The resulting planning funding gap is **KES ${formatKES(fundingGap)}** before any omitted costs or financing charges.
 
-Finance should compare equity, retained earnings, asset finance, grants, strategic partnerships and borrowing. Any debt case must include approved terms, security, repayment schedule, covenants and sensitivity to slower enrolment.` },
+    Finance should compare equity, retained earnings, asset finance, grants, strategic partnerships and borrowing. Any debt case must include approved terms, security, repayment schedule, covenants and sensitivity to slower enrolment.` },
     "ch5.assumptions": { title: "5.3 Financial Assumptions", content: `### 5.3 FINANCIAL ASSUMPTIONS
-The draft case assumes the proposed intake and annual fees in the course table, direct costs per learner, staffing costs, consumables, central overheads and the stated implementation horizon. It excludes unverified regulator fees, taxes, depreciation, scholarships, bad debts, refunds, placement charges, major construction and unforeseen compliance requirements.
+The draft case assumes the proposed intake, supplied semester fees and stated programme durations in the course table. Direct course costs remain uncosted, while staffing costs, consumables, central overheads and the stated implementation horizon remain planning assumptions. It excludes unverified regulator fees, taxes, depreciation, scholarships, bad debts, refunds, placement charges, major construction and unforeseen compliance requirements.
 
 Every assumption should be assigned an evidence owner and status: verified, management estimate, quotation required, regulator confirmation required or not yet available.` },
     "ch5.cashflow": { title: "5.4 Pro-Forma Cash Flow", content: `### 5.4 PRO-FORMA CASH FLOW
@@ -230,7 +232,7 @@ The cash model should stage equipment payments, staff onboarding, approval costs
 
 Management should maintain conservative, base and upside cash cases and a minimum cash reserve trigger. The current working-capital placeholder is **KES ${formatKES(specs.workingCapitalBuffer)}** and must be replaced after the monthly cash schedule is approved.` },
     "ch5.income": { title: "5.5 Pro-Forma Income Statement", content: `### 5.5 PRO-FORMA INCOME STATEMENT
-The planning case indicates Year 1 tuition income of **KES ${formatKES(annualTuition)}**, direct course costs of **KES ${formatKES(annualDirectCosts)}**, recurring operating costs of **KES ${formatKES(annualOperatingCost)}**, and an indicative operating surplus of **KES ${formatKES(annualOperatingSurplus)}** before financing, tax and depreciation.
+The planning case indicates full-programme tuition value of **KES ${formatKES(programmeTuition)}**, recurring annual operating costs of **KES ${formatKES(annualOperatingCost)}**, and a comparison surplus of **KES ${formatKES(programmeOperatingSurplus)}** before financing, tax and depreciation. Direct course costs are not included because approved course-level costings have not yet been supplied.
 
 This is a decision-support estimate, not an approved forecast. Finance must produce course-level three-year statements after replacing intake, fee, staffing, facility, placement, consumable, tax and financing assumptions.` },
     "ch5.balance": { title: "5.6 Pro-Forma Balance Sheet", content: `### 5.6 PRO-FORMA BALANCE SHEET

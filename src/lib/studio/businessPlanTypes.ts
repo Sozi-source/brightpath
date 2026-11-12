@@ -51,8 +51,11 @@ export interface InstitutionalCoursePlan {
   proposedLevel: string;
   deliveryModel: string;
   estimatedYear1Intake: number;
-  proposedAnnualFeeKES: number;
-  directCostPerStudentKES: number;
+  durationSemesters?: number;
+  feePerSemesterKES?: number;
+  /** Legacy field retained for older saved drafts. New institutional presets use feePerSemesterKES. */
+  proposedAnnualFeeKES?: number;
+  directCostPerStudentKES?: number;
   startUpEquipmentBudgetKES: number;
   regulatoryStatus: string;
 }
@@ -163,6 +166,77 @@ export interface BusinessPlanSpecs {
   };
 }
 
+/** Internal ICMHS equipment schedule supplied in OPTOMETRY.xlsx. Amounts use the
+ * workbook's VAT-inclusive totals; supplier quotations and zero-cost lines remain
+ * open verification items. */
+const ICMHS_INTERNAL_EQUIPMENT: BusinessPlanEquipmentItem[] = [
+  { item: "Mortuary — Biosafety Cabinet", quantity: 1, unitCost: 1914000, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Centrifuge", quantity: 2, unitCost: 28420, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Incubators", quantity: 2, unitCost: 70412, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Hemocytometers", quantity: 5, unitCost: 8410, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — First Aid Kits", quantity: 3, unitCost: 16240, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Waste Disposal Bin", quantity: 10, unitCost: 3248, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Anaerobic Jars", quantity: 1, unitCost: 139861.2, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Body Bags", quantity: 5, unitCost: 4408, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Cleaning Brushes and Mops", quantity: 10, unitCost: 2958, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Mortuary Trolley", quantity: 1, unitCost: 14128.8, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Stainless-Steel Dissection Table", quantity: 1, unitCost: 487200, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Autopsy Tools Set", quantity: 1, unitCost: 139327.6, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Embalming Machine", quantity: 1, unitCost: 278400, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Sprayers", quantity: 5, unitCost: 2494, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Waste Disposal Bins", quantity: 5, unitCost: 3248, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Lighting Equipment", quantity: 5, unitCost: 0, supplier: "Internal schedule — cost required" },
+  { item: "Mortuary — Measuring Tape", quantity: 10, unitCost: 2900, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Biohazard and Restricted-Area Signage", quantity: 10, unitCost: 2900, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Autopsy Table", quantity: 1, unitCost: 168849.6, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Oscillating Powered Saw", quantity: 1, unitCost: 280128.4, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Measuring Tools", quantity: 10, unitCost: 1160, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Needle and Thread", quantity: 5, unitCost: 0, supplier: "Internal schedule — cost required" },
+  { item: "Mortuary — Organ Containers", quantity: 5, unitCost: 0, supplier: "Internal schedule — cost required" },
+  { item: "Mortuary — Documentation Forms", quantity: 100, unitCost: 0, supplier: "Internal schedule — cost required" },
+  { item: "Mortuary — Digital Camera", quantity: 2, unitCost: 34800, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Body Lifting Device", quantity: 1, unitCost: 541975.2, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Evidence Kits", quantity: 0, unitCost: 0, supplier: "Internal schedule — quantity and cost required" },
+  { item: "Mortuary — Anatomical Models", quantity: 5, unitCost: 116388.6, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Autopsy Saws", quantity: 5, unitCost: 46794.4, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Arterial Embalming Machine", quantity: 1, unitCost: 359194, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Scalpel Handles and Blades", quantity: 10, unitCost: 1044, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Aneurysm Hooks and Needles", quantity: 5, unitCost: 0, supplier: "Internal schedule — cost required" },
+  { item: "Mortuary — Arterial Tubes and Cannula", quantity: 5, unitCost: 3190, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Vein Drain Tubes", quantity: 25, unitCost: 0, supplier: "Internal schedule — cost required" },
+  { item: "Mortuary — Suture Needles", quantity: 5, unitCost: 8259.2, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Forceps", quantity: 10, unitCost: 9674.4, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Scissors", quantity: 10, unitCost: 2552, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Sutures", quantity: 10, unitCost: 2459.2, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Pesticides", quantity: 1, unitCost: 10324, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Sodium Nitrate", quantity: 5, unitCost: 14059.2, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Plastic Sheeting", quantity: 1, unitCost: 11704.4, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Portable Hand Pump", quantity: 1, unitCost: 5011.2, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Aspirator", quantity: 1, unitCost: 490680, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Mortuary — Waterproof Aprons", quantity: 25, unitCost: 2088, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Manual Phoropter", quantity: 1, unitCost: 468060, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Streak Retinoscope", quantity: 1, unitCost: 130442, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Direct Ophthalmoscope", quantity: 1, unitCost: 121104, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Binocular Indirect Ophthalmoscope", quantity: 1, unitCost: 266800, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Slit Lamp Biomicroscope", quantity: 1, unitCost: 517360, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Manual Keratometer", quantity: 1, unitCost: 495146, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Goldmann Applanation Tonometer", quantity: 1, unitCost: 159998.8, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Non-Contact or Rebound Tonometer", quantity: 1, unitCost: 1563680, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Standard Trial Lens Sets and Frames", quantity: 1, unitCost: 75643.6, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Auto-Refractor / Keratometer", quantity: 1, unitCost: 835200, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Manual Lensmeter", quantity: 1, unitCost: 159024.4, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Digital Lensmeter", quantity: 1, unitCost: 1606600, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Synoptophore", quantity: 1, unitCost: 757248, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Ishihara Colour Vision Plates", quantity: 1, unitCost: 49590, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Farnsworth-Munsell D-15 Test", quantity: 1, unitCost: 100456, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Snellen and LogMAR Visual Acuity Charts", quantity: 1, unitCost: 70528, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Near Vision Test Cards", quantity: 1, unitCost: 40217.2, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Worth 4-Dot Flashing Light System", quantity: 1, unitCost: 38280, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Cover Test Paddles and Muscle Targets", quantity: 1, unitCost: 41296, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Schiötz Tonometer", quantity: 1, unitCost: 41296, supplier: "Internal equipment schedule — quotation required" },
+  { item: "Optometry — Pupillary Distance Meters / Rules", quantity: 1, unitCost: 76664.4, supplier: "Internal equipment schedule — quotation required" },
+];
+
 /** Example starting points. Candidate-specific facts and quotations must be verified. */
 export const BUSINESS_PLAN_PRESETS: Record<string, Partial<BusinessPlanSpecs>> = {
   imperial_college_new_courses: {
@@ -212,8 +286,7 @@ export const BUSINESS_PLAN_PRESETS: Record<string, Partial<BusinessPlanSpecs>> =
     ],
     marketingPromotionBudgetMonthly: 85000,
     machinery: [
-      { item: "Mortuary science teaching laboratory: cadaveric anatomy models, embalming demonstration station, mortuary trolley, PPE and infection-control fixtures", quantity: 1, unitCost: 2850000, supplier: "Specialist medical-equipment suppliers [Quotation required]" },
-      { item: "Optometry skills laboratory: slit lamp, trial lens sets, autorefractor/keratometer, tonometer, retinoscope, visual acuity and refraction equipment", quantity: 1, unitCost: 4200000, supplier: "Optometric equipment suppliers [Quotation required]" },
+      ...ICMHS_INTERNAL_EQUIPMENT,
       { item: "Orthopedic and trauma skills lab: fracture fixation models, traction and splinting sets, orthopedic instruments, casting station and simulation manikins", quantity: 1, unitCost: 3600000, supplier: "Orthopedic simulation suppliers [Quotation required]" },
       { item: "Data Science and health-informatics lab: workstation computers, GPU-capable servers, networking, power backup and secure data environment", quantity: 1, unitCost: 3200000, supplier: "ICT systems integrators [Quotation required]" },
       { item: "Shared skills-lab consumables starter stock: gloves, masks, gowns, syringes, dressings, casts, lenses, disinfectants and simulation disposables", quantity: 1, unitCost: 1250000, supplier: "Medical consumables suppliers [Quotation required]" },
@@ -244,12 +317,12 @@ export const BUSINESS_PLAN_PRESETS: Record<string, Partial<BusinessPlanSpecs>> =
     institutionalBackground: "ICMHS is presented on its official website as a registered private tertiary medical training institution regulated by TVETA. The proposed programmes are planned for the Thika Main Campus in Thika Town, which the official campus page places approximately 600 metres from Thika Level 5 Hospital and describes as having modern lecture halls, science and skills laboratories, digital learning facilities and access to clinical attachments. Exact address, room capacity, approvals and partnership records should be verified in the implementation pack.",
     implementationHorizonMonths: 18,
     institutionalCourses: [
-      { courseName: "Mortuary Science — Certificate (Level 5)", rationale: "Assess demand for a Level 5 certificate pathway covering structured mortuary operations, anatomy, embalming, bereavement support, infection prevention and compliant mortuary practice.", proposedLevel: "Certificate — Level 5", deliveryModel: "Skills-lab demonstrations plus supervised field/practicum placement", estimatedYear1Intake: 25, proposedAnnualFeeKES: 95000, directCostPerStudentKES: 28000, startUpEquipmentBudgetKES: 2850000, regulatoryStatus: "Certificate approval pathway, curriculum and practice-site requirements [Confirm locally]" },
-      { courseName: "Mortuary Science — Diploma (Level 6)", rationale: "Assess demand for a Level 6 diploma pathway providing advanced mortuary operations, anatomy, embalming, bereavement support, infection prevention and compliant mortuary practice competencies.", proposedLevel: "Diploma — Level 6", deliveryModel: "Skills-lab demonstrations plus supervised field/practicum placement", estimatedYear1Intake: 20, proposedAnnualFeeKES: 135000, directCostPerStudentKES: 36000, startUpEquipmentBudgetKES: 2850000, regulatoryStatus: "Diploma approval pathway, curriculum and practice-site requirements [Confirm locally]" },
-      { courseName: "Optometry — Diploma (Level 6)", rationale: "Assess demand for a Level 6 diploma pathway linked to eye-care support, community screening, refraction and supervised clinical practice.", proposedLevel: "Diploma — Level 6", deliveryModel: "Optometry skills laboratory plus supervised clinical placement", estimatedYear1Intake: 25, proposedAnnualFeeKES: 125000, directCostPerStudentKES: 36000, startUpEquipmentBudgetKES: 4200000, regulatoryStatus: "Diploma approval pathway, professional-body requirements and clinical-site capacity [Confirm locally]" },
-      { courseName: "Orthopedic and Trauma Medicine — Certificate (Level 5)", rationale: "Assess demand for a Level 5 certificate pathway covering practical orthopedic, fracture-care, trauma-response and rehabilitation-support skills.", proposedLevel: "Certificate — Level 5", deliveryModel: "Simulation-based skills training plus supervised clinical placement", estimatedYear1Intake: 25, proposedAnnualFeeKES: 105000, directCostPerStudentKES: 33000, startUpEquipmentBudgetKES: 3600000, regulatoryStatus: "Certificate approval pathway, scope of practice and clinical placement requirements [Confirm locally]" },
-      { courseName: "Orthopedic and Trauma Medicine — Diploma (Level 6)", rationale: "Assess demand for a Level 6 diploma pathway covering advanced orthopedic, fracture-care, trauma-response and rehabilitation-support competencies.", proposedLevel: "Diploma — Level 6", deliveryModel: "Simulation-based skills training plus supervised clinical placement", estimatedYear1Intake: 20, proposedAnnualFeeKES: 145000, directCostPerStudentKES: 45000, startUpEquipmentBudgetKES: 3600000, regulatoryStatus: "Diploma approval pathway, scope of practice and clinical placement requirements [Confirm locally]" },
-      { courseName: "Data Science — Diploma (Level 6)", rationale: "Assess demand for applied data science, health informatics, analytics, data literacy and responsible technology skills supporting modern healthcare delivery.", proposedLevel: "Diploma — Level 6", deliveryModel: "Computer laboratory, project-based learning and industry-linked delivery", estimatedYear1Intake: 35, proposedAnnualFeeKES: 110000, directCostPerStudentKES: 24000, startUpEquipmentBudgetKES: 3200000, regulatoryStatus: "Diploma curriculum ownership, certification route, data-protection and laboratory requirements [Confirm locally]" },
+      { courseName: "Mortuary Science — Certificate (Level 5)", rationale: "Assess demand for a Level 5 certificate pathway covering structured mortuary operations, anatomy, embalming, bereavement support, infection prevention and compliant mortuary practice.", proposedLevel: "Certificate — Level 5", deliveryModel: "Skills-lab demonstrations plus supervised field/practicum placement", estimatedYear1Intake: 25, durationSemesters: 5, feePerSemesterKES: 28000, startUpEquipmentBudgetKES: 6481981.4, regulatoryStatus: "Certificate approval pathway, curriculum and practice-site requirements [Confirm locally]" },
+      { courseName: "Mortuary Science — Diploma (Level 6)", rationale: "Assess demand for a Level 6 diploma pathway providing advanced mortuary operations, anatomy, embalming, bereavement support, infection prevention and compliant mortuary practice competencies.", proposedLevel: "Diploma — Level 6", deliveryModel: "Skills-lab demonstrations plus supervised field/practicum placement", estimatedYear1Intake: 20, durationSemesters: 8, feePerSemesterKES: 34000, startUpEquipmentBudgetKES: 6481981.4, regulatoryStatus: "Diploma approval pathway, curriculum and practice-site requirements [Confirm locally]" },
+      { courseName: "Optometry — Diploma (Level 6)", rationale: "Assess demand for a Level 6 diploma pathway linked to eye-care support, community screening, refraction and supervised clinical practice.", proposedLevel: "Diploma — Level 6", deliveryModel: "Optometry skills laboratory plus supervised clinical placement", estimatedYear1Intake: 25, durationSemesters: 8, feePerSemesterKES: 34000, startUpEquipmentBudgetKES: 7614634.4, regulatoryStatus: "Diploma approval pathway, professional-body requirements and clinical-site capacity [Confirm locally]" },
+      { courseName: "Orthopedic and Trauma Medicine — Certificate (Level 5)", rationale: "Assess demand for a Level 5 certificate pathway covering practical orthopedic, fracture-care, trauma-response and rehabilitation-support skills.", proposedLevel: "Certificate — Level 5", deliveryModel: "Simulation-based skills training plus supervised clinical placement", estimatedYear1Intake: 25, durationSemesters: 5, feePerSemesterKES: 30000, startUpEquipmentBudgetKES: 3600000, regulatoryStatus: "Certificate approval pathway, scope of practice and clinical placement requirements [Confirm locally]" },
+      { courseName: "Orthopedic and Trauma Medicine — Diploma (Level 6)", rationale: "Assess demand for a Level 6 diploma pathway covering advanced orthopedic, fracture-care, trauma-response and rehabilitation-support competencies.", proposedLevel: "Diploma — Level 6", deliveryModel: "Simulation-based skills training plus supervised clinical placement", estimatedYear1Intake: 20, durationSemesters: 8, feePerSemesterKES: 33000, startUpEquipmentBudgetKES: 3600000, regulatoryStatus: "Diploma approval pathway, scope of practice and clinical placement requirements [Confirm locally]" },
+      { courseName: "Artificial Intelligence and Data Science — Diploma (Level 6)", rationale: "Assess demand for applied artificial intelligence, data science, health informatics, analytics, data literacy and responsible technology skills supporting modern healthcare delivery.", proposedLevel: "Diploma — Level 6", deliveryModel: "Computer laboratory, project-based learning and industry-linked delivery", estimatedYear1Intake: 35, durationSemesters: 6, feePerSemesterKES: 30000, startUpEquipmentBudgetKES: 3200000, regulatoryStatus: "Diploma curriculum ownership, certification route, data-protection and laboratory requirements [Confirm locally]" },
     ],
     research: {
       summary: "Initial institutional background taken from the official ICMHS website. Course demand, regulator requirements, competitor fees, staffing credentials, supplier costs, clinical placements and enrolment assumptions remain to be validated.",
@@ -257,6 +330,7 @@ export const BUSINESS_PLAN_PRESETS: Record<string, Partial<BusinessPlanSpecs>> =
         { title: "ICMHS — Mission, Vision and Values", url: "https://icmhs.co.ke/mission-and-values" },
         { title: "ICMHS — Official Home Page and Academic Programmes", url: "https://icmhs.co.ke/" },
         { title: "ICMHS — Faculty and Leadership", url: "https://icmhs.co.ke/faculty-and-leadership" },
+        { title: "ICMHS internal equipment schedule — OPTOMETRY.xlsx", url: "Internal workbook supplied for planning; retain with the implementation evidence pack" },
       ],
       searchedAt: "2026-11-12",
     },
@@ -662,8 +736,10 @@ export function normalizeBusinessPlanSpecs(
           proposedLevel: str(course?.proposedLevel, "Level and curriculum to be confirmed"),
           deliveryModel: str(course?.deliveryModel, "Blended classroom, skills laboratory and supervised practice"),
           estimatedYear1Intake: Math.max(0, Math.round(num(course?.estimatedYear1Intake, 0, 0))),
-          proposedAnnualFeeKES: num(course?.proposedAnnualFeeKES, 0, 0),
-          directCostPerStudentKES: num(course?.directCostPerStudentKES, 0, 0),
+          durationSemesters: course?.durationSemesters == null ? undefined : Math.max(1, Math.round(num(course.durationSemesters, 0, 0))),
+          feePerSemesterKES: course?.feePerSemesterKES == null ? undefined : num(course.feePerSemesterKES, 0, 0),
+          proposedAnnualFeeKES: course?.proposedAnnualFeeKES == null ? undefined : num(course.proposedAnnualFeeKES, 0, 0),
+          directCostPerStudentKES: course?.directCostPerStudentKES == null ? undefined : num(course.directCostPerStudentKES, 0, 0),
           startUpEquipmentBudgetKES: num(course?.startUpEquipmentBudgetKES, 0, 0),
           regulatoryStatus: str(course?.regulatoryStatus, "Approval pathway and scope of practice [Confirm locally]"),
         }))
