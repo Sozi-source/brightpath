@@ -411,8 +411,8 @@ export function BusinessPlanBuilderModal({
             </div>
 
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-white shrink-0">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-3 border-b border-slate-200 bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4 shrink-0">
+              <div className="flex min-w-0 items-center gap-3">
                 <div className="p-2 rounded-lg bg-indigo-50 text-indigo-700">
                   <Calculator className="h-5 w-5" />
                 </div>
@@ -425,14 +425,14 @@ export function BusinessPlanBuilderModal({
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
+              <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:gap-3">
+                <label className="flex min-w-0 items-center gap-2 text-xs font-medium text-slate-600">
                   <span>AI provider</span>
                   <select
                     value={aiProvider}
                     onChange={(event) => setAIProvider(event.target.value as "gemini" | "groq")}
                     disabled={isGenerating}
-                    className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800"
+                    className="min-w-0 max-w-[11rem] rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800"
                   >
                     <option value="groq">Groq (Recommended · Fast)</option>
                     <option value="gemini">Gemini</option>
@@ -514,7 +514,7 @@ export function BusinessPlanBuilderModal({
             </div>
 
             {/* Modal Body / Tab Contents */}
-            <div className="p-6 overflow-y-auto flex-1 space-y-6">
+            <div className="min-w-0 flex-1 space-y-5 overflow-y-auto p-3 sm:space-y-6 sm:p-6">
               {/* TAB 1: 1-CLICK PRESETS */}
               {activeTab === "presets" && (
                 <div className="space-y-4">
@@ -1606,18 +1606,18 @@ export function BusinessPlanBuilderModal({
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-3.5 border-t border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
-              <div className="text-[11px] text-slate-500 flex items-center gap-2">
+            <div className="flex flex-col items-stretch gap-3 border-t border-slate-200 bg-slate-50/70 px-3 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-6 shrink-0">
+              <div className="flex items-center gap-2 text-[11px] text-slate-500">
                 <FileText className="h-3.5 w-3.5 text-slate-400" />
                 <span>Review assumptions and verify local evidence.</span>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+              <div className="flex w-full flex-wrap items-center justify-stretch gap-2 sm:w-auto sm:justify-end">
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
                   disabled={isGenerating}
-                  className="px-3.5 py-2 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-200/70 transition-colors cursor-pointer disabled:opacity-50"
+                  className="flex-1 px-3.5 py-2 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-200/70 transition-colors cursor-pointer disabled:opacity-50 sm:flex-none"
                 >
                   Cancel
                 </button>
@@ -1626,7 +1626,7 @@ export function BusinessPlanBuilderModal({
                   onClick={() => handleSaveDetails(true)}
                   disabled={isGenerating}
                   title="Replaces saved section text, including manual edits"
-                  className="px-3.5 py-2 rounded-lg border border-amber-300 text-xs font-semibold text-amber-800 hover:bg-amber-50 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="flex-1 px-3.5 py-2 rounded-lg border border-amber-300 text-xs font-semibold text-amber-800 hover:bg-amber-50 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed sm:flex-none"
                 >
                   Rebuild Existing Draft
                 </button>
@@ -1634,7 +1634,7 @@ export function BusinessPlanBuilderModal({
                   type="button"
                   onClick={() => handleSaveDetails()}
                   disabled={isGenerating}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="inline-flex flex-1 items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed sm:flex-none"
                 >
                   {isGenerating ? (
                     <>

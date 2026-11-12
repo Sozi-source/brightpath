@@ -10,6 +10,10 @@ import {
   LayoutGrid,
   CheckCircle2,
   ShoppingBag,
+  Search,
+  BookOpen,
+  Building2,
+  Sparkles,
 } from "lucide-react";
 
 export const instant = false;
@@ -46,8 +50,8 @@ export default async function HomePage() {
     <div className="min-h-screen flex flex-col bg-[#f5f7fa] text-slate-900">
       {/* 1. Global Institutional Topbar */}
       <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white shadow-xs">
-        <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-3">
+        <div className="w-full max-w-[1600px] 2xl:max-w-[1800px] mx-auto flex h-16 items-center justify-between gap-3 px-3 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <Link
               href="/studio"
               aria-label="Application Switcher"
@@ -56,11 +60,11 @@ export default async function HomePage() {
               <LayoutGrid className="h-4 w-4" />
             </Link>
 
-            <Link href="/" className="flex items-center gap-2.5">
+            <Link href="/" className="flex min-w-0 items-center gap-2.5">
               <div className="h-9 w-9 rounded-xl bg-[#087f8c] flex items-center justify-center text-white font-bold text-sm shadow-xs">
                 <span className="text-amber-300">T</span>H
               </div>
-              <div>
+              <div className="min-w-0">
                 <span className="font-semibold text-sm tracking-tight text-slate-900 block leading-tight">
                   TVET Hub
                 </span>
@@ -71,15 +75,15 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-600">
+          <nav className="hidden lg:flex items-center gap-5 text-xs font-semibold text-slate-600">
+            <Link href="/projects" className="hover:text-[#087f8c] transition-colors">
+              Find Resources
+            </Link>
+            <Link href="/library" className="hover:text-[#087f8c] transition-colors">
+              My Library
+            </Link>
             <Link href="/studio" className="hover:text-[#087f8c] transition-colors">
               Project Studio
-            </Link>
-            <Link href="/projects" className="hover:text-[#087f8c] transition-colors">
-              Projects Marketplace
-            </Link>
-            <Link href="/supervisor" className="hover:text-[#087f8c] transition-colors">
-              Supervisor Portal
             </Link>
           </nav>
 
@@ -116,7 +120,7 @@ export default async function HomePage() {
                   href="/signup"
                   className="bp-btn-primary px-3.5 py-2 text-xs shadow-xs"
                 >
-                  Register Candidate
+                  Get Started
                 </Link>
               </>
             )}
@@ -139,6 +143,32 @@ export default async function HomePage() {
           <p className="text-sm sm:text-base lg:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
             Build accredited KNEC research projects and 25–30 page business plans step-by-step, or discover and export verified curriculum capstones with instant M-Pesa delivery.
           </p>
+
+          <form action="/projects" className="mx-auto flex w-full max-w-3xl flex-col gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm sm:flex-row">
+            <label htmlFor="home-search" className="sr-only">Search TVET resources</label>
+            <div className="relative min-w-0 flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#087f8c]" />
+              <input id="home-search" name="q" placeholder="Search projects, business plans, notes or past papers" className="h-11 w-full rounded-lg border-0 bg-slate-50 pl-10 pr-3 text-sm text-slate-900 outline-none ring-0 placeholder:text-slate-500 focus:bg-white" />
+            </div>
+            <select name="type" aria-label="Resource type" className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 outline-none focus:border-[#087f8c]">
+              <option value="">All resources</option>
+              <option value="business_plan">Business plans</option>
+              <option value="technical_project">Technical projects</option>
+              <option value="research_project">Research projects</option>
+              <option value="past_paper">Past papers</option>
+            </select>
+            <button type="submit" className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#087f8c] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#086b76]">
+              Search Hub
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </form>
+
+          <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] text-slate-500">
+            <span className="font-semibold text-slate-600">Popular:</span>
+            <Link href="/projects?type=business_plan" className="rounded-md border border-slate-200 bg-white px-2.5 py-1 font-medium hover:border-teal-200 hover:text-[#087f8c]">Business plans</Link>
+            <Link href="/projects?type=technical_project" className="rounded-md border border-slate-200 bg-white px-2.5 py-1 font-medium hover:border-teal-200 hover:text-[#087f8c]">Technical projects</Link>
+            <Link href="/projects?type=past_paper" className="rounded-md border border-slate-200 bg-white px-2.5 py-1 font-medium hover:border-teal-200 hover:text-[#087f8c]">Past papers</Link>
+          </div>
 
           <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-3.5">
             <Link
@@ -179,8 +209,48 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 3. Core Institutional Pillars */}
-      <section className="px-4 sm:px-6 py-12 max-w-7xl mx-auto w-full">
+      {/* 3. Discovery Routes */}
+      <section className="w-full border-y border-slate-200/80 bg-white px-3 py-8 sm:px-6 lg:px-8 lg:py-10">
+        <div className="mx-auto w-full max-w-[1600px] 2xl:max-w-[1800px]">
+          <div className="mb-5 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="bp-eyebrow">One platform</p>
+              <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-900">Choose your next move</h2>
+            </div>
+            <p className="text-xs text-slate-500">From discovery to submission-ready work.</p>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <Link href="/projects" className="group rounded-xl border border-slate-200 bg-[#f8fbfc] p-4 transition-colors hover:border-teal-200 hover:bg-teal-50/50">
+              <span className="bp-icon-tile h-10 w-10 bg-teal-50 text-[#087f8c]"><BookOpen className="h-5 w-5" /></span>
+              <h3 className="mt-4 text-sm font-semibold text-slate-900">Find resources</h3>
+              <p className="mt-1 text-xs leading-relaxed text-slate-600">Search projects, plans, notes and assessments.</p>
+              <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-[#087f8c]">Browse hub <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></span>
+            </Link>
+            <Link href="/studio" className="group rounded-xl border border-slate-200 bg-[#f8fbfc] p-4 transition-colors hover:border-indigo-200 hover:bg-indigo-50/50">
+              <span className="bp-icon-tile h-10 w-10 bg-indigo-50 text-indigo-700"><Sparkles className="h-5 w-5" /></span>
+              <h3 className="mt-4 text-sm font-semibold text-slate-900">Build with Studio</h3>
+              <p className="mt-1 text-xs leading-relaxed text-slate-600">Create guided projects and business plans.</p>
+              <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700">Open Studio <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></span>
+            </Link>
+            <Link href="/library" className="group rounded-xl border border-slate-200 bg-[#f8fbfc] p-4 transition-colors hover:border-amber-200 hover:bg-amber-50/50">
+              <span className="bp-icon-tile h-10 w-10 bg-amber-50 text-amber-700"><ShoppingBag className="h-5 w-5" /></span>
+              <h3 className="mt-4 text-sm font-semibold text-slate-900">Keep your library</h3>
+              <p className="mt-1 text-xs leading-relaxed text-slate-600">Return to purchased and exported materials.</p>
+              <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-amber-700">Open library <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></span>
+            </Link>
+            <Link href="/supervisor" className="group rounded-xl border border-slate-200 bg-[#f8fbfc] p-4 transition-colors hover:border-rose-200 hover:bg-rose-50/50">
+              <span className="bp-icon-tile h-10 w-10 bg-rose-50 text-rose-700"><Building2 className="h-5 w-5" /></span>
+              <h3 className="mt-4 text-sm font-semibold text-slate-900">Review and govern</h3>
+              <p className="mt-1 text-xs leading-relaxed text-slate-600">Moderate work and manage academic quality.</p>
+              <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-rose-700">Supervisor portal <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" /></span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Core Institutional Pillars */}
+      <section className="w-full px-3 py-10 sm:px-6 sm:py-12 lg:px-8">
+        <div className="mx-auto w-full max-w-[1600px] 2xl:max-w-[1800px]">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <FeatureCard
             title="Project Studio"
@@ -209,11 +279,12 @@ export default async function HomePage() {
             actionLabel="Supervisor Portal"
           />
         </div>
+        </div>
       </section>
 
       {/* 4. Global Institutional Footer */}
       <footer className="mt-auto border-t border-slate-200 bg-white py-8 text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="w-full max-w-[1600px] 2xl:max-w-[1800px] mx-auto px-3 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-[#087f8c]" />
             <span>TVET Hub Examination & Projects Standard</span>

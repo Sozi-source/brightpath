@@ -88,7 +88,7 @@ export default async function AdminPage() {
     >
       {/* Sticky Administrative Command HUD */}
       <div className="sticky top-16 z-20 -mt-4 sm:-mt-5 lg:-mt-6 xl:-mt-8 -mx-4 sm:-mx-6 lg:-mx-8 xl:-mx-10 px-4 sm:px-6 lg:px-8 xl:px-10 py-2 sm:py-2.5 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-2xs">
-        <div className="w-full max-w-[1600px] 2xl:max-w-[1800px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-2.5 sm:gap-3">
+        <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between gap-2.5 sm:gap-3">
           <div className="flex items-center gap-2">
             <h1 className="text-sm sm:text-base font-bold tracking-tight text-slate-900">
               Administration

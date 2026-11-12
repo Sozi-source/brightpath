@@ -80,8 +80,8 @@ export function AppShell({
   return (
     <div className="min-h-screen bg-[#f5f7fa] text-slate-800 flex flex-col font-sans">
       {/* 1. Global Institutional Top Bar (KEC White Bar with App Launcher) */}
-      <header className="h-16 bg-white border-b border-slate-200 sticky top-0 z-40 px-4 sm:px-6 flex items-center justify-between shadow-xs">
-        <div className="flex items-center gap-3 sm:gap-4">
+      <header className="h-16 min-w-0 bg-white border-b border-slate-200 sticky top-0 z-40 px-3 sm:px-6 flex items-center justify-between gap-2 shadow-xs">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-4">
           {/* Mobile Menu Toggle */}
           {!fullScreenWorkspace && <button
             type="button"
@@ -167,15 +167,15 @@ export function AppShell({
           </div>
 
           {/* Official Portal Branding */}
-          <Link href="/" className="flex items-center gap-2.5">
+          <Link href="/" className="flex min-w-0 items-center gap-2.5">
             <div className="h-9 w-9 rounded-xl bg-[#087f8c] flex items-center justify-center text-white font-bold text-sm shadow-xs">
               <span className="text-amber-300">T</span>H
             </div>
-            <div className="flex flex-col">
-              <span className="font-semibold text-base sm:text-lg text-slate-900 tracking-tight leading-none">
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate font-semibold text-sm sm:text-lg text-slate-900 tracking-tight leading-none">
                 TVET Hub
               </span>
-              <span className="text-[10px] font-medium text-[#087f8c] tracking-wider">
+              <span className="hidden text-[10px] font-medium text-[#087f8c] tracking-wider sm:block">
                 Simple · Reliable · Innovative
               </span>
             </div>
@@ -183,7 +183,7 @@ export function AppShell({
         </div>
 
         {/* Top Right User & Examination Series Context */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-4">
           <div className="hidden lg:flex items-center gap-2 bg-[#e8f5f5] px-3 py-1 rounded-md border border-[#d8ebec] text-xs font-semibold text-[#13243a]">
             <Calendar className="h-3.5 w-3.5 text-[#087f8c]" />
             <span>KNEC 2026 Academic Series</span>
@@ -490,7 +490,7 @@ export function AppShell({
         {/* 3. Main Content Stage */}
         <main className={fullScreenWorkspace
           ? "h-[calc(100vh-4rem)] min-w-0 flex-1 overflow-y-auto"
-          : "flex-1 min-w-0 px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6 xl:px-10 w-full max-w-[1600px] 2xl:max-w-[1800px] mx-auto space-y-5 sm:space-y-6"}>
+          : "flex-1 min-w-0 w-full px-3 py-3 sm:px-5 sm:py-5 lg:px-8 lg:py-6 2xl:px-10 space-y-4 sm:space-y-6"}>
           {children}
         </main>
       </div>

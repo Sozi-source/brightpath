@@ -54,7 +54,7 @@ export function ContentCard({
               )}
             </div>
           </div>
-          {headerRight && <div className="shrink-0">{headerRight}</div>}
+          {headerRight && <div className="w-full min-w-0 sm:w-auto sm:shrink-0">{headerRight}</div>}
         </header>
       )}
       <div className={noPadding ? "" : compact ? "p-3 sm:p-3.5" : "p-4 sm:p-5 lg:p-6"}>

@@ -30,9 +30,6 @@ function buildInstitutionalCoursePlan(specs: BusinessPlanSpecs): GeneratedSectio
   const annualOperatingSurplus = annualTuition - annualDirectCosts - annualOperatingCost;
   const totalInitialFunding = equipmentTotal + specs.preOperationalCosts + specs.workingCapitalBuffer;
   const fundingGap = Math.max(0, totalInitialFunding - specs.ownerEquityAmount - specs.loanAmount);
-  const courseRows = courses.length > 0
-    ? courses.map((course) => `| ${course.courseName} | ${course.proposedLevel} | ${course.deliveryModel} | ${course.estimatedYear1Intake} | KES ${formatKES(course.proposedAnnualFeeKES)} | KES ${formatKES(course.startUpEquipmentBudgetKES)} | ${course.regulatoryStatus} |`).join("\n")
-    : "| [Course to be confirmed] | [Level] | [Delivery model] | [Intake] | [Fee] | [Equipment budget] | [Approval pathway] |";
   const equipmentRows = specs.machinery.map((item) => `| ${item.item} | ${item.quantity} | KES ${formatKES(item.unitCost)} | KES ${formatKES(item.quantity * item.unitCost)} | ${item.supplier} |`).join("\n");
   const staffingRows = specs.staffing.map((item) => `| ${item.position} | ${item.count} | KES ${formatKES(item.monthlySalary)} | KES ${formatKES(item.count * item.monthlySalary)} | ${item.qualifications} |`).join("\n");
   const consumableRows = specs.rawMaterials.map((item) => `| ${item.material} | ${item.monthlyQuantity} | KES ${formatKES(item.monthlyCost)} | ${item.supplier} |`).join("\n");
@@ -44,22 +41,10 @@ function buildInstitutionalCoursePlan(specs: BusinessPlanSpecs): GeneratedSectio
     sections.push({ section_key, title, content: trimmed, wordCount: trimmed.split(/\s+/).filter(Boolean).length });
   };
 
-  add("prelim.declaration", "Management Use and Approval", `### MANAGEMENT USE AND APPROVAL NOTE
-This document is an internal feasibility and implementation plan for **${specs.institutionName}**. It is not a learner submission, examination project, or marketplace product.
-
-**Decision owner:** [Board / Managing Director / Academic Committee — confirm]<br>**Approval status:** Draft awaiting verified institutional data<br>**Review date:** ______________________________
-
-Approval should be granted course by course only after confirmation of regulator requirements, curriculum ownership, faculty credentials, campus capacity, clinical or industry placement agreements, equipment quotations, demand evidence and the final financial model.
-
-Decision owner signature: ______________________________<br>Date: ______________________________`);
-  add("prelim.dedication", "Document Purpose", `### DOCUMENT PURPOSE
-This plan evaluates whether ICMHS should introduce ${courseNames}, in what sequence, at which campus, and under what approval and investment conditions. It is designed for management decision-making, implementation planning, budget authorization and post-launch performance monitoring.`);
-  add("prelim.acknowledgements", "Basis of Preparation", `### BASIS OF PREPARATION
-The initial institutional background is drawn from the official ICMHS website and the planning assumptions supplied in the admin preset. All figures marked as planning estimates remain provisional until management supplies current fee schedules, enrolment evidence, staffing costs, equipment quotations, approvals, placement agreements, campus measurements and audited internal cost data.`);
   add("prelim.executive_summary", "Institutional Decision Brief", `### INSTITUTIONAL DECISION BRIEF
 **Decision sought:** Determine the commercial, academic, regulatory and operational viability of introducing **${courseNames}** within an ${specs.implementationHorizonMonths || 18}-month implementation horizon.
 
-ICMHS is an existing private medical and health-sciences training institution with an established institutional identity, practical-training orientation and Thika and Nakuru campus footprint as described in the initial official-source review. The proposed expansion should be treated as a staged portfolio decision rather than an automatic launch. Each course requires a separate approval gate covering curriculum, entry requirements, staffing, facilities, equipment, placement capacity, learner demand, pricing and contribution to institutional sustainability.
+ICMHS is an existing private medical and health-sciences training institution with an established institutional identity and practical-training orientation. All six proposed programme offerings in this plan are assigned to the **Thika Main Campus in Thika Town**, approximately 600 metres from Thika Level 5 Hospital, subject to final capacity and approval checks. The expansion should be treated as a staged portfolio decision rather than an automatic launch. Each offering requires a separate approval gate covering curriculum, entry requirements, staffing, facilities, equipment, placement capacity, learner demand, pricing and contribution to institutional sustainability.
 
 The current planning case models Year 1 tuition income of **KES ${formatKES(annualTuition)}**, direct course delivery costs of **KES ${formatKES(annualDirectCosts)}**, and recurring operating costs of approximately **KES ${formatKES(annualOperatingCost)}**. Indicative initial funding is **KES ${formatKES(totalInitialFunding)}**, comprising equipment, pre-operational setup and working capital. The planning case therefore produces an indicative Year 1 operating surplus of **KES ${formatKES(annualOperatingSurplus)}** before financing, tax and depreciation; this is not a confirmed forecast.
 
@@ -73,17 +58,17 @@ ${courses.map((course) => `| ${course.courseName} | ${course.estimatedYear1Intak
     "ch1.name": { title: "1.1 Institutional Identity and Expansion Scope", content: `### 1.1 INSTITUTIONAL IDENTITY AND EXPANSION SCOPE
 The proposed initiative is an academic portfolio expansion by **${specs.institutionName}**, not a new standalone business. It will use ICMHS governance, brand standards, academic systems, campus infrastructure and institutional support functions, subject to capacity confirmation.
 
-The expansion covers **${courseNames}**. Each programme will be treated as a controlled product line with its own demand case, approval pathway, curriculum, facilities plan, staffing model, budget, intake ceiling and quality indicators.` },
-    "ch1.location": { title: "1.2 Campus Footprint and Infrastructure", content: `### 1.2 CAMPUS FOOTPRINT AND INFRASTRUCTURE
-The initial planning footprint comprises the existing ICMHS campuses in **${specs.townOrMarket}** and Nakuru, with the final host campus for each course to be confirmed after a room-by-room capacity and compliance audit.
+The expansion covers **${courseNames}**. Each certificate and diploma offering will be treated as a controlled programme line with its own demand case, approval pathway, curriculum, facilities plan, staffing model, budget, intake ceiling and quality indicators.` },
+    "ch1.location": { title: "1.2 Thika Main Campus and Infrastructure", content: `### 1.2 THIKA MAIN CAMPUS AND INFRASTRUCTURE
+All six proposed programme offerings are planned for the **ICMHS Thika Main Campus, Thika Town**, approximately **600 metres from Thika Level 5 Hospital**, according to the official ICMHS campus page. The published campus profile describes modern lecture halls, science laboratories, medical skills laboratories, a digital library, computer facilities, Wi-Fi-enabled learning spaces and access to clinical attachments.
 
-The audit must document teaching rooms, skills laboratories, ICT connectivity, power resilience, sanitation, accessibility, storage, security, emergency response, staff workspaces and learner support services. No course should be advertised against a campus until the required spaces and approvals are evidenced.` },
+The exact plot/street address and postal address are not published on the official pages reviewed and must be confirmed by ICMHS administration. Before launch, the campus audit must document room capacity, skills-lab readiness, ICT connectivity, power resilience, sanitation, accessibility, storage, security, emergency response, staff workspaces and course-specific approval evidence.` },
     "ch1.ownership": { title: "1.3 Institutional Governance and Accountability", content: `### 1.3 INSTITUTIONAL GOVERNANCE AND ACCOUNTABILITY
 The existing **${specs.formOfOwnership}** will own and oversee the expansion. The Board or equivalent governing authority should approve the investment envelope, risk appetite and launch sequence.
 
 Management should appoint an accountable programme sponsor, academic lead, finance lead, quality-assurance representative, facilities lead and industry/clinical liaison. Decision rights, escalation routes and monthly reporting responsibilities must be recorded before implementation.` },
     "ch1.nature": { title: "1.4 Sector Opportunity and Strategic Fit", content: `### 1.4 SECTOR OPPORTUNITY AND STRATEGIC FIT
-The portfolio aligns with ICMHS's medical and health-sciences identity while adding a specialist technology pathway through artificial intelligence. The opportunity is based on potential demand for practical, employability-oriented training and on the institution's ability to share academic, administrative and quality systems across programmes.
+The portfolio aligns with ICMHS's medical and health-sciences identity while adding a specialist technology pathway through Data Science. The opportunity is based on potential demand for practical, employability-oriented training and on the institution's ability to share academic, administrative and quality systems across programme offerings.
 
 The opportunity remains conditional. Management must validate employer demand, competitor provision, entry requirements, qualification recognition, professional scope, placement availability and the affordability of proposed fees before committing capital.` },
     "ch1.products": { title: "1.5 Proposed Course Portfolio", content: `### 1.5 PROPOSED COURSE PORTFOLIO
@@ -95,7 +80,7 @@ The final course names, awards, entry requirements, duration, curriculum and sco
     "ch1.mission": { title: "1.6 Strategic Alignment", content: `### 1.6 STRATEGIC ALIGNMENT
 **Motto:** *Committed to Professional Excellence*
 
-**Mission:** To offer transformative, relevant medical and health training in Africa.
+**Mission:** To offer transformative, medical & health training in Africa.
 
 **Vision:** Offering support to your career dreams.
 
@@ -216,7 +201,7 @@ Timetables should protect the required balance between theory, practical session
 
 The academic office should publish a term calendar, course workload, room allocation, faculty assignment, assessment plan and placement calendar before registration closes.` },
     "ch4.quality": { title: "4.6 Quality, Safety and Waste Controls", content: `### 4.6 QUALITY, SAFETY AND WASTE CONTROLS
-Controls should cover equipment inspection, practical-session risk assessment, PPE, infection prevention where applicable, sharps and clinical waste handling, chemical or biological exposure, data security in the AI lab, emergency response, incident reporting and routine internal audits.
+Controls should cover equipment inspection, practical-session risk assessment, PPE, infection prevention where applicable, sharps and clinical waste handling, chemical or biological exposure, data security in the Data Science lab, emergency response, incident reporting and routine internal audits.
 
 Each course should maintain a quality file containing lesson plans, attendance, assessment records, equipment logs, consumable issues, placement feedback, complaints, incidents and corrective actions.` },
     "ch4.schedule": { title: "4.7 Capacity and Maintenance", content: `### 4.7 CAPACITY AND MAINTENANCE
@@ -307,14 +292,6 @@ export function buildCompleteBusinessPlan(rawSpecs: Partial<BusinessPlanSpecs>):
   const fin = computeBusinessPlanFinancials(specs);
   const formatKES = (n: number) => Math.round(n).toLocaleString("en-KE");
   const resolvedModel = resolveBusinessPlanModel(specs);
-  const isInstitutional = false;
-  const institutionalCourses = specs.institutionalCourses || [];
-  const institutionalCourseTable = institutionalCourses.length > 0
-    ? `| Proposed course | Year 1 intake | Annual fee (planning estimate) | Direct cost/student (planning estimate) | Start-up equipment (planning estimate) |
-|---|---:|---:|---:|---:|
-${institutionalCourses.map((course) => `| ${course.courseName} | ${course.estimatedYear1Intake} | KES ${formatKES(course.proposedAnnualFeeKES)} | KES ${formatKES(course.directCostPerStudentKES)} | KES ${formatKES(course.startUpEquipmentBudgetKES)} |`).join("\n")}`
-    : "No course-level portfolio has been entered; add course assumptions before approval.";
-
   const isConsultancy = resolvedModel === "consultancy" || resolvedModel === "clinical";
   const isFoodService = resolvedModel === "food_service";
   const isAgribusiness = resolvedModel === "agribusiness";
@@ -418,9 +395,7 @@ I also thank the administration and teaching faculty of **${specs.institutionNam
   add(
     "prelim.executive_summary",
     "Executive Summary / Synopsis",
-    `${isInstitutional ? "### INSTITUTIONAL DECISION BRIEF" : "### EXECUTIVE SUMMARY / SYNOPSIS"}
-${isInstitutional ? `**Institutional purpose:** ${specs.institutionalPlanObjective || "Evaluate the viability and implementation readiness of the proposed course portfolio."}` : ""}
-${isInstitutional ? `This is an internal management feasibility document, not a student examination submission. Course-level planning assumptions are shown below and must be replaced with verified demand, approvals, quotations, staffing costs and enrolment evidence before implementation.\n\n${institutionalCourseTable}` : ""}
+    `### EXECUTIVE SUMMARY / SYNOPSIS
 
 **${specs.businessName}** is a proposed nutrition enterprise in the **${specs.industrySector}** sector, situated in **${specs.townOrMarket}, ${specs.county}**. The enterprise will operate as a **${specs.formOfOwnership}** founded by **${specs.candidateName || "the promoter"}**, a trained professional holding a **${safeQualifications}**. The firm's mission is to deliver accessible, evidence-based nutritional products and services that address local dietary and health needs while establishing a viable, compliant commercial entity.
 

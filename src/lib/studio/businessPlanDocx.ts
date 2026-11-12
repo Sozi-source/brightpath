@@ -968,14 +968,16 @@ export function createBusinessPlanDocx(params: {
           }),
         ]
       : []),
-    centeredParagraph(
-      params.isInstitutional
-        ? "Prepared for internal management review. Not an examination submission or marketplace product."
-        : `A Business Plan Submitted to the Kenya National Examinations Council (KNEC) in Partial Fulfilment of the Requirements for the Award of ${awardCourse}.`,
-      "Normal",
-      { bold: true, sizeHalfPt: 22, color: "0F172A" },
-      '<w:spacing w:before="280" w:after="280" w:line="360" w:lineRule="auto"/>'
-    ),
+    ...(!params.isInstitutional
+      ? [
+          centeredParagraph(
+            `A Business Plan Submitted to the Kenya National Examinations Council (KNEC) in Partial Fulfilment of the Requirements for the Award of ${awardCourse}.`,
+            "Normal",
+            { bold: true, sizeHalfPt: 22, color: "0F172A" },
+            '<w:spacing w:before="280" w:after="280" w:line="360" w:lineRule="auto"/>'
+          ),
+        ]
+      : []),
     ...(!params.isInstitutional && params.supervisor
       ? [
           centeredParagraph(`Project Supervisor: ${params.supervisor}`, "Normal", {

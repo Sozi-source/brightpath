@@ -1107,6 +1107,11 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
   }
 
   const definitions = getWorkspaceSections("business_plan", workspace.level, resolveBusinessPlanModel(specs)).filter(
+    (definition) => !(
+      specs.isInstitutional === true &&
+      ["prelim.declaration", "prelim.dedication", "prelim.acknowledgements"].includes(definition.key)
+    )
+  ).filter(
     (definition) => (definition.chapter || definition.phase) === chapterKey
   );
   if (definitions.length === 0) throw new Error("Business plan chapter not found.");
@@ -1533,13 +1538,28 @@ async function runCompleteBusinessPlanBuild(
   }
 
   // ── Determine pending chapters ────────────────────────────────────────────
-  const sectionDefinitions = getWorkspaceSections("business_plan", ws.level, specs.businessModel);
+  const sectionDefinitions = getWorkspaceSections("business_plan", ws.level, specs.businessModel).filter(
+    (definition) => !(
+      isInstitutionalPlan &&
+      ["prelim.declaration", "prelim.dedication", "prelim.acknowledgements"].includes(definition.key)
+    )
+  );
   const { data: existingSections, error: existingSectionsError } = await db
     .from("workspace_sections")
     .select("section_key, current_text")
     .eq("workspace_id", workspaceId);
   if (existingSectionsError) {
     return { success: false, error: "Could not check the saved sections. Retry the build." };
+  }
+  if (isInstitutionalPlan && replaceExisting) {
+    const { error: obsoletePreliminariesError } = await db
+      .from("workspace_sections")
+      .delete()
+      .eq("workspace_id", workspaceId)
+      .in("section_key", ["prelim.declaration", "prelim.dedication", "prelim.acknowledgements"]);
+    if (obsoletePreliminariesError) {
+      return { success: false, error: "Could not remove obsolete preliminary pages. Retry the rebuild." };
+    }
   }
   const existingByKey = new Map(
     (existingSections || []).map((s) => [s.section_key, s.current_text || ""])
