@@ -17,12 +17,297 @@ export interface GeneratedSectionPayload {
   wordCount: number;
 }
 
+function buildInstitutionalCoursePlan(specs: BusinessPlanSpecs): GeneratedSectionPayload[] {
+  const formatKES = (n: number) => Math.round(n).toLocaleString("en-KE");
+  const courses = specs.institutionalCourses || [];
+  const equipmentTotal = specs.machinery.reduce((sum, item) => sum + item.quantity * item.unitCost, 0);
+  const monthlyConsumables = specs.rawMaterials.reduce((sum, item) => sum + item.monthlyCost, 0);
+  const monthlyPayroll = specs.staffing.reduce((sum, item) => sum + item.count * item.monthlySalary, 0);
+  const monthlyOverheads = Object.values(specs.monthlyOverheads).reduce((sum, value) => sum + value, 0);
+  const annualTuition = courses.reduce((sum, course) => sum + course.estimatedYear1Intake * course.proposedAnnualFeeKES, 0);
+  const annualDirectCosts = courses.reduce((sum, course) => sum + course.estimatedYear1Intake * course.directCostPerStudentKES, 0);
+  const annualOperatingCost = (monthlyPayroll + monthlyConsumables + monthlyOverheads) * 12;
+  const annualOperatingSurplus = annualTuition - annualDirectCosts - annualOperatingCost;
+  const totalInitialFunding = equipmentTotal + specs.preOperationalCosts + specs.workingCapitalBuffer;
+  const fundingGap = Math.max(0, totalInitialFunding - specs.ownerEquityAmount - specs.loanAmount);
+  const courseRows = courses.length > 0
+    ? courses.map((course) => `| ${course.courseName} | ${course.proposedLevel} | ${course.deliveryModel} | ${course.estimatedYear1Intake} | KES ${formatKES(course.proposedAnnualFeeKES)} | KES ${formatKES(course.startUpEquipmentBudgetKES)} | ${course.regulatoryStatus} |`).join("\n")
+    : "| [Course to be confirmed] | [Level] | [Delivery model] | [Intake] | [Fee] | [Equipment budget] | [Approval pathway] |";
+  const equipmentRows = specs.machinery.map((item) => `| ${item.item} | ${item.quantity} | KES ${formatKES(item.unitCost)} | KES ${formatKES(item.quantity * item.unitCost)} | ${item.supplier} |`).join("\n");
+  const staffingRows = specs.staffing.map((item) => `| ${item.position} | ${item.count} | KES ${formatKES(item.monthlySalary)} | KES ${formatKES(item.count * item.monthlySalary)} | ${item.qualifications} |`).join("\n");
+  const consumableRows = specs.rawMaterials.map((item) => `| ${item.material} | ${item.monthlyQuantity} | KES ${formatKES(item.monthlyCost)} | ${item.supplier} |`).join("\n");
+  const courseNames = courses.map((course) => course.courseName).join(", ") || "the proposed courses";
+  const sourceRows = (specs.research?.sources || []).map((source) => `| ${source.title} | ${source.url} |`).join("\n");
+  const sections: GeneratedSectionPayload[] = [];
+  const add = (section_key: string, title: string, content: string) => {
+    const trimmed = content.trim();
+    sections.push({ section_key, title, content: trimmed, wordCount: trimmed.split(/\s+/).filter(Boolean).length });
+  };
+
+  add("prelim.declaration", "Management Use and Approval", `### MANAGEMENT USE AND APPROVAL NOTE
+This document is an internal feasibility and implementation plan for **${specs.institutionName}**. It is not a learner submission, examination project, or marketplace product.
+
+**Decision owner:** [Board / Managing Director / Academic Committee — confirm]<br>**Approval status:** Draft awaiting verified institutional data<br>**Review date:** ______________________________
+
+Approval should be granted course by course only after confirmation of regulator requirements, curriculum ownership, faculty credentials, campus capacity, clinical or industry placement agreements, equipment quotations, demand evidence and the final financial model.
+
+Decision owner signature: ______________________________<br>Date: ______________________________`);
+  add("prelim.dedication", "Document Purpose", `### DOCUMENT PURPOSE
+This plan evaluates whether ICMHS should introduce ${courseNames}, in what sequence, at which campus, and under what approval and investment conditions. It is designed for management decision-making, implementation planning, budget authorization and post-launch performance monitoring.`);
+  add("prelim.acknowledgements", "Basis of Preparation", `### BASIS OF PREPARATION
+The initial institutional background is drawn from the official ICMHS website and the planning assumptions supplied in the admin preset. All figures marked as planning estimates remain provisional until management supplies current fee schedules, enrolment evidence, staffing costs, equipment quotations, approvals, placement agreements, campus measurements and audited internal cost data.`);
+  add("prelim.executive_summary", "Institutional Decision Brief", `### INSTITUTIONAL DECISION BRIEF
+**Decision sought:** Determine the commercial, academic, regulatory and operational viability of introducing **${courseNames}** within an ${specs.implementationHorizonMonths || 18}-month implementation horizon.
+
+ICMHS is an existing private medical and health-sciences training institution with an established institutional identity, practical-training orientation and Thika and Nakuru campus footprint as described in the initial official-source review. The proposed expansion should be treated as a staged portfolio decision rather than an automatic launch. Each course requires a separate approval gate covering curriculum, entry requirements, staffing, facilities, equipment, placement capacity, learner demand, pricing and contribution to institutional sustainability.
+
+The current planning case models Year 1 tuition income of **KES ${formatKES(annualTuition)}**, direct course delivery costs of **KES ${formatKES(annualDirectCosts)}**, and recurring operating costs of approximately **KES ${formatKES(annualOperatingCost)}**. Indicative initial funding is **KES ${formatKES(totalInitialFunding)}**, comprising equipment, pre-operational setup and working capital. The planning case therefore produces an indicative Year 1 operating surplus of **KES ${formatKES(annualOperatingSurplus)}** before financing, tax and depreciation; this is not a confirmed forecast.
+
+${courseNames} should proceed through a controlled stage-gate process: validate demand; confirm regulator and professional-body requirements; secure curriculum and academic leadership; confirm campus and placement capacity; obtain quotations; authorize a pilot intake; review results; and approve scale-up only if the agreed thresholds are met.
+
+| Proposed course | Year 1 intake | Annual fee estimate | Direct cost estimate | Start-up equipment estimate |
+|---|---:|---:|---:|---:|
+${courses.map((course) => `| ${course.courseName} | ${course.estimatedYear1Intake} | KES ${formatKES(course.proposedAnnualFeeKES)} | KES ${formatKES(course.directCostPerStudentKES)} | KES ${formatKES(course.startUpEquipmentBudgetKES)} |`).join("\n")}`);
+
+  const contentByKey: Record<string, { title: string; content: string }> = {
+    "ch1.name": { title: "1.1 Institutional Identity and Expansion Scope", content: `### 1.1 INSTITUTIONAL IDENTITY AND EXPANSION SCOPE
+The proposed initiative is an academic portfolio expansion by **${specs.institutionName}**, not a new standalone business. It will use ICMHS governance, brand standards, academic systems, campus infrastructure and institutional support functions, subject to capacity confirmation.
+
+The expansion covers **${courseNames}**. Each programme will be treated as a controlled product line with its own demand case, approval pathway, curriculum, facilities plan, staffing model, budget, intake ceiling and quality indicators.` },
+    "ch1.location": { title: "1.2 Campus Footprint and Infrastructure", content: `### 1.2 CAMPUS FOOTPRINT AND INFRASTRUCTURE
+The initial planning footprint comprises the existing ICMHS campuses in **${specs.townOrMarket}** and Nakuru, with the final host campus for each course to be confirmed after a room-by-room capacity and compliance audit.
+
+The audit must document teaching rooms, skills laboratories, ICT connectivity, power resilience, sanitation, accessibility, storage, security, emergency response, staff workspaces and learner support services. No course should be advertised against a campus until the required spaces and approvals are evidenced.` },
+    "ch1.ownership": { title: "1.3 Institutional Governance and Accountability", content: `### 1.3 INSTITUTIONAL GOVERNANCE AND ACCOUNTABILITY
+The existing **${specs.formOfOwnership}** will own and oversee the expansion. The Board or equivalent governing authority should approve the investment envelope, risk appetite and launch sequence.
+
+Management should appoint an accountable programme sponsor, academic lead, finance lead, quality-assurance representative, facilities lead and industry/clinical liaison. Decision rights, escalation routes and monthly reporting responsibilities must be recorded before implementation.` },
+    "ch1.nature": { title: "1.4 Sector Opportunity and Strategic Fit", content: `### 1.4 SECTOR OPPORTUNITY AND STRATEGIC FIT
+The portfolio aligns with ICMHS's medical and health-sciences identity while adding a specialist technology pathway through artificial intelligence. The opportunity is based on potential demand for practical, employability-oriented training and on the institution's ability to share academic, administrative and quality systems across programmes.
+
+The opportunity remains conditional. Management must validate employer demand, competitor provision, entry requirements, qualification recognition, professional scope, placement availability and the affordability of proposed fees before committing capital.` },
+    "ch1.products": { title: "1.5 Proposed Course Portfolio", content: `### 1.5 PROPOSED COURSE PORTFOLIO
+| Course | Purpose and rationale | Proposed level | Delivery model | Regulatory status |
+|---|---|---|---|---|
+${courses.map((course) => `| ${course.courseName} | ${course.rationale} | ${course.proposedLevel} | ${course.deliveryModel} | ${course.regulatoryStatus} |`).join("\n")}
+
+The final course names, awards, entry requirements, duration, curriculum and scope of practice must be copied from current regulator-approved documentation before publication or admission.` },
+    "ch1.mission": { title: "1.6 Strategic Alignment", content: `### 1.6 STRATEGIC ALIGNMENT
+**Motto:** *Committed to Professional Excellence*
+
+**Mission:** To offer transformative, relevant medical and health training in Africa.
+
+**Vision:** Offering support to your career dreams.
+
+The expansion should be governed by ICMHS core values: Self Discipline, Accountability, Respect, Excellence, Integrity and Innovativeness. These values should appear in programme approval, faculty selection, learner support, assessment controls, data governance and stakeholder engagement.` },
+    "ch1.goals": { title: "1.7 Goals and Approval Objectives", content: `### 1.7 GOALS AND APPROVAL OBJECTIVES
+1. Establish a verified feasibility case for each proposed course within the approved planning horizon.
+2. Confirm curriculum, award, entry, faculty, facility and placement requirements before public launch.
+3. Obtain comparable supplier quotations and replace all dummy costs with approved budgets.
+4. Complete a controlled pilot intake with defined quality, financial and operational thresholds.
+5. Review actual enrolment, retention, delivery cost, placement performance and learner outcomes before scale-up.
+
+The accountable owner should convert these objectives into a signed stage-gate register with dates, evidence owners and approval status.` },
+    "ch1.justification": { title: "1.8 Institutional Justification and Viability", content: `### 1.8 INSTITUTIONAL JUSTIFICATION AND VIABILITY
+The expansion can be viable if incremental tuition contribution exceeds incremental delivery, staffing, compliance, placement, technology and support costs while protecting existing academic quality. Shared use of campuses and central services may reduce duplication, but programme-specific equipment and specialist staff remain material commitments.
+
+The decision must therefore consider contribution by course, minimum viable intake, cash timing, capital payback, regulatory lead time, placement capacity and downside scenarios rather than relying on total portfolio revenue alone.` },
+    "ch1.entry": { title: "1.9 Launch and Growth Strategy", content: `### 1.9 LAUNCH AND GROWTH STRATEGY
+ICMHS should use a staged launch: evidence gathering; regulatory and curriculum confirmation; facility and equipment readiness; controlled marketing; pilot intake; first-term review; and scale-up decision.
+
+Marketing should communicate only confirmed awards, entry requirements, fees, campus, duration and approval status. Course claims, employment outcomes, professional scope and placement promises must be approved by management and supported by evidence.` },
+    "ch1.swot": { title: "1.10 SWOT and Mitigation Matrix", content: `### 1.10 SWOT AND MITIGATION MATRIX
+| Area | Institutional observation | Required control |
+|---|---|---|
+| Strength | Existing ICMHS identity, governance and practical-training environment | Assign a portfolio sponsor and use existing quality systems |
+| Strength | Potential cross-use of central services and campus infrastructure | Complete a capacity audit before allocating shared resources |
+| Weakness | Specialist faculty, equipment and placement arrangements may be scarce | Secure verified staff and partner commitments before launch |
+| Opportunity | Specialist health and applied-technology training may diversify income | Validate demand and competitor fees through documented research |
+| Threat | Delayed approvals or unclear professional scope | Maintain an approval register and no-launch gate |
+| Threat | Intake below break-even or cost escalation | Pilot conservatively and monitor course-level contribution monthly |` },
+    "ch2.customers": { title: "2.1 Demand Segments and Stakeholders", content: `### 2.1 DEMAND SEGMENTS AND STAKEHOLDERS
+Primary demand segments include KCSE school leavers, working health-service personnel seeking progression, employers, county and private health facilities, technology-oriented applicants, sponsors and professional development partners.
+
+Demand evidence must be collected separately for each course through enquiry records, employer interviews, competitor review, fee comparisons, open-day registrations, placement discussions and documented survey responses. No assumed demand figure should be treated as verified until the evidence register is complete.` },
+    "ch2.demand": { title: "2.2 Enrolment Demand and Intake Model", content: `### 2.2 ENROLMENT DEMAND AND INTAKE MODEL
+| Course | Planning intake | Evidence required before approval |
+|---|---:|---|
+${courses.map((course) => `| ${course.courseName} | ${course.estimatedYear1Intake} | Enquiry log, demand survey, competitor comparison and employer/placement validation |`).join("\n")}
+
+Management should set a minimum viable intake, target intake and maximum safe capacity for every course. The admissions team should report enquiries, offers, acceptances, deposits, registrations, withdrawals and deferrals by course and campus.` },
+    "ch2.competitors": { title: "2.3 Competitor and Positioning Analysis", content: `### 2.3 COMPETITOR AND POSITIONING ANALYSIS
+The relevant comparison set includes accredited medical training colleges, universities, specialist professional providers and credible online or blended alternatives offering comparable awards or competencies. Competitor names, fees, duration, entry requirements, facilities and approval status must be collected and dated before the final decision.
+
+ICMHS should position the portfolio around verified practical training, accessible delivery, accountable learner support, employer relevance and responsible use of health technology. These are planning propositions, not confirmed competitive advantages.` },
+    "ch2.pricing": { title: "2.4 Fee and Cost Structure", content: `### 2.4 FEE AND COST STRUCTURE
+| Course | Annual fee estimate | Direct cost per learner | Indicative contribution per learner |
+|---|---:|---:|---:|
+${courses.map((course) => `| ${course.courseName} | KES ${formatKES(course.proposedAnnualFeeKES)} | KES ${formatKES(course.directCostPerStudentKES)} | KES ${formatKES(course.proposedAnnualFeeKES - course.directCostPerStudentKES)} |`).join("\n")}
+
+Fees must be tested against competitor evidence, affordability, payment timing, scholarships, placement costs, consumables, assessment charges, technology subscriptions and the institution's required margin. Finance should replace all estimates with an approved fee schedule and course-level cost centre model.` },
+    "ch2.promotion": { title: "2.5 Recruitment and Communications", content: `### 2.5 RECRUITMENT AND COMMUNICATIONS
+Recruitment should use the ICMHS website, approved prospectus, open days, school and employer outreach, professional networks and direct enquiry follow-up. Communications must identify the course, approved award, campus, entry requirements, duration, fee basis, intake date and contact channel.
+
+The proposed monthly communications allowance is **KES ${formatKES(specs.marketingPromotionBudgetMonthly)}** until replaced by an approved campaign budget. Marketing effectiveness should be measured using qualified enquiries, applications, offers, registrations and cost per registered learner.` },
+    "ch2.distribution": { title: "2.6 Delivery Channels and Learner Support", content: `### 2.6 DELIVERY CHANNELS AND LEARNER SUPPORT
+Delivery may combine campus teaching, skills-lab practice, supervised clinical or industry placement, computer-based work and approved blended learning. The final mix must follow the regulator-approved curriculum and each course's practical requirements.
+
+The operating model must include admissions, timetabling, attendance, assessment, placement coordination, safeguarding, disability support, complaints handling, records management and progression monitoring.` },
+    "ch2.forecast": { title: "2.7 Enrolment and Revenue Projections", content: `### 2.7 ENROLMENT AND REVENUE PROJECTIONS
+The planning case estimates Year 1 tuition income of **KES ${formatKES(annualTuition)}** from the proposed portfolio. This figure is an assumption based on the draft intake and fee values above; it excludes grants, short courses, ancillary charges and bad-debt adjustments.
+
+Finance should model conservative, base and upside cases for each course, including delayed launch, lower intake, fee discounts, payment arrears, staffing delays, equipment inflation and placement costs. Revenue should be recognized against confirmed registration and the institution's approved accounting policy.` },
+    "ch3.structure": { title: "3.1 Governance Structure", content: `### 3.1 GOVERNANCE STRUCTURE
+The recommended structure is: Board or governing authority; Principal/Managing Director; Portfolio Sponsor; Academic Lead; Course Coordinators; Quality Assurance; Finance; Admissions and Marketing; Facilities and ICT; and Clinical/Industry Liaison.
+
+The structure should separate approval, delivery, finance control and quality assurance. A monthly portfolio dashboard should report stage-gate status, budget, enrolment funnel, staffing, facilities, placements, incidents and risks.` },
+    "ch3.management": { title: "3.2 Management Competencies", content: `### 3.2 MANAGEMENT COMPETENCIES
+Management must demonstrate academic leadership, regulator engagement, financial control, procurement discipline, quality assurance, data protection, facilities planning, clinical or industry partnership management and change management.
+
+Individual names and credentials should be inserted only from current HR files and verified certificates. The final plan should attach a responsibility matrix and evidence register rather than relying on assumed profiles.` },
+    "ch3.staffing": { title: "3.3 Staffing Requirements", content: `### 3.3 STAFFING REQUIREMENTS
+| Role | Headcount | Monthly planning cost | Minimum evidence |
+|---|---:|---:|---|
+${staffingRows}
+
+Course-specific faculty ratios, teaching loads, professional registration and practical-supervision requirements must be confirmed from the applicable curriculum and regulator. No intake should be opened without the required staff appointed or contractually secured.` },
+    "ch3.remuneration": { title: "3.4 Remuneration and Payroll", content: `### 3.4 REMUNERATION AND PAYROLL
+The draft staffing model carries an estimated monthly payroll of **KES ${formatKES(monthlyPayroll)}** before statutory costs, benefits, part-time teaching, overtime and annual adjustments. Finance should replace this with approved salary bands, contracts, employer contributions and course cost-centre allocations.
+
+Payroll approval should require evidence of workload, qualification, registration where applicable, timetable allocation and budget availability.` },
+    "ch3.recruitment": { title: "3.5 Recruitment and Development", content: `### 3.5 RECRUITMENT AND STAFF DEVELOPMENT
+Recruitment will prioritize verified subject expertise, teaching ability, practical supervision, assessment competence and professional conduct. Induction should cover ICMHS policies, safeguarding, assessment integrity, data protection, emergency procedures, equipment use and incident reporting.
+
+Annual development plans should address curriculum updates, simulation practice, digital teaching, quality audits, workplace feedback and regulator requirements.` },
+    "ch3.legal": { title: "3.6 Regulatory and Compliance Readiness", content: `### 3.6 REGULATORY AND COMPLIANCE READINESS
+Before launch, management must confirm the regulator, qualification owner, programme approval route, entry requirements, faculty credentials, facility standards, clinical or industry placement rules, assessment requirements, advertising permissions, data-protection obligations and occupational safety controls for each course.
+
+The compliance register should record requirement, authority, evidence, responsible owner, submission date, expiry date, cost and status. Any unverified item is a no-launch condition.` },
+    "ch3.support": { title: "3.7 Supporting Professional Services", content: `### 3.7 SUPPORTING PROFESSIONAL SERVICES
+The expansion will require coordinated support from legal advisers, finance, procurement, ICT, data-protection officers, facilities teams, clinical or industry partners, equipment service providers, insurers and quality-assurance personnel.
+
+All external engagements should use written scopes, service levels, safeguarding provisions, confidentiality terms, data controls, insurance requirements and termination conditions.` },
+    "ch4.facilities": { title: "4.1 Facilities and Space Allocation", content: `### 4.1 FACILITIES AND SPACE ALLOCATION
+The proposed portfolio requires a controlled mix of classrooms, course-specific skills laboratories, simulation areas, ICT facilities, staff workspaces, stores, sanitation, accessibility features, power backup, secure records storage and placement coordination space.
+
+The draft planning footprint is **${specs.workshopSquareMeters} square metres**. This figure must be replaced after a campus audit that records usable area, timetable availability, safety requirements, equipment clearances and maximum safe occupancy by course.` },
+    "ch4.workflow": { title: "4.2 Academic Delivery Workflow", content: `### 4.2 ACADEMIC DELIVERY WORKFLOW
+1. Confirm approved curriculum, timetable and teaching resources.
+2. Admit only applicants meeting verified entry requirements.
+3. Deliver theory, practical and simulation sessions with attendance controls.
+4. Assess competence using approved methods and maintain moderation records.
+5. Prepare and monitor clinical or industry placement where required.
+6. Review attendance, progression, incidents, feedback and resource use each term.
+7. Escalate quality or safety exceptions to the academic and management committees.` },
+    "ch4.equipment": { title: "4.3 Equipment and Procurement Plan", content: `### 4.3 EQUIPMENT AND PROCUREMENT PLAN
+| Equipment / facility requirement | Qty | Unit estimate | Total estimate | Procurement status |
+|---|---:|---:|---:|---|
+${equipmentRows}
+
+The current equipment envelope is **KES ${formatKES(equipmentTotal)}**. Each item requires a technical specification, at least comparable quotations, warranty, installation, calibration, service support, user training, safety controls and an assigned asset owner before purchase.` },
+    "ch4.materials": { title: "4.4 Operating Inputs and Consumables", content: `### 4.4 OPERATING INPUTS AND CONSUMABLES
+| Input category | Planning quantity | Monthly estimate | Proposed source |
+|---|---|---:|---|
+${consumableRows}
+
+The draft monthly consumables allowance is **KES ${formatKES(monthlyConsumables)}**. Actual usage should be tracked by course, practical session, cohort and stock issue. Procurement must maintain approved specifications, reorder levels, batch or serial records where relevant and safe disposal procedures.` },
+    "ch4.labor": { title: "4.5 Delivery Scheduling", content: `### 4.5 DELIVERY SCHEDULING
+Timetables should protect the required balance between theory, practical sessions, simulation, assessment, placement and learner support. Shared rooms and equipment must be scheduled centrally with buffer time for setup, cleaning, maintenance and incident response.
+
+The academic office should publish a term calendar, course workload, room allocation, faculty assignment, assessment plan and placement calendar before registration closes.` },
+    "ch4.quality": { title: "4.6 Quality, Safety and Waste Controls", content: `### 4.6 QUALITY, SAFETY AND WASTE CONTROLS
+Controls should cover equipment inspection, practical-session risk assessment, PPE, infection prevention where applicable, sharps and clinical waste handling, chemical or biological exposure, data security in the AI lab, emergency response, incident reporting and routine internal audits.
+
+Each course should maintain a quality file containing lesson plans, attendance, assessment records, equipment logs, consumable issues, placement feedback, complaints, incidents and corrective actions.` },
+    "ch4.schedule": { title: "4.7 Capacity and Maintenance", content: `### 4.7 CAPACITY AND MAINTENANCE
+The first intake should be limited by verified room capacity, equipment-to-learner ratios, faculty availability and placement capacity rather than by marketing targets. Management should approve a maximum safe cohort size for each course.
+
+Preventive maintenance schedules, calibration records, software renewals, backup power tests and replacement plans should be funded through the annual operating budget and reviewed monthly.` },
+    "ch5.startup": { title: "5.1 Startup Investment", content: `### 5.1 STARTUP INVESTMENT
+| Investment component | Planning amount |
+|---|---:|
+| Course-specific equipment and facilities | KES ${formatKES(equipmentTotal)} |
+| Pre-operational approvals, curriculum, setup and launch preparation | KES ${formatKES(specs.preOperationalCosts)} |
+| Working-capital buffer | KES ${formatKES(specs.workingCapitalBuffer)} |
+| **Indicative initial funding requirement** | **KES ${formatKES(totalInitialFunding)}** |
+
+These are dummy planning amounts. Replace them with approved quotations, internal cost allocations, taxes, installation, delivery, service contracts and contingency before authorization.` },
+    "ch5.sources": { title: "5.2 Financing and Capitalization", content: `### 5.2 FINANCING AND CAPITALIZATION
+The draft capitalization assumes **KES ${formatKES(specs.ownerEquityAmount)}** in institutional equity and **KES ${formatKES(specs.loanAmount)}** in proposed borrowing. The resulting planning funding gap is **KES ${formatKES(fundingGap)}** before any omitted costs or financing charges.
+
+Finance should compare equity, retained earnings, asset finance, grants, strategic partnerships and borrowing. Any debt case must include approved terms, security, repayment schedule, covenants and sensitivity to slower enrolment.` },
+    "ch5.assumptions": { title: "5.3 Financial Assumptions", content: `### 5.3 FINANCIAL ASSUMPTIONS
+The draft case assumes the proposed intake and annual fees in the course table, direct costs per learner, staffing costs, consumables, central overheads and the stated implementation horizon. It excludes unverified regulator fees, taxes, depreciation, scholarships, bad debts, refunds, placement charges, major construction and unforeseen compliance requirements.
+
+Every assumption should be assigned an evidence owner and status: verified, management estimate, quotation required, regulator confirmation required or not yet available.` },
+    "ch5.cashflow": { title: "5.4 Pro-Forma Cash Flow", content: `### 5.4 PRO-FORMA CASH FLOW
+The cash model should stage equipment payments, staff onboarding, approval costs, marketing, deposits, fee collections, refunds, placements, consumables, maintenance and debt service by month. Tuition should be modelled by actual payment plan rather than assumed full collection at registration.
+
+Management should maintain conservative, base and upside cash cases and a minimum cash reserve trigger. The current working-capital placeholder is **KES ${formatKES(specs.workingCapitalBuffer)}** and must be replaced after the monthly cash schedule is approved.` },
+    "ch5.income": { title: "5.5 Pro-Forma Income Statement", content: `### 5.5 PRO-FORMA INCOME STATEMENT
+The planning case indicates Year 1 tuition income of **KES ${formatKES(annualTuition)}**, direct course costs of **KES ${formatKES(annualDirectCosts)}**, recurring operating costs of **KES ${formatKES(annualOperatingCost)}**, and an indicative operating surplus of **KES ${formatKES(annualOperatingSurplus)}** before financing, tax and depreciation.
+
+This is a decision-support estimate, not an approved forecast. Finance must produce course-level three-year statements after replacing intake, fee, staffing, facility, placement, consumable, tax and financing assumptions.` },
+    "ch5.balance": { title: "5.6 Pro-Forma Balance Sheet", content: `### 5.6 PRO-FORMA BALANCE SHEET
+The balance-sheet model should recognize equipment and fit-out assets, cash, receivables, prepayments, payables, deferred fee income, borrowing, institutional equity and accumulated results. Asset registers should record ownership, location, serial number, condition, depreciation policy and insurance.
+
+The final balance sheet must reconcile to the approved cash flow, income statement, procurement schedule and financing documents.` },
+    "ch5.breakeven": { title: "5.7 Break-Even Analysis", content: `### 5.7 BREAK-EVEN ANALYSIS
+Break-even must be calculated separately for each course using approved fee, direct cost, staffing, placement, facility and shared-overhead allocations. A portfolio-level figure can conceal an underperforming course.
+
+The current model should not be approved until management confirms minimum viable intake, payment timing, course contribution, shared-cost allocation and the treatment of one-off capital expenditure.` },
+    "ch5.ratios": { title: "5.8 Financial Health Indicators", content: `### 5.8 FINANCIAL HEALTH INDICATORS
+The implementation dashboard should track contribution per learner, fee collection rate, cost per registered learner, payroll-to-income ratio, operating margin, cash runway, equipment utilization, return on incremental capital and payback period.
+
+Thresholds should be approved before launch, with corrective actions for low intake, fee arrears, cost overruns, staff vacancies, equipment downtime and placement shortfalls.` },
+    "ch5.risks": { title: "5.9 Risk Management and Contingency Planning", content: `### 5.9 RISK MANAGEMENT AND CONTINGENCY PLANNING
+| Risk | Early indicator | Mitigation |
+|---|---|---|
+| Approval delay | Missing regulator evidence or unresolved curriculum issue | Maintain a dated approval register and no-advertising gate |
+| Low enrolment | Enquiries and deposits below threshold | Pilot one course, revise outreach and defer capital commitments |
+| Faculty shortage | Unfilled specialist teaching or supervision hours | Build a verified pool of full-time and part-time faculty |
+| Placement shortfall | Fewer confirmed places than the cohort requires | Secure written agreements before registration |
+| Equipment cost escalation | Quotations exceed budget | Obtain alternatives, phase procurement and retain contingency |
+| Data or safety incident | Unauthorized access, injury or non-conformance | Apply SOPs, training, insurance, audits and incident response |` },
+    references: { title: "References", content: `### REFERENCES
+| Source | Link |
+|---|---|
+${sourceRows || "| Official ICMHS source | [Insert verified source link] |"}
+
+The final document should add current regulator notices, approved curricula, competitor fee evidence, supplier quotations, placement agreements, internal management accounts and the institution's approved policies. Sources must be dated and tied to the assumptions they support.` },
+    "app.workplan": { title: "Appendix I: Implementation Schedule", content: `### APPENDIX I: PROPOSED IMPLEMENTATION SCHEDULE
+| Phase | Timing | Key deliverables | Gate |
+|---|---|---|---|
+| Evidence and demand validation | Months 1–2 | Demand file, competitor review, employer and placement interviews | Management go/no-go |
+| Regulatory and curriculum confirmation | Months 2–5 | Approval pathway, curriculum, entry requirements and faculty criteria | Academic/regulatory gate |
+| Design and procurement | Months 4–8 | Room audit, specifications, quotations, procurement and SOPs | Investment gate |
+| Staffing and partner readiness | Months 6–10 | Appointments, contracts, placement agreements and training | Readiness gate |
+| Controlled recruitment and pilot intake | Months 9–12 | Approved communications, admissions and first cohort | Pilot gate |
+| Review and scale-up | Months 13–18 | Performance dashboard, audit, lessons learned and scale decision | Board decision |` },
+    "app.invoices": { title: "Appendix II: Evidence Register", content: `### APPENDIX II: EVIDENCE REGISTER
+| Evidence item | Owner | Status | Required before final approval |
+|---|---|---|---|
+| Current programme approvals and regulator correspondence | Academic/Quality | Required | Yes |
+| Approved curricula, entry requirements and award titles | Academic | Required | Yes |
+| Campus room, safety and equipment audit | Facilities | Required | Yes |
+| Faculty credentials and availability | HR/Academic | Required | Yes |
+| Clinical or industry placement agreements | Liaison office | Required | Yes |
+| Supplier quotations and service terms | Procurement | Dummy estimates | Yes |
+| Demand survey, enquiry and competitor fee evidence | Admissions/Marketing | Required | Yes |
+| Course-level budget and three-year financial model | Finance | Dummy estimates | Yes |` },
+  };
+
+  Object.entries(contentByKey).forEach(([key, value]) => add(key, value.title, value.content));
+  return sections;
+}
+
 export function buildCompleteBusinessPlan(rawSpecs: Partial<BusinessPlanSpecs>): GeneratedSectionPayload[] {
   const specs = normalizeBusinessPlanSpecs(rawSpecs);
+  if (specs.isInstitutional === true) return buildInstitutionalCoursePlan(specs);
   const fin = computeBusinessPlanFinancials(specs);
   const formatKES = (n: number) => Math.round(n).toLocaleString("en-KE");
   const resolvedModel = resolveBusinessPlanModel(specs);
-  const isInstitutional = specs.isInstitutional === true;
+  const isInstitutional = false;
   const institutionalCourses = specs.institutionalCourses || [];
   const institutionalCourseTable = institutionalCourses.length > 0
     ? `| Proposed course | Year 1 intake | Annual fee (planning estimate) | Direct cost/student (planning estimate) | Start-up equipment (planning estimate) |
@@ -1137,38 +1422,6 @@ Record dated customer interview summaries and observed competitor prices in **${
         content,
         wordCount: content.trim().split(/\s+/).filter(Boolean).length,
       };
-    });
-  }
-
-  if (isInstitutional) {
-    return results.map((section) => {
-      if (section.section_key === "prelim.declaration") {
-        const content = `### MANAGEMENT USE AND APPROVAL NOTE
-This document is an institutional feasibility and implementation brief for **${specs.institutionName}**. It is not an examination submission or marketplace product.
-
-**Decision owner:** [Board / Managing Director / Academic Committee — confirm]<br>**Approval status:** Draft feasibility study — internal review required<br>**Review date:** ______________________________
-
-Management should approve each proposed course only after validating regulatory scope, curriculum, faculty credentials, clinical or industry placement capacity, equipment quotations, demand evidence and the final financial model.
-
-Decision owner signature: ______________________________<br>Date: ______________________________`;
-        return { ...section, title: "Management Use and Approval", content, wordCount: content.trim().split(/\s+/).length };
-      }
-      if (section.section_key === "prelim.dedication") {
-        const content = `### DOCUMENT PURPOSE
-This feasibility plan supports management's decision on whether and how to introduce the proposed ICMHS course portfolio. It converts institutional strategy into approval gates, investment requirements, operating controls and measurable launch outcomes.`;
-        return { ...section, title: "Document Purpose", content, wordCount: content.trim().split(/\s+/).length };
-      }
-      if (section.section_key === "prelim.acknowledgements") {
-        const content = `### BASIS OF PREPARATION
-This institutional brief uses the official ICMHS website for initial background only. Internal enrolment records, current fee schedules, campus capacity, staff files, regulator correspondence, partner agreements, supplier quotations and management accounts must be added before a final investment decision.`;
-        return { ...section, title: "Basis of Preparation", content, wordCount: content.trim().split(/\s+/).length };
-      }
-      const content = section.content
-        .replace(/\bcandidates?\b/gi, "management")
-        .replace(/\bstudents?\b/gi, "learners")
-        .replace(/candidate-entered/gi, "management planning")
-        .replace(/final examination/gi, "final implementation review");
-      return { ...section, content, wordCount: content.trim().split(/\s+/).length };
     });
   }
 
