@@ -141,7 +141,8 @@ function markdown(content: string): string {
 
     const heading = line.match(/^(#{1,6})\s+(.+)$/);
     if (heading) {
-      out.push(`<h${heading[1].length >= 3 ? 3 : 2}>${inline(heading[2])}</h${heading[1].length >= 3 ? 3 : 2}>`);
+      const headingLevel = Math.min(6, Math.max(1, heading[1].length));
+      out.push(`<h${headingLevel}>${inline(heading[2])}</h${headingLevel}>`);
       i += 1;
       continue;
     }
@@ -227,9 +228,9 @@ export function createBusinessPlanHtml(params: BusinessPlanDocumentDetails): str
 * { box-sizing: border-box; }
 html { font-family: "Times New Roman", serif; font-size: 12pt; color: #111; }
 body { margin: 0; line-height: 1.5; }
-h1, h2, h3, p, ul, ol { margin-top: 0; }
+h1, h2, h3, h4, h5, h6, p, ul, ol { margin-top: 0; }
 p { margin-bottom: 10pt; text-align: justify; }
-h1, h2, h3 { font-size: 12pt; line-height: 1.5; margin: 14pt 0 6pt; font-weight: bold; break-after: avoid; }
+h1, h2, h3, h4, h5, h6 { font-size: 12pt; line-height: 1.5; margin: 14pt 0 6pt; font-weight: bold; break-after: avoid; }
 ul, ol { margin: 0 0 10pt 25pt; padding: 0; }
 li { padding-left: 3pt; margin: 0 0 3pt; }
 table { width: 100%; border-collapse: collapse; margin: 12pt 0 16pt; font-size: 9.5pt; line-height: 1.35; break-inside: auto; page-break-inside: auto; }

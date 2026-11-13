@@ -152,7 +152,7 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
       category: "Business Plan",
       material_type: "business_plan",
       price_kes: priceKes,
-      status: "published",
+      status: "pending_review",
     }).eq("id", existing.id);
     if (error) throw new Error(error.message || "Could not update the marketplace listing.");
   } else {
@@ -164,13 +164,18 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
       material_type: "business_plan",
       price_kes: priceKes,
       file_path: filePath,
-      status: "published",
+      status: "pending_review",
     }).select("id").single();
     if (error || !listing) throw new Error(error?.message || "Could not publish the business plan.");
     projectId = listing.id;
     createdProject = true;
   }
 
+  const marketplacePreliminaries: Record<string, string> = {
+    "prelim.declaration": "### DECLARATION AND APPROVAL\nThis marketplace reference copy is provided for academic adaptation. The buyer must verify all facts, replace the preliminary pages, and obtain the required institutional approval before submission.",
+    "prelim.dedication": "### DEDICATION\n[Write a personal dedication for your own completed business plan.]",
+    "prelim.acknowledgements": "### ACKNOWLEDGEMENTS\n[Write acknowledgements for the people and institutions that supported your own project.]",
+  };
   const { error: snapshotError } = await db.from("project_plan_snapshots").upsert({
     project_id: projectId,
     workspace_id: workspaceId,
@@ -179,7 +184,7 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
     level: workspace.level,
     sections: definitions.map((definition) => ({
       title: definition.title,
-      content: redactPrivateDetails(sectionText.get(definition.key) || ""),
+      content: marketplacePreliminaries[definition.key] || redactPrivateDetails(sectionText.get(definition.key) || ""),
     })),
   }, { onConflict: "project_id" });
   if (snapshotError) {

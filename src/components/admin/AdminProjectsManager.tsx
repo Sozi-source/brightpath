@@ -298,6 +298,7 @@ export function AdminProjectsManager({
       {/* Product Edit / Setup Modal */}
       {selectedProject && (
         <AdminProductEditModal
+          key={selectedProject.id}
           project={selectedProject}
           commissionPercent={commissionPercent}
           isOpen={isModalOpen}

@@ -45,3 +45,12 @@ next-env.d.ts
 # local agent tools
 powershell.cmd
 scripts/diag.mjs
+
+.vercel
+.env*
+
+.open-next
+.dev.vars
+.env.clean
+.env.production
+.env.local

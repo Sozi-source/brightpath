@@ -113,6 +113,9 @@ export interface BusinessPlanSpecs {
   course: string;
   level: "craft" | "diploma";
   ownerQualifications: string;
+  /** Student-authored preliminary-page content. Optional for older drafts. */
+  dedicationText?: string;
+  acknowledgementsText?: string;
 
   // 3. Location & Physical Infrastructure
   county: string;

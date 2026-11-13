@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef, useEffect } from "react";
+import { useState, useTransition, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -72,22 +72,6 @@ export function AdminProductEditModal({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<boolean>(false);
-
-  // Sync state when project changes
-  useEffect(() => {
-    setTitle(project.title);
-    setDescription(project.description || "");
-    setCategory(project.category || "Business Plan");
-    setMaterialType(project.material_type || "business_plan");
-    setPriceKes(Number(project.price_kes) || 0);
-    setStatus(project.status || "published");
-    setCoverFile(null);
-    setCoverPreviewUrl(null);
-    setRemoveCover(false);
-    setErrorMessage(null);
-    setSuccessMessage(null);
-    setConfirmDelete(false);
-  }, [project]);
 
   if (!isOpen) return null;
 
@@ -179,11 +163,6 @@ export function AdminProductEditModal({
       }
     });
   };
-
-  const isBusinessPlan =
-    materialType === "business_plan" ||
-    (category || "").toLowerCase().includes("business") ||
-    project.file_path.startsWith("workspace-export:");
 
   const hasActiveCustomCover = (coverPreviewUrl || (project.cover_path && !removeCover));
 

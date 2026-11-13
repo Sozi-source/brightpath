@@ -122,6 +122,8 @@ export function BusinessPlanBuilderModal({
       course: defaultCourse,
       level: defaultLevel,
       ownerQualifications: "",
+      dedicationText: "",
+      acknowledgementsText: "",
       county: "",
       townOrMarket: "",
       streetOrBuilding: "",
@@ -965,6 +967,35 @@ export function BusinessPlanBuilderModal({
                       placeholder="e.g. Diploma in Human Nutrition and Dietetics with expertise in food processing and KEBS compliance."
                     />
                   </div>
+
+                  {!isInstitutional && (
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="text-xs font-medium text-slate-700 block mb-1">
+                          Dedication
+                        </label>
+                        <textarea
+                          rows={4}
+                          value={specs.dedicationText || ""}
+                          onChange={(e) => setSpecs({ ...specs, dedicationText: e.target.value })}
+                          className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          placeholder="Write a short personal dedication."
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-slate-700 block mb-1">
+                          Acknowledgements
+                        </label>
+                        <textarea
+                          rows={4}
+                          value={specs.acknowledgementsText || ""}
+                          onChange={(e) => setSpecs({ ...specs, acknowledgementsText: e.target.value })}
+                          className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          placeholder="Thank the people and institutions that supported your project."
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

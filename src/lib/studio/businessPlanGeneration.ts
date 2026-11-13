@@ -528,6 +528,13 @@ export async function draftBusinessPlanSections(
     const words = trimmed.split(/\s+/).filter(Boolean).length;
     if (words < requiredWords) return null;
 
+    // Preserve the KNEC heading ladder when the deterministic baseline uses it.
+    const baseline = scriptedSections.get(definition.key) || "";
+    const baselineHasThirdLevel = /(?:^|\n)####\s+\d+\.\d+\.\d+\b/m.test(baseline);
+    if (baselineHasThirdLevel && !/(?:^|\n)####\s+\d+\.\d+\.\d+\b/m.test(trimmed)) {
+      return null;
+    }
+
     let normalizedContent = trimmed;
     if (definition.key === "prelim.executive_summary") {
       const baseline = scriptedSections.get(definition.key) || "";
@@ -566,7 +573,7 @@ ${sourceList}
 SECTION REQUIREMENTS AND BASELINE (draft each listed section):
 ${JSON.stringify(sectionDrafts)}
 
-Return JSON only: {"sections":[{"key":"exact section key","content":"complete Markdown for this section"}]}. Return one complete section for every requested key, retaining its exact heading. Meet its minWords expectation with substantive enterprise-specific analysis, useful lists/tables where appropriate, and concise professional prose. Vary wording naturally across sections; do not repeat generic introductions. Do not invent market sizes, competitors, survey findings, suppliers, quotations, prices, permits, fees, approvals, registrations, partnerships, or legal requirements. Candidate entries are assumptions, not verified evidence. Phrase missing information as a proposal or mark it [Confirm locally] / [Quotation required]. Cite supported external claims with [n], using only the listed sources. Do not introduce a source number without a matching listed source. Do not create or modify financial statements, ratios, forecasts, or calculations; chapter 5 is excluded. In the executive summary, retain every KES amount and financial percentage exactly as shown in the baseline. Do not claim an activity or facility exists if it is only proposed.
+Return JSON only: {"sections":[{"key":"exact section key","content":"complete Markdown for this section"}]}. Return one complete section for every requested key, retaining its exact numbered heading. Use a clear KNEC heading ladder: the section heading is 1.1, 1.2, or similar, and related subtopics must use numbered third-level headings such as 1.1.1 and 1.1.2. Make every heading concise, specific, and bold in the final document. Use a deliberate mix of short analytical paragraphs, numbered procedures/objectives, bullets for grouped items, and clearly introduced Markdown tables with real candidate or sourced data. Do not use a table to hide missing evidence. Meet its minWords expectation with substantive enterprise-specific analysis. Vary wording naturally across sections; do not repeat generic introductions. Do not invent market sizes, competitors, survey findings, suppliers, quotations, prices, permits, fees, approvals, registrations, partnerships, or legal requirements. Candidate entries are assumptions, not verified evidence. Phrase missing information as a proposal or mark it [Confirm locally] / [Quotation required]. Cite supported external claims with [n], using only the listed sources. Do not introduce a source number without a matching listed source. Do not create or modify financial statements, ratios, forecasts, or calculations; chapter 5 is excluded. In the executive summary, retain every KES amount and financial percentage exactly as shown in the baseline. Do not claim an activity or facility exists if it is only proposed.
 
 GEOGRAPHIC CONSISTENCY CHECK (required): Compare every named town, county, sub-county, ward, road, and health facility in the draft with the candidate's stated business location and the supplied research. Flag claims that describe a distant or differently located facility as nearby, or place it in the wrong county. Do not guess a replacement facility. If the mismatch is clear from the supplied sources, correct only that claim; if no local facility is verified, use cautious wording such as "health facilities serving [town]" and add [Confirm locally].
 
@@ -615,7 +622,7 @@ ${sourceList}
 BASELINE SECTION TO ADAPT:
 ${scriptedSections.get(section.key) || ""}
 
-Return JSON only: {"key":${JSON.stringify(section.key)},"content":"complete Markdown starting with ### ${section.title}"}.
+Return JSON only: {"key":${JSON.stringify(section.key)},"content":"complete Markdown starting with ### ${section.title}"}. Use numbered third-level headings such as ${section.title.match(/^\d+\.\d+/)?.[0] || "1.1"}.1 and ${section.title.match(/^\d+\.\d+/)?.[0] || "1.1"}.2 where the section contains multiple related themes. Make headings concise and bold in the final document. Use short paragraphs, numbered steps, bullets, and clearly labelled Markdown tables with real candidate or sourced data.
 Do not invent facts, competitors, survey results, permits, or financial figures. Mark unverified local details with [Confirm locally] or [Quotation required]. ${section.key === "prelim.executive_summary" ? "Retain all KES amounts and financial percentages from the baseline executive summary." : ""}`;
 
       try {

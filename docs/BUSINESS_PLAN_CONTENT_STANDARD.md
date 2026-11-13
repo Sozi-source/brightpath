@@ -27,6 +27,8 @@ Use the section guidance and `minWords` values in the template as minimum expect
 - Explain the enterprise's choices and operating steps with concrete detail drawn from the candidate's specifications.
 - Use concise paragraphs for rationale and analysis; use numbered steps for processes, objectives, and implementation sequences; use bullets for grouped actions, advantages, risks, and responsibilities.
 - Keep headings and subheadings aligned with the KNEC section outline. Avoid repeated introductions, generic claims, and padding.
+- Use a visible heading hierarchy throughout the manuscript: chapter headings, numbered section headings such as `1.1`, and numbered third-level headings such as `1.1.1` wherever a section contains multiple themes. Headings and subheadings must be concise, specific, and bold in Word and PDF exports.
+- Structure each substantive section with a purposeful mix of short analytical paragraphs, numbered procedures or objectives, bullets for grouped items, and clearly labelled Markdown tables containing real candidate-supplied or verified data.
 - Distinguish clearly between **candidate-supplied assumptions**, **verified findings**, and **proposed future actions**.
 - Write future plans as proposals. Do not describe planned surveys, contracts, partnerships, approvals, licenses, premises, quotations, or customer findings as completed facts.
 
@@ -60,6 +62,7 @@ Do not force a table into reflective prose. Do not invent data to fill one; mark
 - Keep the title page followed by dedication, declaration, acknowledgements, abbreviations and acronyms, table of contents, executive summary, Chapters One to Five, references, and appendices. Start each preliminary page and chapter on a new page.
 - Use real tables for Markdown tables and readable diagrams for fenced process or organization charts; do not leave ASCII flowcharts broken across lines.
 - Keep a clean title page with candidate and institution details for the student's private export. Marketplace copies use a saved, reviewed snapshot and omit admission numbers and other candidate-specific identifiers.
+- Student preliminary pages must be personalized: the declaration uses the candidate's verified details, while dedication and acknowledgements are student-authored through editable guided fields. Marketplace reference copies must replace the original declaration, dedication, acknowledgements, and supervisor approval with neutral adaptation prompts.
 
 ## Evidence and financial integrity
 

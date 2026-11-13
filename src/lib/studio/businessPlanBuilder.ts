@@ -39,7 +39,12 @@ function buildInstitutionalCoursePlan(specs: BusinessPlanSpecs): GeneratedSectio
   const sourceRows = (specs.research?.sources || []).map((source) => `| ${source.title} | ${source.url} |`).join("\n");
   const sections: GeneratedSectionPayload[] = [];
   const add = (section_key: string, title: string, content: string) => {
-    const trimmed = content.trim();
+    const sectionNumber = title.match(/^\s*(\d+\.\d+)\b/)?.[1];
+    let subheadingNumber = 0;
+    const trimmed = content.trim().replace(
+      /^####\s+(?!\d+\.\d+\.\d+\b)(.+)$/gm,
+      (_match, label: string) => `#### ${sectionNumber ? `${sectionNumber}.${++subheadingNumber} ` : ""}${label}`
+    );
     sections.push({ section_key, title, content: trimmed, wordCount: trimmed.split(/\s+/).filter(Boolean).length });
   };
 
@@ -351,7 +356,12 @@ export function buildCompleteBusinessPlan(rawSpecs: Partial<BusinessPlanSpecs>):
   const results: GeneratedSectionPayload[] = [];
 
   const add = (section_key: string, title: string, content: string) => {
-    const trimmed = content.trim();
+    const sectionNumber = title.match(/^\s*(\d+\.\d+)\b/)?.[1];
+    let subheadingNumber = 0;
+    const trimmed = content.trim().replace(
+      /^####\s+(?!\d+\.\d+\.\d+\b)(.+)$/gm,
+      (_match, label: string) => `#### ${sectionNumber ? `${sectionNumber}.${++subheadingNumber} ` : ""}${label}`
+    );
     const wordCount = trimmed ? trimmed.split(/\s+/).length : 0;
     results.push({ section_key, title, content: trimmed, wordCount });
   };
@@ -380,18 +390,14 @@ Supervisor Name: **${specs.supervisorName || "[Enter supervisor name]"}**<br>Des
     "prelim.dedication",
     "Dedication",
     `### DEDICATION
-This business plan is dedicated to the people whose encouragement, guidance, and practical support contributed to the candidate's education and enterprise development.
-
-The candidate may personalize this dedication to recognize family members, mentors, colleagues, or community members who provided meaningful support.`
+${specs.dedicationText?.trim() || "This business plan is dedicated to the people whose encouragement, guidance, and practical support contributed to the candidate's education and enterprise development."}`
   );
 
   add(
     "prelim.acknowledgements",
     "Acknowledgements",
     `### ACKNOWLEDGEMENTS
-I express sincere gratitude to my project supervisor, **${specs.supervisorName || "[Supervisor name]"}**, for the academic guidance, constructive feedback, and technical mentorship provided throughout the preparation of this business plan for **${specs.businessName}**.
-
-I also thank the administration and teaching faculty of **${specs.institutionName || "[Institution name]"}** for imparting practical competencies during my **${specs.course}** training. Finally, I appreciate the local nutrition practitioners, suppliers, and prospective customers in **${specs.townOrMarket}, ${specs.county}** who shared market and operational insights during the preliminary planning phase.`
+${specs.acknowledgementsText?.trim() || `I express sincere gratitude to my project supervisor, **${specs.supervisorName || "[Supervisor name]"}**, and the administration and teaching faculty of **${specs.institutionName || "[Institution name]"}** for their academic guidance and practical support during the preparation of this business plan for **${specs.businessName}**.`}`
   );
 
   add(
