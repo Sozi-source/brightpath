@@ -13,8 +13,6 @@ import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
 import { ChevronLeft, Sparkles } from "lucide-react";
 import type { UserProfile } from "@/types/database";
 
-export const instant = false;
-
 interface ProblemFinderPageProps {
   params: Promise<{ id: string }>;
 }

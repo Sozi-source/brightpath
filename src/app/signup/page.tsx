@@ -2,8 +2,6 @@ import Link from "next/link";
 import { signup } from "@/app/(auth)/actions";
 import { ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
 
-export const instant = false;
-
 interface SignupPageProps {
   searchParams: Promise<{ error?: string }>;
 }

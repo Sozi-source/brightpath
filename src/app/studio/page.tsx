@@ -6,8 +6,6 @@ import { AppShell, type SidebarWorkspaceItem } from "@/components/layout/AppShel
 import { ProjectAreaCatalog } from "@/components/studio/ProjectAreaCatalog";
 import type { ProjectWorkspace } from "@/types/database";
 
-export const instant = false;
-
 export default async function StudioDashboardPage() {
   await connection();
   const supabase = await createClient();

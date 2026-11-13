@@ -17,8 +17,6 @@ import { SectionEditor, type StepItem } from "./SectionEditor";
 import { AppShell } from "@/components/layout/AppShell";
 import type { UserProfile } from "@/types/database";
 
-export const instant = false;
-
 interface WriteSectionPageProps {
   params: Promise<{ id: string; sectionKey: string }>;
 }

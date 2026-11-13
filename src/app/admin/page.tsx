@@ -24,8 +24,6 @@ import type {
 import { AdminProjectsManager } from "@/components/admin/AdminProjectsManager";
 import { AdminInstitutionalPlans, type AdminInstitutionalPlanRow } from "@/components/admin/AdminInstitutionalPlans";
 
-export const instant = false;
-
 export default async function AdminPage() {
   await connection();
   const supabase = await createClient();

@@ -8,8 +8,6 @@ import { MarketplaceProjectCard } from "./MarketplaceProjectCard";
 import { getMaterialTypeLabel } from "@/lib/marketplace";
 import { getWorkspaceSections } from "@/lib/studio/templates";
 
-export const instant = false;
-
 type ProjectsPageProps = {
   searchParams: Promise<{ q?: string; category?: string; type?: string; sort?: string; page?: string }>;
 };

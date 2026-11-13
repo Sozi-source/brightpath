@@ -18,8 +18,6 @@ import {
 } from "lucide-react";
 import type { ProjectWorkspace, UserProfile } from "@/types/database";
 
-export const instant = false;
-
 export default async function SupervisorPage() {
   await connection();
   const supabase = await createClient();

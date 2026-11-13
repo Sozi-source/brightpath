@@ -5,8 +5,6 @@ import { getServerDbClient } from "@/lib/supabase/admin";
 import { AppShell } from "@/components/layout/AppShell";
 import { ProjectAreaCatalog } from "@/components/studio/ProjectAreaCatalog";
 
-export const instant = false;
-
 export default async function NewWorkspacePage() {
   await connection();
   const supabase = await createClient();

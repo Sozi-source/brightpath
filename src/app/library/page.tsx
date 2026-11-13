@@ -10,8 +10,6 @@ import { submitProjectReview } from "./actions";
 import { verifyTransactionWithPaystack } from "@/lib/paystack";
 import { PersonalizeDocumentModal } from "./PersonalizeDocumentModal";
 
-export const instant = false;
-
 interface PurchasedProjectOrder extends Order {
   projects?: Project | null;
 }

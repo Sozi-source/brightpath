@@ -2,8 +2,6 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { LoginForm } from "./LoginForm";
 
-export const instant = false;
-
 interface LoginPageProps {
   searchParams: Promise<{
     error?: string;

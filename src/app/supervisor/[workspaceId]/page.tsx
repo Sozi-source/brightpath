@@ -30,8 +30,6 @@ import {
 } from "lucide-react";
 import type { ProjectWorkspace, WorkspaceSection, SupervisorReview, UserProfile } from "@/types/database";
 
-export const instant = false;
-
 interface SupervisorWorkspacePageProps {
   params: Promise<{ workspaceId: string }>;
 }

@@ -31,8 +31,6 @@ import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
 import { UnlockExportModal } from "./UnlockExportModal";
 import { verifyWorkspaceUnlockWithPaystack } from "@/lib/paystack";
 
-export const instant = false;
-
 interface WorkspaceOverviewPageProps {
   params: Promise<{ id: string }>;
   searchParams?: Promise<{ reference?: string; trxref?: string; unlocked?: string }>;
