@@ -2,7 +2,11 @@ import { createClient } from "@/lib/supabase/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
 import { getWorkspaceSections } from "@/lib/studio/templates";
 import { resolveBusinessPlanModel, type BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
-import { buildVariedBusinessPlanPreliminaries, isPlaceholderPreliminary } from "@/lib/studio/businessPlanPreliminaries";
+import {
+  buildVariedBusinessPlanPreliminaries,
+  buildVariedBrandSymbolismBlock,
+  isPlaceholderPreliminary,
+} from "@/lib/studio/businessPlanPreliminaries";
 import { createBusinessPlanDocx } from "@/lib/studio/businessPlanDocx";
 import { createBusinessPlanPdf } from "@/lib/studio/businessPlanPdf";
 import { NextResponse, type NextRequest } from "next/server";
@@ -102,6 +106,20 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
           .replaceAll("[Institution name]", resolvedInstitution)
           .replaceAll("[Enter supervisor name]", resolvedSupervisor)
           .replaceAll("[Supervisor name]", resolvedSupervisor);
+        if (definition.key === "ch1.name" && /Green Vitality Motif/i.test(content)) {
+          const variedMotif = buildVariedBrandSymbolismBlock({
+            seed: `${workspace.id}|${resolvedBusinessName}`,
+            businessName: resolvedBusinessName,
+            county: resolvedCounty,
+            townOrMarket: resolvedTown,
+            industrySector: businessSpecs?.industrySector,
+            primaryProduct: businessSpecs?.primaryProduct,
+          });
+          content = content.replace(
+            /#### 1\.1\.1 Brand Positioning and Symbolism[\s\S]*?(?=\n#### 1\.1\.2|\n### |$)/i,
+            `#### 1.1.1 Brand Positioning and Symbolism\n${variedMotif}\n`
+          );
+        }
       }
       return { title: definition.title, content };
     })

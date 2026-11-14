@@ -3,7 +3,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getWorkspaceSections } from "@/lib/studio/templates";
 import { resolveBusinessPlanModel, type BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
 import { getBusinessModelConflictFindings } from "@/lib/studio/businessPlanProfiles";
-import { buildVariedBusinessPlanPreliminaries } from "@/lib/studio/businessPlanPreliminaries";
+import {
+  buildVariedBusinessPlanPreliminaries,
+  buildVariedBrandSymbolismBlock,
+} from "@/lib/studio/businessPlanPreliminaries";
 
 export async function queueApprovedBusinessPlanListing(workspaceId: string) {
   const db = createAdminClient();
@@ -322,6 +325,20 @@ export function stampMarketplaceBusinessPlan(
       .replace(/\s*\[Confirm lease terms and exact shop unit locally\]/gi, "")
       .replace(/\s*\[Confirm via local market survey\]/gi, "")
       .replace(/\s*\[Confirm site specifics locally\]/gi, "");
+    if (/1\.1\b/i.test(titleNorm) && /Green Vitality Motif/i.test(text)) {
+      const variedMotif = buildVariedBrandSymbolismBlock({
+        seed: `${buyer.seed || ""}|${buyer.businessName || ""}|${buyer.candidateName}`,
+        businessName: buyer.businessName || "Enterprise",
+        county: buyer.county,
+        townOrMarket: buyer.townOrMarket,
+        industrySector: buyer.industrySector,
+        primaryProduct: buyer.primaryProduct,
+      });
+      text = text.replace(
+        /#### 1\.1\.1 Brand Positioning and Symbolism[\s\S]*?(?=\n#### 1\.1\.2|\n### |$)/i,
+        `#### 1.1.1 Brand Positioning and Symbolism\n${variedMotif}\n`
+      );
+    }
     return {
       title: sec.title,
       content: text,

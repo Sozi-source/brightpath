@@ -8,7 +8,10 @@ import type { BusinessPlanSpecs } from "./businessPlanTypes";
 import { normalizeBusinessPlanSpecs, resolveBusinessPlanModel } from "./businessPlanTypes";
 import { computeBusinessPlanFinancials } from "./businessPlanMath";
 import { getConsultancySectionContent } from "./businessPlanProfiles";
-import { buildVariedBusinessPlanPreliminaries } from "./businessPlanPreliminaries";
+import {
+  buildVariedBusinessPlanPreliminaries,
+  buildVariedBrandSymbolismBlock,
+} from "./businessPlanPreliminaries";
 import { getWorkspaceSections } from "./templates";
 
 export interface GeneratedSectionPayload {
@@ -426,10 +429,14 @@ Financial forecasts project first-year gross sales of **KES ${formatKES(fin.annu
 The proposed commercial enterprise will operate under the registered trade name **${specs.businessName}**. The business slogan and brand motto is: *"**${specs.tagline}**"*.
 
 #### 1.1.1 Brand Positioning and Symbolism
-The business name was formulated to communicate professional nutrition credibility, hygiene, and practical community wellness. The brand visual identity incorporates vibrant green and warm gold accents:
-- **Green Vitality Motif**: Represents wholesome nutrition, natural health, freshness, and evidence-based preventive care.
-- **Warm Gold Accent**: Signifies quality assurance, nourishment, and socioeconomic value for households and institutions in ${specs.county}.
-- **Typography**: Clean, legible sans-serif lettering on labels, signage, and client educational materials to instill trust among consumers, healthcare practitioners, and regulatory inspectors.
+${buildVariedBrandSymbolismBlock({
+  seed: `${specs.businessName}|${specs.primaryProduct}|${specs.townOrMarket}`,
+  businessName: specs.businessName,
+  county: specs.county,
+  townOrMarket: specs.townOrMarket,
+  industrySector: specs.industrySector,
+  primaryProduct: specs.primaryProduct,
+})}
 
 #### 1.1.2 Nature of Business and Economic Sector
 The enterprise operates within the **${specs.industrySector}** sector. ${

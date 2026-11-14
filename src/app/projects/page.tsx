@@ -121,10 +121,10 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
 
   return (
     <AppShell user={user} profile={profile} activeContextTitle="Learning Resource Marketplace" marketplaceCategories={sidebarCategories}>
-      <section>
+      <section className="min-w-0 w-full overflow-x-hidden">
         <form action="/projects" className="mb-4 flex flex-col gap-2 bp-card p-3 sm:flex-row">
           <label htmlFor="marketplace-search" className="sr-only">Search learning materials</label>
-          <div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" /><input id="marketplace-search" name="q" defaultValue={filters.q || ""} placeholder="Search materials, subjects, or authors" className="h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#087f8c] focus:outline-none focus:ring-2 focus:ring-teal-100" /></div>
+          <div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" /><input id="marketplace-search" name="q" defaultValue={filters.q || ""} placeholder="Search materials, subjects, or authors" className="h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-100" /></div>
           {selectedCategory && <input type="hidden" name="category" value={selectedCategory} />}
           {selectedType && <input type="hidden" name="type" value={selectedType} />}
           <label htmlFor="marketplace-sort" className="sr-only">Sort materials</label>
@@ -139,7 +139,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
             {browseCategories.filter((category) => category.value).map((category) => {
               const shelfProjects = visibleProjects.filter((project) => category.types?.includes(project.material_type || ""));
               if (!shelfProjects.length) return null;
-              return <section key={category.value} aria-labelledby={`shelf-${category.value}`}>
+              return <section key={category.value} aria-labelledby={`shelf-${category.value}`} className="min-w-0 w-full">
                 <div className="mb-3.5 flex items-center justify-between border-b border-slate-200 pb-2">
                   <div>
                     <h2 id={`shelf-${category.value}`} className="text-base font-semibold tracking-tight text-slate-900">{category.label}</h2>
@@ -147,14 +147,14 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                   </div>
                   <Link href={filterHref({ type: category.value, category: "" })} className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">See all <span aria-hidden="true">→</span></Link>
                 </div>
-                <div className="flex gap-5 overflow-x-auto pb-4 pt-1">
-                  {shelfProjects.slice(0, 8).map((project) => (
+                <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                  {shelfProjects.map((project) => (
                     <MarketplaceProjectCard
                       key={project.id}
                       project={project}
                       viewerId={user?.id}
                       rating={ratingByProject.get(project.id)}
-                      className="w-[224px] sm:w-[232px] shrink-0"
+                      className="w-full min-w-0"
                     />
                   ))}
                 </div>
@@ -170,14 +170,14 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
             <Link href="/projects" className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">Browse all</Link>
           </div>
           {visibleProjects.length ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
               {pageProjects.map((project) => (
                 <MarketplaceProjectCard
                   key={project.id}
                   project={project}
                   viewerId={user?.id}
                   rating={ratingByProject.get(project.id)}
-                  className="w-full"
+                  className="w-full min-w-0"
                 />
               ))}
             </div>

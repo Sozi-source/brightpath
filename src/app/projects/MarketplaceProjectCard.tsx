@@ -11,7 +11,7 @@ export function MarketplaceProjectCard({
   project,
   viewerId,
   rating,
-  className = "w-[224px] sm:w-[232px] shrink-0",
+  className = "w-full min-w-0",
 }: {
   project: Project;
   viewerId?: string;

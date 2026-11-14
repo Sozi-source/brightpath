@@ -354,3 +354,78 @@ export function buildVariedBusinessPlanPreliminaries(ctx: PreliminaryVariantCont
     acknowledgements: buildVariedAcknowledgements(ctx),
   };
 }
+
+export function buildVariedBrandSymbolismBlock(params: {
+  seed?: string;
+  businessName: string;
+  county: string;
+  townOrMarket?: string;
+  industrySector?: string | null;
+  primaryProduct?: string | null;
+}): string {
+  const enterprise = cleanEnterpriseTitle(params.businessName);
+  const county = params.county.trim() || "the county";
+  const town = params.townOrMarket?.trim() || "the target market";
+  const product = (params.primaryProduct || "nutritional products and dietetic services").trim();
+  const sector = (params.industrySector || "Human Nutrition and Wellness").trim();
+  const words = enterprise.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+  const initials = (words.length > 1 ? `${words[0][0]}${words[1][0]}` : enterprise.slice(0, 2)).toUpperCase();
+  const variant = hashSeed(`${params.seed || ""}|${enterprise}|${sector}|${product}`, "knec-brand-motif") % 8;
+
+  switch (variant) {
+    case 0:
+      return `The trade name **${enterprise}** was selected to project clinical dietetic credibility, product traceability, and consumer trust across **${town}, ${county}**. The visual identity is anchored by a structured three-element brand system:
+- **Clinical Teal Shield (${initials} Monogram)**: Conveys evidence-based nutrition practice, hygienic handling, and professional accountability in the **${sector}** sector.
+- **Amber Harvest Highlight**: Symbolizes metabolic energy, micronutrient richness, and tangible health value for households and institutions in **${county}**.
+- **Information-First Label Typography**: High-contrast geometric lettering on product packs, consultation charts, and storefront signage so ingredient ratios, usage instructions, and regulatory marks remain immediately legible.`;
+
+    case 1:
+      return `The brand identity of **${enterprise}** is designed to distinguish its **${product.toLowerCase()}** from unlabelled informal alternatives in **${town}**:
+
+| Brand Identity Element | Visual & Design Specification | Strategic Meaning for Customers in ${county} |
+| :--- | :--- | :--- |
+| **Emblem & Mark** | Circular **${initials}** botanical crest with stylized grain and leaf contours | Signifies natural wholesomeness, farm-to-table purity, and nutrient retention |
+| **Primary Palette** | Deep Forest Emerald paired with Warm Terracotta Earth tones | Reflects agricultural authenticity, freshness, and grounded community service |
+| **Typography & Layout** | Bold serif brand header with clean tabular sans-serif nutrition panels | Ensures clear readability of batch dates, serving weights, and KEBS/MOH benchmarks |`;
+
+    case 2:
+      return `The name **${enterprise}** communicates scientific reliability, ethical care, and accessible community nutrition. Its visual identity follows three design principles:
+1. **Royal Indigo Seal**: Represents institutional trust, technical competence, and alignment with national nutrition and food-safety standards.
+2. **Kenyan Gold Ribbon Accent**: Denotes premium quality assurance, customer dignity, and dependable value for families in **${town}, ${county}**.
+3. **Structured Packaging & Signage Hierarchy**: Uses clean, uncluttered sans-serif typography that highlights nutritional benefits, allergen disclosures, and practitioner contact details.`;
+
+    case 3:
+      return `To establish immediate shelf and storefront recognition in **${town}**, **${enterprise}** employs a distinctive visual and packaging identity tailored to **${product}**:
+- **Sapphire Cross-Leaf Insignia**: Bridges professional health science with natural dietary wellness, reassuring clients who require accurate nutritional support.
+- **Sterling Slate & White Contrast**: Projects clinical cleanliness, transparent labelling, and hygienic operational standards across **${county}**.
+- **High-Visibility Sans-Serif Lettering**: Standardized across product labels, point-of-sale displays, and client advisory leaflets to support quick verification by consumers and public health officers.`;
+
+    case 4:
+      return `The corporate identity of **${enterprise}** reflects its focus on **${product.toLowerCase()}** within the **${sector}** market:
+
+| Visual Component | Brand Execution | Communication Objective |
+| :--- | :--- | :--- |
+| **Monogram Badge (${initials})** | Interlocking **${initials}** emblem framed by a protective wellness ring | Communicates continuity of care, quality control, and brand accountability |
+| **Color System** | Vibrant Citrus Coral balanced with Deep Olive Green | Signals natural vitality, cellular nourishment, and zero artificial adulteration |
+| **Label & Signage Typeface** | Clean humanist sans-serif with bold nutritional callout boxes | Facilitates effortless reading of portion sizes, storage guidance, and pricing in **${town}** |`;
+
+    case 5:
+      return `The brand architecture of **${enterprise}** was crafted to resonate with health-conscious households and institutional buyers in **${town}, ${county}**:
+1. **Olive & Sunlit Ochre Motif**: The olive branch represents preventive health and longevity, while the sunlit ochre tone reflects warmth, energy, and everyday affordability.
+2. **Traceability Seal**: Every package and client document carries the **${initials}** verification badge alongside clear batch, date, and nutritionist sign-off fields.
+3. **Accessible Typography**: Legible, high-contrast typefaces on labels, price lists, and educational guides ensure clarity for caregivers, patients, and institutional procurement teams.`;
+
+    case 6:
+      return `The trade name **${enterprise}** positions the venture as a dependable, professionally managed provider of **${product.toLowerCase()}** in **${county}**. Its visual identity combines:
+- **Burgundy Berry & Sage Palette**: Deep berry tones signify antioxidant and micronutrient potency, while calm sage green communicates balanced lifestyle wellness and hygienic preparation.
+- **Precision Emblem (${initials})**: A clean geometric mark suitable for storefront fascia in **${town}**, tamper-evident packaging seals, and digital M-PESA catalogs.
+- **Functional Label Typography**: Structured typography that separates brand messaging from mandatory nutritional composition, storage instructions, and regulatory compliance details.`;
+
+    default:
+      return `The business name **${enterprise}** was formulated to communicate professional nutrition credibility, hygiene, and practical community wellness in **${town}, ${county}**. The brand visual identity incorporates:
+- **Turquoise Vitality Crest (${initials})**: Represents evidence-based nutritional care, freshness, and modern dietetic practice.
+- **Warm Bronze Quality Bar**: Signifies verified supplier sourcing, standardized portioning, and socioeconomic value for households and institutions in **${county}**.
+- **Clean Sans-Serif Typography**: Applied consistently across packaging labels, fascia signage, and client educational cards to instill confidence among consumers and regulatory inspectors.`;
+  }
+}
+
