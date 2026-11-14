@@ -83,7 +83,7 @@ export function AppShell({
     { label: "Home", href: profile?.role === "student" ? "/learn" : "/", icon: Home, brandIcon: "dashboard", iconColor: "text-sky-600" },
     ...(canAccessStudio ? [{ label: "Project Studio", href: "/studio", icon: Layers, brandIcon: "projects" as BrandIconName, iconColor: "text-teal-600" }] : []),
     { label: "Projects Marketplace", href: "/projects", icon: ShoppingBag, brandIcon: "marketplace", iconColor: "text-emerald-600" },
-    { label: "Digital Library", href: "/library", icon: Library, brandIcon: "library" as BrandIconName, iconColor: "text-amber-600" },
+    { label: "Digital Library", href: "/library", icon: BookOpen, brandIcon: "library" as BrandIconName, iconColor: "text-amber-600" },
   ];
 
   const defaultCatalogLinks = [

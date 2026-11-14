@@ -281,7 +281,7 @@ export function ProjectAreaCatalog({
             }`}
           >
             <Briefcase className="h-3.5 w-3.5 text-[#087f8c]" />
-            <span>Nutrition Enterprise (35 Areas)</span>
+            <span>1. Business Enterprises</span>
           </button>
           <button
             type="button"
@@ -296,7 +296,7 @@ export function ProjectAreaCatalog({
             }`}
           >
             <FlaskConical className="h-3.5 w-3.5 text-[#087f8c]" />
-            <span>Food Science Formulation</span>
+            <span>2. Food Science Formulation</span>
           </button>
           <button
             type="button"
@@ -311,7 +311,7 @@ export function ProjectAreaCatalog({
             }`}
           >
             <LineChart className="h-3.5 w-3.5 text-[#087f8c]" />
-            <span>Nutrition Research</span>
+            <span>3. Nutrition Research</span>
           </button>
         </div>
 
@@ -400,8 +400,6 @@ export function ProjectAreaCatalog({
           ) : (
             <div className="grid w-full min-w-0 grid-cols-2 gap-3.5 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {filteredVentures.map((venture, index) => {
-                const visual = GROUP_VISUALS[venture.group];
-                const CategoryIcon = visual.Icon;
                 const palette = getCanvasPalette(venture.id || venture.number, index);
                 const shortName = getShortVentureCardName(venture.title);
 
@@ -415,12 +413,14 @@ export function ProjectAreaCatalog({
 
                     <div className="flex flex-1 flex-col justify-between p-4">
                       <div>
-                        {/* Minimal Header: Icon + Area # */}
-                        <div className="flex items-center justify-between gap-2 mb-3">
-                          <div className={`flex h-8 w-8 items-center justify-center rounded-lg border ${visual.tile} ${visual.accent}`}>
-                            <CategoryIcon className="h-4 w-4" />
-                          </div>
-                          <span className="font-mono text-[10.5px] font-semibold text-slate-400">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span
+                            style={{ color: palette.accentHex }}
+                            className="text-[10px] font-semibold uppercase tracking-wider truncate"
+                          >
+                            {venture.groupName}
+                          </span>
+                          <span className="font-mono text-[10px] font-semibold text-slate-400 shrink-0">
                             #{venture.number}
                           </span>
                         </div>
