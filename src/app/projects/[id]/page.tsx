@@ -61,6 +61,7 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
     ? "Craft Certificate"
     : "Diploma";
   const exactTitle = getExactBusinessTitle(product.title);
+  const productPalette = getCanvasPalette(product.title || product.id);
 
   const extension = product.file_path.startsWith("workspace-export:")
     ? "PDF + Word"
@@ -93,13 +94,13 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
             <div className="grid gap-5 p-5 md:grid-cols-[210px_1fr]">
               {/* Left Column: Aspect [3/4] Cover + Material Dossier Box to fill gap */}
               <div className="flex flex-col gap-3">
-                <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-teal-500/30 bg-gradient-to-br from-[#0c8ea0] via-[#087f8c] to-[#045963] shrink-0">
+                <div className={`relative aspect-[3/4] overflow-hidden rounded-lg border border-slate-200 bg-gradient-to-br ${productPalette.bgGradient} shrink-0`}>
                   {product.cover_path ? (
                     <Image src={`/api/projects/${product.id}/cover`} alt={`${product.title} cover`} fill unoptimized sizes="210px" className="object-cover" />
                   ) : isBusinessPlan ? (
-                    <div className="relative h-full w-full overflow-hidden bg-gradient-to-br from-[#0c8ea0] via-[#087f8c] to-[#045963] p-4 text-white flex flex-col justify-between select-none shadow-inner">
-                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-200/30 via-transparent to-transparent pointer-events-none" />
-                      <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
+                    <div className={`relative h-full w-full overflow-hidden bg-gradient-to-br ${productPalette.bgGradient} p-4 text-white flex flex-col justify-between select-none shadow-inner`}>
+                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent pointer-events-none" />
+                      <div className="absolute inset-0 opacity-[0.08] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
                       <div className="absolute inset-2 rounded border border-white/25 pointer-events-none" />
 
                       <div className="relative z-10 text-center pt-1">
@@ -256,9 +257,9 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
               </div>
 
               <div className="divide-y divide-slate-100">
-                {relatedProducts.map((item) => {
+                {relatedProducts.map((item, idx) => {
                   const relTitle = getExactBusinessTitle(item.title);
-                  const palette = getCanvasPalette(item.id || item.title);
+                  const palette = getCanvasPalette(item.title || item.id, idx);
                   return (
                     <Link
                       key={item.id}

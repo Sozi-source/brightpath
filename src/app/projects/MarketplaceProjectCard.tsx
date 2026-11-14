@@ -11,11 +11,13 @@ export function MarketplaceProjectCard({
   project,
   viewerId,
   rating,
+  colorIndex,
   className = "w-full min-w-0",
 }: {
   project: Project;
   viewerId?: string;
   rating?: { rating_average: number; review_count: number };
+  colorIndex?: number;
   className?: string;
 }) {
   const reviewCount = Number(rating?.review_count || 0);
@@ -37,7 +39,7 @@ export function MarketplaceProjectCard({
   // Extract exact business or material title excluding extra information like regions and counties
   const exactTitle = getExactBusinessTitle(project.title);
 
-  const palette = getCanvasPalette(project.id || project.title);
+  const palette = getCanvasPalette(project.title || project.id, colorIndex);
 
   return (
     <article className={`group flex flex-col justify-between rounded-xl border border-slate-200/90 bg-white shadow-xs ${palette.hoverBorder} hover:shadow-md transition-all duration-200 overflow-hidden ${className}`}>

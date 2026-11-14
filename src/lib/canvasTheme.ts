@@ -16,14 +16,14 @@ export interface CanvasPalette {
 
 export const CANVAS_PALETTES: CanvasPalette[] = [
   {
-    id: "navy",
-    name: "Oxford Navy",
-    bgGradient: "from-[#1e3a8a] via-[#1e40af] to-[#172554]",
-    accentHex: "#1e40af",
-    badgeBg: "bg-blue-50 text-blue-700 border-blue-200",
-    circleMenuBg: "bg-[#1d4ed8] text-white hover:bg-[#1e40af]",
-    hoverBorder: "hover:border-blue-400",
-    lightTint: "bg-blue-50/40",
+    id: "ruby",
+    name: "Crimson Ruby",
+    bgGradient: "from-[#be123c] via-[#e11d48] to-[#881337]",
+    accentHex: "#be123c",
+    badgeBg: "bg-rose-50 text-rose-700 border-rose-200",
+    circleMenuBg: "bg-[#e11d48] text-white hover:bg-[#be123c]",
+    hoverBorder: "hover:border-rose-400",
+    lightTint: "bg-rose-50/40",
   },
   {
     id: "emerald",
@@ -36,6 +36,16 @@ export const CANVAS_PALETTES: CanvasPalette[] = [
     lightTint: "bg-emerald-50/40",
   },
   {
+    id: "cyan",
+    name: "Ocean Sapphire",
+    bgGradient: "from-[#0369a1] via-[#0284c7] to-[#0c4a6e]",
+    accentHex: "#0284c7",
+    badgeBg: "bg-sky-50 text-sky-700 border-sky-200",
+    circleMenuBg: "bg-[#0284c7] text-white hover:bg-[#0369a1]",
+    hoverBorder: "hover:border-sky-400",
+    lightTint: "bg-sky-50/40",
+  },
+  {
     id: "terracotta",
     name: "Warm Terracotta",
     bgGradient: "from-[#c2410c] via-[#ea580c] to-[#9a3412]",
@@ -46,44 +56,14 @@ export const CANVAS_PALETTES: CanvasPalette[] = [
     lightTint: "bg-orange-50/40",
   },
   {
-    id: "amethyst",
-    name: "Royal Amethyst",
-    bgGradient: "from-[#6b21a8] via-[#7e22ce] to-[#581c87]",
-    accentHex: "#7e22ce",
-    badgeBg: "bg-purple-50 text-purple-700 border-purple-200",
-    circleMenuBg: "bg-[#9333ea] text-white hover:bg-[#7e22ce]",
-    hoverBorder: "hover:border-purple-400",
-    lightTint: "bg-purple-50/40",
-  },
-  {
     id: "teal",
     name: "Institutional Teal",
-    bgGradient: "from-[#087f8c] via-[#0e9ba5] to-[#044e56]",
-    accentHex: "#087f8c",
+    bgGradient: "from-[#0f766e] via-[#0d9488] to-[#134e4a]",
+    accentHex: "#0f766e",
     badgeBg: "bg-teal-50 text-teal-700 border-teal-200",
-    circleMenuBg: "bg-[#087f8c] text-white hover:bg-[#066570]",
+    circleMenuBg: "bg-[#0d9488] text-white hover:bg-[#0f766e]",
     hoverBorder: "hover:border-teal-400",
     lightTint: "bg-teal-50/40",
-  },
-  {
-    id: "ruby",
-    name: "Crimson Ruby",
-    bgGradient: "from-[#be123c] via-[#e11d48] to-[#881337]",
-    accentHex: "#be123c",
-    badgeBg: "bg-rose-50 text-rose-700 border-rose-200",
-    circleMenuBg: "bg-[#e11d48] text-white hover:bg-[#be123c]",
-    hoverBorder: "hover:border-rose-400",
-    lightTint: "bg-rose-50/40",
-  },
-  {
-    id: "cyan",
-    name: "Ocean Cyan",
-    bgGradient: "from-[#0369a1] via-[#0284c7] to-[#0c4a6e]",
-    accentHex: "#0284c7",
-    badgeBg: "bg-sky-50 text-sky-700 border-sky-200",
-    circleMenuBg: "bg-[#0284c7] text-white hover:bg-[#0369a1]",
-    hoverBorder: "hover:border-sky-400",
-    lightTint: "bg-sky-50/40",
   },
   {
     id: "ochre",
@@ -96,37 +76,68 @@ export const CANVAS_PALETTES: CanvasPalette[] = [
     lightTint: "bg-amber-50/40",
   },
   {
-    id: "indigo",
-    name: "Midnight Indigo",
-    bgGradient: "from-[#3730a3] via-[#4338ca] to-[#312e81]",
-    accentHex: "#4338ca",
-    badgeBg: "bg-indigo-50 text-indigo-700 border-indigo-200",
-    circleMenuBg: "bg-[#4f46e5] text-white hover:bg-[#4338ca]",
-    hoverBorder: "hover:border-indigo-400",
-    lightTint: "bg-indigo-50/40",
+    id: "navy",
+    name: "Oxford Navy",
+    bgGradient: "from-[#1e3a8a] via-[#2563eb] to-[#172554]",
+    accentHex: "#1d4ed8",
+    badgeBg: "bg-blue-50 text-blue-700 border-blue-200",
+    circleMenuBg: "bg-[#2563eb] text-white hover:bg-[#1d4ed8]",
+    hoverBorder: "hover:border-blue-400",
+    lightTint: "bg-blue-50/40",
   },
   {
-    id: "fuchsia",
-    name: "Deep Fuchsia",
-    bgGradient: "from-[#86198f] via-[#a21caf] to-[#701a75]",
-    accentHex: "#a21caf",
-    badgeBg: "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200",
-    circleMenuBg: "bg-[#c026d3] text-white hover:bg-[#a21caf]",
-    hoverBorder: "hover:border-fuchsia-400",
-    lightTint: "bg-fuchsia-50/40",
+    id: "olive",
+    name: "Botanical Olive",
+    bgGradient: "from-[#3f6212] via-[#4d7c0f] to-[#365314]",
+    accentHex: "#3f6212",
+    badgeBg: "bg-lime-50 text-lime-800 border-lime-200",
+    circleMenuBg: "bg-[#4d7c0f] text-white hover:bg-[#3f6212]",
+    hoverBorder: "hover:border-lime-500",
+    lightTint: "bg-lime-50/40",
+  },
+  {
+    id: "slate",
+    name: "Executive Slate",
+    bgGradient: "from-[#334155] via-[#475569] to-[#0f172a]",
+    accentHex: "#334155",
+    badgeBg: "bg-slate-100 text-slate-700 border-slate-300",
+    circleMenuBg: "bg-[#475569] text-white hover:bg-[#334155]",
+    hoverBorder: "hover:border-slate-400",
+    lightTint: "bg-slate-50/60",
+  },
+  {
+    id: "amethyst",
+    name: "Royal Amethyst",
+    bgGradient: "from-[#6b21a8] via-[#7e22ce] to-[#581c87]",
+    accentHex: "#7e22ce",
+    badgeBg: "bg-purple-50 text-purple-700 border-purple-200",
+    circleMenuBg: "bg-[#9333ea] text-white hover:bg-[#7e22ce]",
+    hoverBorder: "hover:border-purple-400",
+    lightTint: "bg-purple-50/40",
   },
 ];
 
 /**
- * Deterministically assign a Canvas jewel-tone palette from a string or number seed.
- * Guarantees that the same item always has the same color, but neighboring items rotate.
+ * Deterministically assign a Canvas jewel-tone palette from a sequence index or string seed.
+ * Passing `colorIndex` guarantees neighboring cards in a grid never collide on the same color.
  */
-export function getCanvasPalette(seed: string | number): CanvasPalette {
-  let hash = 0;
-  const str = String(seed || "default");
+export function getCanvasPalette(seed: string | number, colorIndex?: number): CanvasPalette {
+  if (typeof colorIndex === "number" && Number.isFinite(colorIndex) && colorIndex >= 0) {
+    return CANVAS_PALETTES[colorIndex % CANVAS_PALETTES.length];
+  }
+  const str = String(seed || "default").toLowerCase();
+  // Keyword-based spread for common titles when rendered standalone without a grid index
+  if (str.includes("nutrivital")) return CANVAS_PALETTES[0]; // Crimson Ruby
+  if (str.includes("afya bora")) return CANVAS_PALETTES[1]; // Forest Emerald
+  if (str.includes("sculpt")) return CANVAS_PALETTES[2]; // Ocean Sapphire
+  if (str.includes("metabolic")) return CANVAS_PALETTES[3]; // Warm Terracotta
+  if (str.includes("first 1000") || str.includes("maternal")) return CANVAS_PALETTES[4]; // Institutional Teal
+  if (str.includes("memojo")) return CANVAS_PALETTES[5]; // Kenyan Ochre
+
+  let hash = 2166136261;
   for (let i = 0; i < str.length; i++) {
-    hash = (hash << 5) - hash + str.charCodeAt(i);
-    hash |= 0;
+    hash ^= str.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
   }
   const index = Math.abs(hash) % CANVAS_PALETTES.length;
   return CANVAS_PALETTES[index];

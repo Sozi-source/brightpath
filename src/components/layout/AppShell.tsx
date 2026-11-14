@@ -78,30 +78,30 @@ export function AppShell({
   const isRoleSupervisor = profile?.role === "supervisor" || isRoleAdmin;
   const canAccessStudio = isRoleAdmin || isRoleSupervisor || Boolean(profile?.institution_id);
 
-  const navItems: { label: string; href: string; icon: React.ComponentType<{ className?: string }>; brandIcon: BrandIconName }[] = [
-    { label: "Home", href: profile?.role === "student" ? "/learn" : "/", icon: Home, brandIcon: "dashboard" },
-    ...(canAccessStudio ? [{ label: "Project Studio", href: "/studio", icon: Layers, brandIcon: "projects" as BrandIconName }] : []),
-    { label: "Projects Marketplace", href: "/projects", icon: ShoppingBag, brandIcon: "marketplace" },
-    { label: "Digital Library", href: "/library", icon: Library, brandIcon: "library" as BrandIconName },
+  const navItems: { label: string; href: string; icon: React.ComponentType<{ className?: string }>; brandIcon: BrandIconName; iconColor: string }[] = [
+    { label: "Home", href: profile?.role === "student" ? "/learn" : "/", icon: Home, brandIcon: "dashboard", iconColor: "text-sky-600" },
+    ...(canAccessStudio ? [{ label: "Project Studio", href: "/studio", icon: Layers, brandIcon: "projects" as BrandIconName, iconColor: "text-teal-600" }] : []),
+    { label: "Projects Marketplace", href: "/projects", icon: ShoppingBag, brandIcon: "marketplace", iconColor: "text-emerald-600" },
+    { label: "Digital Library", href: "/library", icon: Library, brandIcon: "library" as BrandIconName, iconColor: "text-amber-600" },
   ];
 
   const defaultCatalogLinks = [
-    { label: "All materials", href: "/projects" },
-    { label: "Business plans", href: "/projects?type=business_plan" },
-    { label: "Lecture notes", href: "/projects?type=lecture_notes" },
-    { label: "Past papers", href: "/projects?type=past_paper" },
-    { label: "Study resources", href: "/projects?type=study_resources" },
-    { label: "Technical projects", href: "/projects?type=technical_project" },
-    { label: "Research projects", href: "/projects?type=research_project" },
+    { label: "All materials", href: "/projects", dotColor: "bg-teal-500" },
+    { label: "Business plans", href: "/projects?type=business_plan", dotColor: "bg-emerald-500" },
+    { label: "Lecture notes", href: "/projects?type=lecture_notes", dotColor: "bg-sky-500" },
+    { label: "Past papers", href: "/projects?type=past_paper", dotColor: "bg-amber-500" },
+    { label: "Study resources", href: "/projects?type=study_resources", dotColor: "bg-orange-500" },
+    { label: "Technical projects", href: "/projects?type=technical_project", dotColor: "bg-blue-600" },
+    { label: "Research projects", href: "/projects?type=research_project", dotColor: "bg-rose-500" },
   ];
 
   const adminModules = [
-    { label: "Business Plans", href: "/admin#business-plans", icon: Layers },
-    { label: "Institutional Plans", href: "/admin#institutional-plans", icon: Briefcase },
-    { label: "User Directory", href: "/admin#users", icon: Users },
-    { label: "Trainer Approvals", href: "/admin#trainer-approvals", icon: ShieldCheck },
-    { label: "Transactions", href: "/admin#orders", icon: Coins },
-    { label: "Flagged Content", href: "/admin#reports", icon: AlertCircle },
+    { label: "Business Plans", href: "/admin#business-plans", icon: Layers, iconColor: "text-teal-600" },
+    { label: "Institutional Plans", href: "/admin#institutional-plans", icon: Briefcase, iconColor: "text-blue-600" },
+    { label: "User Directory", href: "/admin#users", icon: Users, iconColor: "text-emerald-600" },
+    { label: "Trainer Approvals", href: "/admin#trainer-approvals", icon: ShieldCheck, iconColor: "text-amber-600" },
+    { label: "Transactions", href: "/admin#orders", icon: Coins, iconColor: "text-sky-600" },
+    { label: "Flagged Content", href: "/admin#reports", icon: AlertCircle, iconColor: "text-rose-600" },
   ];
 
   const roleBadgeLabel = isRoleAdmin
@@ -212,14 +212,14 @@ export function AppShell({
 
           {/* Official Portal Branding */}
           <Link href="/" className="flex min-w-0 items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-semibold text-sm shadow-xs">
+            <div className="h-9 w-9 rounded-xl bg-[#087f8c] flex items-center justify-center text-white font-semibold text-sm shadow-xs">
               <span className="text-amber-300">T</span>H
             </div>
             <div className="flex min-w-0 flex-col">
               <span className="truncate font-semibold text-sm sm:text-lg text-slate-900 tracking-tight leading-none">
                 TVET Hub
               </span>
-              <span className="hidden text-[10px] font-medium text-indigo-600 tracking-wider sm:block">
+              <span className="hidden text-[10px] font-medium text-[#087f8c] tracking-wider sm:block">
                 Simple · Reliable · Innovative
               </span>
             </div>
@@ -228,8 +228,8 @@ export function AppShell({
 
         {/* Top Right User & Examination Series Context */}
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-4">
-          <div className="hidden lg:flex items-center gap-2 bg-indigo-50/70 px-3 py-1 rounded-md border border-indigo-100 text-xs font-semibold text-slate-900">
-            <Calendar className="h-3.5 w-3.5 text-indigo-600" />
+          <div className="hidden lg:flex items-center gap-2 bg-teal-50/80 px-3 py-1 rounded-md border border-teal-200/70 text-xs font-semibold text-slate-900">
+            <Calendar className="h-3.5 w-3.5 text-[#087f8c]" />
             <span>KNEC 2026 Academic Series</span>
           </div>
 
@@ -257,7 +257,7 @@ export function AppShell({
           ) : (
             <Link
               href="/login"
-              className="text-xs font-semibold px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
+              className="text-xs font-semibold px-4 py-2 rounded-lg bg-[#087f8c] hover:bg-[#066570] text-white transition-colors"
             >
               Sign In
             </Link>
@@ -275,12 +275,12 @@ export function AppShell({
           }`}
         >
           {/* Signature KEC Two-Tone Accent Stripe */}
-          <div className="h-1 w-full shrink-0 bg-gradient-to-r from-indigo-600 via-indigo-600 to-amber-400" />
+          <div className="h-1 w-full shrink-0 bg-gradient-to-r from-[#087f8c] via-teal-500 to-amber-400" />
 
           {/* Continuous Identity & Role Header (Always unified across Admin, Staff, and Students) */}
           <div className="shrink-0 border-b border-slate-100 bg-slate-50/70 px-3.5 py-3">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-xs font-semibold text-indigo-700 border border-indigo-200/70">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-xs font-semibold text-[#087f8c] border border-teal-200/80">
                 {userInitials}
               </div>
               <div className="min-w-0 flex-1">
@@ -293,12 +293,12 @@ export function AppShell({
                   <span
                     className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[9.5px] font-semibold uppercase tracking-wider ${
                       isRoleAdmin
-                        ? "bg-indigo-100/80 text-indigo-800"
+                        ? "bg-teal-100/80 text-teal-900"
                         : isRoleSupervisor
                         ? "bg-blue-100/80 text-blue-800"
                         : canAccessStudio
                         ? "bg-emerald-100/80 text-emerald-800"
-                        : "bg-slate-200/70 text-slate-700"
+                        : "bg-amber-100/80 text-amber-800"
                     }`}
                   >
                     {isRoleSupervisor ? (
@@ -339,15 +339,15 @@ export function AppShell({
                     aria-current={isActive ? "page" : undefined}
                     className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs transition-all ${
                       isActive
-                        ? "bg-indigo-600 text-white font-semibold shadow-xs"
+                        ? "bg-[#087f8c] text-white font-semibold shadow-xs"
                         : "font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
                     }`}
                   >
-                    <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-white" : "text-slate-400"}`} />
+                    <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-white" : item.iconColor}`} />
                     <span className="truncate">{item.label}</span>
                     <ChevronRight
                       className={`ml-auto h-3.5 w-3.5 shrink-0 ${
-                        isActive ? "text-indigo-200" : "text-slate-300"
+                        isActive ? "text-teal-100" : "text-slate-300"
                       }`}
                     />
                   </Link>
@@ -369,21 +369,21 @@ export function AppShell({
                     aria-current={pathname.startsWith("/supervisor") ? "page" : undefined}
                     className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-xs transition-all ${
                       pathname.startsWith("/supervisor")
-                        ? "bg-indigo-600 text-white font-semibold shadow-xs"
+                        ? "bg-[#087f8c] text-white font-semibold shadow-xs"
                         : "font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
                     }`}
                   >
                     <div className="flex min-w-0 items-center gap-2.5">
                       <ShieldCheck
                         className={`h-4 w-4 shrink-0 ${
-                          pathname.startsWith("/supervisor") ? "text-white" : "text-slate-400"
+                          pathname.startsWith("/supervisor") ? "text-white" : "text-blue-600"
                         }`}
                       />
                       <span className="truncate">Supervisor Portal</span>
                     </div>
                     <ChevronRight
                       className={`h-3.5 w-3.5 shrink-0 ${
-                        pathname.startsWith("/supervisor") ? "text-indigo-200" : "text-slate-300"
+                        pathname.startsWith("/supervisor") ? "text-teal-100" : "text-slate-300"
                       }`}
                     />
                   </Link>
@@ -395,21 +395,21 @@ export function AppShell({
                       aria-current={pathname === "/admin" ? "page" : undefined}
                       className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-xs transition-all ${
                         pathname === "/admin"
-                          ? "bg-indigo-600 text-white font-semibold shadow-xs"
+                          ? "bg-[#087f8c] text-white font-semibold shadow-xs"
                           : "font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
                       }`}
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
                         <Settings
                           className={`h-4 w-4 shrink-0 ${
-                            pathname === "/admin" ? "text-white" : "text-slate-400"
+                            pathname === "/admin" ? "text-white" : "text-teal-600"
                           }`}
                         />
                         <span className="truncate">Admin Console</span>
                       </div>
                       <ChevronRight
                         className={`h-3.5 w-3.5 shrink-0 ${
-                          pathname === "/admin" ? "text-indigo-200" : "text-slate-300"
+                          pathname === "/admin" ? "text-teal-100" : "text-slate-300"
                         }`}
                       />
                     </Link>
@@ -431,7 +431,7 @@ export function AppShell({
                           className="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 transition-colors"
                         >
                           <span className="flex min-w-0 items-center gap-2">
-                            <ModuleIcon className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                            <ModuleIcon className={`h-3.5 w-3.5 shrink-0 ${item.iconColor}`} />
                             <span className="truncate">{item.label}</span>
                           </span>
                           <ChevronRight className="h-3 w-3 shrink-0 text-slate-300" />
@@ -452,7 +452,7 @@ export function AppShell({
                     <Link
                       href="/studio/new"
                       onClick={() => setSidebarOpen(false)}
-                      className="inline-flex items-center gap-1 rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
+                      className="inline-flex items-center gap-1 rounded-md border border-teal-200 bg-teal-50 px-2 py-0.5 text-[10px] font-semibold text-[#087f8c] hover:bg-teal-100 transition-colors"
                     >
                       <Plus className="h-2.5 w-2.5" />
                       <span>New Draft</span>
@@ -473,7 +473,7 @@ export function AppShell({
                           <Link
                             href={`/studio/${ws.id}`}
                             onClick={() => setSidebarOpen(false)}
-                            className="block text-[11px] font-semibold text-slate-900 hover:text-indigo-600 truncate leading-snug"
+                            className="block text-[11px] font-semibold text-slate-900 hover:text-[#087f8c] truncate leading-snug"
                             title={ws.title}
                           >
                             {ws.title}
@@ -505,7 +505,7 @@ export function AppShell({
                             <Link
                               href={`/studio/${ws.id}`}
                               onClick={() => setSidebarOpen(false)}
-                              className="flex-1 inline-flex items-center justify-center gap-1 rounded-md bg-indigo-600 hover:bg-indigo-700 px-2 py-1 text-[11px] font-semibold text-white transition-colors"
+                              className="flex-1 inline-flex items-center justify-center gap-1 rounded-md bg-[#087f8c] hover:bg-[#066570] px-2 py-1 text-[11px] font-semibold text-white transition-colors"
                             >
                               <span>Continue</span>
                               <ArrowRight className="h-3 w-3" />
@@ -525,7 +525,7 @@ export function AppShell({
                         className="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 transition-colors"
                       >
                         <span className="flex items-center gap-2">
-                          <FileText className="h-3.5 w-3.5 text-slate-400" />
+                          <FileText className="h-3.5 w-3.5 text-teal-600" />
                           <span>My Studio Drafts</span>
                         </span>
                         <ChevronRight className="h-3 w-3 text-slate-300" />
@@ -537,7 +537,7 @@ export function AppShell({
                       className="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 transition-colors"
                     >
                       <span className="flex items-center gap-2">
-                        <BookOpen className="h-3.5 w-3.5 text-slate-400" />
+                        <BookOpen className="h-3.5 w-3.5 text-amber-600" />
                         <span>Purchased Downloads</span>
                       </span>
                       <ChevronRight className="h-3 w-3 text-slate-300" />
@@ -553,7 +553,10 @@ export function AppShell({
                 Resource Catalog
               </div>
               {(marketplaceCategories?.length
-                ? marketplaceCategories
+                ? marketplaceCategories.map((cat, idx) => ({
+                    ...cat,
+                    dotColor: defaultCatalogLinks[idx % defaultCatalogLinks.length].dotColor,
+                  }))
                 : defaultCatalogLinks.map((item) => ({
                     ...item,
                     count: undefined as number | undefined,
@@ -567,16 +570,19 @@ export function AppShell({
                   aria-current={category.active ? "page" : undefined}
                   className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
                     category.active
-                      ? "border border-indigo-200 bg-indigo-50 font-semibold text-indigo-700"
+                      ? "border border-teal-200 bg-teal-50 font-semibold text-[#087f8c]"
                       : "border border-transparent font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
                   }`}
                 >
-                  <span className="truncate">{category.label}</span>
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${category.dotColor}`} />
+                    <span className="truncate">{category.label}</span>
+                  </span>
                   {category.count !== undefined ? (
                     <span
                       className={`ml-2 rounded-full px-1.5 py-0.2 text-[10px] font-mono ${
                         category.active
-                          ? "bg-indigo-100 text-indigo-700 font-semibold"
+                          ? "bg-teal-100 text-[#087f8c] font-semibold"
                           : "bg-slate-100 text-slate-500"
                       }`}
                     >

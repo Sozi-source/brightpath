@@ -148,12 +148,13 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                   <Link href={filterHref({ type: category.value, category: "" })} className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">See all <span aria-hidden="true">→</span></Link>
                 </div>
                 <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-                  {shelfProjects.map((project) => (
+                  {shelfProjects.map((project, index) => (
                     <MarketplaceProjectCard
                       key={project.id}
                       project={project}
                       viewerId={user?.id}
                       rating={ratingByProject.get(project.id)}
+                      colorIndex={index}
                       className="w-full min-w-0"
                     />
                   ))}
@@ -171,12 +172,13 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
           </div>
           {visibleProjects.length ? (
             <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-              {pageProjects.map((project) => (
+              {pageProjects.map((project, index) => (
                 <MarketplaceProjectCard
                   key={project.id}
                   project={project}
                   viewerId={user?.id}
                   rating={ratingByProject.get(project.id)}
+                  colorIndex={index}
                   className="w-full min-w-0"
                 />
               ))}
