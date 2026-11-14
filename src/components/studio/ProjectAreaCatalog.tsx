@@ -133,6 +133,22 @@ function getVentureProblemAndGap(venture: NutritionVentureDefinition) {
   return { problemSolved, justificationGap };
 }
 
+function getShortVentureCardName(title: string): string {
+  const cleaned = title
+    .replace(/\s*\([^)]*\)/g, "")
+    .replace(/\s+(Center|Centre|Clinic|Practice|Consultancy|Service|Enterprise|Services|Venture)$/i, "")
+    .trim();
+  if (cleaned.length <= 28) return cleaned;
+  const words = cleaned.split(/\s+/);
+  let out = "";
+  for (const w of words) {
+    const next = out ? `${out} ${w}` : w;
+    if (next.length > 26 && out) break;
+    out = next;
+  }
+  return out || cleaned;
+}
+
 export function ProjectAreaCatalog({
   admissionNumber = "",
   course = "Diploma in Human Nutrition and Dietetics",
@@ -387,96 +403,47 @@ export function ProjectAreaCatalog({
                 const visual = GROUP_VISUALS[venture.group];
                 const CategoryIcon = visual.Icon;
                 const palette = getCanvasPalette(venture.id || venture.number, index);
-
-                const capitalBadgeColor =
-                  venture.capitalTier === "Low"
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                    : venture.capitalTier === "Medium"
-                    ? "bg-amber-50 text-amber-700 border-amber-200"
-                    : "bg-rose-50 text-rose-700 border-rose-200";
+                const shortName = getShortVentureCardName(venture.title);
 
                 return (
                   <article
                     key={venture.id}
                     className={`group flex min-w-0 flex-col justify-between rounded-xl border border-slate-200/90 bg-white shadow-xs ${palette.hoverBorder} hover:shadow-md transition-all duration-200 overflow-hidden`}
                   >
-                    {/* Subtle Top Accent Bar */}
+                    {/* Minimal Top Accent Bar */}
                     <div className={`h-1 w-full bg-gradient-to-r ${palette.bgGradient}`} />
 
-                    <div className="flex flex-1 flex-col p-3.5">
-                      {/* Top Row: Area Number + Template Indicator */}
-                      <div className="flex items-center justify-between gap-2 mb-3">
-                        <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${palette.badgeBg}`}>
-                          Area #{venture.number}
-                        </span>
-                        <span className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[9.5px] font-semibold ${capitalBadgeColor}`}>
-                          {venture.capitalTier} Capital
-                        </span>
-                      </div>
-
-                      {/* Main Blueprint Header: Icon + Single Title */}
-                      <div
-                        onClick={() => setDetailVenture(venture)}
-                        className="flex items-start gap-2.5 cursor-pointer"
-                      >
-                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${visual.tile} ${visual.accent}`}>
-                          <CategoryIcon className="h-5 w-5" />
+                    <div className="flex flex-1 flex-col justify-between p-4">
+                      <div>
+                        {/* Minimal Header: Icon + Area # */}
+                        <div className="flex items-center justify-between gap-2 mb-3">
+                          <div className={`flex h-8 w-8 items-center justify-center rounded-lg border ${visual.tile} ${visual.accent}`}>
+                            <CategoryIcon className="h-4 w-4" />
+                          </div>
+                          <span className="font-mono text-[10.5px] font-semibold text-slate-400">
+                            #{venture.number}
+                          </span>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <h4 className="font-semibold text-[13px] leading-snug text-slate-900 group-hover:text-[#087f8c] transition-colors line-clamp-2 min-h-[36px]">
-                            {venture.title}
+
+                        {/* Short Clean Name (Full detailed name shown on Details page) */}
+                        <button
+                          type="button"
+                          onClick={() => setDetailVenture(venture)}
+                          className="w-full text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#087f8c] rounded"
+                          title={venture.title}
+                        >
+                          <h4 className="font-semibold text-[13.5px] leading-snug text-slate-900 group-hover:text-[#087f8c] transition-colors line-clamp-2 min-h-[38px]">
+                            {shortName}
                           </h4>
-                          <p className="mt-1 text-[11px] text-slate-500 truncate">
-                            {venture.groupName} · Blueprint
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Concise Capital / Level Row */}
-                      <div className="mt-3 flex items-center justify-between gap-2 text-[10.5px] text-slate-500">
-                        <span className="truncate font-medium">
-                          KNEC {level === "craft" ? "Craft" : "Diploma"}
-                        </span>
-                        <span className="rounded border border-dashed border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[9.5px] font-medium text-slate-600 shrink-0">
-                          5-Ch. Template
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Bottom Action Bar */}
-                    <div className="border-t border-slate-100 bg-slate-50/70 px-3.5 py-2.5 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-slate-400">
-                        <button
-                          type="button"
-                          onClick={() => setDetailVenture(venture)}
-                          title="KNEC Word (.docx) & PDF Manuscript"
-                          className="hover:text-slate-700 cursor-pointer transition-colors p-0.5"
-                        >
-                          <FileText className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDetailVenture(venture)}
-                          title="Financial Schedules, Cashflow & Break-even"
-                          className="hover:text-slate-700 cursor-pointer transition-colors p-0.5"
-                        >
-                          <Calculator className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDetailVenture(venture)}
-                          title="KNEC Examination Syllabus & Rubric"
-                          className="hover:text-slate-700 cursor-pointer transition-colors p-0.5"
-                        >
-                          <Folder className="h-3.5 w-3.5" />
                         </button>
                       </div>
 
-                      <div className="flex items-center gap-1.5">
+                      {/* Minimal Footer: Details + Start */}
+                      <div className="mt-4 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
                         <button
                           type="button"
                           onClick={() => setDetailVenture(venture)}
-                          className="text-[11px] font-semibold text-slate-600 hover:text-slate-900 hover:underline cursor-pointer px-1 py-0.5"
+                          className="text-[11px] font-medium text-slate-500 hover:text-slate-900 cursor-pointer"
                         >
                           Details
                         </button>
