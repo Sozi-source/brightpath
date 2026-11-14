@@ -60,7 +60,7 @@ export async function login(formData: FormData) {
   // Redirect based on role and redirect parameter
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, institution_id")
     .eq("id", data.user.id)
     .single();
 
@@ -69,6 +69,8 @@ export async function login(formData: FormData) {
     await supabase.auth.signOut();
     fail(failPath, "Your account profile is not ready. Contact your college administrator.");
   }
+
+  const hasStudentStudioAccess = role !== "student" || Boolean(profile?.institution_id);
 
   if (role === "supervisor") {
     const { data: trainerProfile } = await supabase
@@ -91,7 +93,14 @@ export async function login(formData: FormData) {
   }
 
   if (redirectUrl && isAllowedRoleRedirect(role, redirectUrl)) {
+    if (!hasStudentStudioAccess && redirectUrl.startsWith("/studio")) {
+      redirect("/projects");
+    }
     redirect(redirectUrl);
+  }
+
+  if (role === "student" && !hasStudentStudioAccess) {
+    redirect("/projects");
   }
 
   redirect(ROLE_HOME[role]);
@@ -144,12 +153,12 @@ export async function signup(formData: FormData) {
     fail("/signup", error.message);
   }
 
-  if (data?.user && matchedInstitution) {
+  if (data?.user) {
     await adminDb
       .from("profiles")
       .update({
-        institution_id: matchedInstitution.id,
-        institution: matchedInstitution.name,
+        institution_id: matchedInstitution ? matchedInstitution.id : null,
+        institution: matchedInstitution ? matchedInstitution.name : null,
       })
       .eq("id", data.user.id);
   }

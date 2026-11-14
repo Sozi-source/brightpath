@@ -382,95 +382,77 @@ export function ProjectAreaCatalog({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-              {filteredVentures.map((venture) => {
+            <div className="grid w-full min-w-0 grid-cols-2 gap-3.5 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              {filteredVentures.map((venture, index) => {
+                const visual = GROUP_VISUALS[venture.group];
+                const CategoryIcon = visual.Icon;
+                const palette = getCanvasPalette(venture.id || venture.number, index);
+
                 const capitalBadgeColor =
                   venture.capitalTier === "Low"
                     ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                     : venture.capitalTier === "Medium"
                     ? "bg-amber-50 text-amber-700 border-amber-200"
                     : "bg-rose-50 text-rose-700 border-rose-200";
-                const visual = GROUP_VISUALS[venture.group];
-                const CategoryIcon = visual.Icon;
-                const palette = getCanvasPalette(venture.id || venture.number);
 
                 return (
                   <article
                     key={venture.id}
-                    className={`group flex min-w-0 flex-col justify-between rounded-lg border border-slate-200/90 bg-white shadow-2xs hover:shadow-md transition-all duration-200 overflow-hidden ${palette.hoverBorder}`}
+                    className={`group flex min-w-0 flex-col justify-between rounded-xl border border-slate-200/90 bg-white shadow-xs ${palette.hoverBorder} hover:shadow-md transition-all duration-200 overflow-hidden`}
                   >
-                    <div>
-                      {/* 1. Canvas Signature Top Cover Banner (Dynamic Color Block) */}
+                    {/* Subtle Top Accent Bar */}
+                    <div className={`h-1 w-full bg-gradient-to-r ${palette.bgGradient}`} />
+
+                    <div className="flex flex-1 flex-col p-3.5">
+                      {/* Top Row: Area Number + Template Indicator */}
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${palette.badgeBg}`}>
+                          Area #{venture.number}
+                        </span>
+                        <span className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[9.5px] font-semibold ${capitalBadgeColor}`}>
+                          {venture.capitalTier} Capital
+                        </span>
+                      </div>
+
+                      {/* Main Blueprint Header: Icon + Single Title */}
                       <div
-                        className={`relative h-32 sm:h-36 w-full bg-gradient-to-br ${palette.bgGradient} p-3.5 flex flex-col justify-between overflow-hidden cursor-pointer select-none`}
                         onClick={() => setDetailVenture(venture)}
+                        className="flex items-start gap-2.5 cursor-pointer"
                       >
-                        {/* Canvas Grid Dot Mesh Watermark */}
-                        <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px]" />
-
-                        {/* Top Ribbon on Banner: Area Number + Canvas 3-Dots Action Button */}
-                        <div className="relative z-10 flex items-center justify-between gap-2">
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/25 backdrop-blur-xs text-[10px] font-bold text-white tracking-wider uppercase border border-white/20">
-                            <CategoryIcon className="h-3 w-3" />
-                            <span>Area #{venture.number}</span>
-                          </span>
-
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDetailVenture(venture);
-                            }}
-                            title="View Course Details"
-                            className={`h-7 w-7 rounded-full ${palette.circleMenuBg} flex items-center justify-center shadow-xs hover:scale-105 transition-transform cursor-pointer border border-white/25`}
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </button>
+                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${visual.tile} ${visual.accent}`}>
+                          <CategoryIcon className="h-5 w-5" />
                         </div>
-
-                        {/* Bottom Tag on Banner */}
-                        <div className="relative z-10">
-                          <span className="text-[11px] font-bold tracking-wider uppercase text-white/90 drop-shadow-xs block">
-                            {venture.groupName}
-                          </span>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-semibold text-[13px] leading-snug text-slate-900 group-hover:text-[#087f8c] transition-colors line-clamp-2 min-h-[36px]">
+                            {venture.title}
+                          </h4>
+                          <p className="mt-1 text-[11px] text-slate-500 truncate">
+                            {venture.groupName} · Blueprint
+                          </p>
                         </div>
                       </div>
 
-                      {/* 2. Canvas Course Card Body — Minimalist & High-End */}
-                      <div className="p-3.5 sm:p-4 space-y-1">
-                        {/* Colored Course / Category Code (Canvas Signature) */}
-                        <span
-                          style={{ color: palette.accentHex }}
-                          className="font-bold text-[11px] sm:text-xs uppercase tracking-wider truncate block"
-                        >
-                          KNEC {level === "craft" ? "CRAFT" : "DIPLOMA"} · {venture.archetype.replace("_", " ")}
+                      {/* Concise Capital / Level Row */}
+                      <div className="mt-3 flex items-center justify-between gap-2 text-[10.5px] text-slate-500">
+                        <span className="truncate font-medium">
+                          KNEC {level === "craft" ? "Craft" : "Diploma"}
                         </span>
-
-                        {/* Course Title */}
-                        <h4
-                          onClick={() => setDetailVenture(venture)}
-                          className="font-bold text-[13.5px] sm:text-[14.5px] leading-snug text-slate-900 group-hover:text-[#087f8c] transition-colors cursor-pointer line-clamp-2"
-                        >
-                          {venture.title}
-                        </h4>
-
-                        {/* Institution / Curriculum Subtitle (Canvas Signature) */}
-                        <p className="text-[11.5px] text-slate-500 truncate pt-0.5">
-                          {venture.groupName} · TVET Standard
-                        </p>
+                        <span className="rounded border border-dashed border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[9.5px] font-medium text-slate-600 shrink-0">
+                          5-Ch. Template
+                        </span>
                       </div>
                     </div>
 
-                    {/* 3. Canvas Bottom Utility Tray (Announcements / Files / Launch) */}
-                    <div className="border-t border-slate-100 bg-slate-50/70 px-3.5 sm:px-4 py-2.5 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-3 text-slate-400">
+                    {/* Bottom Action Bar */}
+                    <div className="border-t border-slate-100 bg-slate-50/70 px-3.5 py-2.5 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-slate-400">
                         <button
                           type="button"
                           onClick={() => setDetailVenture(venture)}
                           title="KNEC Word (.docx) & PDF Manuscript"
                           className="hover:text-slate-700 cursor-pointer transition-colors p-0.5"
                         >
-                          <FileText className="h-4 w-4" />
+                          <FileText className="h-3.5 w-3.5" />
                         </button>
                         <button
                           type="button"
@@ -478,7 +460,7 @@ export function ProjectAreaCatalog({
                           title="Financial Schedules, Cashflow & Break-even"
                           className="hover:text-slate-700 cursor-pointer transition-colors p-0.5"
                         >
-                          <Calculator className="h-4 w-4" />
+                          <Calculator className="h-3.5 w-3.5" />
                         </button>
                         <button
                           type="button"
@@ -486,7 +468,7 @@ export function ProjectAreaCatalog({
                           title="KNEC Examination Syllabus & Rubric"
                           className="hover:text-slate-700 cursor-pointer transition-colors p-0.5"
                         >
-                          <Folder className="h-4 w-4" />
+                          <Folder className="h-3.5 w-3.5" />
                         </button>
                       </div>
 
@@ -494,17 +476,17 @@ export function ProjectAreaCatalog({
                         <button
                           type="button"
                           onClick={() => setDetailVenture(venture)}
-                          className="text-xs font-semibold text-slate-600 hover:text-slate-900 hover:underline cursor-pointer px-1 py-0.5"
+                          className="text-[11px] font-semibold text-slate-600 hover:text-slate-900 hover:underline cursor-pointer px-1 py-0.5"
                         >
                           Details
                         </button>
                         <button
                           type="button"
                           onClick={() => handleOpenVentureModal(venture)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-bold text-white shadow-2xs hover:opacity-90 transition-opacity cursor-pointer"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold text-white shadow-2xs hover:opacity-90 transition-opacity cursor-pointer"
                           style={{ backgroundColor: palette.accentHex }}
                         >
-                          <span>Select</span>
+                          <span>Start</span>
                           <ArrowRight className="h-3 w-3" />
                         </button>
                       </div>

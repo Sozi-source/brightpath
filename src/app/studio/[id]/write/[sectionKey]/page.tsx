@@ -15,6 +15,7 @@ import {
 } from "@/lib/studio/notebookLmHelper";
 import { SectionEditor, type StepItem } from "./SectionEditor";
 import { AppShell } from "@/components/layout/AppShell";
+import { hasStudioAccess } from "@/lib/studio/access";
 import type { UserProfile } from "@/types/database";
 import { resolveBusinessPlanModel, type BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
 
@@ -45,6 +46,9 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
     .single();
 
   const profile = profileData as UserProfile | null;
+  if (!hasStudioAccess(profile)) {
+    redirect("/studio");
+  }
 
   // Load workspace
   const { data: workspace } = await db

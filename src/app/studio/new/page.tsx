@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
 import { AppShell } from "@/components/layout/AppShell";
 import { ProjectAreaCatalog } from "@/components/studio/ProjectAreaCatalog";
+import { StudioAccessGate } from "../StudioAccessGate";
+import { hasStudioAccess } from "@/lib/studio/access";
 
 export default async function NewWorkspacePage() {
   await connection();
@@ -30,6 +32,8 @@ export default async function NewWorkspacePage() {
       ? (rawInst[0] as { name?: string })?.name
       : (rawInst as { name?: string })?.name) || "Independent Candidate";
 
+  const canUseStudio = hasStudioAccess(profile);
+
   return (
     <AppShell
       user={user}
@@ -37,13 +41,17 @@ export default async function NewWorkspacePage() {
       institutionName={institutionName}
       activeContextTitle={profile?.course || "New Project"}
     >
-      <ProjectAreaCatalog
-        candidateName={profile?.full_name || user.email || "Candidate"}
-        admissionNumber={profile?.admission_number || ""}
-        course={profile?.course || "Diploma in Human Nutrition and Dietetics"}
-        level={profile?.level || "diploma"}
-        currentWorkspacesCount={0}
-      />
+      {canUseStudio ? (
+        <ProjectAreaCatalog
+          candidateName={profile?.full_name || user.email || "Candidate"}
+          admissionNumber={profile?.admission_number || ""}
+          course={profile?.course || "Diploma in Human Nutrition and Dietetics"}
+          level={profile?.level || "diploma"}
+          currentWorkspacesCount={0}
+        />
+      ) : (
+        <StudioAccessGate />
+      )}
     </AppShell>
   );
 }

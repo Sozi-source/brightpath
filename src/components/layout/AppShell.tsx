@@ -442,82 +442,63 @@ export function AppShell({
                 )}
               </div>
             ) : (
-              /* Continuous Student Workspace Section */
-              <div className="space-y-2 border-t border-slate-100 pt-3.5">
-                <div className="flex items-center justify-between px-2.5">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                    {canAccessStudio ? "Studio Workspace" : "Student Access"}
+              /* Continuous Student Workspace Section (Sleek single-line rows matching Admin Modules) */
+              <nav aria-label="Student workspace" className="space-y-0.5 border-t border-slate-100 pt-3.5">
+                <div className="flex items-center justify-between gap-2 px-2.5 pb-1">
+                  <span className="truncate text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                    {canAccessStudio ? "Studio Drafts" : "Student Access"}
                   </span>
                   {canAccessStudio && (
                     <Link
                       href="/studio/new"
                       onClick={() => setSidebarOpen(false)}
-                      className="inline-flex items-center gap-1 rounded-md border border-teal-200 bg-teal-50 px-2 py-0.5 text-[10px] font-semibold text-[#087f8c] hover:bg-teal-100 transition-colors"
+                      className="inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-semibold text-[#087f8c] hover:bg-teal-50 transition-colors"
                     >
                       <Plus className="h-2.5 w-2.5" />
-                      <span>New Draft</span>
+                      <span>New</span>
                     </Link>
                   )}
                 </div>
 
                 {canAccessStudio && studioWorkspaces && studioWorkspaces.length > 0 ? (
-                  <div className="space-y-1.5 px-1">
-                    {studioWorkspaces.map((ws) => {
-                      const isApproved = ws.status === "approved";
-                      const isPending = ws.status === "pending";
-                      return (
-                        <div
-                          key={ws.id}
-                          className="rounded-lg border border-slate-200 bg-slate-50/60 p-2 space-y-1.5 shadow-2xs"
-                        >
-                          <Link
-                            href={`/studio/${ws.id}`}
-                            onClick={() => setSidebarOpen(false)}
-                            className="block text-[11px] font-semibold text-slate-900 hover:text-[#087f8c] truncate leading-snug"
-                            title={ws.title}
-                          >
-                            {ws.title}
-                          </Link>
-
-                          <div className="flex items-center justify-between gap-1 text-[10px]">
-                            <span
-                              className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-medium ${
-                                isApproved
-                                  ? "bg-emerald-50 text-emerald-700"
-                                  : isPending
-                                  ? "bg-amber-50 text-amber-700"
-                                  : "bg-white text-slate-600 border border-slate-200/80"
-                              }`}
-                            >
-                              {isApproved ? (
-                                <CheckCircle2 className="h-2.5 w-2.5" />
-                              ) : (
-                                <Clock3 className="h-2.5 w-2.5" />
-                              )}
-                              {isApproved ? "Approved" : isPending ? "Review" : "Draft"}
-                            </span>
-                            <span className="font-mono text-slate-500">
-                              {ws.completedSections}/{ws.totalSections} ({ws.progressPct}%)
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-1.5 pt-0.5">
-                            <Link
-                              href={`/studio/${ws.id}`}
-                              onClick={() => setSidebarOpen(false)}
-                              className="flex-1 inline-flex items-center justify-center gap-1 rounded-md bg-[#087f8c] hover:bg-[#066570] px-2 py-1 text-[11px] font-semibold text-white transition-colors"
-                            >
-                              <span>Continue</span>
-                              <ArrowRight className="h-3 w-3" />
-                            </Link>
-                            <DeleteDraftButton workspaceId={ws.id} title={ws.title} iconOnly />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  studioWorkspaces.map((ws) => {
+                    const isApproved = ws.status === "approved";
+                    const isPending = ws.status === "pending";
+                    const isCurrent = pathname === `/studio/${ws.id}` || pathname.startsWith(`/studio/${ws.id}/`);
+                    return (
+                      <Link
+                        key={ws.id}
+                        href={`/studio/${ws.id}`}
+                        onClick={() => setSidebarOpen(false)}
+                        aria-current={isCurrent ? "page" : undefined}
+                        title={ws.title}
+                        className={`flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
+                          isCurrent
+                            ? "border border-teal-200 bg-teal-50 font-semibold text-[#087f8c]"
+                            : "border border-transparent font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
+                        }`}
+                      >
+                        <span className="flex min-w-0 items-center gap-2">
+                          {isApproved ? (
+                            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                          ) : isPending ? (
+                            <Clock3 className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+                          ) : (
+                            <FileText className="h-3.5 w-3.5 shrink-0 text-teal-600" />
+                          )}
+                          <span className="truncate">{ws.title}</span>
+                        </span>
+                        <span className="flex shrink-0 items-center gap-1">
+                          <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[9.5px] text-slate-600">
+                            {ws.progressPct}%
+                          </span>
+                          <ChevronRight className="h-3 w-3 text-slate-300" />
+                        </span>
+                      </Link>
+                    );
+                  })
                 ) : (
-                  <div className="space-y-0.5">
+                  <>
                     {canAccessStudio && (
                       <Link
                         href="/studio"
@@ -525,10 +506,10 @@ export function AppShell({
                         className="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 transition-colors"
                       >
                         <span className="flex items-center gap-2">
-                          <FileText className="h-3.5 w-3.5 text-teal-600" />
-                          <span>My Studio Drafts</span>
+                          <FileText className="h-3.5 w-3.5 shrink-0 text-teal-600" />
+                          <span className="truncate">My Studio Drafts</span>
                         </span>
-                        <ChevronRight className="h-3 w-3 text-slate-300" />
+                        <ChevronRight className="h-3 w-3 shrink-0 text-slate-300" />
                       </Link>
                     )}
                     <Link
@@ -537,14 +518,14 @@ export function AppShell({
                       className="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 transition-colors"
                     >
                       <span className="flex items-center gap-2">
-                        <BookOpen className="h-3.5 w-3.5 text-amber-600" />
-                        <span>Purchased Downloads</span>
+                        <BookOpen className="h-3.5 w-3.5 shrink-0 text-amber-600" />
+                        <span className="truncate">Purchased Downloads</span>
                       </span>
-                      <ChevronRight className="h-3 w-3 text-slate-300" />
+                      <ChevronRight className="h-3 w-3 shrink-0 text-slate-300" />
                     </Link>
-                  </div>
+                  </>
                 )}
-              </div>
+              </nav>
             )}
 
             {/* Group 3: Continuous Resource Catalog Filter (Visible across all roles & routes) */}

@@ -10,6 +10,7 @@ import {
 import { TopicCoach } from "./TopicCoach";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
+import { hasStudioAccess } from "@/lib/studio/access";
 import { ChevronLeft, Sparkles } from "lucide-react";
 import type { UserProfile } from "@/types/database";
 
@@ -39,6 +40,9 @@ export default async function ProblemFinderPage({ params }: ProblemFinderPagePro
     .single();
 
   const profile = profileData as UserProfile | null;
+  if (!hasStudioAccess(profile)) {
+    redirect("/studio");
+  }
 
   // Load workspace
   const { data: workspace } = await db

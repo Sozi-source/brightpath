@@ -46,12 +46,32 @@ export default async function HomePage() {
   const { data: { user } } = await supabase.auth.getUser();
   let userRole: string | null = null;
   let fullName: string | null = null;
-  if (user) { const { data: profile } = await supabase.from("profiles").select("role, full_name").eq("id", user.id).single(); userRole = profile?.role || "student"; fullName = profile?.full_name || user.email; }
-  const dashboardHref = userRole === "admin" ? "/admin" : userRole === "supervisor" ? "/supervisor" : "/studio";
+  let canAccessStudio = false;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, full_name, institution_id")
+      .eq("id", user.id)
+      .single();
+    userRole = profile?.role || "student";
+    fullName = profile?.full_name || user.email || null;
+    canAccessStudio =
+      userRole === "admin" ||
+      userRole === "supervisor" ||
+      Boolean(profile?.institution_id);
+  }
+  const dashboardHref =
+    userRole === "admin"
+      ? "/admin"
+      : userRole === "supervisor"
+      ? "/supervisor"
+      : canAccessStudio
+      ? "/studio"
+      : "/projects";
 
   return (
     <div className="landing-page min-h-screen overflow-x-hidden bg-[#f4f7fb] text-slate-900">
-      <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 shadow-xs backdrop-blur"><div className="mx-auto flex h-16 w-full max-w-[1600px] items-center justify-between gap-2 px-2 sm:gap-3 sm:px-6 lg:px-8 2xl:max-w-[1800px]"><div className="flex min-w-0 items-center gap-1.5 sm:gap-3"><Link href="/studio" aria-label="Application Switcher" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-[#13243a] transition-colors hover:bg-slate-50"><LayoutGrid className="h-4 w-4" /></Link><Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-2.5"><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#087f8c] text-sm font-bold text-white shadow-xs"><span className="text-amber-300">T</span>H</div><div className="min-w-0"><span className="block text-sm font-semibold leading-tight tracking-tight text-slate-900">TVET Hub</span><span className="hidden text-[10px] font-medium tracking-wider text-[#087f8c] sm:block">Simple · Reliable · Innovative</span></div></Link></div><nav className="hidden items-center gap-5 text-xs font-semibold text-slate-600 lg:flex"><Link href="/projects" className="transition-colors hover:text-[#087f8c]">Find Resources</Link><Link href="/library" className="transition-colors hover:text-[#087f8c]">My Library</Link><Link href="/studio" className="transition-colors hover:text-[#087f8c]">Project Studio</Link></nav><div className="flex shrink-0 items-center gap-1 sm:gap-2.5">{user ? <div className="flex items-center gap-2.5"><span className="hidden text-xs font-semibold text-slate-700 lg:inline-block">{fullName}</span><Link href={dashboardHref} className="bp-btn-primary whitespace-nowrap px-2.5 py-2 text-[11px] shadow-xs sm:px-3.5 sm:text-xs">Dashboard</Link><form action={logout}><button type="submit" className="hidden rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 sm:block">Sign out</button></form></div> : <><Link href="/login" className="whitespace-nowrap rounded-lg px-2 py-2 text-[11px] font-semibold text-slate-700 transition-colors hover:bg-slate-50 sm:px-3.5 sm:text-xs">Sign In</Link><Link href="/signup" className="bp-btn-primary whitespace-nowrap px-2.5 py-2 text-[11px] shadow-xs sm:px-3.5 sm:text-xs">Get Started</Link></>}</div></div></header>
+      <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 shadow-xs backdrop-blur"><div className="mx-auto flex h-16 w-full max-w-[1600px] items-center justify-between gap-2 px-2 sm:gap-3 sm:px-6 lg:px-8 2xl:max-w-[1800px]"><div className="flex min-w-0 items-center gap-1.5 sm:gap-3"><Link href={user ? dashboardHref : "/projects"} aria-label="Application Switcher" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-[#13243a] transition-colors hover:bg-slate-50"><LayoutGrid className="h-4 w-4" /></Link><Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-2.5"><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#087f8c] text-sm font-bold text-white shadow-xs"><span className="text-amber-300">T</span>H</div><div className="min-w-0"><span className="block text-sm font-semibold leading-tight tracking-tight text-slate-900">TVET Hub</span><span className="hidden text-[10px] font-medium tracking-wider text-[#087f8c] sm:block">Simple · Reliable · Innovative</span></div></Link></div><nav className="hidden items-center gap-5 text-xs font-semibold text-slate-600 lg:flex"><Link href="/projects" className="transition-colors hover:text-[#087f8c]">Find Resources</Link><Link href="/library" className="transition-colors hover:text-[#087f8c]">My Library</Link>{(!user || canAccessStudio) && <Link href="/studio" className="transition-colors hover:text-[#087f8c]">Project Studio</Link>}</nav><div className="flex shrink-0 items-center gap-1 sm:gap-2.5">{user ? <div className="flex items-center gap-2.5"><span className="hidden text-xs font-semibold text-slate-700 lg:inline-block">{fullName}</span><Link href={dashboardHref} className="bp-btn-primary whitespace-nowrap px-2.5 py-2 text-[11px] shadow-xs sm:px-3.5 sm:text-xs">Dashboard</Link><form action={logout}><button type="submit" className="hidden rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 sm:block">Sign out</button></form></div> : <><Link href="/login" className="whitespace-nowrap rounded-lg px-2 py-2 text-[11px] font-semibold text-slate-700 transition-colors hover:bg-slate-50 sm:px-3.5 sm:text-xs">Sign In</Link><Link href="/signup" className="bp-btn-primary whitespace-nowrap px-2.5 py-2 text-[11px] shadow-xs sm:px-3.5 sm:text-xs">Get Started</Link></>}</div></div></header>
       <main>
         <HeroSection />
         <section className="border-b border-slate-200 bg-white"><div className="mx-auto grid max-w-[1500px] grid-cols-2 divide-x divide-slate-200 px-4 sm:grid-cols-4 sm:px-6 lg:px-8"><div className="p-4 sm:p-6"><p className="text-2xl font-semibold tracking-tight text-indigo-700">35+</p><p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Verified templates</p></div><div className="p-4 sm:p-6"><p className="text-2xl font-semibold tracking-tight text-emerald-700">25–30</p><p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Page standard</p></div><div className="p-4 sm:p-6"><p className="text-2xl font-semibold tracking-tight text-amber-700">3×</p><p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Clearer pathways</p></div><div className="p-4 sm:p-6"><p className="text-2xl font-semibold tracking-tight text-[#087f8c]">.docx</p><p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Ready to export</p></div></div></section>
