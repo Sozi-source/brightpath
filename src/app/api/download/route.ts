@@ -66,38 +66,114 @@ export async function GET(request: NextRequest) {
   // Attempt to generate signed storage URL using service role client
   const adminClient = createAdminClient();
   if (project.file_path.startsWith("workspace-export:")) {
+    const workspaceIdFromPath = project.file_path.replace("workspace-export:", "").trim();
     const { data: snapshot } = await adminClient.from("project_plan_snapshots")
-      .select("title, course, level, sections").eq("project_id", project.id).maybeSingle();
+      .select("workspace_id, title, course, level, sections").eq("project_id", project.id).maybeSingle();
     if (!snapshot || !Array.isArray(snapshot.sections)) {
       return NextResponse.json({ error: "The published business plan is unavailable." }, { status: 404 });
     }
+
+    const sourceWorkspaceId = snapshot.workspace_id || workspaceIdFromPath;
+    const { data: sourceWorkspace } = sourceWorkspaceId
+      ? await adminClient
+          .from("project_workspaces")
+          .select("id, title, business_plan_specs, student:student_id(full_name, admission_number), supervisor:supervisor_id(full_name), institution:institution_id(name)")
+          .eq("id", sourceWorkspaceId)
+          .maybeSingle()
+      : { data: null };
+
+    const specs = (sourceWorkspace?.business_plan_specs || null) as {
+      businessName?: string;
+      tagline?: string;
+      industrySector?: string;
+      primaryProduct?: string;
+      candidateName?: string;
+      admissionNumber?: string;
+      institutionName?: string;
+      supervisorName?: string;
+      townOrMarket?: string;
+      county?: string;
+      streetOrBuilding?: string;
+    } | null;
+    const wsStudent = sourceWorkspace?.student as unknown as { full_name?: string | null; admission_number?: string | null } | null;
+    const wsSupervisor = sourceWorkspace?.supervisor as unknown as { full_name?: string | null } | null;
+    const wsInstitution = sourceWorkspace?.institution as unknown as { name?: string | null } | null;
+
     const rawSections = snapshot.sections as { title: string; content: string }[];
     const buyerInstitution = profile?.institutions as { name?: string } | { name?: string }[] | null;
     const buyerInstitutionName = Array.isArray(buyerInstitution)
       ? buyerInstitution[0]?.name
       : buyerInstitution?.name;
 
-    // Personalize the document using user-provided customization parameters or account profile fallbacks
-    const candidateName = request.nextUrl.searchParams.get("candidateName")?.trim() || profile?.full_name || "Candidate";
-    const admissionNumber = request.nextUrl.searchParams.get("admissionNumber")?.trim() || profile?.admission_number || "ADM/2026/001";
-    const rawInstitution = request.nextUrl.searchParams.get("institutionName")?.trim();
-    const institutionName = rawInstitution || buyerInstitutionName || "Kenya Education Cloud TVET Institute";
-    const supervisorName = request.nextUrl.searchParams.get("supervisorName")?.trim() || "Institutional Supervisor";
-    const townOrMarket = request.nextUrl.searchParams.get("townOrMarket")?.trim() || "Regional Center";
-    const county = request.nextUrl.searchParams.get("county")?.trim() || "Regional County";
+    const cleanParam = (key: string, ignoreValues: string[] = []) => {
+      const val = request.nextUrl.searchParams.get(key)?.trim();
+      if (!val) return "";
+      if (ignoreValues.some((ignored) => ignored.toLowerCase() === val.toLowerCase())) return "";
+      return val;
+    };
+
+    // Personalize the document using user-provided customization parameters, profile, or original workspace specs
+    const candidateName =
+      cleanParam("candidateName", ["Candidate"]) ||
+      (isAdmin ? specs?.candidateName?.trim() || wsStudent?.full_name?.trim() || profile?.full_name?.trim() : profile?.full_name?.trim() || specs?.candidateName?.trim()) ||
+      "Candidate";
+    const admissionNumber =
+      cleanParam("admissionNumber", ["ADM/2026/001"]) ||
+      (isAdmin ? specs?.admissionNumber?.trim() || wsStudent?.admission_number?.trim() || profile?.admission_number?.trim() : profile?.admission_number?.trim() || specs?.admissionNumber?.trim()) ||
+      "ADM/2026/001";
+    const institutionName =
+      cleanParam("institutionName", ["Kenya Education Cloud TVET Institute"]) ||
+      buyerInstitutionName ||
+      specs?.institutionName?.trim() ||
+      wsInstitution?.name?.trim() ||
+      "Kenya Education Cloud TVET Institute";
+    const supervisorName =
+      cleanParam("supervisorName", ["Institutional Supervisor"]) ||
+      specs?.supervisorName?.trim() ||
+      wsSupervisor?.full_name?.trim() ||
+      "Project Supervisor";
+    const townOrMarket =
+      cleanParam("townOrMarket", ["Regional Center"]) ||
+      specs?.townOrMarket?.trim() ||
+      "Nairobi";
+    const county =
+      cleanParam("county", ["Regional County"]) ||
+      specs?.county?.trim() ||
+      "Nairobi County";
+
+    const cleanBusinessTitle = (
+      specs?.businessName ||
+      sourceWorkspace?.title ||
+      snapshot.title ||
+      project.title ||
+      "Business Plan"
+    )
+      .replace(/\s*—\s*Complete KNEC Business Plan.*$/i, "")
+      .replace(/\s*\((?:Craft Certificate|Diploma|Certificate)\)\s*$/i, "")
+      .trim();
 
     const sections = stampMarketplaceBusinessPlan(rawSections, {
+      seed: `${project.id}|${sourceWorkspaceId || ""}`,
+      businessName: cleanBusinessTitle,
+      course: snapshot.course,
+      level: snapshot.level,
+      industrySector: specs?.industrySector,
+      primaryProduct: specs?.primaryProduct,
       candidateName,
       admissionNumber,
       institutionName,
       supervisorName,
       townOrMarket,
       county,
+      streetOrBuilding: specs?.streetOrBuilding,
     });
 
     const document = {
-      title: snapshot.title || project.title,
-      businessName: snapshot.title || project.title,
+      title: cleanBusinessTitle,
+      businessName: cleanBusinessTitle,
+      tagline: specs?.tagline,
+      industrySector: specs?.industrySector,
+      primaryProduct: specs?.primaryProduct,
       candidate: candidateName,
       admissionNumber,
       institution: institutionName,

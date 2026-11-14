@@ -8,6 +8,7 @@ import type { BusinessPlanSpecs } from "./businessPlanTypes";
 import { normalizeBusinessPlanSpecs, resolveBusinessPlanModel } from "./businessPlanTypes";
 import { computeBusinessPlanFinancials } from "./businessPlanMath";
 import { getConsultancySectionContent } from "./businessPlanProfiles";
+import { buildVariedBusinessPlanPreliminaries } from "./businessPlanPreliminaries";
 import { getWorkspaceSections } from "./templates";
 
 export interface GeneratedSectionPayload {
@@ -378,35 +379,26 @@ export function buildCompleteBusinessPlan(rawSpecs: Partial<BusinessPlanSpecs>):
   // PRELIMINARY PAGES
   // =========================================================================
 
-  add(
-    "prelim.declaration",
-    "Declaration and Supervisor Approval",
-    `### DECLARATION BY CANDIDATE
-I declare that this business plan is my original work and that I personally undertook its preparation in accordance with Kenya National Examinations Council (KNEC) guidelines. It has not been presented to any other institution or examination body for the award of any certificate, diploma, or degree.
+  const preliminaries = buildVariedBusinessPlanPreliminaries({
+    seed: `${specs.businessName}|${specs.primaryProduct}|${specs.townOrMarket}|${specs.county}`,
+    businessName: specs.businessName,
+    candidateName: specs.candidateName || "Candidate",
+    admissionNumber: specs.admissionNumber || "ADM/2026/001",
+    institutionName: specs.institutionName || "Kenya Education Cloud TVET Institute",
+    supervisorName: specs.supervisorName || "Project Supervisor",
+    townOrMarket: specs.townOrMarket,
+    county: specs.county,
+    course: specs.course,
+    level: specs.level,
+    industrySector: specs.industrySector,
+    primaryProduct: specs.primaryProduct,
+    dedicationText: specs.dedicationText,
+    acknowledgementsText: specs.acknowledgementsText,
+  });
 
-Candidate Name: **${specs.candidateName || "[Enter candidate name]"}**<br>Index Number: **${specs.admissionNumber || "[Enter index number]"}**<br>Institution: **${specs.institutionName || "[Enter institution name]"}**<br>Signature: ______________________________<br>Date: ______________________________
-
----
-
-### APPROVAL BY SUPERVISOR
-I have reviewed this business plan and recommend it for examination.
-
-Supervisor Name: **${specs.supervisorName || "[Enter supervisor name]"}**<br>Designation: **Project Supervisor**<br>Institution: **${specs.institutionName || "[Enter institution name]"}**<br>Signature: ______________________________<br>Date: ______________________________`
-  );
-
-  add(
-    "prelim.dedication",
-    "Dedication",
-    `### DEDICATION
-${specs.dedicationText?.trim() || `This business plan for **${specs.businessName}** is dedicated to my family, mentors, and fellow nutrition professionals in **${specs.county}** whose steadfast encouragement, moral support, and commitment to community health inspired my academic training at **${specs.institutionName || "my training institution"}** and the formulation of this commercial enterprise.`}`
-  );
-
-  add(
-    "prelim.acknowledgements",
-    "Acknowledgements",
-    `### ACKNOWLEDGEMENTS
-${specs.acknowledgementsText?.trim() || `I express sincere gratitude to my project supervisor, **${specs.supervisorName || "[Supervisor name]"}**, and the administration and teaching faculty of **${specs.institutionName || "[Institution name]"}** for their rigorous academic supervision, technical nutrition guidance, and constructive feedback during the preparation of this business plan for **${specs.businessName}** in **${specs.townOrMarket}, ${specs.county}**. Special appreciation is also extended to local market respondents, prospective suppliers, and regulatory officers whose practical insights informed the operational and financial planning assumptions presented in this manuscript.`}`
-  );
+  add("prelim.declaration", "Declaration and Supervisor Approval", preliminaries.declaration);
+  add("prelim.dedication", "Dedication", preliminaries.dedication);
+  add("prelim.acknowledgements", "Acknowledgements", preliminaries.acknowledgements);
 
   add(
     "prelim.executive_summary",

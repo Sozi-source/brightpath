@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sparkles, FileText, Check, Download, X, MapPin, Building, User, Hash, UserCheck } from "lucide-react";
 import { updateStudentPersonalizationAction } from "./actions";
 
@@ -23,15 +23,15 @@ export function PersonalizeDocumentModal({
   const [candidateName, setCandidateName] = useState(defaultFullName);
   const [admissionNumber, setAdmissionNumber] = useState(defaultAdmissionNumber);
   const [institutionName, setInstitutionName] = useState(defaultInstitution);
-  const [townOrMarket, setTownOrMarket] = useState("Regional Center");
-  const [county, setCounty] = useState("Regional County");
-  const [supervisorName, setSupervisorName] = useState("Institutional Supervisor");
+  const [townOrMarket, setTownOrMarket] = useState("");
+  const [county, setCounty] = useState("");
+  const [supervisorName, setSupervisorName] = useState("");
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const storageKey = `bp_personalization_${projectId}`;
 
-  function handleOpen() {
+  useEffect(() => {
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
@@ -39,14 +39,17 @@ export function PersonalizeDocumentModal({
         if (parsed.candidateName) setCandidateName(parsed.candidateName);
         if (parsed.admissionNumber) setAdmissionNumber(parsed.admissionNumber);
         if (parsed.institutionName) setInstitutionName(parsed.institutionName);
-        if (parsed.townOrMarket) setTownOrMarket(parsed.townOrMarket);
-        if (parsed.county) setCounty(parsed.county);
-        if (parsed.supervisorName) setSupervisorName(parsed.supervisorName);
+        if (parsed.townOrMarket && parsed.townOrMarket !== "Regional Center") setTownOrMarket(parsed.townOrMarket);
+        if (parsed.county && parsed.county !== "Regional County") setCounty(parsed.county);
+        if (parsed.supervisorName && parsed.supervisorName !== "Institutional Supervisor") setSupervisorName(parsed.supervisorName);
         setIsSaved(true);
       }
     } catch {
       // Ignore
     }
+  }, [storageKey]);
+
+  function handleOpen() {
     setIsOpen(true);
   }
 
@@ -83,13 +86,21 @@ export function PersonalizeDocumentModal({
     const params = new URLSearchParams({
       projectId,
       format,
-      candidateName: (candidateName || defaultFullName || "Candidate").trim(),
-      admissionNumber: (admissionNumber || defaultAdmissionNumber || "ADM/2026/001").trim(),
-      institutionName: (institutionName || defaultInstitution || "Kenya Education Cloud TVET Institute").trim(),
-      supervisorName: (supervisorName || "Institutional Supervisor").trim(),
-      townOrMarket: (townOrMarket || "Regional Center").trim(),
-      county: (county || "Regional County").trim(),
     });
+    const resolvedCandidate = (candidateName || defaultFullName).trim();
+    const resolvedAdmission = (admissionNumber || defaultAdmissionNumber).trim();
+    const resolvedInstitution = (institutionName || defaultInstitution).trim();
+    const resolvedSupervisor = supervisorName.trim();
+    const resolvedTown = townOrMarket.trim();
+    const resolvedCounty = county.trim();
+
+    if (resolvedCandidate) params.set("candidateName", resolvedCandidate);
+    if (resolvedAdmission) params.set("admissionNumber", resolvedAdmission);
+    if (resolvedInstitution) params.set("institutionName", resolvedInstitution);
+    if (resolvedSupervisor) params.set("supervisorName", resolvedSupervisor);
+    if (resolvedTown) params.set("townOrMarket", resolvedTown);
+    if (resolvedCounty) params.set("county", resolvedCounty);
+
     return `/api/download?${params.toString()}`;
   }
 
@@ -101,8 +112,8 @@ export function PersonalizeDocumentModal({
           <Sparkles className="h-3.5 w-3.5 text-teal-700 shrink-0" />
           <span className="text-[11px] font-medium text-teal-900 truncate">
             {isSaved
-              ? `Personalized: ${candidateName || "Candidate"} (${townOrMarket || "Local"})`
-              : "Not personalized: Using template placeholders"}
+              ? `Personalized: ${candidateName || defaultFullName || "Candidate"}${townOrMarket ? ` (${townOrMarket})` : ""}`
+              : "Auto-filled from profile & project location"}
           </span>
         </div>
 

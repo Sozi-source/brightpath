@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
 import { getWorkspaceSections } from "@/lib/studio/templates";
 import { resolveBusinessPlanModel, type BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
+import { buildVariedBusinessPlanPreliminaries, isPlaceholderPreliminary } from "@/lib/studio/businessPlanPreliminaries";
 import { createBusinessPlanDocx } from "@/lib/studio/businessPlanDocx";
 import { createBusinessPlanPdf } from "@/lib/studio/businessPlanPdf";
 import { NextResponse, type NextRequest } from "next/server";
@@ -53,23 +54,67 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
     );
   }
 
-  const businessModel = resolveBusinessPlanModel(businessSpecs);
-  const sectionsByKey = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
-  const sections = getWorkspaceSections("business_plan", workspace.level, businessModel)
-    .map((definition) => ({ title: definition.title, content: sectionsByKey.get(definition.key) || "" }))
-    .filter((section) => section.content.trim());
-  if (sections.length === 0) return NextResponse.json({ error: "Build the business plan before downloading." }, { status: 400 });
-
   const student = workspace.student as unknown as { full_name?: string | null; admission_number?: string | null } | null;
   const supervisor = workspace.supervisor as unknown as { full_name?: string | null } | null;
   const institution = workspace.institution as unknown as { name?: string | null } | null;
+
+  const resolvedCandidate = businessSpecs?.candidateName?.trim() || student?.full_name?.trim() || "Candidate";
+  const resolvedAdmission = businessSpecs?.admissionNumber?.trim() || student?.admission_number?.trim() || "ADM/2026/001";
+  const resolvedInstitution = businessSpecs?.institutionName?.trim() || institution?.name?.trim() || "Kenya Education Cloud TVET Institute";
+  const resolvedSupervisor = businessSpecs?.supervisorName?.trim() || supervisor?.full_name?.trim() || "Project Supervisor";
+  const resolvedTown = businessSpecs?.townOrMarket?.trim() || "Nairobi";
+  const resolvedCounty = businessSpecs?.county?.trim() || "Nairobi County";
+  const resolvedBusinessName = businessSpecs?.businessName?.trim() || workspace.title || "Business Plan";
+
+  const variedPrelims = buildVariedBusinessPlanPreliminaries({
+    seed: `${workspace.id}|${resolvedBusinessName}|${resolvedCandidate}`,
+    businessName: resolvedBusinessName,
+    candidateName: resolvedCandidate,
+    admissionNumber: resolvedAdmission,
+    institutionName: resolvedInstitution,
+    supervisorName: resolvedSupervisor,
+    townOrMarket: resolvedTown,
+    county: resolvedCounty,
+    course: workspace.course || businessSpecs?.course,
+    level: workspace.level,
+    industrySector: businessSpecs?.industrySector,
+    primaryProduct: businessSpecs?.primaryProduct,
+    dedicationText: businessSpecs?.dedicationText,
+    acknowledgementsText: businessSpecs?.acknowledgementsText,
+  });
+
+  const businessModel = resolveBusinessPlanModel(businessSpecs);
+  const sectionsByKey = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
+  const sections = getWorkspaceSections("business_plan", workspace.level, businessModel)
+    .map((definition) => {
+      let content = sectionsByKey.get(definition.key) || "";
+      if (definition.key === "prelim.declaration" && isPlaceholderPreliminary(content)) {
+        content = variedPrelims.declaration;
+      } else if (definition.key === "prelim.dedication" && isPlaceholderPreliminary(content)) {
+        content = variedPrelims.dedication;
+      } else if (definition.key === "prelim.acknowledgements" && isPlaceholderPreliminary(content)) {
+        content = variedPrelims.acknowledgements;
+      } else if (content) {
+        content = content
+          .replaceAll("[Enter candidate name]", resolvedCandidate)
+          .replaceAll("[Enter index number]", resolvedAdmission)
+          .replaceAll("[Enter institution name]", resolvedInstitution)
+          .replaceAll("[Institution name]", resolvedInstitution)
+          .replaceAll("[Enter supervisor name]", resolvedSupervisor)
+          .replaceAll("[Supervisor name]", resolvedSupervisor);
+      }
+      return { title: definition.title, content };
+    })
+    .filter((section) => section.content.trim());
+  if (sections.length === 0) return NextResponse.json({ error: "Build the business plan before downloading." }, { status: 400 });
+
   const document = {
-    title: workspace.title || businessSpecs?.businessName || "Business Plan",
-    candidate: businessSpecs?.candidateName?.trim() || student?.full_name || "Candidate",
-    admissionNumber: businessSpecs?.admissionNumber?.trim() || student?.admission_number || null,
-    institution: businessSpecs?.institutionName?.trim() || institution?.name || null,
-    supervisor: businessSpecs?.supervisorName?.trim() || supervisor?.full_name || null,
-    businessName: businessSpecs?.businessName || workspace.title,
+    title: workspace.title || resolvedBusinessName,
+    candidate: resolvedCandidate,
+    admissionNumber: resolvedAdmission,
+    institution: resolvedInstitution,
+    supervisor: resolvedSupervisor,
+    businessName: resolvedBusinessName,
     tagline: businessSpecs?.tagline,
     industrySector: businessSpecs?.industrySector,
     primaryProduct: businessSpecs?.primaryProduct,

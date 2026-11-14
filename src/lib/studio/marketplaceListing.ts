@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getWorkspaceSections } from "@/lib/studio/templates";
 import { resolveBusinessPlanModel, type BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
 import { getBusinessModelConflictFindings } from "@/lib/studio/businessPlanProfiles";
+import { buildVariedBusinessPlanPreliminaries } from "@/lib/studio/businessPlanPreliminaries";
 
 export async function queueApprovedBusinessPlanListing(workspaceId: string) {
   const db = createAdminClient();
@@ -175,10 +176,24 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
     createdProject = true;
   }
 
+  const tokenizedPrelims = buildVariedBusinessPlanPreliminaries({
+    seed: `${workspaceId}|${baseTitle}`,
+    businessName: baseTitle,
+    candidateName: "{{CANDIDATE_NAME}}",
+    admissionNumber: "{{ADMISSION_NUMBER}}",
+    institutionName: "{{INSTITUTION_NAME}}",
+    supervisorName: "{{SUPERVISOR_NAME}}",
+    townOrMarket: "{{TARGET_TOWN}}",
+    county: "{{TARGET_COUNTY}}",
+    course: workspace.course,
+    level: workspace.level,
+    industrySector: specs?.industrySector,
+    primaryProduct: specs?.primaryProduct,
+  });
   const marketplacePreliminaries: Record<string, string> = {
-    "prelim.declaration": "### DECLARATION AND APPROVAL\nThis marketplace reference copy is provided for academic adaptation. The buyer must verify all facts, replace the preliminary pages, and obtain the required institutional approval before submission.",
-    "prelim.dedication": "### DEDICATION\n[Write a personal dedication for your own completed business plan.]",
-    "prelim.acknowledgements": "### ACKNOWLEDGEMENTS\n[Write acknowledgements for the people and institutions that supported your own project.]",
+    "prelim.declaration": tokenizedPrelims.declaration,
+    "prelim.dedication": tokenizedPrelims.dedication,
+    "prelim.acknowledgements": tokenizedPrelims.acknowledgements,
   };
   const { error: snapshotError } = await db.from("project_plan_snapshots").upsert({
     project_id: projectId,
@@ -199,6 +214,12 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
 }
 
 export interface BuyerPersonalDetails {
+  seed?: string;
+  businessName?: string;
+  course?: string | null;
+  level?: string | null;
+  industrySector?: string | null;
+  primaryProduct?: string | null;
   candidateName: string;
   admissionNumber: string;
   institutionName: string;
@@ -209,17 +230,34 @@ export interface BuyerPersonalDetails {
 }
 
 /**
- * Stamps a buyer's personal details and target location into an anonymized marketplace business plan snapshot.
+ * Stamps a buyer's personal details, varied preliminary sections, and target location
+ * into an anonymized marketplace business plan snapshot.
  */
 export function stampMarketplaceBusinessPlan(
   sections: Array<{ title: string; content: string }>,
   buyer: BuyerPersonalDetails
 ): Array<{ title: string; content: string }> {
+  const supervisor = buyer.supervisorName?.trim() || "Project Supervisor";
+  const prelims = buildVariedBusinessPlanPreliminaries({
+    seed: `${buyer.seed || ""}|${buyer.businessName || ""}|${buyer.candidateName}|${buyer.admissionNumber}`,
+    businessName: buyer.businessName || "Enterprise Business Plan",
+    candidateName: buyer.candidateName,
+    admissionNumber: buyer.admissionNumber,
+    institutionName: buyer.institutionName,
+    supervisorName: supervisor,
+    townOrMarket: buyer.townOrMarket,
+    county: buyer.county,
+    course: buyer.course,
+    level: buyer.level,
+    industrySector: buyer.industrySector,
+    primaryProduct: buyer.primaryProduct,
+  });
+
   const replacements: Record<string, string> = {
     "{{CANDIDATE_NAME}}": buyer.candidateName,
     "{{ADMISSION_NUMBER}}": buyer.admissionNumber,
     "{{INSTITUTION_NAME}}": buyer.institutionName,
-    "{{SUPERVISOR_NAME}}": buyer.supervisorName || "[Supervisor Name]",
+    "{{SUPERVISOR_NAME}}": supervisor,
     "{{TARGET_TOWN}}": buyer.townOrMarket,
     "{{TARGET_COUNTY}}": buyer.county,
     "{{STREET_ADDRESS}}": buyer.streetOrBuilding || `${buyer.townOrMarket} Commercial Center`,
@@ -227,12 +265,30 @@ export function stampMarketplaceBusinessPlan(
     "{{EMAIL_ADDRESS}}": "info@enterprise.co.ke",
     "{{POSTAL_ADDRESS}}": "P.O. Box 100",
     "[Candidate]": buyer.candidateName,
+    "[Enter candidate name]": buyer.candidateName,
     "[Admission number withheld]": buyer.admissionNumber,
+    "[Enter index number]": buyer.admissionNumber,
     "[Institution]": buyer.institutionName,
-    "[Supervisor]": buyer.supervisorName || "[Supervisor Name]",
+    "[Institution name]": buyer.institutionName,
+    "[Enter institution name]": buyer.institutionName,
+    "[Supervisor]": supervisor,
+    "[Supervisor Name]": supervisor,
+    "[Supervisor name]": supervisor,
+    "[Enter supervisor name]": supervisor,
   };
 
   return sections.map((sec) => {
+    const titleNorm = sec.title.trim().toLowerCase();
+    if (/declaration|approval/i.test(titleNorm)) {
+      return { title: sec.title, content: prelims.declaration };
+    }
+    if (/^dedication$|prelim\.dedication/i.test(titleNorm)) {
+      return { title: sec.title, content: prelims.dedication };
+    }
+    if (/acknowledg/i.test(titleNorm)) {
+      return { title: sec.title, content: prelims.acknowledgements };
+    }
+
     let text = sec.content;
     for (const [token, val] of Object.entries(replacements)) {
       text = text.replaceAll(token, val);
