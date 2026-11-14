@@ -11,9 +11,9 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
   const error = params?.error;
 
   return (
-    <main className="min-h-screen flex flex-col justify-center items-center bg-[#f4f7fb] px-4 py-12">
+    <main className="flex h-dvh min-h-dvh flex-col items-center justify-start overflow-hidden bg-[#f4f7fb] px-4 pb-4 pt-4 sm:pt-8 lg:justify-center lg:py-8">
       {/* Institutional Brand Header */}
-      <div className="mb-6 text-center space-y-2">
+      <div className="mb-4 text-center space-y-2">
         <Link
           href="/"
           className="inline-flex items-center gap-2.5 font-semibold text-xl text-slate-900 tracking-tight"
@@ -42,10 +42,10 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
         <div className="p-7 sm:p-8 space-y-6">
           <div className="text-center space-y-1">
             <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
-              Candidate Registration
+              Create student account
             </h1>
             <p className="text-xs text-slate-500">
-              Create your TVET project workspace account
+              Start learning with your student account
             </p>
           </div>
 
@@ -123,14 +123,10 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
           </form>
 
           <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span>Already have an account?</span>
-            <Link
-              href="/login"
-              className="font-semibold text-indigo-600 hover:underline"
-            >
-              Sign In
-            </Link>
+              <span>Already have an account?</span>
+            <Link href="/login" className="font-semibold text-indigo-600 hover:underline">Sign in</Link>
           </div>
+          <div className="text-center text-xs text-slate-600">Are you a trainer? <Link href="/signup/faculty" className="font-semibold text-emerald-700 hover:underline">Apply for trainer access</Link></div>
         </div>
 
         {/* Security Footer */}

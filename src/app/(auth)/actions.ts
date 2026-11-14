@@ -34,10 +34,8 @@ function isAllowedRoleRedirect(role: UserRole, redirectUrl: string | undefined):
 export async function login(formData: FormData) {
   const email = formData.get("email")?.toString().trim();
   const password = formData.get("password")?.toString();
-  const portal = formData.get("portal")?.toString() === "faculty" ? "faculty" : "student";
   const redirectUrl = formData.get("redirect")?.toString();
-
-  const failPath = portal === "faculty" ? "/login?portal=faculty" : "/login";
+  const failPath = "/login";
 
   if (!email || !password) {
     fail(failPath, "Please enter both email and password.");
@@ -71,9 +69,24 @@ export async function login(formData: FormData) {
     fail(failPath, "Your account profile is not ready. Contact your college administrator.");
   }
 
-  if (portal === "faculty" && role === "student") {
+  if (role === "supervisor") {
+    const { data: trainerProfile } = await supabase
+      .from("trainer_profiles")
+      .select("status")
+      .eq("user_id", data.user.id)
+      .maybeSingle();
+
+    if (trainerProfile && trainerProfile.status !== "approved") {
+      await supabase.auth.signOut();
+      fail(failPath, trainerProfile?.status === "suspended"
+        ? "This trainer account is suspended. Contact an administrator."
+        : "Your trainer account is awaiting administrator approval.");
+    }
+  }
+
+  if (role === "student" && formData.get("portal")?.toString() === "faculty") {
     await supabase.auth.signOut();
-    fail(failPath, "This account has student access. Ask your college administrator to enable faculty access.");
+    fail(failPath, "This account has student access. Use the student workspace.");
   }
 
   if (redirectUrl && isAllowedRoleRedirect(role, redirectUrl)) {
@@ -122,6 +135,43 @@ export async function signup(formData: FormData) {
 
   // If email confirmation is disabled and session is active
   redirect("/studio");
+}
+
+export async function signupFaculty(formData: FormData) {
+  const fullName = formData.get("fullName")?.toString().trim() || "";
+  const email = formData.get("email")?.toString().trim();
+  const password = formData.get("password")?.toString();
+
+  if (!email || !password) {
+    fail("/signup/faculty", "Email and password are required.");
+  }
+
+  if (password.length < 6) {
+    fail("/signup/faculty", "Password must be at least 6 characters.");
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: fullName,
+        requested_role: "supervisor",
+      },
+    },
+  });
+
+  if (error) {
+    fail("/signup/faculty", error.message);
+  }
+
+  if (data?.user && !data.session) {
+    redirect(`/login?message=${encodeURIComponent("Application received. Confirm your email, then wait for administrator approval.")}`);
+  }
+
+  await supabase.auth.signOut();
+  redirect(`/login?message=${encodeURIComponent("Application received. An administrator must approve your trainer account before access is enabled.")}`);
 }
 
 export async function logout() {

@@ -49,6 +49,21 @@ export async function updateCommission(formData: FormData) {
   revalidatePath("/admin");
 }
 
+export async function approveTrainer(formData: FormData) {
+  const { supabase } = await verifyAdmin();
+  const userId = formData.get("userId")?.toString();
+  if (!userId) throw new Error("Missing trainer user id.");
+
+  const { error } = await supabase
+    .from("trainer_profiles")
+    .update({ status: "approved", approved_at: new Date().toISOString() })
+    .eq("user_id", userId)
+    .eq("status", "pending");
+
+  if (error) throw error;
+  revalidatePath("/admin");
+}
+
 export async function createIcmhsInstitutionalPlan() {
   const { supabase, user } = await verifyAdmin();
   const db = createAdminClient();

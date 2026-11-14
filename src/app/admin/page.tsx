@@ -2,6 +2,7 @@ import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import {
   updateUserRole,
+  approveTrainer,
   purgePendingOrdersAction,
 } from "./actions";
 import { redirect } from "next/navigation";
@@ -52,12 +53,14 @@ export default async function AdminPage() {
     { data: allOrders },
     { data: allReports },
     { data: institutionalWorkspaces },
+    { data: pendingTrainerProfiles },
   ] = await Promise.all([
     supabase.from("profiles").select("*").order("created_at", { ascending: false }),
     supabase.from("projects").select("*, profiles:trainer_id(full_name)").order("created_at", { ascending: false }),
     supabase.from("orders").select("*").order("created_at", { ascending: false }),
     supabase.from("reports").select("*").order("created_at", { ascending: false }),
     supabase.from("project_workspaces").select("id, title, status, final_project_status, updated_at, workspace_type, business_plan_specs").eq("workspace_type", "business_plan").order("updated_at", { ascending: false }),
+    supabase.from("trainer_profiles").select("user_id, status, profiles(full_name)").eq("status", "pending"),
   ]);
 
   const profilesList: UserProfile[] = (allProfiles as unknown as UserProfile[]) || [];
@@ -84,8 +87,9 @@ export default async function AdminPage() {
       profile={profile}
       activeContextTitle="System Administration"
     >
-      {/* Sticky Administrative Command HUD */}
-      <div className="sticky top-16 z-20 -mt-4 sm:-mt-5 lg:-mt-6 xl:-mt-8 -mx-4 sm:-mx-6 lg:-mx-8 xl:-mx-10 px-4 sm:px-6 lg:px-8 xl:px-10 py-2 sm:py-2.5 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-2xs">
+      {/* Fixed Administrative Command HUD */}
+      <div aria-hidden="true" className="h-[58px]" />
+      <div className="fixed inset-x-0 top-16 z-30 border-b border-slate-200/80 bg-white/95 px-4 py-2.5 shadow-2xs backdrop-blur-md md:left-60 sm:px-6 lg:px-8 xl:px-10">
         <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between gap-2.5 sm:gap-3">
           <div className="flex items-center gap-2">
             <h1 className="text-sm sm:text-base font-bold tracking-tight text-slate-900">
@@ -249,6 +253,27 @@ export default async function AdminPage() {
           </table>
         </div>
       </ContentCard>
+      </div>
+
+      <div id="trainer-approvals" className="scroll-mt-20">
+        <ContentCard
+          title="Trainer approvals"
+          subtitle="Review access requests before enabling trainer tools"
+          icon={ShieldCheck}
+          compact
+          headerRight={<span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">{pendingTrainerProfiles?.length || 0} Pending</span>}
+        >
+          {!pendingTrainerProfiles?.length ? (
+            <p className="text-xs text-slate-500">No trainer applications are waiting for review.</p>
+          ) : (
+            <div className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white">
+              {pendingTrainerProfiles.map((trainer) => {
+                const trainerProfile = trainer.profiles as unknown as { full_name?: string | null } | null;
+                return <div key={trainer.user_id} className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-semibold text-slate-900">{trainerProfile?.full_name || "Unnamed applicant"}</p><p className="text-xs text-slate-500">Trainer access request</p></div><form action={approveTrainer}><input type="hidden" name="userId" value={trainer.user_id} /><button type="submit" className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-xs hover:bg-emerald-700">Approve trainer</button></form></div>;
+              })}
+            </div>
+          )}
+        </ContentCard>
       </div>
 
       {/* Orders Section */}

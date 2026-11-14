@@ -78,9 +78,9 @@ export function AppShell({
   ];
 
   return (
-    <div className="min-h-screen bg-[#f5f7fa] text-slate-800 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#f5f7fa] pt-16 text-slate-800 font-sans">
       {/* 1. Global Institutional Top Bar (KEC White Bar with App Launcher) */}
-      <header className="h-16 min-w-0 bg-white border-b border-slate-200 sticky top-0 z-40 px-3 sm:px-6 flex items-center justify-between gap-2 shadow-xs">
+      <header className="fixed inset-x-0 top-0 z-40 flex h-16 min-w-0 items-center justify-between gap-2 border-b border-slate-200 bg-white px-3 shadow-xs sm:px-6">
         <div className="flex min-w-0 items-center gap-2 sm:gap-4">
           {/* Mobile Menu Toggle */}
           {!fullScreenWorkspace && <button
@@ -226,7 +226,7 @@ export function AppShell({
         {!fullScreenWorkspace && <>
         {/* Left Persistent Navigation Sidebar */}
         <aside
-          className={`fixed inset-y-0 left-0 top-16 z-30 w-56 lg:w-60 bg-white border-r border-slate-200/80 text-slate-800 flex flex-col justify-between transition-transform duration-200 ease-in-out md:sticky md:top-16 md:h-[calc(100vh-4rem)] md:shrink-0 md:self-start md:translate-x-0 ${
+          className={`fixed bottom-0 left-0 top-16 z-30 flex w-56 flex-col justify-between border-r border-slate-200/80 bg-white text-slate-800 shadow-xl transition-transform duration-200 ease-in-out md:w-60 md:translate-x-0 md:shadow-none ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           } shadow-xl md:shadow-none`}
         >
@@ -490,7 +490,7 @@ export function AppShell({
         {/* 3. Main Content Stage */}
         <main className={fullScreenWorkspace
           ? "h-[calc(100vh-4rem)] min-w-0 flex-1 overflow-y-auto"
-          : "flex-1 min-w-0 w-full px-3 py-3 sm:px-5 sm:py-5 lg:px-8 lg:py-6 2xl:px-10 space-y-4 sm:space-y-6"}>
+          : "min-w-0 w-full flex-1 px-3 py-3 sm:px-5 sm:py-5 md:ml-60 lg:px-8 lg:py-6 2xl:px-10 space-y-4 sm:space-y-6"}>
           {children}
         </main>
       </div>

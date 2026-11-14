@@ -6,7 +6,6 @@ interface LoginPageProps {
   searchParams: Promise<{
     error?: string;
     message?: string;
-    portal?: string;
     redirect?: string;
   }>;
 }
@@ -15,13 +14,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
   const error = params?.error;
   const message = params?.message;
-  const portal = params?.portal === "faculty" ? "faculty" : "student";
   const redirectUrl = params?.redirect;
 
   return (
-    <main className="min-h-screen flex flex-col justify-center items-center bg-[#f4f7fb] px-4 py-12">
+    <main className="flex h-dvh min-h-dvh flex-col items-center justify-start overflow-hidden bg-[#f4f7fb] px-4 pb-4 pt-4 sm:pt-8 lg:justify-center lg:py-8">
       {/* Institutional Brand Header */}
-      <div className="mb-6 text-center space-y-2">
+      <div className="mb-4 text-center space-y-2">
         <Link
           href="/"
           className="inline-flex items-center gap-2.5 font-semibold text-xl text-slate-900 tracking-tight"
@@ -41,12 +39,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       </div>
 
       <Suspense fallback={<div className="w-full max-w-md h-96 bg-white rounded-xl border border-slate-200 animate-pulse" />}>
-        <LoginForm
-          initialPortal={portal}
-          error={error}
-          message={message}
-          redirectUrl={redirectUrl}
-        />
+        <LoginForm error={error} message={message} redirectUrl={redirectUrl} />
       </Suspense>
     </main>
   );
