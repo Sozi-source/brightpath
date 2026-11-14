@@ -4,6 +4,8 @@ import { connection } from "next/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
 import { AppShell, type SidebarWorkspaceItem } from "@/components/layout/AppShell";
 import { ProjectAreaCatalog } from "@/components/studio/ProjectAreaCatalog";
+import { StudioAccessGate } from "./StudioAccessGate";
+import { hasStudioAccess } from "@/lib/studio/access";
 import type { ProjectWorkspace } from "@/types/database";
 
 export default async function StudioDashboardPage() {
@@ -92,21 +94,27 @@ export default async function StudioDashboardPage() {
     };
   });
 
+  const canUseStudio = hasStudioAccess(profile);
+
   return (
     <AppShell
       user={user}
       profile={profile}
       institutionName={institutionName}
       activeContextTitle={profile?.course || "KNEC Project Studio"}
-      studioWorkspaces={sidebarWorkspaces}
+      studioWorkspaces={canUseStudio ? sidebarWorkspaces : undefined}
     >
-      <ProjectAreaCatalog
-        candidateName={profile?.full_name || user.email || "Candidate"}
-        admissionNumber={profile?.admission_number || ""}
-        course={profile?.course || "Diploma in Human Nutrition and Dietetics"}
-        level={profile?.level || "diploma"}
-        currentWorkspacesCount={workspaces.length}
-      />
+      {canUseStudio ? (
+        <ProjectAreaCatalog
+          candidateName={profile?.full_name || user.email || "Candidate"}
+          admissionNumber={profile?.admission_number || ""}
+          course={profile?.course || "Diploma in Human Nutrition and Dietetics"}
+          level={profile?.level || "diploma"}
+          currentWorkspacesCount={workspaces.length}
+        />
+      ) : (
+        <StudioAccessGate />
+      )}
     </AppShell>
   );
 }

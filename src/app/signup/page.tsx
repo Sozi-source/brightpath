@@ -113,6 +113,22 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
               />
             </div>
 
+            <div>
+              <label
+                htmlFor="classCode"
+                className="block text-xs font-semibold text-slate-700 mb-1"
+              >
+                Class Studio Code <span className="font-normal text-slate-400">(Optional — Taught Students Only)</span>
+              </label>
+              <input
+                id="classCode"
+                name="classCode"
+                type="text"
+                placeholder="Leave blank for ready-made projects"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs sm:text-sm font-mono text-slate-900 placeholder:font-sans placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 transition-all"
+              />
+            </div>
+
             <button
               type="submit"
               className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 text-xs sm:text-sm font-semibold transition-colors shadow-xs cursor-pointer"

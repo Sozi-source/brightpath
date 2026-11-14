@@ -29,6 +29,7 @@ import { revalidatePath } from "next/cache";
 import type { WorkspaceType, WorkspaceLevel } from "@/types/database";
 import { resolveBusinessPlanModel } from "@/lib/studio/businessPlanTypes";
 import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
+import { hasStudioAccess } from "@/lib/studio/access";
 import { NUTRITION_VENTURES } from "@/lib/studio/catalog/nutritionVentures";
 import {
   correctConsultancyLocationClaims,
@@ -52,6 +53,49 @@ function getBusinessPlanAIProvider(formData: FormData): BusinessPlanAIProvider {
   const alternate: BusinessPlanAIProvider = preferred === "gemini" ? "groq" : "gemini";
   if (isBusinessPlanProviderConfigured(alternate)) return alternate;
   return preferred;
+}
+
+export async function unlockStudioWithClassCode(formData: FormData): Promise<{ error?: string; success?: boolean }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "Please sign in first." };
+  }
+
+  const classCode = formData.get("classCode")?.toString().trim() || "";
+  if (!classCode) {
+    return { error: "Please enter the Class Access Code provided by your trainer." };
+  }
+
+  const db = getServerDbClient(supabase);
+  const { data: inst } = await db
+    .from("institutions")
+    .select("id, name, code")
+    .ilike("code", classCode)
+    .limit(1)
+    .maybeSingle();
+
+  if (!inst) {
+    return { error: "Invalid Class Access Code. Please verify the code with your trainer." };
+  }
+
+  const { error: updateErr } = await db
+    .from("profiles")
+    .update({
+      institution_id: inst.id,
+      institution: inst.name,
+    })
+    .eq("id", user.id);
+
+  if (updateErr) {
+    return { error: updateErr.message || "Could not unlock Studio access." };
+  }
+
+  revalidatePath("/studio");
+  revalidatePath("/learn");
+  return { success: true };
 }
 
 export async function createWorkspace(formData: FormData) {
@@ -89,7 +133,7 @@ export async function createWorkspace(formData: FormData) {
   // Automatically resolve student's existing institution or default institution + default supervisor
   const [{ data: existingProfile }, { data: defaultInst }, { data: defaultSupervisor }] =
     await Promise.all([
-      db.from("profiles").select("institution_id, full_name").eq("id", user.id).maybeSingle(),
+      db.from("profiles").select("role, institution_id, full_name").eq("id", user.id).maybeSingle(),
       db.from("institutions").select("id").limit(1).maybeSingle(),
       db
         .from("profiles")
@@ -98,6 +142,10 @@ export async function createWorkspace(formData: FormData) {
         .limit(1)
         .maybeSingle(),
     ]);
+
+  if (!hasStudioAccess(existingProfile)) {
+    throw new Error("Project Studio is restricted to enrolled class students. Enter your trainer's Class Access Code first.");
+  }
 
   const institutionId = existingProfile?.institution_id || defaultInst?.id || null;
   const supervisorId = defaultSupervisor?.id || null;

@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 import type { UserRole } from "@/types/database";
 
@@ -100,6 +101,7 @@ export async function signup(formData: FormData) {
   const fullName = formData.get("fullName")?.toString().trim() || "";
   const email = formData.get("email")?.toString().trim();
   const password = formData.get("password")?.toString();
+  const classCode = formData.get("classCode")?.toString().trim() || "";
 
   if (!email || !password) {
     fail("/signup", "Email and password are required.");
@@ -107,6 +109,24 @@ export async function signup(formData: FormData) {
 
   if (password.length < 6) {
     fail("/signup", "Password must be at least 6 characters.");
+  }
+
+  const adminDb = createAdminClient();
+  let matchedInstitution: { id: string; name: string } | null = null;
+  if (classCode) {
+    const { data: inst } = await adminDb
+      .from("institutions")
+      .select("id, name, code")
+      .ilike("code", classCode)
+      .limit(1)
+      .maybeSingle();
+    if (!inst) {
+      fail(
+        "/signup",
+        "Invalid Class Access Code. Check with your trainer, or leave blank to browse ready-made projects."
+      );
+    }
+    matchedInstitution = { id: inst.id, name: inst.name };
   }
 
   const supabase = await createClient();
@@ -124,6 +144,16 @@ export async function signup(formData: FormData) {
     fail("/signup", error.message);
   }
 
+  if (data?.user && matchedInstitution) {
+    await adminDb
+      .from("profiles")
+      .update({
+        institution_id: matchedInstitution.id,
+        institution: matchedInstitution.name,
+      })
+      .eq("id", data.user.id);
+  }
+
   // If email confirmation is enabled and user is not confirmed yet
   if (data?.user && !data.session) {
     redirect(
@@ -134,7 +164,7 @@ export async function signup(formData: FormData) {
   }
 
   // If email confirmation is disabled and session is active
-  redirect("/learn");
+  redirect(matchedInstitution ? "/studio" : "/projects");
 }
 
 export async function signupFaculty(formData: FormData) {

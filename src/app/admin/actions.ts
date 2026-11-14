@@ -506,3 +506,86 @@ export async function purgePendingOrdersAction() {
   if (error) throw error;
   revalidatePath("/admin");
 }
+
+export async function toggleStudentStudioAccess(formData: FormData) {
+  await verifyAdmin();
+  const userId = formData.get("userId")?.toString();
+  const grant = formData.get("grant")?.toString() === "true";
+  if (!userId) throw new Error("Missing userId");
+
+  const adminClient = createAdminClient();
+  if (grant) {
+    let { data: inst } = await adminClient
+      .from("institutions")
+      .select("id, name")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (!inst) {
+      const { data: created, error: createErr } = await adminClient
+        .from("institutions")
+        .insert({
+          name: "Imperial College of Medical and Health Sciences",
+          code: "ICMHS-2026",
+          ai_mode: "feedback_and_polish",
+        })
+        .select("id, name")
+        .single();
+      if (createErr) throw createErr;
+      inst = created;
+    }
+
+    const { error } = await adminClient
+      .from("profiles")
+      .update({
+        institution_id: inst.id,
+        institution: inst.name,
+      })
+      .eq("id", userId);
+    if (error) throw error;
+  } else {
+    const { error } = await adminClient
+      .from("profiles")
+      .update({
+        institution_id: null,
+      })
+      .eq("id", userId);
+    if (error) throw error;
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/studio");
+  revalidatePath("/learn");
+}
+
+export async function updateClassStudioCode(formData: FormData) {
+  await verifyAdmin();
+  const classCode = formData.get("classCode")?.toString().trim().toUpperCase();
+  if (!classCode) throw new Error("Class Access Code cannot be empty.");
+
+  const adminClient = createAdminClient();
+  const { data: inst } = await adminClient
+    .from("institutions")
+    .select("id")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (inst) {
+    const { error } = await adminClient
+      .from("institutions")
+      .update({ code: classCode })
+      .eq("id", inst.id);
+    if (error) throw error;
+  } else {
+    const { error } = await adminClient.from("institutions").insert({
+      name: "Imperial College of Medical and Health Sciences",
+      code: classCode,
+      ai_mode: "feedback_and_polish",
+    });
+    if (error) throw error;
+  }
+
+  revalidatePath("/admin");
+}

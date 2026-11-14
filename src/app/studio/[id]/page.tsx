@@ -12,6 +12,7 @@ import {
 import { AppShell, type SidebarWorkspaceItem } from "@/components/layout/AppShell";
 import { ContentCard } from "@/components/layout/ContentCard";
 import { StructuredDescription } from "@/components/ui/StructuredDescription";
+import { hasStudioAccess } from "@/lib/studio/access";
 import { DeleteDraftButton } from "../DeleteDraftButton";
 import { BusinessPlanBuilderModal } from "./BusinessPlanBuilderModal";
 import { FinalProjectSubmissionForm } from "./FinalProjectSubmissionForm";
@@ -102,6 +103,10 @@ export default async function WorkspaceOverviewPage({
   }
 
   const workspace = workspaceData as unknown as ProjectWorkspace;
+
+  if (!hasStudioAccess(profile)) {
+    redirect("/studio");
+  }
 
   // Authorize student (or supervisor/admin)
   if (workspace.student_id !== user.id) {

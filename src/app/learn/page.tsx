@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeaderCard } from "@/components/layout/PageHeaderCard";
+import { hasStudioAccess } from "@/lib/studio/access";
 import {
   ArrowRight,
   BookOpen,
@@ -37,6 +38,7 @@ export default async function LearningHubPage() {
     supabase.from("project_workspaces").select("id, title, status, updated_at").eq("student_id", user.id).order("updated_at", { ascending: false }).limit(3),
   ]);
   const profile = profileData as UserProfile | null;
+  const canAccessStudio = hasStudioAccess(profile);
 
   return (
     <AppShell user={user} profile={profile} activeContextTitle="Learning Hub">
@@ -57,7 +59,32 @@ export default async function LearningHubPage() {
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[1.4fr_.6fr]">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs"><div className="flex items-center justify-between gap-3"><div><p className="bp-eyebrow">Keep going</p><h2 className="bp-title mt-1 text-xl">Your active work</h2></div><Link href="/studio" className="text-xs font-semibold text-indigo-700 hover:text-indigo-900">Open Studio</Link></div>{workspaces?.length ? <div className="mt-4 divide-y divide-slate-100 rounded-lg border border-slate-200">{workspaces.map((workspace) => <Link key={workspace.id} href={`/studio/${workspace.id}`} className="flex items-center justify-between gap-3 px-3 py-3 transition hover:bg-slate-50"><div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-900">{workspace.title || "Untitled project"}</p><p className="mt-0.5 text-xs capitalize text-slate-500">{workspace.status?.replaceAll("_", " ") || "Draft"}</p></div><ArrowRight className="h-4 w-4 shrink-0 text-slate-400" /></Link>)}</div> : <div className="mt-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-5 text-center"><GraduationCap className="mx-auto h-7 w-7 text-indigo-500" /><p className="mt-2 text-sm font-semibold text-slate-900">Start your first project</p><p className="mt-1 text-xs text-slate-600">Choose a project idea and build it step by step.</p><Link href="/studio" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700">Open Project Studio <ArrowRight className="h-3.5 w-3.5" /></Link></div>}</div>
+        {canAccessStudio ? (
+          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs"><div className="flex items-center justify-between gap-3"><div><p className="bp-eyebrow">Keep going</p><h2 className="bp-title mt-1 text-xl">Your active work</h2></div><Link href="/studio" className="text-xs font-semibold text-indigo-700 hover:text-indigo-900">Open Studio</Link></div>{workspaces?.length ? <div className="mt-4 divide-y divide-slate-100 rounded-lg border border-slate-200">{workspaces.map((workspace) => <Link key={workspace.id} href={`/studio/${workspace.id}`} className="flex items-center justify-between gap-3 px-3 py-3 transition hover:bg-slate-50"><div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-900">{workspace.title || "Untitled project"}</p><p className="mt-0.5 text-xs capitalize text-slate-500">{workspace.status?.replaceAll("_", " ") || "Draft"}</p></div><ArrowRight className="h-4 w-4 shrink-0 text-slate-400" /></Link>)}</div> : <div className="mt-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-5 text-center"><GraduationCap className="mx-auto h-7 w-7 text-indigo-500" /><p className="mt-2 text-sm font-semibold text-slate-900">Start your first project</p><p className="mt-1 text-xs text-slate-600">Choose a project idea and build it step by step.</p><Link href="/studio" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700">Open Project Studio <ArrowRight className="h-3.5 w-3.5" /></Link></div>}</div>
+        ) : (
+          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between gap-4">
+            <div>
+              <p className="bp-eyebrow">Ready-Made KNEC Projects</p>
+              <h2 className="bp-title mt-1 text-xl">Download & Personalize Completed Plans</h2>
+              <p className="mt-1 text-xs sm:text-sm text-slate-600">
+                Browse verified KNEC business plans and trade projects in the Marketplace, then personalize your name, admission number, college, and target location in your Digital Library.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2.5 pt-2 border-t border-slate-100">
+              <Link href="/projects" className="inline-flex items-center gap-1.5 rounded-lg bg-[#087f8c] hover:bg-teal-800 px-4 py-2 text-xs font-semibold text-white shadow-2xs transition-colors">
+                <span>Browse Marketplace</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+              <Link href="/library" className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-700 shadow-2xs transition-colors">
+                <Library className="h-3.5 w-3.5" />
+                <span>My Digital Library</span>
+              </Link>
+              <Link href="/studio" className="ml-auto text-xs font-semibold text-indigo-600 hover:underline">
+                Have a trainer Class Code?
+              </Link>
+            </div>
+          </div>
+        )}
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-5"><span className="inline-flex rounded-lg bg-indigo-50 p-2 text-indigo-700"><GraduationCap className="h-5 w-5" /></span><h2 className="bp-title mt-4 text-xl">Need direction?</h2><p className="mt-1 text-sm leading-5 text-slate-600">Start with a resource, then move into guided practice.</p><Link href="/projects" className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-indigo-700">View all resources <ArrowRight className="h-3.5 w-3.5" /></Link></div>
       </section>
     </AppShell>

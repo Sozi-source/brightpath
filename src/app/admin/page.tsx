@@ -4,6 +4,8 @@ import {
   updateUserRole,
   approveTrainer,
   purgePendingOrdersAction,
+  toggleStudentStudioAccess,
+  updateClassStudioCode,
 } from "./actions";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
@@ -54,6 +56,7 @@ export default async function AdminPage() {
     { data: allReports },
     { data: institutionalWorkspaces },
     { data: pendingTrainerProfiles },
+    { data: primaryInstitution },
   ] = await Promise.all([
     supabase.from("profiles").select("*").order("created_at", { ascending: false }),
     supabase.from("projects").select("*, profiles:trainer_id(full_name)").order("created_at", { ascending: false }),
@@ -61,7 +64,10 @@ export default async function AdminPage() {
     supabase.from("reports").select("*").order("created_at", { ascending: false }),
     supabase.from("project_workspaces").select("id, title, status, final_project_status, updated_at, workspace_type, business_plan_specs").eq("workspace_type", "business_plan").order("updated_at", { ascending: false }),
     supabase.from("trainer_profiles").select("user_id, status, profiles(full_name)").eq("status", "pending"),
+    supabase.from("institutions").select("id, name, code").order("created_at", { ascending: true }).limit(1).maybeSingle(),
   ]);
+
+  const classStudioCode = (primaryInstitution as { code?: string | null } | null)?.code || "ICMHS-2026";
 
   const profilesList: UserProfile[] = (allProfiles as unknown as UserProfile[]) || [];
   const adminCount = profilesList.filter((p) => p.role === "admin").length;
@@ -181,13 +187,31 @@ export default async function AdminPage() {
       <div id="users" className="scroll-mt-20">
         <ContentCard
           title="User Directory"
-          subtitle="User roles and access permissions"
+          subtitle="Manage Studio class access vs. Marketplace-only buyers"
           icon={Users}
           compact
           headerRight={
-            <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-              {profilesList.length} Total Users
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <form action={updateClassStudioCode} className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50/70 px-2.5 py-1">
+                <span className="text-[10.5px] font-semibold uppercase tracking-wider text-indigo-800">Class Studio Code:</span>
+                <input
+                  type="text"
+                  name="classCode"
+                  defaultValue={classStudioCode}
+                  aria-label="Class Studio Access Code"
+                  className="h-6 w-28 rounded border border-indigo-200 bg-white px-2 text-xs font-mono font-semibold text-slate-900 focus:border-indigo-600 focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  className="h-6 rounded bg-indigo-600 hover:bg-indigo-700 px-2 text-[10.5px] font-semibold text-white transition-colors cursor-pointer"
+                >
+                  Save Code
+                </button>
+              </form>
+              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                {profilesList.length} Total Users
+              </span>
+            </div>
           }
         >
         <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-xs">
@@ -196,13 +220,16 @@ export default async function AdminPage() {
               <tr>
                 <th className="py-2 px-3">Name</th>
                 <th className="py-2 px-3">Role</th>
+                <th className="py-2 px-3">Studio Access</th>
                 <th className="py-2 px-3">Course / Institution</th>
                 <th className="py-2 px-3">Joined</th>
                 <th className="py-2 px-3 text-right">Change Role</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {profilesList.map((p) => (
+              {profilesList.map((p) => {
+                const studioAllowed = p.role === "admin" || p.role === "supervisor" || Boolean(p.institution_id);
+                return (
                 <tr key={p.id} className="hover:bg-slate-50/60 transition-colors">
                   <td className="py-2 px-3 font-semibold text-slate-900 whitespace-nowrap">
                     {p.full_name || "Unnamed"}
@@ -219,6 +246,35 @@ export default async function AdminPage() {
                     >
                       {p.role}
                     </span>
+                  </td>
+                  <td className="py-2 px-3 whitespace-nowrap">
+                    <div className="inline-flex items-center gap-2">
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${
+                          studioAllowed
+                            ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                            : "bg-slate-100 text-slate-600 border border-slate-200"
+                        }`}
+                      >
+                        {studioAllowed ? "Studio Class" : "Marketplace Only"}
+                      </span>
+                      {p.role === "student" && (
+                        <form action={toggleStudentStudioAccess} className="inline">
+                          <input type="hidden" name="userId" value={p.id} />
+                          <input type="hidden" name="grant" value={studioAllowed ? "false" : "true"} />
+                          <button
+                            type="submit"
+                            className={`rounded-md px-2 py-0.5 text-[10.5px] font-semibold transition-colors cursor-pointer ${
+                              studioAllowed
+                                ? "border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
+                                : "bg-teal-600 text-white hover:bg-teal-700 shadow-2xs"
+                            }`}
+                          >
+                            {studioAllowed ? "Revoke" : "Grant Studio"}
+                          </button>
+                        </form>
+                      )}
+                    </div>
                   </td>
                   <td className="py-2 px-3 text-slate-600">
                     {p.institution || p.course || "-"}
@@ -248,7 +304,8 @@ export default async function AdminPage() {
                     )}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

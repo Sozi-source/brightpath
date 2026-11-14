@@ -44,6 +44,7 @@ interface AppShellProps {
     admission_number?: string | null;
     course?: string | null;
     level?: string | null;
+    institution_id?: string | null;
   } | null;
   institutionName?: string | null;
   activeContextTitle?: string | null;
@@ -69,10 +70,11 @@ export function AppShell({
 
   const isRoleAdmin = profile?.role === "admin";
   const isRoleSupervisor = profile?.role === "supervisor" || isRoleAdmin;
+  const canAccessStudio = isRoleAdmin || isRoleSupervisor || Boolean(profile?.institution_id);
 
   const navItems: { label: string; href: string; icon: React.ComponentType<{ className?: string }>; brandIcon: BrandIconName }[] = [
     { label: "Home", href: profile?.role === "student" ? "/learn" : "/", icon: Home, brandIcon: "dashboard" },
-    { label: "Project Studio", href: "/studio", icon: Layers, brandIcon: "projects" },
+    ...(canAccessStudio ? [{ label: "Project Studio", href: "/studio", icon: Layers, brandIcon: "projects" as BrandIconName }] : []),
     { label: "Projects Marketplace", href: "/projects", icon: ShoppingBag, brandIcon: "marketplace" },
     ...(!isRoleAdmin ? [{ label: "Digital Library", href: "/library", icon: Library, brandIcon: "library" as BrandIconName }] : []),
   ];
@@ -113,15 +115,17 @@ export function AppShell({
                   TVET Hub Suite
                 </div>
                 <div className="grid grid-cols-2 gap-2 pt-1">
-                  <Link
-                    href="/studio"
-                    className="p-2.5 rounded-lg hover:bg-teal-50 border border-transparent hover:border-teal-100 flex flex-col items-center text-center gap-1.5 transition-colors"
-                  >
-                    <div className="p-2 bg-teal-50 text-teal-700 rounded-lg">
-                      <BrandIcon name="projects" size="xs" />
-                    </div>
-                    <span className="text-xs font-bold text-slate-800">Project Studio</span>
-                  </Link>
+                  {canAccessStudio && (
+                    <Link
+                      href="/studio"
+                      className="p-2.5 rounded-lg hover:bg-teal-50 border border-transparent hover:border-teal-100 flex flex-col items-center text-center gap-1.5 transition-colors"
+                    >
+                      <div className="p-2 bg-teal-50 text-teal-700 rounded-lg">
+                        <BrandIcon name="projects" size="xs" />
+                      </div>
+                      <span className="text-xs font-bold text-slate-800">Project Studio</span>
+                    </Link>
+                  )}
                   <Link
                     href="/projects"
                     className="p-2.5 rounded-lg hover:bg-emerald-50 border border-transparent hover:border-emerald-100 flex flex-col items-center text-center gap-1.5 transition-colors"
