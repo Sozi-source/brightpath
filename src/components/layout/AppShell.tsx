@@ -71,7 +71,7 @@ export function AppShell({
   const isRoleSupervisor = profile?.role === "supervisor" || isRoleAdmin;
 
   const navItems: { label: string; href: string; icon: React.ComponentType<{ className?: string }>; brandIcon: BrandIconName }[] = [
-    { label: "Home", href: "/", icon: Home, brandIcon: "dashboard" },
+    { label: "Home", href: profile?.role === "student" ? "/learn" : "/", icon: Home, brandIcon: "dashboard" },
     { label: "Project Studio", href: "/studio", icon: Layers, brandIcon: "projects" },
     { label: "Projects Marketplace", href: "/projects", icon: ShoppingBag, brandIcon: "marketplace" },
     ...(!isRoleAdmin ? [{ label: "Digital Library", href: "/library", icon: Library, brandIcon: "library" as BrandIconName }] : []),

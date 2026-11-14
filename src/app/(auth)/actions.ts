@@ -12,7 +12,7 @@ function fail(path: string, message: string): never {
 }
 
 const ROLE_HOME: Record<UserRole, string> = {
-  student: "/studio",
+  student: "/learn",
   supervisor: "/supervisor",
   admin: "/admin",
 };
@@ -134,7 +134,7 @@ export async function signup(formData: FormData) {
   }
 
   // If email confirmation is disabled and session is active
-  redirect("/studio");
+  redirect("/learn");
 }
 
 export async function signupFaculty(formData: FormData) {
