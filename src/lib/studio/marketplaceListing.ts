@@ -119,7 +119,6 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
     return text;
   };
 
-  const levelLabel = workspace.level === "craft" ? "Craft Certificate" : "Diploma";
   const baseTitle = redactPrivateDetails(specs?.businessName || workspace.title || `${workspace.course} Enterprise`)
     .replace(/\s+in\s+\{\{TARGET_TOWN\}\}(?:,\s*\{\{TARGET_COUNTY\}\})?/gi, "")
     .replace(/\s+in\s+Regional(?:,\s*County)?/gi, "")
@@ -129,7 +128,7 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
     .replace(/\{\{CANDIDATE_NAME\}\}/g, "")
     .replace(/\s*—\s*Complete KNEC Business Plan.*/i, "")
     .trim();
-  const listingTitle = `${baseTitle} — Complete KNEC Business Plan (${levelLabel})`;
+  const listingTitle = `${baseTitle} — Complete KNEC Business Plan`;
 
   const realTown = specs?.townOrMarket?.trim() || "Nairobi";
   const realCounty = specs?.county?.trim() || "Nairobi County";
@@ -139,7 +138,7 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
 
   const listingDescription = redactPrivateDetails(
     workspace.problem_area ||
-    `Complete KNEC business plan for ${baseTitle} (${levelLabel}). Includes comprehensive executive summary, marketing, operations, human resources, and financial schedules prepared in full compliance with KNEC TVET assessment regulations.`
+    `Complete KNEC business plan for ${baseTitle}. Includes comprehensive executive summary, marketing, operations, human resources, and financial schedules prepared in full compliance with KNEC TVET assessment regulations.`
   )
     .replace(/\{\{STREET_ADDRESS\}\},\s*\{\{TARGET_TOWN\}\},\s*\{\{TARGET_COUNTY\}\}/g, `${realTown}, ${realCounty}`)
     .replace(/\{\{TARGET_TOWN\}\}/g, realTown)

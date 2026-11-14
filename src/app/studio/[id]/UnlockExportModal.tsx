@@ -147,7 +147,7 @@ export function UnlockExportModal({ workspaceId, businessTitle }: UnlockExportMo
                 <li className="flex items-start gap-2.5">
                   <ShieldCheck className="h-4 w-4 text-[#087f8c] shrink-0 mt-0.5" />
                   <span>
-                    <strong className="text-slate-900">KNEC Examination Ready:</strong> Formatted specifically for Kenyan TVET Craft Certificate and Diploma guidelines.
+                    <strong className="text-slate-900">KNEC Examination Ready:</strong> Formatted specifically for Kenyan TVET KNEC guidelines.
                   </span>
                 </li>
               </ul>

@@ -28,12 +28,11 @@ export function MarketplaceProjectCard({
     (project.category || "").toLowerCase().includes("business") ||
     project.file_path.startsWith("workspace-export:");
 
-  const levelMatch = project.title.match(/\((Diploma|Craft Certificate|Certificate|Higher Diploma)\)/i);
-  const levelLabel = levelMatch
-    ? levelMatch[1]
-    : project.title.toLowerCase().includes("craft") || project.title.toLowerCase().includes("certificate")
-    ? "Craft Certificate"
-    : "Diploma";
+  const subtitleLabel = isBusinessPlan
+    ? project.category && project.category !== "Business Plan"
+      ? project.category
+      : "KNEC 5-Chapter Dossier"
+    : project.category || getMaterialTypeLabel(project.material_type);
 
   const exactTitle = getExactBusinessTitle(project.title);
   const palette = getCanvasPalette(project.title || project.id, colorIndex);
@@ -83,7 +82,7 @@ export function MarketplaceProjectCard({
               {exactTitle}
             </h3>
             <p className="mt-1 text-xs text-slate-600 truncate">
-              {levelLabel}
+              {subtitleLabel}
             </p>
           </Link>
         </div>

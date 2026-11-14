@@ -448,7 +448,7 @@ export function ProjectAreaCatalog({
                             {detailBusinessName}
                           </p>
                           <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-[8.5px] font-semibold tracking-wider uppercase !text-white border border-white/30 shadow-2xs">
-                            {level === "craft" ? "Craft Certificate" : "Diploma"}
+                            KNEC Standard
                           </span>
                         </div>
 
@@ -524,7 +524,7 @@ export function ProjectAreaCatalog({
                   <div className="flex min-w-0 flex-col font-sans">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="rounded border border-sky-100 bg-sky-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#007185]">
-                        KNEC {level === "craft" ? "Craft Certificate" : "Diploma"}
+                        KNEC Business Plan
                       </span>
                       <span className="rounded border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-[#565959]">
                         {detailVenture.groupName}
@@ -614,7 +614,7 @@ export function ProjectAreaCatalog({
                   <div className="flex justify-between gap-3 py-2">
                     <dt className="text-slate-600">Examination</dt>
                     <dd className="text-right font-medium text-slate-900">
-                      KNEC {level === "craft" ? "Craft Certificate" : "Diploma"}
+                      KNEC Universal
                     </dd>
                   </div>
                   <div className="flex justify-between gap-3 py-2">
