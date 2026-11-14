@@ -11,6 +11,7 @@ import {
 } from "@/app/studio/actions";
 import { AppShell, type SidebarWorkspaceItem } from "@/components/layout/AppShell";
 import { ContentCard } from "@/components/layout/ContentCard";
+import { StructuredDescription } from "@/components/ui/StructuredDescription";
 import { DeleteDraftButton } from "../DeleteDraftButton";
 import { BusinessPlanBuilderModal } from "./BusinessPlanBuilderModal";
 import { FinalProjectSubmissionForm } from "./FinalProjectSubmissionForm";
@@ -384,9 +385,9 @@ export default async function WorkspaceOverviewPage({
                       <ChevronRight className="h-3.5 w-3.5 transition-transform group-open:rotate-90" />
                     </span>
                   </summary>
-                  <p className="mt-2 border-t border-slate-200/70 pt-2 text-xs text-slate-600 whitespace-pre-wrap leading-relaxed">
-                    {workspace.problem_area}
-                  </p>
+                  <div className="mt-2 border-t border-slate-200/70 pt-2">
+                    <StructuredDescription text={workspace.problem_area} />
+                  </div>
                 </details>
               )}
             </div>

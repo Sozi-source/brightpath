@@ -807,6 +807,22 @@ export function normalizeBusinessPlanSpecs(
   );
   const county = str(s.county, "Kiambu County");
   const townOrMarket = str(s.townOrMarket, "Thika Town");
+  const isNairobiTarget = /nairobi/i.test(townOrMarket) || /nairobi/i.test(county);
+  const localizePresetText = (value: string) => {
+    let out = value
+      .replace(/\s*\[Confirm exact plot\/street locally\]/gi, "")
+      .replace(/\s*\[Confirm lease terms and exact shop unit locally\]/gi, "")
+      .replace(/\s*\[Confirm via local market survey\]/gi, "")
+      .replace(/\s*\[Confirm site specifics locally\]/gi, "");
+    if (!isNairobiTarget) {
+      out = out
+        .replace(/within the target Nairobi catchment/gi, `within the ${townOrMarket}, ${county} catchment`)
+        .replace(/referrals in Nairobi/gi, `referrals in ${townOrMarket}, ${county}`)
+        .replace(/corridor in Nairobi/gi, `corridor in ${townOrMarket}, ${county}`)
+        .replace(/institutions in Nairobi/gi, `institutions in ${townOrMarket}, ${county}`);
+    }
+    return out.trim();
+  };
   const primaryProduct = str(s.primaryProduct, "Fortified Nutritional Products & Dietetic Services");
   const industrySector = str(s.industrySector, "Human Nutrition, Dietetics & Food Processing");
   const businessName = str(s.businessName, "TVET Hub Nutrition & Wellness Enterprise");
@@ -958,13 +974,17 @@ export function normalizeBusinessPlanSpecs(
     ),
     county,
     townOrMarket,
-    streetOrBuilding: str(s.streetOrBuilding, "Commercial Center Ground Floor Premises [Confirm exact plot/street locally]"),
-    postalAddress: str(s.postalAddress, "100-00100"),
+    streetOrBuilding: localizePresetText(
+      str(s.streetOrBuilding, `${townOrMarket} Commercial Shopping Arcade, Ground Floor Retail Unit`)
+    ),
+    postalAddress: str(s.postalAddress, "P.O. Box 100"),
     email: str(s.email, "info@nutritionventure.co.ke"),
     phone: str(s.phone, "+254 700 000 000"),
-    locationRationale: str(
-      s.locationRationale,
-      `Accessible commercial location within ${townOrMarket}, ${county} with reliable road transport, potable water, electricity, and proximity to target customers [Confirm site specifics locally].`
+    locationRationale: localizePresetText(
+      str(
+        s.locationRationale,
+        `Accessible commercial location within ${townOrMarket}, ${county} with reliable road transport, potable water, electricity, and proximity to target customers.`
+      )
     ),
     primaryProduct,
     productDescription: str(
@@ -977,11 +997,15 @@ export function normalizeBusinessPlanSpecs(
     monthlyProductionUnitsYear1: Math.max(1, Math.round(num(s.monthlyProductionUnitsYear1, 300, 1))),
     annualGrowthRateYear2: num(s.annualGrowthRateYear2, 0.2, 0),
     annualGrowthRateYear3: num(s.annualGrowthRateYear3, 0.25, 0),
-    targetCustomersDescription: str(
-      s.targetCustomersDescription,
-      `Health-conscious households, mothers and caregivers, working professionals, and local institutions in ${townOrMarket} and ${county}`
+    targetCustomersDescription: localizePresetText(
+      str(
+        s.targetCustomersDescription,
+        `Health-conscious households, mothers and caregivers, working professionals, and local institutions in ${townOrMarket} and ${county}`
+      )
     ),
-    totalMarketPopulation: str(s.totalMarketPopulation, "25,000+ target catchment residents and institutional buyers"),
+    totalMarketPopulation: localizePresetText(
+      str(s.totalMarketPopulation, `25,000+ target catchment residents and institutional buyers in ${townOrMarket}, ${county}`)
+    ),
     projectedMarketSharePercentage: num(s.projectedMarketSharePercentage, 6, 0.1),
     competitors,
     marketingPromotionBudgetMonthly,

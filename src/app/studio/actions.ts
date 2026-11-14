@@ -1049,7 +1049,7 @@ export async function saveBusinessPlanDetailsAction(formData: FormData): Promise
   const executiveProfile = [
     `Business: ${specs.businessName}`,
     `Ownership: ${specs.formOfOwnership}`,
-    `Location: ${specs.streetOrBuilding}, ${specs.townOrMarket}, ${specs.county}`,
+    `Location: ${specs.townOrMarket}, ${specs.county}`,
     `Product or service: ${specs.primaryProduct}`,
     `Sector: ${specs.industrySector}`,
   ].join("\n");
@@ -1619,7 +1619,7 @@ async function runCompleteBusinessPlanBuild(
   const executiveProfile = [
     `Business: ${specs.businessName}`,
     `Ownership: ${specs.formOfOwnership}`,
-    `Location: ${specs.streetOrBuilding}, ${specs.townOrMarket}, ${specs.county}`,
+    `Location: ${specs.townOrMarket}, ${specs.county}`,
     `Product or service: ${specs.primaryProduct}`,
     `Sector: ${specs.industrySector}`,
   ].join("\n");

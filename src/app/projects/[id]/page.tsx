@@ -6,6 +6,7 @@ import { BookOpen, Download, Eye, FileText, Star, CheckCircle2, ChevronRight, Ar
 import { AppShell } from "@/components/layout/AppShell";
 import { BuyButton } from "@/components/BuyButton";
 import { AmazonPrice } from "@/components/ui/AmazonPrice";
+import { StructuredDescription } from "@/components/ui/StructuredDescription";
 import { createClient } from "@/lib/supabase/server";
 import { getMaterialTypeLabel, getExactBusinessTitle } from "@/lib/marketplace";
 import { getCanvasPalette } from "@/lib/canvasTheme";
@@ -194,7 +195,11 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
                 </div>
                 <div className="mt-5 border-t border-slate-100 pt-4">
                   <h2 className="text-xs font-semibold uppercase tracking-wider text-[#565959]">Brief description</h2>
-                  <div className="mt-2 whitespace-pre-line text-sm leading-6 text-[#0f1111]">{product.description || "A verified digital resource for TVET learners."}</div>
+                  <StructuredDescription
+                    text={product.description}
+                    fallback="A verified digital resource for TVET learners."
+                    className="mt-2"
+                  />
                 </div>
                 <div className="mt-auto flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 pt-4">
                   <div>

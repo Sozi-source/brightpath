@@ -9,6 +9,7 @@ import type { Order, Project, UserProfile } from "@/types/database";
 import { submitProjectReview } from "./actions";
 import { verifyTransactionWithPaystack } from "@/lib/paystack";
 import { PersonalizeDocumentModal } from "./PersonalizeDocumentModal";
+import { StructuredDescription } from "@/components/ui/StructuredDescription";
 
 interface PurchasedProjectOrder extends Order {
   projects?: Project | null;
@@ -131,9 +132,12 @@ export default async function LibraryPage({
                   <h3 className="font-bold text-base text-slate-900 leading-snug">
                     {project.title}
                   </h3>
-                  <p className="mt-2 text-xs text-slate-600 line-clamp-3 leading-relaxed">
-                    {project.description || "Complete project archive and technical documentation files."}
-                  </p>
+                  <StructuredDescription
+                    text={project.description}
+                    fallback="Complete project archive and technical documentation files."
+                    compact
+                    className="mt-2"
+                  />
                 </div>
                 <form action={submitProjectReview} className="mt-4 grid grid-cols-[100px_1fr_auto] items-end gap-2 border-t border-slate-100 pt-3">
                   <input type="hidden" name="projectId" value={project.id} />

@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
       specs?.county?.trim() ||
       "Nairobi County";
 
-    const cleanBusinessTitle = (
+    const rawEnterpriseName = (
       specs?.businessName ||
       sourceWorkspace?.title ||
       snapshot.title ||
@@ -150,7 +150,13 @@ export async function GET(request: NextRequest) {
     )
       .replace(/\s*—\s*Complete KNEC Business Plan.*$/i, "")
       .replace(/\s*\((?:Craft Certificate|Diploma|Certificate)\)\s*$/i, "")
+      .replace(/^Business Plan for\s+/i, "")
+      .replace(/\s+in\s+Regional(?:,\s*County)?$/i, "")
+      .replace(new RegExp(`\\s+in\\s+${(specs?.townOrMarket || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:,\\s*${(specs?.county || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})?$`, "i"), "")
       .trim();
+
+    const cleanBusinessTitle = rawEnterpriseName || "Enterprise Business Plan";
+    const coverTitle = `Business Plan for ${cleanBusinessTitle} in ${townOrMarket}, ${county}`;
 
     const sections = stampMarketplaceBusinessPlan(rawSections, {
       seed: `${project.id}|${sourceWorkspaceId || ""}`,
@@ -169,7 +175,7 @@ export async function GET(request: NextRequest) {
     });
 
     const document = {
-      title: cleanBusinessTitle,
+      title: coverTitle,
       businessName: cleanBusinessTitle,
       tagline: specs?.tagline,
       industrySector: specs?.industrySector,

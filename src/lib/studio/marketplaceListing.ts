@@ -117,29 +117,39 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
   };
 
   const levelLabel = workspace.level === "craft" ? "Craft Certificate" : "Diploma";
-  const baseTitle = redactPrivateDetails(workspace.title || `${workspace.course} Enterprise`)
-    .replace(/\{\{TARGET_TOWN\}\}/g, "Regional")
-    .replace(/\{\{TARGET_COUNTY\}\}/g, "County")
+  const baseTitle = redactPrivateDetails(specs?.businessName || workspace.title || `${workspace.course} Enterprise`)
+    .replace(/\s+in\s+\{\{TARGET_TOWN\}\}(?:,\s*\{\{TARGET_COUNTY\}\})?/gi, "")
+    .replace(/\s+in\s+Regional(?:,\s*County)?/gi, "")
+    .replace(/\{\{TARGET_TOWN\}\}/g, "")
+    .replace(/\{\{TARGET_COUNTY\}\}/g, "")
     .replace(/\{\{INSTITUTION_NAME\}\}/g, "")
     .replace(/\{\{CANDIDATE_NAME\}\}/g, "")
     .replace(/\s*—\s*Complete KNEC Business Plan.*/i, "")
     .trim();
   const listingTitle = `${baseTitle} — Complete KNEC Business Plan (${levelLabel})`;
 
+  const realTown = specs?.townOrMarket?.trim() || "Nairobi";
+  const realCounty = specs?.county?.trim() || "Nairobi County";
+  const cleanStreet = (specs?.streetOrBuilding || "")
+    .replace(/\s*\[Confirm exact plot\/street locally\]/gi, "")
+    .trim();
+
   const listingDescription = redactPrivateDetails(
     workspace.problem_area ||
     `Complete KNEC business plan for ${baseTitle} (${levelLabel}). Includes comprehensive executive summary, marketing, operations, human resources, and financial schedules prepared in full compliance with KNEC TVET assessment regulations.`
   )
-    .replace(/\{\{TARGET_TOWN\}\}/g, "regional market")
-    .replace(/\{\{TARGET_COUNTY\}\}/g, "county catchment")
+    .replace(/\{\{STREET_ADDRESS\}\},\s*\{\{TARGET_TOWN\}\},\s*\{\{TARGET_COUNTY\}\}/g, `${realTown}, ${realCounty}`)
+    .replace(/\{\{TARGET_TOWN\}\}/g, realTown)
+    .replace(/\{\{TARGET_COUNTY\}\}/g, realCounty)
     .replace(/\{\{INSTITUTION_NAME\}\}/g, "Accredited TVET Institution")
     .replace(/\{\{CANDIDATE_NAME\}\}/g, "Candidate")
     .replace(/\{\{ADMISSION_NUMBER\}\}/g, "")
     .replace(/\{\{SUPERVISOR_NAME\}\}/g, "Institutional Supervisor")
-    .replace(/\{\{STREET_ADDRESS\}\}/g, "Commercial Center")
+    .replace(/\{\{STREET_ADDRESS\}\}/g, cleanStreet || realTown)
     .replace(/\{\{PHONE_NUMBER\}\}/g, "+254 700 000 000")
     .replace(/\{\{EMAIL_ADDRESS\}\}/g, "info@enterprise.co.ke")
-    .replace(/\{\{POSTAL_ADDRESS\}\}/g, "P.O. Box 100");
+    .replace(/\{\{POSTAL_ADDRESS\}\}/g, "P.O. Box 100")
+    .replace(/\s*\[Confirm exact plot\/street locally\]/gi, "");
 
   const filePath = `workspace-export:${workspaceId}`;
   const { data: existing, error: existingError } = await db.from("projects")
@@ -253,14 +263,19 @@ export function stampMarketplaceBusinessPlan(
     primaryProduct: buyer.primaryProduct,
   });
 
+  const cleanStreet = (buyer.streetOrBuilding || `${buyer.townOrMarket} Commercial Center`)
+    .replace(/\s*\[Confirm exact plot\/street locally\]/gi, "")
+    .trim();
+
   const replacements: Record<string, string> = {
+    "{{POSTAL_ADDRESS}}{{TARGET_TOWN}}": `P.O. Box 100, ${buyer.townOrMarket}`,
     "{{CANDIDATE_NAME}}": buyer.candidateName,
     "{{ADMISSION_NUMBER}}": buyer.admissionNumber,
     "{{INSTITUTION_NAME}}": buyer.institutionName,
     "{{SUPERVISOR_NAME}}": supervisor,
     "{{TARGET_TOWN}}": buyer.townOrMarket,
     "{{TARGET_COUNTY}}": buyer.county,
-    "{{STREET_ADDRESS}}": buyer.streetOrBuilding || `${buyer.townOrMarket} Commercial Center`,
+    "{{STREET_ADDRESS}}": cleanStreet || `${buyer.townOrMarket} Commercial Center`,
     "{{PHONE_NUMBER}}": "+254 700 000 000",
     "{{EMAIL_ADDRESS}}": "info@enterprise.co.ke",
     "{{POSTAL_ADDRESS}}": "P.O. Box 100",
@@ -276,6 +291,8 @@ export function stampMarketplaceBusinessPlan(
     "[Supervisor name]": supervisor,
     "[Enter supervisor name]": supervisor,
   };
+
+  const isNairobiTarget = /nairobi/i.test(buyer.townOrMarket) || /nairobi/i.test(buyer.county);
 
   return sections.map((sec) => {
     const titleNorm = sec.title.trim().toLowerCase();
@@ -293,6 +310,18 @@ export function stampMarketplaceBusinessPlan(
     for (const [token, val] of Object.entries(replacements)) {
       text = text.replaceAll(token, val);
     }
+    if (!isNairobiTarget) {
+      text = text
+        .replace(/within the target Nairobi catchment/gi, `within the ${buyer.townOrMarket}, ${buyer.county} catchment`)
+        .replace(/referrals in Nairobi/gi, `referrals in ${buyer.townOrMarket}, ${buyer.county}`)
+        .replace(/corridor in Nairobi/gi, `corridor in ${buyer.townOrMarket}, ${buyer.county}`)
+        .replace(/institutions in Nairobi/gi, `institutions in ${buyer.townOrMarket}, ${buyer.county}`);
+    }
+    text = text
+      .replace(/\s*\[Confirm exact plot\/street locally\]/gi, "")
+      .replace(/\s*\[Confirm lease terms and exact shop unit locally\]/gi, "")
+      .replace(/\s*\[Confirm via local market survey\]/gi, "")
+      .replace(/\s*\[Confirm site specifics locally\]/gi, "");
     return {
       title: sec.title,
       content: text,

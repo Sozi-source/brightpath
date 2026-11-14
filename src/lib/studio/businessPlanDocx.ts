@@ -135,8 +135,8 @@ function inlineRuns(
     .replace(/<\/?(?:strong|b)>/gi, "**")
     .replace(/<\/?(?:em|i)>/gi, "*");
 
-  if (autoBoldLeadLabel && !normalized.startsWith("**")) {
-    const labelMatch = normalized.match(/^([A-Za-z0-9][A-Za-z0-9\s/&(),.\-–]{1,42}):\s+(.+)$/);
+  if (!normalized.startsWith("**")) {
+    const labelMatch = normalized.match(/^([A-Za-z0-9][A-Za-z0-9\s/&(),.\-–]{1,36}):\s+(.+)$/);
     if (labelMatch) {
       normalized = `**${labelMatch[1]}:** ${labelMatch[2]}`;
     }
@@ -147,9 +147,15 @@ function inlineRuns(
   if (parts.length === 0) return run("", baseOpts);
 
   return parts
-    .map((part) => {
+    .map((part, idx) => {
       if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
-        return run(part.slice(2, -2), { ...baseOpts, bold: true });
+        const innerText = part.slice(2, -2);
+        const isLeadLabel = idx === 0 && (innerText.endsWith(":") || (parts[1] && parts[1].trimStart().startsWith(":")));
+        return run(innerText, {
+          ...baseOpts,
+          bold: true,
+          color: isLeadLabel && !baseOpts.color ? "475569" : baseOpts.color,
+        });
       }
       if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
         return run(part.slice(1, -1), { ...baseOpts, italic: true });

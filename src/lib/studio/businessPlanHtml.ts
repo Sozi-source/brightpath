@@ -46,10 +46,24 @@ const escapeHtml = (value: string) => value
   .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
 function inline(text: string): string {
-  return text.split(/<br\s*\/?>/gi).map((line) => escapeHtml(line)
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/(?<!\*)\*([^*]+)\*/g, "<em>$1</em>")
-    .replace(/`([^`]+)`/g, "<code>$1</code>")).join("<br>");
+  return text
+    .split(/<br\s*\/?>/gi)
+    .map((rawLine) => {
+      let line = rawLine;
+      if (!line.trimStart().startsWith("**")) {
+        const labelMatch = line.match(/^(\s*[A-Za-z0-9][A-Za-z0-9\s/&(),.\-–]{1,36}):\s+(.+)$/);
+        if (labelMatch) {
+          line = `**${labelMatch[1].trim()}:** ${labelMatch[2]}`;
+        }
+      }
+      return escapeHtml(line)
+        .replace(/^\*\*([^*]+:)\*\*/, '<strong style="color: #475569; font-weight: 600;">$1</strong>')
+        .replace(/\*\*([^*]+:)\*\*/g, '<strong style="color: #475569; font-weight: 600;">$1</strong>')
+        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+        .replace(/(?<!\*)\*([^*]+)\*/g, "<em>$1</em>")
+        .replace(/`([^`]+)`/g, "<code>$1</code>");
+    })
+    .join("<br>");
 }
 
 function sectionGroup(title: string): string {
