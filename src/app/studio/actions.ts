@@ -511,15 +511,25 @@ export async function saveSectionText(formData: FormData) {
 
   const { data: workspace } = await db
     .from("project_workspaces")
-    .select("status, student_id, final_project_status")
+    .select("status, student_id, final_project_status, workspace_type, business_plan_specs")
     .eq("id", workspaceId)
     .single();
 
   if (!workspace || workspace.student_id !== user.id) {
     throw new Error("Unauthorized.");
   }
-  if (workspace.final_project_status === "pending_review" || workspace.final_project_status === "approved") {
+  if (
+    workspace.workspace_type !== "business_plan" &&
+    (workspace.final_project_status === "pending_review" || workspace.final_project_status === "approved")
+  ) {
     throw new Error("Project sections are locked during or after final review.");
+  }
+  if (
+    workspace.workspace_type === "business_plan" &&
+    Boolean(section.current_text?.trim()) &&
+    (workspace.business_plan_specs as Record<string, unknown> | null)?.export_unlocked !== true
+  ) {
+    throw new Error("Unlock the KNEC Export (KES 350) to edit generated business plan sections.");
   }
 
   // Enforce KNEC Rule 6: project chapters locked before proposal approval
@@ -558,6 +568,17 @@ export async function saveSectionText(formData: FormData) {
     ai_chars_accepted: 0,
   });
 
+  if (
+    workspace.workspace_type === "business_plan" &&
+    (workspace.final_project_status === "pending_review" || workspace.final_project_status === "approved")
+  ) {
+    try {
+      await queueApprovedBusinessPlanListing(workspaceId);
+    } catch {
+      // Non-blocking snapshot refresh
+    }
+  }
+
   revalidatePath(`/studio/${workspaceId}`);
   revalidatePath(`/studio/${workspaceId}/write/${sectionKey}`);
   revalidatePath(`/supervisor/${workspaceId}`);
@@ -574,9 +595,6 @@ export async function correctBusinessPlanLocationClaimsAction(workspaceId: strin
     .select("student_id, status, final_project_status, business_plan_specs")
     .eq("id", workspaceId).maybeSingle();
   if (workspaceError || !workspace || workspace.student_id !== user.id) throw new Error("This project is not yours.");
-  if (workspace.final_project_status === "pending_review" || workspace.final_project_status === "approved") {
-    throw new Error("The project is locked during or after final review.");
-  }
   if (workspace.status !== "approved" && workspace.status !== "submitted") {
     throw new Error("The supervisor must approve the topic before correcting project chapters.");
   }
@@ -690,12 +708,15 @@ export async function polishBusinessPlanSectionAction(formData: FormData) {
   const db = getServerDbClient(supabase);
   const { data: workspace } = await db
     .from("project_workspaces")
-    .select("id, student_id, workspace_type, level, course, title, problem_area, status")
+    .select("id, student_id, workspace_type, level, course, title, problem_area, status, business_plan_specs")
     .eq("id", workspaceId)
     .single();
   if (!workspace || workspace.student_id !== user.id) throw new Error("Unauthorized.");
   if (workspace.workspace_type !== "business_plan") {
     throw new Error("This writing polish is for business plan sections.");
+  }
+  if ((workspace.business_plan_specs as Record<string, unknown> | null)?.export_unlocked !== true) {
+    throw new Error("Unlock the KNEC Export (KES 350) to polish and edit business plan sections.");
   }
   if (workspace.status !== "approved" && workspace.status !== "submitted") {
     throw new Error("The business plan must be approved before drafting chapters.");
@@ -1106,12 +1127,13 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
     throw new Error("Save business plan details before drafting the chapters.");
   }
 
-  const definitions = getWorkspaceSections("business_plan", workspace.level, resolveBusinessPlanModel(specs)).filter(
+  const allDefinitions = getWorkspaceSections("business_plan", workspace.level, resolveBusinessPlanModel(specs)).filter(
     (definition) => !(
       specs.isInstitutional === true &&
       ["prelim.declaration", "prelim.dedication", "prelim.acknowledgements"].includes(definition.key)
     )
-  ).filter(
+  );
+  const definitions = allDefinitions.filter(
     (definition) => (definition.chapter || definition.phase) === chapterKey
   );
   if (definitions.length === 0) throw new Error("Business plan chapter not found.");
@@ -1187,7 +1209,7 @@ export async function buildBusinessPlanChapterAction(formData: FormData): Promis
   }
   const draftSections = pending.map((definition) => ({
     section_key: definition.key,
-    position: definitions.findIndex((item) => item.key === definition.key) + 1,
+    position: allDefinitions.findIndex((item) => item.key === definition.key) + 1,
     current_text:
       aiCorrections.get(definition.key) ||
       scriptedSections.get(definition.key) ||
@@ -1365,9 +1387,6 @@ async function runCompleteBusinessPlanBuild(
 
   if (!ws || ws.student_id !== user.id) {
     return { success: false, error: "Unauthorized." };
-  }
-  if (ws.final_project_status === "pending_review" || ws.final_project_status === "approved") {
-    return { success: false, error: "Business plan details are locked during or after final review." };
   }
   if (ws.workspace_type !== "business_plan") {
     return { success: false, error: "This workspace is not configured as a TVET Business Plan." };
@@ -1576,7 +1595,26 @@ async function runCompleteBusinessPlanBuild(
   ] as string[];
 
   // ── Save specs + research ─────────────────────────────────────────────────
-  const savedSpecs: BusinessPlanSpecs = { ...specs, research };
+  const priorExportMeta = priorSpecs as (BusinessPlanSpecs & {
+    export_unlocked?: boolean;
+    unlocked_at?: string;
+    paystack_reference?: string;
+  }) | null;
+  const savedSpecs: BusinessPlanSpecs & {
+    export_unlocked?: boolean;
+    unlocked_at?: string;
+    paystack_reference?: string;
+  } = {
+    ...specs,
+    research,
+    ...(priorExportMeta?.export_unlocked
+      ? {
+          export_unlocked: true,
+          unlocked_at: priorExportMeta.unlocked_at,
+          paystack_reference: priorExportMeta.paystack_reference,
+        }
+      : {}),
+  };
   const fullTitle = `Business Plan for ${specs.businessName} in ${specs.townOrMarket}, ${specs.county}`;
   const executiveProfile = [
     `Business: ${specs.businessName}`,
@@ -1601,7 +1639,12 @@ async function runCompleteBusinessPlanBuild(
     };
   }
 
-  // ── Build all chapters sequentially ───────────────────────────────────────
+  // ── 1. Build & commit deterministic bulk draft immediately ────────────────
+  // Per AGENTS.md ("Build the bulk draft deterministically. AI may make limited
+  // evidence-supported corrections"): commit all pending sections deterministically
+  // first so every chapter (including Chapter 5 financials, preliminaries,
+  // references, and appendices) is guaranteed to be saved even if the AI
+  // provider is rate-limited or hits the request time budget.
   const preservedSectionsCount = sectionDefinitions.length - pendingDefinitions.length;
   let totalGeneratedSections = 0;
   let totalPreservedSections = preservedSectionsCount;
@@ -1624,83 +1667,29 @@ async function runCompleteBusinessPlanBuild(
     buildCompleteBusinessPlan(savedSpecs).map((s) => [s.section_key, s.content])
   );
 
-  for (const chapterKey of chapterKeys) {
-    const definitions = sectionDefinitions.filter(
-      (def) => (def.chapter || def.phase) === chapterKey
-    );
-    const pending = replaceExisting
-      ? definitions
-      : definitions.filter((def) => {
-          const currentText = existingByKey.get(def.key) || "";
-          const starterText = getSectionStarterContent("business_plan", ws.level, def.key);
-          return !currentText.trim() || (starterText !== "" && currentText === starterText);
-        });
+  const baselineSections = pendingDefinitions.map((def) => ({
+    section_key: def.key,
+    position: sectionDefinitions.findIndex((item) => item.key === def.key) + 1,
+    current_text:
+      scriptedSections.get(def.key) ||
+      `### ${def.title}\n\n[Add verified information for this section.]`,
+    starter_text: getSectionStarterContent("business_plan", ws.level, def.key, specs.businessModel),
+  }));
 
-    if (pending.length === 0) {
-      totalPreservedSections += definitions.length;
-      chaptersBuilt += 1;
-      continue;
-    }
+  const baselineConflicts = getBusinessModelConflictFindings(
+    specs,
+    baselineSections.map((section) => ({ key: section.section_key, content: section.current_text }))
+  );
+  if (baselineConflicts.length) {
+    return {
+      success: false,
+      error: `Generated text conflicts with the selected business model in ${baselineConflicts.map((item) => item.sectionKey).join(", ")}. Review the model-specific template before saving.`,
+    };
+  }
 
-    let aiCorrections = new Map<string, string>();
-    if (providerAvailable) {
-      try {
-        aiCorrections = await draftBusinessPlanSections(
-          savedSpecs,
-          pending,
-          research,
-          scriptedSections,
-          activeProvider
-        );
-      } catch (error) {
-        if (fallbackProvider) {
-          console.warn(`${activeProvider} build failed, falling back to ${fallbackProvider}:`, error);
-          try {
-            aiCorrections = await draftBusinessPlanSections(
-              savedSpecs,
-              pending,
-              research,
-              scriptedSections,
-              fallbackProvider
-            );
-          } catch {
-            factReviewWarning = true;
-          }
-        } else {
-          factReviewWarning = true;
-        }
-      }
-    }
-
-    for (const def of pending) {
-      if (!aiCorrections.has(def.key) && scriptedSections.has(def.key)) {
-        aiCorrections.set(def.key, scriptedSections.get(def.key)!);
-        factReviewWarning = true;
-      }
-    }
-
-    const draftSections = pending.map((def) => ({
-      section_key: def.key,
-      position: definitions.findIndex((item) => item.key === def.key) + 1,
-      current_text:
-        aiCorrections.get(def.key) ||
-        scriptedSections.get(def.key) ||
-        `### ${def.title}\n\n[Add verified information for this section.]`,
-      starter_text: getSectionStarterContent("business_plan", ws.level, def.key, specs.businessModel),
-    }));
-    const modelConflicts = getBusinessModelConflictFindings(
-      specs,
-      draftSections.map((section) => ({ key: section.section_key, content: section.current_text }))
-    );
-    if (modelConflicts.length) {
-      return {
-        success: false,
-        error: `Generated text conflicts with the selected business model in ${modelConflicts.map((item) => item.sectionKey).join(", ")}. Review the model-specific template before saving.`,
-      };
-    }
-
+  if (baselineSections.length > 0) {
     if (replaceExisting) {
-      for (const section of draftSections) {
+      for (const section of baselineSections) {
         const { data: savedSection, error: saveSectionError } = await db
           .from("workspace_sections")
           .upsert(
@@ -1717,7 +1706,6 @@ async function runCompleteBusinessPlanBuild(
           .select("id")
           .single();
         if (saveSectionError || !savedSection) {
-          // Non-fatal: log and continue building remaining chapters
           factReviewWarning = true;
           continue;
         }
@@ -1736,13 +1724,11 @@ async function runCompleteBusinessPlanBuild(
         {
           p_workspace_id: workspaceId,
           p_user_id: user.id,
-          p_sections: draftSections,
+          p_sections: baselineSections,
         }
       );
       if (generationError) {
-        // Fallback: fill only the exact blank/starter value observed above.
-        // Avoid an unconditional upsert that could replace a concurrent edit.
-        for (const section of draftSections) {
+        for (const section of baselineSections) {
           const previousText = existingByKey.get(section.section_key);
           const sectionValues = {
             workspace_id: workspaceId,
@@ -1783,13 +1769,122 @@ async function runCompleteBusinessPlanBuild(
         totalPreservedSections += Number(stats?.preserved_sections) || 0;
       }
     }
+  }
+
+  // ── 2. Bounded AI refinement pass across pending chapters ─────────────────
+  const aiBuildDeadline = Date.now() + 24_000;
+  let aiProviderExhausted = false;
+
+  for (const chapterKey of chapterKeys) {
+    const definitions = sectionDefinitions.filter(
+      (def) => (def.chapter || def.phase) === chapterKey
+    );
+    const pending = replaceExisting
+      ? definitions
+      : definitions.filter((def) => {
+          const currentText = existingByKey.get(def.key) || "";
+          const starterText = getSectionStarterContent("business_plan", ws.level, def.key, specs.businessModel);
+          return !currentText.trim() || (starterText !== "" && currentText === starterText);
+        });
+
+    if (pending.length === 0) {
+      chaptersBuilt += 1;
+      continue;
+    }
+
+    if (!providerAvailable || aiProviderExhausted || Date.now() >= aiBuildDeadline) {
+      factReviewWarning = true;
+      chaptersBuilt += 1;
+      continue;
+    }
+
+    let aiCorrections = new Map<string, string>();
+    try {
+      aiCorrections = await draftBusinessPlanSections(
+        savedSpecs,
+        pending,
+        research,
+        scriptedSections,
+        activeProvider
+      );
+    } catch (error) {
+      if (fallbackProvider && Date.now() < aiBuildDeadline) {
+        console.warn(`${activeProvider} build failed, falling back to ${fallbackProvider}:`, error);
+        try {
+          aiCorrections = await draftBusinessPlanSections(
+            savedSpecs,
+            pending,
+            research,
+            scriptedSections,
+            fallbackProvider
+          );
+          activeProvider = fallbackProvider;
+          fallbackProvider = null;
+        } catch {
+          factReviewWarning = true;
+          aiProviderExhausted = true;
+        }
+      } else {
+        factReviewWarning = true;
+        aiProviderExhausted = true;
+      }
+    }
+
+    for (const def of pending) {
+      const baselineText =
+        scriptedSections.get(def.key) ||
+        `### ${def.title}\n\n[Add verified information for this section.]`;
+      const refinedText = aiCorrections.get(def.key);
+      if (!refinedText || refinedText === baselineText) {
+        if (!aiCorrections.has(def.key)) factReviewWarning = true;
+        continue;
+      }
+      if (getBusinessModelConflictFindings(specs, [{ key: def.key, content: refinedText }]).length) {
+        continue;
+      }
+      const { data: updatedSection } = await db
+        .from("workspace_sections")
+        .update({ current_text: refinedText, status: "draft" })
+        .eq("workspace_id", workspaceId)
+        .eq("section_key", def.key)
+        .eq("current_text", baselineText)
+        .select("id")
+        .maybeSingle();
+      if (updatedSection) {
+        await db.from("section_versions").insert({
+          section_id: updatedSection.id,
+          text: refinedText,
+          source: "ai_generated_draft",
+          ai_chars_accepted: 0,
+        });
+      }
+    }
     chaptersBuilt += 1;
+  }
+
+  // ── Auto-submit completed business plan to Admin / Supervisor Review ──────
+  if (!isInstitutionalPlan && !specs.adminOnly) {
+    const nextFinalStatus = ws.final_project_status === "approved" ? "approved" : "pending_review";
+    await db
+      .from("project_workspaces")
+      .update({
+        status: "approved",
+        final_project_status: nextFinalStatus,
+        final_project_submitted_at: new Date().toISOString(),
+      })
+      .eq("id", workspaceId);
+
+    try {
+      await queueApprovedBusinessPlanListing(workspaceId);
+    } catch (queueError) {
+      console.warn("Could not auto-queue business plan for marketplace review:", queueError);
+    }
   }
 
   // ── Audit log ─────────────────────────────────────────────────────────────
   const { error: auditLogError } = await db.from("project_log_entries").insert({
     workspace_id: workspaceId,
-    activity: `Built ${totalGeneratedSections} business plan sections across ${chaptersBuilt} chapters for "${specs.businessName}".`,
+    activity: `Built ${totalGeneratedSections} business plan sections across ${chaptersBuilt} chapters for "${specs.businessName}" and submitted to Admin Review.`,
     auto_generated: true,
     student_signed_at: new Date().toISOString(),
   });
@@ -1799,6 +1894,8 @@ async function runCompleteBusinessPlanBuild(
   // Called once, after every DB write has committed. This is the only safe
   // point: calling revalidatePath earlier triggers RSC re-renders mid-build.
   revalidatePath(`/studio/${workspaceId}`);
+  revalidatePath("/admin");
+  revalidatePath("/supervisor");
 
   return {
     success: true,
@@ -1830,8 +1927,14 @@ async function getBusinessPlanCorrectionActor(workspaceId: string) {
     (role === "supervisor" && workspace.supervisor_id === user.id) ||
     (role === "student" && workspace.student_id === user.id);
   if (!isAllowed) throw new Error("You do not have access to this business plan.");
-  if (workspace.status === "closed" || ["pending_review", "approved"].includes(workspace.final_project_status || "")) {
-    throw new Error("This project is locked during or after final review.");
+  if (
+    role === "student" &&
+    (workspace.business_plan_specs as Record<string, unknown> | null)?.export_unlocked !== true
+  ) {
+    throw new Error("Unlock the KNEC Export (KES 350) to view and edit raw section manuscripts.");
+  }
+  if (workspace.status === "closed") {
+    throw new Error("This project is closed.");
   }
   if (workspace.status !== "approved" && workspace.status !== "submitted") {
     throw new Error("The topic must be approved before correcting project chapters.");

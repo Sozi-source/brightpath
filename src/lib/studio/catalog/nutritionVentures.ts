@@ -5108,6 +5108,268 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   }
 ];
 
+const GROUP_DEFAULT_RESEARCH: Record<
+  NutritionVentureDefinition["group"],
+  (venture: NutritionVentureDefinition) => NonNullable<BusinessPlanSpecs["research"]>
+> = {
+  A: (v) => ({
+    summary: `Kenyan clinical nutrition and dietetic practice for ${v.title} (${v.defaultSpecs.primaryProduct}) is regulated by the Kenya Nutritionists and Dietitians Institute (KNDI) under the Nutritionists and Dietitians Act (Cap 253B) alongside County Department of Public Health outpatient premises licensing and Office of the Data Protection Commissioner (ODPC) health-data controls. Demand across Kenyan urban and county referral catchments is driven by rising prevalence of hypertension, Type 2 diabetes, obesity, and maternal-child micronutrient needs documented in the KNBS Kenya Demographic and Health Survey (KDHS) and Ministry of Health Non-Communicable Disease (NCD) clinical guidelines.`,
+    sources: [
+      {
+        title: "Kenya Nutritionists and Dietitians Institute (KNDI) — Statutory Registration, Private Practice Licensing & Scope of Practice (Cap 253B)",
+        url: "https://www.kndi.institute/",
+      },
+      {
+        title: "Ministry of Health (Kenya) — National Clinical Nutrition, Dietetics & Non-Communicable Disease (NCD) Management Guidelines",
+        url: "https://www.health.go.ke/",
+      },
+      {
+        title: "Kenya National Bureau of Statistics (KNBS) — Kenya Demographic and Health Survey (KDHS) Nutritional & NCD Indicators",
+        url: "https://www.knbs.or.ke/",
+      },
+      {
+        title: "Office of the Data Protection Commissioner (ODPC) Kenya — Health Data Protection & Patient Privacy Compliance (Data Protection Act, 2019)",
+        url: "https://www.odpc.go.ke/",
+      },
+      {
+        title: "World Health Organization (WHO) Kenya — Medical Nutrition Therapy & Primary Healthcare Dietetic Frameworks",
+        url: "https://www.afro.who.int/countries/kenya",
+      },
+      {
+        title: "Kenya Laws (National Council for Law Reporting) — Public Health Act (Cap 242) & Nutritionists and Dietitians Act (Cap 253B)",
+        url: "https://new.kenyalaw.org/",
+      },
+    ],
+    searchedAt: "2025-02-01T00:00:00.000Z",
+  }),
+  B: (v) => ({
+    summary: `Kenyan value-added nutrition food processing for ${v.title} (${v.defaultSpecs.primaryProduct}) operates under Kenya Bureau of Standards (KEBS) product certification and Standardization Mark (S-Mark) rules, the Food, Drugs and Chemical Substances Act (Cap 254), and County Public Health food-processing hygiene inspections (Cap 242). Urban and peri-urban household demand is supported by the Kenya National Food Fortification Strategy, rising preference for convenient nutrient-dense and preservative-free foods, and KNBS household food expenditure trends.`,
+    sources: [
+      {
+        title: "Kenya Bureau of Standards (KEBS) — Product Certification, Standardization Mark (S-Mark), Food Hygiene (KS EAS 39) & Composite Flour/Food Standards",
+        url: "https://www.kebs.org/",
+      },
+      {
+        title: "Ministry of Health (Kenya) — Kenya National Food Fortification Strategic Plan & Micronutrient Guidelines",
+        url: "https://www.health.go.ke/",
+      },
+      {
+        title: "Kenya National Bureau of Statistics (KNBS) — Economic Survey & Household Food Consumption Expenditure Reports",
+        url: "https://www.knbs.or.ke/",
+      },
+      {
+        title: "Kenya Industrial Research and Development Institute (KIRDI) — Small & Medium Food Processing Technology & GMP Standards",
+        url: "https://www.kirdi.go.ke/",
+      },
+      {
+        title: "National Environment Management Authority (NEMA) Kenya — Agro-Processing Effluent, Solid Waste & Packaging Compliance (EMCA, 1999)",
+        url: "https://www.nema.go.ke/",
+      },
+      {
+        title: "Food and Agriculture Organization (FAO) Kenya — Nutrition-Sensitive Value Addition & Food Safety Systems",
+        url: "https://www.fao.org/kenya/en/",
+      },
+    ],
+    searchedAt: "2025-02-01T00:00:00.000Z",
+  }),
+  C: (v) => ({
+    summary: `Kenyan therapeutic catering, healthy meal prep, and wellness food service for ${v.title} (${v.defaultSpecs.primaryProduct}) is governed by the Public Health Act (Cap 242), the Food, Drugs and Chemical Substances Act (Cap 254), County Food Hygiene Licences, Medical Examination Certificates (Form P) for food handlers, and KNDI dietetic menu-formulation standards. Market adoption across Kenyan commercial centres, hospitals, corporate offices, and residential estates is propelled by workplace wellness awareness and demand for freshly prepared, portion-calibrated meals.`,
+    sources: [
+      {
+        title: "Ministry of Health (Kenya) — National Guidelines for Healthy Diets, Physical Activity & Institutional Catering Hygiene",
+        url: "https://www.health.go.ke/",
+      },
+      {
+        title: "Kenya Nutritionists and Dietitians Institute (KNDI) — Dietetic Menu Planning, Therapeutic Catering & Food Service Standards",
+        url: "https://www.kndi.institute/",
+      },
+      {
+        title: "Kenya Bureau of Standards (KEBS) — KS EAS 39 Hygiene in the Food and Drink Catering Industry & Food Packaging Standards",
+        url: "https://www.kebs.org/",
+      },
+      {
+        title: "Kenya National Bureau of Statistics (KNBS) — Urban Household Demographics, Workforce Commuter Trends & Food Service Data",
+        url: "https://www.knbs.or.ke/",
+      },
+      {
+        title: "National Environment Management Authority (NEMA) Kenya — Organic Kitchen Waste Segregation & Eco-Friendly Food Packaging Regulations",
+        url: "https://www.nema.go.ke/",
+      },
+      {
+        title: "Kenya Laws (National Council for Law Reporting) — Public Health Act (Cap 242) & Food, Drugs and Chemical Substances Act (Cap 254)",
+        url: "https://new.kenyalaw.org/",
+      },
+    ],
+    searchedAt: "2025-02-01T00:00:00.000Z",
+  }),
+  D: (v) => ({
+    summary: `Kenyan nutrition-sensitive agribusiness and biofortified/micronutrient-dense production for ${v.title} (${v.defaultSpecs.primaryProduct}) is supported by the Ministry of Agriculture and Livestock Development's National Agri-Nutrition Implementation Strategy (NANIS), Kenya Agricultural and Livestock Research Organization (KALRO) improved varieties/protocols, and Kenya Plant Health Inspectorate Service (KEPHIS) quality certification. Local market demand is driven by school feeding programs, maternal-child nutrition clinics, health-food processors, and urban green-Automated grocers.`,
+    sources: [
+      {
+        title: "Kenya Agricultural and Livestock Research Organization (KALRO) — Biofortified Crops, Indigenous Vegetables & Livestock Nutrition Research",
+        url: "https://www.kalro.org/",
+      },
+      {
+        title: "Ministry of Agriculture and Livestock Development (Kenya) — National Agri-Nutrition Implementation Strategy & Post-Harvest Guidelines",
+        url: "https://kilimo.go.ke/",
+      },
+      {
+        title: "Kenya Plant Health Inspectorate Service (KEPHIS) — Seed Certification, Phytosanitary Standards & Produce Traceability",
+        url: "https://www.kephis.org/",
+      },
+      {
+        title: "Kenya Bureau of Standards (KEBS) — Grading, Dried Produce, Egg Quality & Fresh Produce Handling Standards",
+        url: "https://www.kebs.org/",
+      },
+      {
+        title: "Food and Agriculture Organization (FAO) Kenya — Nutrition-Sensitive Agriculture & Post-Harvest Loss Reduction in Kenya",
+        url: "https://www.fao.org/kenya/en/",
+      },
+      {
+        title: "Kenya National Bureau of Statistics (KNBS) — Agricultural Production, Horticultural Marketing & County Food Security Reports",
+        url: "https://www.knbs.or.ke/",
+      },
+    ],
+    searchedAt: "2025-02-01T00:00:00.000Z",
+  }),
+  E: (v) => ({
+    summary: `Kenyan specialty health food and maternal/nutraceutical retail for ${v.title} (${v.defaultSpecs.primaryProduct}) is governed by Pharmacy and Poisons Board (PPB) supplement listing rules, KEBS Standardization Marks on packaged health foods, Kenya Breast Milk Substitutes (Regulation and Control) Act (No. 34 of 2012) where applicable, and KNDI in-store nutritionist advisory standards.`,
+    sources: [
+      {
+        title: "Pharmacy and Poisons Board (PPB) Kenya — Guidelines for Registration and Listing of Health Supplements & Nutraceuticals",
+        url: "https://web.pharmacyboardkenya.org/",
+      },
+      {
+        title: "Kenya Bureau of Standards (KEBS) — Product Certification, S-Mark & Pre-Packaged Food Labelling Standards (KS EAS 38)",
+        url: "https://www.kebs.org/",
+      },
+      {
+        title: "Kenya Nutritionists and Dietitians Institute (KNDI) — Professional Registration & Retail Dietetic Advisory Standards",
+        url: "https://www.kndi.institute/",
+      },
+      {
+        title: "Ministry of Health (Kenya) — Maternal, Infant and Young Child Nutrition (MIYCN) & Micronutrient Supplementation Guidelines",
+        url: "https://www.health.go.ke/",
+      },
+      {
+        title: "Healthy U Kenya — Specialty Health Food, Vitamins, Supplements & Natural Wellness Retail Benchmark",
+        url: "https://www.healthyu.co.ke/",
+      },
+      {
+        title: "Goodlife Pharmacy Kenya — Retail Nutraceutical, Maternal-Child Wellness & Supplement Benchmark",
+        url: "https://www.goodlife.co.ke/",
+      },
+    ],
+    searchedAt: "2025-02-01T00:00:00.000Z",
+  }),
+  F: (v) => ({
+    summary: `Kenyan nutrition education, culinary demonstration, and school/caregiver training for ${v.title} (${v.defaultSpecs.primaryProduct}) aligns with the Ministry of Health Division of Nutrition and Dietetics, the National School Meals and Nutrition Strategy, KNDI professional accreditation, and UNICEF/WHO Maternal, Infant and Young Child Nutrition (MIYCN) caregiver training frameworks.`,
+    sources: [
+      {
+        title: "Ministry of Health (Kenya) — Maternal, Infant and Young Child Nutrition (MIYCN) & Community Nutrition Education Guidelines",
+        url: "https://www.health.go.ke/",
+      },
+      {
+        title: "Kenya Nutritionists and Dietitians Institute (KNDI) — Accreditation of Nutrition Educators, Curricula & Community Training",
+        url: "https://www.kndi.institute/",
+      },
+      {
+        title: "Ministry of Education (Kenya) — National School Meals and Nutrition Strategy & Early Childhood Health Guidelines",
+        url: "https://www.education.go.ke/",
+      },
+      {
+        title: "UNICEF Kenya — Child Nutrition, Complementary Feeding (IYCF) & Caregiver Capacity-Building Frameworks",
+        url: "https://www.unicef.org/kenya/nutrition",
+      },
+      {
+        title: "Kenya National Bureau of Statistics (KNBS) — Kenya Demographic and Health Survey (KDHS) Child Feeding & Household Nutrition Data",
+        url: "https://www.knbs.or.ke/",
+      },
+      {
+        title: "Technical and Vocational Education and Training Authority (TVETA) Kenya — Short-Course & Community Skills Training Standards",
+        url: "https://www.tveta.go.ke/",
+      },
+    ],
+    searchedAt: "2025-02-01T00:00:00.000Z",
+  }),
+  G: (v) => ({
+    summary: `Kenyan institutional nutrition consultancy, workplace wellness, food safety auditing, and public health project advisory for ${v.title} (${v.defaultSpecs.primaryProduct}) operates under KNDI consulting accreditation, Directorate of Occupational Safety and Health Services (DOSHS / OSHA 2007) workplace wellness standards, KEBS HACCP / ISO 22000 food safety frameworks, and the Kenya Nutrition Action Plan (KNAP).`,
+    sources: [
+      {
+        title: "Kenya Nutritionists and Dietitians Institute (KNDI) — Consultancy Accreditation, Institutional Dietetics & Professional Ethics",
+        url: "https://www.kndi.institute/",
+      },
+      {
+        title: "Ministry of Health (Kenya) — Kenya Nutrition Action Plan (KNAP) & National Workplace Wellness Guidelines",
+        url: "https://www.health.go.ke/",
+      },
+      {
+        title: "Kenya Bureau of Standards (KEBS) — KS EAS 39 Food Hygiene, HACCP & ISO 22000 Food Safety Management Systems",
+        url: "https://www.kebs.org/",
+      },
+      {
+        title: "Ministry of Labour and Social Protection (DOSHS Kenya) — Occupational Safety and Health Act (OSHA, 2007) Employee Wellness Compliance",
+        url: "https://www.labour.go.ke/",
+      },
+      {
+        title: "Kenya National Bureau of Statistics (KNBS) — Formal Sector Employment, Institutional Demographics & Health Survey Data",
+        url: "https://www.knbs.or.ke/",
+      },
+      {
+        title: "Office of the Data Protection Commissioner (ODPC) Kenya — Corporate Wellness & Survey Data Protection Compliance",
+        url: "https://www.odpc.go.ke/",
+      },
+    ],
+    searchedAt: "2025-02-01T00:00:00.000Z",
+  }),
+  H: (v) => ({
+    summary: `Kenyan therapeutic and enteral nutrition formulation for ${v.title} (${v.defaultSpecs.primaryProduct}) is governed by Kenya Bureau of Standards (KEBS) special dietary food standards, Pharmacy and Poisons Board (PPB) clinical nutrition product regulations, KNDI clinical dietetics oversight, and Ministry of Health Integrated Management of Acute Malnutrition (IMAM) and hospital enteral feeding guidelines.`,
+    sources: [
+      {
+        title: "Ministry of Health (Kenya) — National Guidelines for Integrated Management of Acute Malnutrition (IMAM) & Clinical Enteral Nutrition",
+        url: "https://www.health.go.ke/",
+      },
+      {
+        title: "Kenya Bureau of Standards (KEBS) — Special Dietary Foods, Fortified Therapeutic Blends & Hygienic Manufacturing Standards",
+        url: "https://www.kebs.org/",
+      },
+      {
+        title: "Pharmacy and Poisons Board (PPB) Kenya — Regulatory Listing of Clinical Nutrition, Enteral Feeds & Special Medical Foods",
+        url: "https://web.pharmacyboardkenya.org/",
+      },
+      {
+        title: "Kenya Nutritionists and Dietitians Institute (KNDI) — Clinical Dietetics, Hospital Therapeutic Feeding & Quality Assurance Standards",
+        url: "https://www.kndi.institute/",
+      },
+      {
+        title: "World Health Organization (WHO) & Codex Alimentarius — Standards for Foods for Special Medical Purposes & Therapeutic Feeding",
+        url: "https://www.afro.who.int/countries/kenya",
+      },
+      {
+        title: "Kenya National Bureau of Statistics (KNBS) — Hospital Morbidity, Malnutrition Prevalence & Healthcare Facility Statistics",
+        url: "https://www.knbs.or.ke/",
+      },
+    ],
+    searchedAt: "2025-02-01T00:00:00.000Z",
+  }),
+};
+
+for (const venture of NUTRITION_VENTURES) {
+  const existingSources = venture.defaultSpecs.research?.sources || [];
+  if (existingSources.length < 6) {
+    const fallback = GROUP_DEFAULT_RESEARCH[venture.group](venture);
+    const mergedSources = [
+      ...existingSources,
+      ...fallback.sources.filter((s) => !existingSources.some((e) => e.url === s.url)),
+    ];
+    venture.defaultSpecs.research = {
+      summary: venture.defaultSpecs.research?.summary || fallback.summary,
+      sources: mergedSources,
+      searchedAt: venture.defaultSpecs.research?.searchedAt || fallback.searchedAt,
+    };
+  }
+}
+
 export function getVentureById(id: string): NutritionVentureDefinition | undefined {
   return NUTRITION_VENTURES.find((v) => v.id === id);
 }

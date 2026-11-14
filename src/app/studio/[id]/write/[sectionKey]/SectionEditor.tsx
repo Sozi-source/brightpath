@@ -22,6 +22,7 @@ import {
 import type { SectionPolishResult, SectionQuestionGuide } from "@/lib/studio/aiEngine";
 import type { NotebookLmPromptItem } from "@/lib/studio/notebookLmHelper";
 import { SectionReviewThreads } from "@/app/supervisor/[workspaceId]/SectionReviewThreads";
+import { UnlockExportModal } from "../../UnlockExportModal";
 import type { SectionReviewThread, UserRole } from "@/types/database";
 
 export interface StepItem {
@@ -49,6 +50,7 @@ interface SectionEditorProps {
   phase: "proposal" | "project";
   isLocked: boolean;
   isExportUnlocked?: boolean;
+  lockedWordCount?: number;
   currentText: string;
   reviewThreads: SectionReviewThread[];
   currentSectionUpdatedAt: string;
@@ -78,6 +80,7 @@ export function SectionEditor({
   minWords = 30,
   isLocked,
   isExportUnlocked = true,
+  lockedWordCount,
   currentText: initialText,
   reviewThreads,
   currentSectionUpdatedAt,
@@ -117,7 +120,12 @@ export function SectionEditor({
     }
   }, [isExportUnlocked]);
 
-  const wordsCount = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const isContentRedacted = isExportUnlocked === false && typeof lockedWordCount === "number" && lockedWordCount > 0;
+  const wordsCount = isContentRedacted
+    ? lockedWordCount
+    : text.trim()
+      ? text.trim().split(/\s+/).length
+      : 0;
   const isMinMet = wordsCount >= minWords;
 
   const handleCopyAndLaunchNotebook = async (item: NotebookLmPromptItem) => {
@@ -132,7 +140,7 @@ export function SectionEditor({
   };
 
   const handleSave = () => {
-    if (isLocked) return;
+    if (isLocked || isContentRedacted) return;
     setSaveStatus("idle");
     setErrorMessage("");
 
@@ -333,17 +341,24 @@ export function SectionEditor({
                   <span>NotebookLM Library</span>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={isPending}
-                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  <Save className="h-3.5 w-3.5" />
-                  <span>
-                    {isPending ? "Saving..." : saveStatus === "saved" ? "Saved ✓" : "Save Draft"}
-                  </span>
-                </button>
+                {isContentRedacted ? (
+                  <UnlockExportModal
+                    workspaceId={workspaceId}
+                    businessTitle={workspaceTitle || course}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={isPending}
+                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    <Save className="h-3.5 w-3.5" />
+                    <span>
+                      {isPending ? "Saving..." : saveStatus === "saved" ? "Saved ✓" : "Save Draft"}
+                    </span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -526,86 +541,67 @@ export function SectionEditor({
               />
             </section>
 
-            {/* Locked Workspace Content Protection Notice */}
-            {isExportUnlocked === false && (
-              <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-2.5 text-xs text-amber-900 shadow-2xs">
-                <div className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-amber-700 shrink-0" />
-                  <span>
-                    <strong>Protected Draft View:</strong> Copying, clipboard export, and printing are disabled on draft plans. Unlock the official KNEC export to download the complete Word (.docx) &amp; PDF document.
-                  </span>
+            {/* Locked Workspace Content Protection Notice & Redacted Manuscript View */}
+            {isContentRedacted ? (
+              <div
+                className="rounded-xl border border-slate-200 bg-slate-50/70 p-5 sm:p-6 space-y-5 select-none"
+                style={{ userSelect: "none", WebkitUserSelect: "none" }}
+                onCopy={(e) => e.preventDefault()}
+                onCut={(e) => e.preventDefault()}
+                onContextMenu={(e) => e.preventDefault()}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 pb-3.5">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center justify-center p-1.5 rounded-lg bg-amber-100 text-amber-800">
+                      <Lock className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <span className="text-xs font-semibold text-slate-900 block">
+                        Generated Manuscript Locked ({wordsCount} words ready)
+                      </span>
+                      <span className="text-[11px] text-slate-500">
+                        Full raw text, section editing, and Word (.docx) export unlock after the one-time KES 350 payment.
+                      </span>
+                    </div>
+                  </div>
+                  <UnlockExportModal
+                    workspaceId={workspaceId}
+                    businessTitle={workspaceTitle || course}
+                  />
                 </div>
-                <Link
-                  href={`/studio/${workspaceId}`}
-                  className="inline-flex items-center gap-1 font-semibold text-amber-900 hover:text-amber-950 underline underline-offset-2 shrink-0"
-                >
-                  <span>Unlock Export (KES 350)</span>
-                  <ArrowRight className="h-3 w-3" />
-                </Link>
+
+                {/* Short 22-word non-selectable teaser */}
+                <div className="rounded-lg border border-slate-200 bg-white p-4 space-y-3 relative overflow-hidden">
+                  <p className="text-xs sm:text-sm text-slate-700 font-sans leading-relaxed">
+                    {text}
+                  </p>
+                  {/* Redacted placeholder skeleton lines (no raw text in DOM) */}
+                  <div className="space-y-2.5 pt-2 blur-[4px] opacity-60 pointer-events-none" aria-hidden="true">
+                    <div className="h-3 w-11/12 rounded bg-slate-300" />
+                    <div className="h-3 w-full rounded bg-slate-300" />
+                    <div className="h-3 w-10/12 rounded bg-slate-300" />
+                    <div className="h-3 w-9/12 rounded bg-slate-300" />
+                    <div className="h-20 w-full rounded-lg bg-slate-200 border border-slate-300 mt-3" />
+                    <div className="h-3 w-full rounded bg-slate-300" />
+                    <div className="h-3 w-4/5 rounded bg-slate-300" />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className={isExportUnlocked === false ? "select-none relative" : "relative"}>
+                <textarea
+                  id="editorTextarea"
+                  rows={14}
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder={
+                    questionGuide?.placeholderExample ||
+                    "Write your section draft here in clear, concise language..."
+                  }
+                  className="w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg p-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 leading-relaxed font-sans placeholder:text-slate-400 min-h-[320px]"
+                />
               </div>
             )}
-
-            {showCopyWarning && (
-              <div className="flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs text-rose-800 animate-in fade-in duration-150">
-                <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
-                <span>
-                  <strong>Copying disabled:</strong> Please unlock the official KNEC export in your workspace overview to download or export this document.
-                </span>
-              </div>
-            )}
-
-            {/* Editor Textarea */}
-            <div className={isExportUnlocked === false ? "select-none relative" : "relative"}>
-              <textarea
-                id="editorTextarea"
-                rows={14}
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                onCopy={(e) => {
-                  if (isExportUnlocked === false) {
-                    e.preventDefault();
-                    setShowCopyWarning(true);
-                    setTimeout(() => setShowCopyWarning(false), 3500);
-                  }
-                }}
-                onCut={(e) => {
-                  if (isExportUnlocked === false) {
-                    e.preventDefault();
-                    setShowCopyWarning(true);
-                    setTimeout(() => setShowCopyWarning(false), 3500);
-                  }
-                }}
-                onContextMenu={(e) => {
-                  if (isExportUnlocked === false) {
-                    e.preventDefault();
-                    setShowCopyWarning(true);
-                    setTimeout(() => setShowCopyWarning(false), 3500);
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (isExportUnlocked === false && (e.ctrlKey || e.metaKey)) {
-                    const key = e.key.toLowerCase();
-                    if (["c", "x", "a", "u", "p", "s"].includes(key)) {
-                      e.preventDefault();
-                      setShowCopyWarning(true);
-                      setTimeout(() => setShowCopyWarning(false), 3500);
-                    }
-                  }
-                }}
-                placeholder={
-                  questionGuide?.placeholderExample ||
-                  "Write your section draft here in clear, concise language..."
-                }
-                style={
-                  isExportUnlocked === false
-                    ? { userSelect: "none", WebkitUserSelect: "none" }
-                    : undefined
-                }
-                className={`w-full text-xs sm:text-sm bg-white border border-slate-300 rounded-lg p-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 leading-relaxed font-sans placeholder:text-slate-400 min-h-[320px] ${
-                  isExportUnlocked === false ? "select-none" : ""
-                }`}
-              />
-            </div>
 
             {/* Step Navigation Footer */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">

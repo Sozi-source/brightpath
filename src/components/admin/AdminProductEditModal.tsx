@@ -566,6 +566,12 @@ export function AdminProductEditModal({
                 {project.file_path.startsWith("workspace-export:") && (
                   <>
                     <Link
+                      href={`/supervisor/${project.file_path.replace("workspace-export:", "")}`}
+                      className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 shadow-xs"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" /> Review Manuscript
+                    </Link>
+                    <Link
                       href={`/api/download?projectId=${encodeURIComponent(project.id)}&format=pdf`}
                       className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs"
                     >

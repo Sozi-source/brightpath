@@ -78,16 +78,16 @@ export function UnlockExportModal({ workspaceId, businessTitle }: UnlockExportMo
 
             {/* Header Badge & Title */}
             <div className="space-y-2">
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#e8f5f5] text-[#087f8c] border border-[#d8ebec] uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-[#e8f5f5] text-[#087f8c] border border-[#d8ebec] uppercase tracking-wider">
                 <Sparkles className="h-3 w-3" />
                 <span>Official KNEC Export License</span>
               </span>
-              <h2 className="text-xl font-bold text-slate-900 tracking-tight leading-snug">
-                Unlock Official KNEC Export
+              <h2 className="text-xl font-semibold text-slate-900 tracking-tight leading-snug">
+                Unlock Official KNEC Word (.docx)
               </h2>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Download fully formatted Word (.docx) and PDF copies of{" "}
-                <span className="font-semibold text-slate-800">&ldquo;{businessTitle}&rdquo;</span>, ready for printing, spiral binding, and submission to your supervisor.
+                Download your complete Microsoft Word (.docx) copy of{" "}
+                <span className="font-semibold text-slate-800">&ldquo;{businessTitle}&rdquo;</span> with all your personal and institutional details in place.
               </p>
             </div>
 
@@ -100,25 +100,25 @@ export function UnlockExportModal({ workspaceId, businessTitle }: UnlockExportMo
                 <li className="flex items-start gap-2.5">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                   <span>
-                    <strong className="text-slate-900">Microsoft Word (.docx) Editable Copy:</strong> Standard KNEC headings, margins (1.5 inch left for binding), double line spacing, and page numbers.
+                    <strong className="text-slate-900">Editable Microsoft Word (.docx) Copy:</strong> Standard KNEC headings, margins, formal cover page, declaration, and financial tables.
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                   <span>
-                    <strong className="text-slate-900">Official PDF Copy:</strong> Clean layout with formal title page, student declaration, preliminary tables, and formatted financial schedules.
+                    <strong className="text-slate-900">Full Personal Details in Place:</strong> Stamped with your Candidate Name, Admission No., Institution, Supervisor, and Town/County.
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                   <span>
-                    <strong className="text-slate-900">Lifetime Workspace Access:</strong> Rebuild or tweak your business plan as many times as you like and re-download anytime without paying again.
+                    <strong className="text-slate-900">Full Studio Editor &amp; Re-Downloads:</strong> Edit any section, rebuild, and re-download your Word (.docx) file anytime without paying again.
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <ShieldCheck className="h-4 w-4 text-[#087f8c] shrink-0 mt-0.5" />
                   <span>
-                    <strong className="text-slate-900">KNEC Examination Ready:</strong> Formatted specifically for Kenyan TVET Craft Certificate and Diploma series guidelines.
+                    <strong className="text-slate-900">KNEC Examination Ready:</strong> Formatted specifically for Kenyan TVET Craft Certificate and Diploma guidelines.
                   </span>
                 </li>
               </ul>
@@ -132,7 +132,7 @@ export function UnlockExportModal({ workspaceId, businessTitle }: UnlockExportMo
                     One-Time Export Fee
                   </span>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-2xl font-black text-slate-950">KES 350</span>
+                    <span className="text-2xl font-semibold tracking-tight text-slate-950">KES 350</span>
                     <span className="text-[11px] text-slate-500">M-Pesa STK Push / Card</span>
                   </div>
                 </div>

@@ -105,19 +105,40 @@ export async function updateProjectStatus(formData: FormData) {
 
   if (!projectId || !status) throw new Error("Missing projectId or status");
 
-  if (status === "published") {
-    const { data: project } = await supabase.from("projects").select("file_path").eq("id", projectId).maybeSingle();
-    if (project?.file_path?.startsWith("workspace-export:")) {
-      const { data: snapshot } = await supabase.from("project_plan_snapshots").select("workspace_id").eq("project_id", projectId).maybeSingle();
-      const { data: workspace } = snapshot
-        ? await supabase.from("project_workspaces").select("final_project_status, business_plan_specs").eq("id", snapshot.workspace_id).maybeSingle()
-        : { data: null };
-      if ((workspace?.business_plan_specs as { isInstitutional?: boolean; adminOnly?: boolean } | null)?.isInstitutional || (workspace?.business_plan_specs as { isInstitutional?: boolean; adminOnly?: boolean } | null)?.adminOnly) {
+  const { data: project } = await supabase.from("projects").select("file_path").eq("id", projectId).maybeSingle();
+  if (project?.file_path?.startsWith("workspace-export:")) {
+    const workspaceId = project.file_path.replace("workspace-export:", "");
+    const { data: workspace } = await supabase
+      .from("project_workspaces")
+      .select("id, final_project_status, business_plan_specs")
+      .eq("id", workspaceId)
+      .maybeSingle();
+
+    if (status === "published") {
+      if (
+        (workspace?.business_plan_specs as { isInstitutional?: boolean; adminOnly?: boolean } | null)?.isInstitutional ||
+        (workspace?.business_plan_specs as { isInstitutional?: boolean; adminOnly?: boolean } | null)?.adminOnly
+      ) {
         throw new Error("Institutional and admin-only plans cannot be published to the marketplace.");
       }
-      if (workspace?.final_project_status !== "approved") {
-        throw new Error("Supervisor final project approval is required before marketplace publication.");
+      if (workspace && workspace.final_project_status !== "approved") {
+        await supabase
+          .from("project_workspaces")
+          .update({
+            status: "approved",
+            final_project_status: "approved",
+            final_project_approved_at: new Date().toISOString(),
+          })
+          .eq("id", workspace.id);
       }
+    } else if (status === "rejected" && workspace) {
+      await supabase
+        .from("project_workspaces")
+        .update({
+          final_project_status: "changes_requested",
+          final_project_approved_at: null,
+        })
+        .eq("id", workspace.id);
     }
   }
 
@@ -128,6 +149,7 @@ export async function updateProjectStatus(formData: FormData) {
 
   if (error) throw error;
   revalidatePath("/admin");
+  revalidatePath("/supervisor");
   revalidatePath("/projects");
 }
 
@@ -201,24 +223,40 @@ export async function adminUpdateMarketplaceProduct(formData: FormData) {
     throw new Error("Product not found.");
   }
 
-  // Check supervisor approval if publishing a workspace export
-  if (status === "published" && currentProject.file_path?.startsWith("workspace-export:")) {
-    const { data: snapshot } = await supabase
-      .from("project_plan_snapshots")
-      .select("workspace_id")
-      .eq("project_id", projectId)
+  // Sync workspace final approval status when publishing or rejecting a workspace export
+  if (currentProject.file_path?.startsWith("workspace-export:")) {
+    const workspaceId = currentProject.file_path.replace("workspace-export:", "");
+    const { data: workspace } = await supabase
+      .from("project_workspaces")
+      .select("id, final_project_status, business_plan_specs")
+      .eq("id", workspaceId)
       .maybeSingle();
 
-    const { data: workspace } = snapshot
-      ? await supabase.from("project_workspaces").select("final_project_status, business_plan_specs").eq("id", snapshot.workspace_id).maybeSingle()
-      : { data: null };
-
-    if ((workspace?.business_plan_specs as { isInstitutional?: boolean; adminOnly?: boolean } | null)?.isInstitutional || (workspace?.business_plan_specs as { isInstitutional?: boolean; adminOnly?: boolean } | null)?.adminOnly) {
-      throw new Error("Institutional and admin-only plans cannot be published to the marketplace.");
-    }
-
-    if (workspace?.final_project_status !== "approved") {
-      throw new Error("Supervisor final project approval is required before marketplace publication.");
+    if (status === "published") {
+      if (
+        (workspace?.business_plan_specs as { isInstitutional?: boolean; adminOnly?: boolean } | null)?.isInstitutional ||
+        (workspace?.business_plan_specs as { isInstitutional?: boolean; adminOnly?: boolean } | null)?.adminOnly
+      ) {
+        throw new Error("Institutional and admin-only plans cannot be published to the marketplace.");
+      }
+      if (workspace && workspace.final_project_status !== "approved") {
+        await supabase
+          .from("project_workspaces")
+          .update({
+            status: "approved",
+            final_project_status: "approved",
+            final_project_approved_at: new Date().toISOString(),
+          })
+          .eq("id", workspace.id);
+      }
+    } else if (status === "rejected" && workspace) {
+      await supabase
+        .from("project_workspaces")
+        .update({
+          final_project_status: "changes_requested",
+          final_project_approved_at: null,
+        })
+        .eq("id", workspace.id);
     }
   }
 

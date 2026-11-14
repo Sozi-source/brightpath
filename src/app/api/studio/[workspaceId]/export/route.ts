@@ -35,7 +35,7 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
   }) | null;
 
   // Enforce Pay-to-Export Gate:
-  // Admin role is exempt. Students must unlock KNEC Word (.docx) & PDF export for KES 350.
+  // Admin role is exempt. Students must unlock KNEC Word (.docx) export for KES 350.
   const isUnlocked = Boolean(
     profile?.role === "admin" ||
     businessSpecs?.export_unlocked === true ||
@@ -45,7 +45,7 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
   if (!isUnlocked) {
     return NextResponse.json(
       {
-        error: "Export locked. Please unlock the official KNEC Word (.docx) & PDF export (KES 350) to download this business plan.",
+        error: "Export locked. Please unlock the official KNEC Word (.docx) export (KES 350) to download this business plan.",
         locked: true,
         price_kes: 350,
       },
@@ -65,10 +65,10 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
   const institution = workspace.institution as unknown as { name?: string | null } | null;
   const document = {
     title: workspace.title || businessSpecs?.businessName || "Business Plan",
-    candidate: student?.full_name || businessSpecs?.candidateName || "Candidate",
-    admissionNumber: student?.admission_number || businessSpecs?.admissionNumber || null,
-    institution: institution?.name || businessSpecs?.institutionName || null,
-    supervisor: supervisor?.full_name || businessSpecs?.supervisorName || null,
+    candidate: businessSpecs?.candidateName?.trim() || student?.full_name || "Candidate",
+    admissionNumber: businessSpecs?.admissionNumber?.trim() || student?.admission_number || null,
+    institution: businessSpecs?.institutionName?.trim() || institution?.name || null,
+    supervisor: businessSpecs?.supervisorName?.trim() || supervisor?.full_name || null,
     businessName: businessSpecs?.businessName || workspace.title,
     tagline: businessSpecs?.tagline,
     industrySector: businessSpecs?.industrySector,
@@ -79,7 +79,8 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
     sections,
   };
   const stem = (workspace.title || "business-plan").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "business-plan";
-  if (_request.nextUrl.searchParams.get("format") === "pdf") {
+  // Students only receive the editable Word (.docx) copy; PDF export is restricted to admin.
+  if (profile?.role === "admin" && _request.nextUrl.searchParams.get("format") === "pdf") {
     try {
       const pdf = await createBusinessPlanPdf(document);
       return new Response(pdf as unknown as BodyInit, {

@@ -16,6 +16,7 @@ import {
 import { SectionEditor, type StepItem } from "./SectionEditor";
 import { AppShell } from "@/components/layout/AppShell";
 import type { UserProfile } from "@/types/database";
+import { resolveBusinessPlanModel, type BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
 
 interface WriteSectionPageProps {
   params: Promise<{ id: string; sectionKey: string }>;
@@ -74,7 +75,12 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
   const sectionReviewThreads = await getSectionReviewThreads(db, workspaceId);
 
   // Find section definitions from template
-  const sectionDefs = getWorkspaceSections(workspace.workspace_type, workspace.level);
+  const rawSpecs = workspace.business_plan_specs as Partial<BusinessPlanSpecs> | null;
+  const resolvedModel = rawSpecs ? resolveBusinessPlanModel(rawSpecs) : undefined;
+  const isInstitutionalPlan = rawSpecs?.isInstitutional === true;
+  const sectionDefs = getWorkspaceSections(workspace.workspace_type, workspace.level, resolvedModel).filter(
+    (def) => !(isInstitutionalPlan && ["prelim.declaration", "prelim.dedication", "prelim.acknowledgements"].includes(def.key))
+  );
   const sectionDefIndex = sectionDefs.findIndex((s) => s.key === sectionKey);
 
   if (sectionDefIndex === -1) {
@@ -158,8 +164,20 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
   const isBusiness = workspace.workspace_type === "business_plan";
   const isExportUnlocked = !isBusiness || Boolean(
     profile?.role === "admin" ||
+    (profile?.role === "supervisor" && workspace.supervisor_id === user.id) ||
     (workspace.business_plan_specs as Record<string, unknown> | null)?.export_unlocked === true
   );
+
+  const rawSectionText = textMap.get(sectionDef.key) || "";
+  const fullSectionWordCount = rawSectionText.trim()
+    ? rawSectionText.trim().split(/\s+/).filter(Boolean).length
+    : 0;
+  // Never send full raw text to the client when the business plan export is still locked
+  const clientSafeText = isExportUnlocked
+    ? rawSectionText
+    : fullSectionWordCount > 0
+      ? `${rawSectionText.trim().split(/\s+/).slice(0, 22).join(" ")} …`
+      : "";
 
   return (
     <AppShell
@@ -180,7 +198,8 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
         phase={sectionDef.phase}
         isLocked={isLocked}
         isExportUnlocked={isExportUnlocked}
-        currentText={textMap.get(sectionDef.key) || ""}
+        lockedWordCount={isExportUnlocked ? undefined : fullSectionWordCount}
+        currentText={clientSafeText}
         reviewThreads={sectionReviewThreads.filter((thread) => thread.section_key === sectionDef.key)}
         currentSectionUpdatedAt={allSections.find((section) => section.section_key === sectionDef.key)?.updated_at || ""}
         viewerRole={profile?.role || "student"}
@@ -196,7 +215,7 @@ export default async function WriteSectionPage({ params }: WriteSectionPageProps
         nextStep={nextStepDef ? { key: nextStepDef.key, title: nextStepDef.title } : null}
         saveAction={saveSectionText}
         polishAction={
-          workspace.workspace_type === "business_plan"
+          workspace.workspace_type === "business_plan" && isExportUnlocked
             ? polishBusinessPlanSectionAction
             : undefined
         }

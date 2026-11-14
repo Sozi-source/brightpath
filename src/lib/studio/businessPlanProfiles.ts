@@ -199,15 +199,18 @@ export function getConsultancySectionContent(key: string, title: string, specs: 
   const body = consultancyBodies[key];
   if (key === "references") {
     const sources = specs.research?.sources || [];
-    const content = sources.length
-      ? sources.map((source, index) => `${index + 1}. ${source.title}. ${source.url}`).join("\n\n")
-      : [
-          "1. Government of Kenya. (2012). *The Business Names Registration Act (Cap 499, Laws of Kenya)*. National Council for Law Reporting.",
-          "2. Government of Kenya. (2012). *The Public Health Act (Cap 242, Laws of Kenya)*. Government Printer, Nairobi.",
-          "3. Kenya National Bureau of Statistics (KNBS) & Ministry of Health. (2022). *Kenya Demographic and Health Survey (KDHS) 2022*. KNBS.",
-          "4. Kenya Nutritionists and Dietitians Institute (KNDI). (2019). *Code of Professional Conduct and Standards of Nutrition and Dietetics Practice in Kenya*. KNDI.",
-          "5. Ministry of Health, Republic of Kenya. (2018). *Kenya National Food Composition Tables*. Ministry of Health / FAO.",
-        ].join("\n\n");
+    const statutoryRefs = [
+      "Government of Kenya. (2012). *The Business Names Registration Act (Cap 499, Laws of Kenya)*. National Council for Law Reporting.",
+      "Government of Kenya. (2012). *The Public Health Act (Cap 242, Laws of Kenya)*. Government Printer, Nairobi.",
+      "Kenya National Bureau of Statistics (KNBS) & Ministry of Health. (2022). *Kenya Demographic and Health Survey (KDHS) 2022*. KNBS.",
+      "Kenya Nutritionists and Dietitians Institute (KNDI). (2019). *Code of Professional Conduct and Standards of Nutrition and Dietetics Practice in Kenya*. KNDI.",
+      "Ministry of Health, Republic of Kenya. (2018). *Kenya National Food Composition Tables*. Ministry of Health / FAO.",
+    ];
+    const entries = [
+      ...sources.map((source) => `${source.title}. ${source.url}`),
+      ...statutoryRefs,
+    ];
+    const content = entries.map((entry, index) => `${index + 1}. ${entry}`).join("\n\n");
     return `### ${title}\n\n${content}`;
   }
   if (!body) return null;

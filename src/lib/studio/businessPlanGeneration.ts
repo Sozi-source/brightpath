@@ -48,7 +48,14 @@ export interface BusinessPlanDocumentReview {
 
 const GEMINI_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
 const GROQ_DEFAULT_MODEL = "openai/gpt-oss-20b";
-const GROQ_TEXT_MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", GROQ_DEFAULT_MODEL];
+const GROQ_TEXT_MODELS = [
+  GROQ_DEFAULT_MODEL,
+  "openai/gpt-oss-120b",
+  "qwen/qwen3.8-27b",
+  "llama-3.3-70b-versatile",
+  "llama-3.1-8b-instant",
+];
+const unavailableGroqModels = new Set<string>();
 
 function normalizeApiKey(value: string | undefined): string {
   if (!value) return "";
@@ -168,28 +175,31 @@ async function callGroq(
   }
 
   const configuredTextModel = process.env.GROQ_TEXT_MODEL?.trim();
-  const modelsToTry = options.browserSearch
+  const baseModels = options.browserSearch
     ? [process.env.GROQ_SEARCH_MODEL?.trim() || GROQ_DEFAULT_MODEL]
     : configuredTextModel
     ? [configuredTextModel, ...GROQ_TEXT_MODELS.filter((m) => m !== configuredTextModel)]
     : GROQ_TEXT_MODELS;
+  const modelsToTry = baseModels.filter((m) => !unavailableGroqModels.has(m));
+  const effectiveModels = modelsToTry.length > 0 ? modelsToTry : [GROQ_DEFAULT_MODEL];
 
   const safeMaxCompletionTokens = Math.min(
-    options.maxCompletionTokens ?? (options.browserSearch ? 3500 : 3800),
-    4000
+    options.maxCompletionTokens ?? (options.browserSearch ? 3500 : 4500),
+    6000
   );
 
   let lastError = "";
-  for (const model of modelsToTry) {
+  for (const model of effectiveModels) {
+    const isReasoningModel = model.startsWith("openai/gpt-oss");
     const requestBody = JSON.stringify({
       model,
       messages: [{ role: "user", content: prompt }],
       max_completion_tokens: safeMaxCompletionTokens,
+      ...(isReasoningModel ? { reasoning_effort: "low" } : {}),
       ...(options.browserSearch
         ? {
             tool_choice: "required",
             tools: [{ type: "browser_search" }],
-            reasoning_effort: "low",
           }
         : options.json
         ? { response_format: { type: "json_object" } }
@@ -205,22 +215,27 @@ async function callGroq(
             Authorization: `Bearer ${apiKey}`,
           },
           body: requestBody,
-          signal: AbortSignal.timeout(options.timeoutMs ?? 55000),
+          signal: AbortSignal.timeout(options.timeoutMs ?? (options.browserSearch ? 40000 : 22000)),
         });
         if (response.ok) return response.json();
 
         const body = await response.json().catch(() => null);
         const message = body?.error?.message;
+        const code = body?.error?.code;
         const messageText = typeof message === "string" ? message : `HTTP ${response.status}`;
         lastError = messageText;
+        if (response.status === 404 || code === "model_not_found" || /does not exist|model_not_found/i.test(messageText)) {
+          unavailableGroqModels.add(model);
+          break;
+        }
         const retryMatch = messageText.match(/try again in\s+(\d+(?:\.\d+)?)\s*s/i);
         const headerRetry = Number(response.headers.get("retry-after"));
         const retrySeconds = retryMatch ? Number(retryMatch[1]) : headerRetry;
         if (
           response.status === 429 && attempt === 0 &&
-          Number.isFinite(retrySeconds) && retrySeconds > 0 && retrySeconds <= 12
+          Number.isFinite(retrySeconds) && retrySeconds > 0 && retrySeconds <= 2
         ) {
-          await new Promise((resolve) => setTimeout(resolve, Math.ceil(retrySeconds * 1000) + 300));
+          await new Promise((resolve) => setTimeout(resolve, Math.ceil(retrySeconds * 1000) + 200));
           continue;
         }
         break;
@@ -549,8 +564,32 @@ export async function draftBusinessPlanSections(
     return normalizedContent;
   };
 
+  const getValidDeterministic = (section: SectionDef): string | null => {
+    const deterministicBaseline = (scriptedSections.get(section.key) || "").trim();
+    return (
+      validateCandidateDraft(section, deterministicBaseline, true) ||
+      (deterministicBaseline &&
+      !getBusinessModelConflictFindings(specs, [{ key: section.key, content: deterministicBaseline }]).length
+        ? deterministicBaseline
+        : null)
+    );
+  };
+
+  const chapterDeadline = Date.now() + 14_000;
+  let providerBackedOff = false;
+
   for (let offset = 0; offset < reviewable.length; offset += 3) {
     const batch = reviewable.slice(offset, offset + 3);
+    if (providerBackedOff || Date.now() >= chapterDeadline) {
+      for (const section of batch) {
+        const validDeterministic = getValidDeterministic(section);
+        if (validDeterministic) {
+          updated.set(section.key, validDeterministic);
+        }
+      }
+      continue;
+    }
+
     const sectionDrafts = batch.map((section) => ({
       key: section.key,
       title: section.title,
@@ -581,7 +620,7 @@ If local geography or sector facts are uncertain, use cautious wording and [Conf
 
     let lastBatchError: unknown = null;
     try {
-      const parsed = await generateJson(prompt, provider, { maxTokens: 3800 });
+      const parsed = await generateJson(prompt, provider, { maxTokens: 4500 });
       const drafts = Array.isArray(parsed.sections) ? parsed.sections : [];
       for (const draft of drafts) {
         if (!draft || typeof draft !== "object") continue;
@@ -589,19 +628,33 @@ If local geography or sector facts are uncertain, use cautious wording and [Conf
         if (typeof item.key !== "string" || typeof item.content !== "string") continue;
         const definition = batch.find((section) => section.key === item.key);
         if (!definition) continue;
-        const accepted = validateCandidateDraft(definition, item.content, false);
+        const accepted = validateCandidateDraft(definition, item.content, true);
         if (accepted) {
           updated.set(definition.key, accepted);
         }
       }
     } catch (batchErr) {
       lastBatchError = batchErr;
+      providerBackedOff = true;
     }
 
-    // Targeted single-section retry for any section in the batch that was omitted,
-    // truncated, slightly below minWords, or had a model/financial conflict.
+    // Per AGENTS.md ("Build the bulk draft deterministically. AI may make limited
+    // evidence-supported corrections"): if a section already has a valid deterministic
+    // baseline, use it immediately when omitted/rejected by the batch call rather than
+    // triggering a cascade of slow sequential single-section retries.
     const missingInBatch = batch.filter((section) => !updated.has(section.key));
     for (const section of missingInBatch) {
+      const validDeterministic = getValidDeterministic(section);
+      if (validDeterministic) {
+        updated.set(section.key, validDeterministic);
+        continue;
+      }
+
+      if (providerBackedOff || Date.now() >= chapterDeadline) {
+        if (lastBatchError) throw lastBatchError;
+        continue;
+      }
+
       const targetMinWords = section.minWords || 80;
       const singlePrompt = `Draft one complete, enterprise-specific KNEC business-plan section for a Kenyan TVET candidate.
 Section key: ${section.key}
@@ -642,21 +695,10 @@ Do not invent facts, competitors, survey results, permits, or financial figures.
         }
       } catch (singleErr) {
         lastBatchError = singleErr || lastBatchError;
+        providerBackedOff = true;
       }
 
-      // Deterministic fallback per AGENTS.md ("Build the bulk draft deterministically.
-      // AI may make limited evidence-supported corrections"): if the AI provider is
-      // rate-limited or has an invalid key, validate and use the deterministic section.
-      const deterministicBaseline = (scriptedSections.get(section.key) || "").trim();
-      const validDeterministic =
-        validateCandidateDraft(section, deterministicBaseline, true) ||
-        (deterministicBaseline &&
-        !getBusinessModelConflictFindings(specs, [{ key: section.key, content: deterministicBaseline }]).length
-          ? deterministicBaseline
-          : null);
-      if (validDeterministic) {
-        updated.set(section.key, validDeterministic);
-      } else if (lastBatchError) {
+      if (lastBatchError) {
         throw lastBatchError;
       }
     }

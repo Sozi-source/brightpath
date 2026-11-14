@@ -27,7 +27,7 @@ import {
   FileText,
 } from "lucide-react";
 import type { ProjectWorkspace, WorkspaceSection, SupervisorReview } from "@/types/database";
-import type { BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
+import { resolveBusinessPlanModel, type BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
 import { UnlockExportModal } from "./UnlockExportModal";
 import { verifyWorkspaceUnlockWithPaystack } from "@/lib/paystack";
 
@@ -130,7 +130,12 @@ export default async function WorkspaceOverviewPage({
   const sectionReviewThreads = await getSectionReviewThreads(db, workspaceId);
 
   // Template definitions & KNEC Rubric
-  const templateDefs = getWorkspaceSections(workspace.workspace_type, workspace.level);
+  const rawSpecs = workspace.business_plan_specs as Partial<BusinessPlanSpecs> | null;
+  const resolvedModel = rawSpecs ? resolveBusinessPlanModel(rawSpecs) : undefined;
+  const isInstitutionalPlan = rawSpecs?.isInstitutional === true;
+  const templateDefs = getWorkspaceSections(workspace.workspace_type, workspace.level, resolvedModel).filter(
+    (def) => !(isInstitutionalPlan && ["prelim.declaration", "prelim.dedication", "prelim.acknowledgements"].includes(def.key))
+  );
   const sectionsMap = new Map(sections.map((s) => [s.section_key, s]));
 
   // Group templateDefs by chapter
@@ -295,18 +300,11 @@ export default async function WorkspaceOverviewPage({
                       <span>KNEC Export Unlocked</span>
                     </span>
                     <Link
-                      href={`/api/studio/${workspaceId}/export?format=pdf`}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors"
-                    >
-                      <Download className="h-3.5 w-3.5 text-[#087f8c]" />
-                      <span>PDF</span>
-                    </Link>
-                    <Link
                       href={`/api/studio/${workspaceId}/export?format=docx`}
                       className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors"
                     >
-                      <FileText className="h-3.5 w-3.5 text-[#087f8c]" />
-                      <span>Word (.docx)</span>
+                      <Download className="h-3.5 w-3.5 text-[#087f8c]" />
+                      <span>Download Word (.docx)</span>
                     </Link>
                   </>
                 )}
@@ -500,10 +498,23 @@ export default async function WorkspaceOverviewPage({
                               </span>
                               <Link
                                 href={`/studio/${workspaceId}/write/${encodeURIComponent(def.key)}`}
-                                className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold bg-[#e8f5f5] hover:bg-teal-100 text-[#087f8c] transition-colors"
+                                className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                                  isBusiness && !isUnlocked && s?.current_text
+                                    ? "bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200"
+                                    : "bg-[#e8f5f5] hover:bg-teal-100 text-[#087f8c]"
+                                }`}
                               >
-                                <span>{s?.current_text ? "Edit" : "Write"}</span>
-                                <ChevronRight className="h-3 w-3" />
+                                {isBusiness && !isUnlocked && s?.current_text ? (
+                                  <>
+                                    <Lock className="h-3 w-3" />
+                                    <span>Preview</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span>{s?.current_text ? "Edit" : "Write"}</span>
+                                    <ChevronRight className="h-3 w-3" />
+                                  </>
+                                )}
                               </Link>
                             </div>
                           </div>

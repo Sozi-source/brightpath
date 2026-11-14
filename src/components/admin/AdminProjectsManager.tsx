@@ -248,20 +248,43 @@ export function AdminProjectsManager({
                     {/* Actions */}
                     <td className="py-2 px-3 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
-                        {/* Quick One-Click Status Approval for Pending Items */}
+                        {/* Quick One-Click Status Approval or Rejection for Pending Items */}
                         {p.status === "pending_review" && (
-                          <form action={updateProjectStatus} className="inline-block">
-                            <input type="hidden" name="projectId" value={p.id} />
-                            <input type="hidden" name="status" value="published" />
-                            <button
-                              type="submit"
-                              className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white transition-colors cursor-pointer shadow-xs"
-                              title="Approve and publish to marketplace"
-                            >
-                              <CheckCircle2 className="h-3.5 w-3.5" />
-                              <span>Publish</span>
-                            </button>
-                          </form>
+                          <>
+                            <form action={updateProjectStatus} className="inline-block">
+                              <input type="hidden" name="projectId" value={p.id} />
+                              <input type="hidden" name="status" value="published" />
+                              <button
+                                type="submit"
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white transition-colors cursor-pointer shadow-xs"
+                                title="Approve and publish to marketplace"
+                              >
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                                <span>Publish</span>
+                              </button>
+                            </form>
+                            <form action={updateProjectStatus} className="inline-block">
+                              <input type="hidden" name="projectId" value={p.id} />
+                              <input type="hidden" name="status" value="rejected" />
+                              <button
+                                type="submit"
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors cursor-pointer"
+                                title="Reject marketplace publication"
+                              >
+                                <span>Reject</span>
+                              </button>
+                            </form>
+                          </>
+                        )}
+
+                        {isWorkspaceExport && (
+                          <Link
+                            href={`/supervisor/${p.file_path.replace("workspace-export:", "")}`}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors"
+                            title="Inspect full 47-section workspace in Supervisor Review"
+                          >
+                            <span>Review</span>
+                          </Link>
                         )}
 
                         {/* Primary Setup & Edit Workspace Button */}

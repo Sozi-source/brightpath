@@ -111,6 +111,60 @@ export function getWorkspaceSections(
           title = override.title || title;
           guidance = override.guidance;
         }
+      } else if (type === "business_plan" && businessModel === "food_service") {
+        const foodServiceGuidance: Record<string, { title?: string; guidance: string }> = {
+          "ch1.nature": { guidance: "Analyze Kenya's therapeutic catering, healthy meal prep, and institutional dietetic food-service sector." },
+          "ch1.products": { guidance: "Specify calibrated meal packages, macronutrient/sodium targets, packaging containers, portion pricing, and dietitian menu oversight." },
+          "ch2.customers": { guidance: "Segment target diners: hospital outpatients, corporate commuters, NCD management clients (diabetic, hypertensive), and institutional accounts." },
+          "ch4.facilities": { title: "4.1 Commercial Kitchen Premises, Layout and Sanitation Zones", guidance: "Describe commercial kitchen zoning: raw prep, hot/cold cooking line, dietitian portioning counter, cold storage, and dispatch bay." },
+          "ch4.workflow": { title: "4.2 Therapeutic Meal Preparation, Portioning and Dispatch Workflow", guidance: "Map daily kitchen workflow: fresh ingredient receiving, sanitary prep, nutrient-preserving cooking, digital macro portioning, sealing, and insulated dispatch." },
+          "ch4.equipment": { title: "4.3 Commercial Cooking, Cold-Chain and Portioning Equipment", guidance: "List commercial ranges/ovens, upright chillers/freezers, digital portion scales, food processors, and insulated delivery boxes." },
+          "ch4.materials": { title: "4.4 Fresh Produce, Lean Proteins and Food-Grade Packaging Sourcing", guidance: "Quantify monthly fresh ingredients, whole grains, lean proteins, and tamper-evident biodegradable meal containers." },
+          "ch4.labor": { title: "4.5 Kitchen Shift Scheduling, Prep Windows and Dispatch Allocation", guidance: "Plan morning prep/cooking shifts, midday/evening meal dispatch windows, and daily kitchen sanitation duties." },
+          "ch4.quality": { title: "4.6 HACCP Food Safety, Cold-Chain Control and Kitchen Waste Management", guidance: "Detail cooking/chiller temperature logs, allergen segregation, food handler medicals, grease-trap maintenance, and organic waste composting." },
+          "ch4.schedule": { title: "4.7 Monthly Meal Throughput, Kitchen Capacity and Equipment Maintenance", guidance: "Present monthly meal package targets, peak catering capacity buffer, and routine kitchen appliance/chiller servicing." },
+        };
+        const override = foodServiceGuidance[sec.key];
+        if (override) {
+          title = override.title || title;
+          guidance = override.guidance;
+        }
+      } else if (type === "business_plan" && businessModel === "agribusiness") {
+        const agribusinessGuidance: Record<string, { title?: string; guidance: string }> = {
+          "ch1.nature": { guidance: "Analyze Kenya's nutrition-sensitive agribusiness, biofortified crop/livestock production, and post-harvest preservation sector." },
+          "ch1.products": { guidance: "Specify biofortified produce, microgreens, fortified eggs, or solar-dried packs, grading standards, packaging, and unit pricing." },
+          "ch2.customers": { guidance: "Segment buyers: health-conscious households, specialty grocers, school/hospital kitchens, and local nutrition processors." },
+          "ch4.facilities": { title: "4.1 Production Plot, Nursery, Grading Shade and Storage Layout", guidance: "Describe farm/production unit layout: propagation/housing zone, irrigation, shaded grading bay, solar drying/cooling unit, and clean store." },
+          "ch4.workflow": { title: "4.2 Cultivation, Husbandry, Harvesting and Post-Harvest Workflow", guidance: "Map end-to-end production: certified seed/stock selection, nutrient/irrigation management, harvesting, grading, preservation, and packing." },
+          "ch4.equipment": { title: "4.3 Irrigation, Greenhouse/Housing, Preservation and Grading Equipment", guidance: "List drip irrigation kits, solar dryers/incubators/trays, digital weighing scales, moisture/climate meters, and harvesting crates." },
+          "ch4.materials": { title: "4.4 Certified Seeds/Stock, Organic Inputs and Breathable Packaging", guidance: "Specify monthly planting material, organic fertilizer/feed inputs, and food-grade crates, trays, or barrier pouches." },
+          "ch4.labor": { title: "4.5 Farm Husbandry Schedule, Harvest Windows and Packing Shifts", guidance: "Plan daily watering/feeding routines, cool-morning harvest windows, grading, and market dispatch schedules." },
+          "ch4.quality": { title: "4.6 Biosecurity, Residue-Free Quality Assurance and Farm Waste Recycling", guidance: "Detail KEPHIS/KALRO input verification, pest/moisture controls, batch harvest dating, and composting of crop/farm residues." },
+          "ch4.schedule": { title: "4.7 Cropping/Production Cycles, Monthly Yield Capacity and Maintenance", guidance: "Present monthly harvest/output targets, seasonal buffer capacity, and irrigation/dryer/facility maintenance." },
+        };
+        const override = agribusinessGuidance[sec.key];
+        if (override) {
+          title = override.title || title;
+          guidance = override.guidance;
+        }
+      } else if (type === "business_plan" && businessModel === "education") {
+        const educationGuidance: Record<string, { title?: string; guidance: string }> = {
+          "ch1.nature": { guidance: "Analyze Kenya's community nutrition education, culinary demonstration, MIYCN caregiver training, and school menu consultancy sector." },
+          "ch1.products": { guidance: "Specify structured training workshops, culinary demo sessions, school menu audit packages, participant manuals, and fee structure." },
+          "ch2.customers": { guidance: "Segment target clients: schools/ECD centers, expectant/lactating mothers, corporate wellness teams, community groups, and NGOs." },
+          "ch4.facilities": { title: "4.1 Training Studio, Demonstration Kitchen and Resource Center Layout", guidance: "Describe training seminar space, hygienic culinary demonstration station, anthropometric check corner, and manual/kit storage." },
+          "ch4.workflow": { title: "4.2 Curriculum Preparation, Live Demonstration and Evaluation Workflow", guidance: "Map session delivery: client needs assessment, workbook/ingredient staging, interactive teaching & cooking demo, competency check, and follow-up." },
+          "ch4.equipment": { title: "4.3 Audiovisual, Culinary Demonstration and Anthropometric Equipment", guidance: "List multimedia projector, PA audio, portable induction/gas demo station, MUAC/growth charts, and digital scales." },
+          "ch4.materials": { title: "4.4 Printed Participant Workbooks, Demo Ingredients and Visual Aids", guidance: "Specify monthly printed manuals, recipe cards, certificates, and fresh local ingredients for live culinary demonstrations." },
+          "ch4.labor": { title: "4.5 Workshop Calendar, Facilitation Hours and Institutional Field Days", guidance: "Plan weekly cohort classes, school/corporate outreach days, curriculum preparation, and participant follow-up hours." },
+          "ch4.quality": { title: "4.6 Curriculum Alignment (MOH/KNDI), Demo Hygiene and Waste Control", guidance: "Detail alignment with MOH/WHO nutrition guidelines, safe food demo handling, attendance/evaluation logs, and minimal paper/food waste." },
+          "ch4.schedule": { title: "4.7 Monthly Cohort Capacity, Session Schedule and Equipment Care", guidance: "Present monthly workshop/package capacity, term/quarterly scheduling, and audiovisual/demo kit maintenance." },
+        };
+        const override = educationGuidance[sec.key];
+        if (override) {
+          title = override.title || title;
+          guidance = override.guidance;
+        }
       }
       if (type === "research_secondary") {
         if (sec.key === "ch3.analysis") {
@@ -135,7 +189,13 @@ export function getWorkspaceSections(
           ? "Chapter 4: Consultancy Operations Plan"
           : type === "business_plan" && businessModel === "retail" && sec.chapter === "ch4"
             ? "Chapter 4: Retail Operations and Merchandising Plan"
-            : sec.chapterTitle,
+            : type === "business_plan" && businessModel === "food_service" && sec.chapter === "ch4"
+              ? "Chapter 4: Culinary Kitchen and Meal Service Operations Plan"
+              : type === "business_plan" && businessModel === "agribusiness" && sec.chapter === "ch4"
+                ? "Chapter 4: Agricultural Production and Post-Harvest Operations Plan"
+                : type === "business_plan" && businessModel === "education" && sec.chapter === "ch4"
+                  ? "Chapter 4: Curriculum Delivery and Training Operations Plan"
+                  : sec.chapterTitle,
         minWords: scaledMinWords,
         guidance,
       };

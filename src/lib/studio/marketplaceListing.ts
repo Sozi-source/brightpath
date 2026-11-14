@@ -9,9 +9,12 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
   const { data: workspace, error: workspaceError } = await db.from("project_workspaces")
     .select("id, student_id, workspace_type, level, title, course, problem_area, business_plan_specs, marketplace_price_kes, final_project_status, student:student_id(full_name, admission_number), supervisor:supervisor_id(full_name), institution:institution_id(name)")
     .eq("id", workspaceId).maybeSingle();
-  if (workspaceError || !workspace) throw new Error(workspaceError?.message || "Approved project not found.");
-  if (workspace.workspace_type !== "business_plan" || workspace.final_project_status !== "approved") {
-    throw new Error("Only finally approved business plans can enter marketplace review.");
+  if (workspaceError || !workspace) throw new Error(workspaceError?.message || "Business plan workspace not found.");
+  if (
+    workspace.workspace_type !== "business_plan" ||
+    (workspace.final_project_status !== "approved" && workspace.final_project_status !== "pending_review")
+  ) {
+    throw new Error("Only business plans submitted for review or approved can enter marketplace review.");
   }
 
   // Under Option A: All approved work remains 100% property of the platform/system.
@@ -145,6 +148,7 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
   let projectId = existing?.id;
   let createdProject = false;
   if (existing) {
+    const nextListingStatus = existing.status === "published" ? "published" : "pending_review";
     const { error } = await db.from("projects").update({
       trainer_id: platformOwnerId,
       title: listingTitle,
@@ -152,7 +156,7 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
       category: "Business Plan",
       material_type: "business_plan",
       price_kes: priceKes,
-      status: "pending_review",
+      status: nextListingStatus,
     }).eq("id", existing.id);
     if (error) throw new Error(error.message || "Could not update the marketplace listing.");
   } else {
