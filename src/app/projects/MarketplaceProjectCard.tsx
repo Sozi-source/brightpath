@@ -97,7 +97,7 @@ export function MarketplaceProjectCard({
           <BuyButton
             projectId={project.id}
             isOwner={viewerId === project.trainer_id}
-            className="px-2.5 py-1.5 text-xs h-8"
+            className="px-2.5 py-1 text-xs h-7"
           />
         </div>
       </div>

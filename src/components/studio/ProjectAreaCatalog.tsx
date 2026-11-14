@@ -323,7 +323,7 @@ export function ProjectAreaCatalog({
               </button>
             </div>
           ) : (
-            <div className="grid w-full min-w-0 grid-cols-2 gap-3.5 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            <div className="grid w-full min-w-0 grid-cols-1 gap-3.5 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {filteredVentures.map((venture, index) => {
                 const palette = getCanvasPalette(venture.id || venture.number, index);
                 const shortName = getShortVentureCardName(venture.title);
@@ -368,18 +368,18 @@ export function ProjectAreaCatalog({
                         <button
                           type="button"
                           onClick={() => setDetailVenture(venture)}
-                          className="text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
+                          className="whitespace-nowrap shrink-0 text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
                         >
                           Details
                         </button>
                         <button
                           type="button"
                           onClick={() => handleOpenVentureModal(venture)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-semibold text-white shadow-2xs hover:opacity-90 transition-opacity cursor-pointer"
+                          className="inline-flex items-center gap-1 whitespace-nowrap shrink-0 px-2.5 py-1 rounded-md text-xs font-semibold text-white shadow-2xs hover:opacity-90 transition-opacity cursor-pointer"
                           style={{ backgroundColor: palette.accentHex }}
                         >
                           <span>Start</span>
-                          <ArrowRight className="h-3.5 w-3.5" />
+                          <ArrowRight className="h-3 w-3 shrink-0" />
                         </button>
                       </div>
                     </div>
