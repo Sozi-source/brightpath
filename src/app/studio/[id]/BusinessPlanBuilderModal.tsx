@@ -230,8 +230,11 @@ export function BusinessPlanBuilderModal({
       formOfOwnership: (preset.formOfOwnership as "Sole Proprietorship") || prev.formOfOwnership,
       registrationType: preset.registrationType || prev.registrationType,
       ownerQualifications: preset.ownerQualifications || prev.ownerQualifications || "Diploma in Human Nutrition & Dietetics, KNDI Registered",
+      county: preset.county || prev.county,
+      townOrMarket: preset.townOrMarket || prev.townOrMarket,
       streetOrBuilding: preset.streetOrBuilding || prev.streetOrBuilding,
       locationRationale: preset.locationRationale || prev.locationRationale,
+      research: preset.research || prev.research,
       primaryProduct: preset.primaryProduct || prev.primaryProduct,
       productDescription: preset.productDescription || prev.productDescription,
       productPackaging: preset.productPackaging || prev.productPackaging,
@@ -268,6 +271,7 @@ export function BusinessPlanBuilderModal({
     if (presetKey === "milling") return loadVenturePreset("fortified_flours_and_porridges");
     if (presetKey === "consultancy") return loadVenturePreset("private_nutrition_practice");
     if (presetKey === "beverages") return loadVenturePreset("fruit_vegetable_processing");
+    if (presetKey === "retail") return loadVenturePreset("specialty_health_food_store");
     loadVenturePreset(presetKey);
   };
 

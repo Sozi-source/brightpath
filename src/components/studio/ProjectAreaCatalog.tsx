@@ -105,8 +105,8 @@ function getVentureProblemAndGap(venture: NutritionVentureDefinition) {
       break;
 
     case "E": // Specialty Retail
-      problemSolved = `Severe regional scarcity of verified therapeutic supplements, gluten-free formulations, diabetic staples, and clinical infant weaning products outside Nairobi and Tier-1 private pharmacies.`;
-      justificationGap = `Mainstream supermarkets stock generic retail foods with ambiguous allergen labeling and untrained attendants unable to guide clients on specific dietary restrictions. This specialty retail shop bridges the gap with verified supply chains, KEBS-compliant products, and informed point-of-sale dietary guidance.`;
+      problemSolved = `Concentrated availability of certified health foods, gluten-free/diabetic staples, cold-pressed oils, and PPB-listed nutraceuticals in upscale Nairobi mall chains (such as Healthy U, Zucchini, and Goodlife Pharmacy), leaving surrounding residential corridors and regional towns underserved.`;
+      justificationGap = `Mainstream supermarkets stock generic groceries with limited therapeutic diet curation, while conventional chemists focus on acute pharmaceuticals rather than holistic whole-food nutrition. This specialty health food and nutraceutical store bridges the gap by combining KEBS-certified health foods, PPB-cleared supplements, and in-store KNDI-registered nutritionist guidance.`;
       break;
 
     case "F": // Nutrition Education & School Feeding

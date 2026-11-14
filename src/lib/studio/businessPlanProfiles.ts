@@ -34,11 +34,11 @@ export function getBusinessPlanModelGuidance(model: BusinessPlanModel) {
   }
   if (model === "retail") {
     return {
-      unit: "retail product units / customer baskets",
-      operations: "merchandise inventory procurement, shelf merchandising, and checkout",
-      workplace: "retail sales floor, display shelving, and climate-controlled stockroom",
-      equipment: "POS barcode terminal, display chillers, and security counters",
-      supplies: "wholesale health food inventory and branded carrier packaging",
+      unit: "retail product units / customer wellness baskets",
+      operations: "health food & nutraceutical inventory procurement, categorized shelf merchandising, in-store nutritionist advisory, and POS checkout",
+      workplace: "retail sales floor, categorized health-food shelving, climate-controlled nutraceutical cabinets, and nutritionist consultation counter",
+      equipment: "barcode POS/eTIMS terminal, lockable glass supplement cabinets, commercial display chiller, HVAC climate control, and BIA screening scale",
+      supplies: "wholesale KEBS-certified health foods, PPB-cleared nutraceutical inventory, and eco-friendly branded carrier packaging",
     };
   }
   if (model === "education") {

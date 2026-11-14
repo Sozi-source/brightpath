@@ -82,6 +82,35 @@ export function getWorkspaceSections(
           title = override.title || title;
           guidance = override.guidance;
         }
+      } else if (type === "business_plan" && businessModel === "retail") {
+        const retailGuidance: Record<string, { title?: string; guidance: string }> = {
+          "ch1.nature": { guidance: "Analyze Kenya's specialty health food, dietary supplement, and nutraceutical retail sector, preventive wellness trends, and regulatory landscape." },
+          "ch1.products": { guidance: "Specify curated health food categories (diabetic, gluten-free, organic seeds/oils), PPB-listed nutraceuticals/supplements, packaging, unit basket pricing, and in-store nutritionist advisory." },
+          "ch1.goals": { guidance: "Set measurable Year 1–3 targets for monthly customer baskets, SKU assortment, inventory turnover, regulatory compliance, and revenue." },
+          "ch1.justification": { guidance: "Justify the specialty health food and nutraceutical store against local NCD dietary trends, urban wellness demand, and margin viability." },
+          "ch2.customers": { guidance: "Segment target shoppers: special-diet households (diabetic, celiac, hypertensive), maternal/infant wellness buyers, fitness consumers, and clinic referrals." },
+          "ch2.demand": { guidance: "Estimate addressable monthly basket demand, catchment population, and target market share across specialty health retail and pharmacy channels." },
+          "ch2.competitors": { guidance: "Benchmark against established Kenyan health food and nutraceutical outlets (e.g., Healthy U, Goodlife Pharmacy, Zucchini, Kalimoni Greens, MYDAWA, local supermarkets/chemists)." },
+          "ch2.pricing": { guidance: "Detail wholesale-to-retail landed cost, markup structure, average customer basket economics, and M-PESA/institutional payment terms." },
+          "ch2.distribution": { guidance: "Outline omnichannel retail fulfillment: storefront walk-in merchandising, in-store nutritionist consultation counter, WhatsApp/e-commerce rider delivery, and clinic/gym partnerships." },
+          "ch2.forecast": { guidance: "Project monthly customer baskets, gross retail revenue, cost of goods sold (wholesale stock), and gross profit over three years." },
+          "ch3.structure": { guidance: "Present a lean retail store organogram led by a KNDI-registered Store Nutritionist/Manager supported by a Retail Wellness Advisor/Cashier." },
+          "ch3.staffing": { guidance: "Specify store nutritionist and retail cashier duties, KNDI/sales qualifications, customer advisory scope, and stock control responsibilities." },
+          "ch3.recruitment": { guidance: "Detail staff vetting, training on KEBS/PPB label verification, FEFO expiry auditing, ethical supplement guidance, and POS/eTIMS accuracy." },
+          "ch3.legal": { guidance: "Detail BRS registration, County Single Business Permit, Public Health premises clearance, PPB nutraceutical listing verification, KEBS marks, KNDI licence, and KRA eTIMS." },
+          "ch4.facilities": { title: "4.1 Retail Store Premises, Layout and Merchandising Zones", guidance: "Describe retail floor zoning: categorized health-food shelving, locked climate-controlled nutraceutical cabinets (<25°C), chilled probiotic display (2–8°C), nutritionist counter, and stockroom." },
+          "ch4.workflow": { title: "4.2 Retail Procurement, Merchandising and In-Store Advisory Workflow", guidance: "Map end-to-end retail operations: supplier vetting (PPB/KEBS), receiving & batch/expiry logging, categorized shelf merchandising, nutritionist guidance, POS checkout, and FEFO audits." },
+          "ch4.equipment": { title: "4.3 Store Fixtures, POS, Cold-Chain and Screening Equipment", guidance: "List gondola shelving, lockable glass supplement cabinets, commercial chiller, HVAC climate control, barcode POS/eTIMS terminal, and BIA body-composition analyzer." },
+          "ch4.materials": { title: "4.4 Wholesale Health Food & Nutraceutical Stock Sourcing", guidance: "Specify monthly wholesale replenishment of PPB-cleared supplements, KEBS-certified health foods, eco-friendly kraft carrier bags, and dosage advisory cards." },
+          "ch4.labor": { title: "4.5 Store Operating Hours, Shift Scheduling and Stock Audits", guidance: "Plan retail opening hours, peak commuter/weekend coverage, nutritionist consultation windows, and daily POS/stock reconciliation." },
+          "ch4.quality": { title: "4.6 Quality Assurance, FEFO Stock Rotation, PPB/KEBS Compliance and Waste Management", guidance: "Detail supplier COA/mark checks, temperature/humidity monitoring, strict FEFO expiry rotation, quarantine of damaged/near-expiry stock, and clinical referral boundaries." },
+          "ch4.schedule": { title: "4.7 Monthly Retail Throughput, Inventory Turnover and Maintenance Schedule", guidance: "Present monthly customer basket targets, stock replenishment cycles, chiller/HVAC servicing, POS backup, and BIA scale calibration." },
+        };
+        const override = retailGuidance[sec.key];
+        if (override) {
+          title = override.title || title;
+          guidance = override.guidance;
+        }
       }
       if (type === "research_secondary") {
         if (sec.key === "ch3.analysis") {
@@ -104,7 +133,9 @@ export function getWorkspaceSections(
         title,
         chapterTitle: type === "business_plan" && (businessModel === "consultancy" || businessModel === "clinical") && sec.chapter === "ch4"
           ? "Chapter 4: Consultancy Operations Plan"
-          : sec.chapterTitle,
+          : type === "business_plan" && businessModel === "retail" && sec.chapter === "ch4"
+            ? "Chapter 4: Retail Operations and Merchandising Plan"
+            : sec.chapterTitle,
         minWords: scaledMinWords,
         guidance,
       };

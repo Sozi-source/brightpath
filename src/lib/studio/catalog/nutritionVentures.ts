@@ -3654,143 +3654,219 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
   {
     "id": "specialty_health_food_store",
     "number": 26,
-    "title": "Organic & Diet Food Store",
+    "title": "Healthy Food & Nutraceuticals Store",
     "group": "E",
     "groupName": "Specialty Retail",
     "archetype": "retail",
     "capitalTier": "Medium",
     "estimatedCapitalKES": {
-      "min": 180000,
-      "max": 500000
+      "min": 220000,
+      "max": 600000
     },
     "targetTracks": [
       "food_science",
-      "community"
+      "community",
+      "clinical"
     ],
-    "tagline": "Your Curated Hub for Clean, Allergen-Free Foods",
-    "summary": "Retail boutique and WhatsApp/online store stocking diabetic-friendly, gluten-free, organic grains, cold-pressed oils, and natural superfoods.",
+    "tagline": "Evidence-Based Whole Foods, Certified Nutraceuticals & Nutritionist Guidance",
+    "summary": "Specialty health food store and nutraceutical dispensary modeled on Kenyan wellness retailers like Healthy U—stocking KEBS-certified diabetic/gluten-free foods, organic seeds, cold-pressed oils, and PPB-cleared vitamins/supplements with in-store KNDI nutritionist advisory.",
     "compliance": [
       {
-        "agency": "County Government",
-        "requirement": "Single Business Permit (Retail Shop)",
-        "fee": 10000
+        "agency": "County Government (e.g., Nairobi City County)",
+        "requirement": "Single Business Permit (Specialty Health Food & Wellness Retail)",
+        "fee": 12000
       },
       {
-        "agency": "County Public Health",
-        "requirement": "Food Handling & Premises License",
+        "agency": "County Department of Public Health",
+        "requirement": "Food Premises Inspection & Food Handlers Certificates (Cap 242 / Cap 254)",
         "fee": 8000
+      },
+      {
+        "agency": "Pharmacy and Poisons Board (PPB) & KEBS",
+        "requirement": "Verification of PPB-Listed Nutraceuticals & KEBS Standardization Marks on Packaged Stock",
+        "fee": 15000
+      },
+      {
+        "agency": "Kenya Nutritionists and Dietitians Institute (KNDI)",
+        "requirement": "Annual Practising Licence for In-Store Nutritionist Advisory",
+        "fee": 5000
       }
     ],
     "defaultSpecs": {
       "businessModel": "retail",
-      "businessName": "AfyaCorner Specialty Organics",
-      "tagline": "Your Curated Hub for Clean, Allergen-Free Foods",
-      "industrySector": "Specialized Food Retail & Health Groceries",
+      "businessName": "AfyaBora Health Foods & Nutraceuticals Store",
+      "tagline": "Evidence-Based Whole Foods, Certified Nutraceuticals & Nutritionist Guidance",
+      "industrySector": "Specialty Health Food Retail, Dietary Supplements & Nutraceuticals",
       "formOfOwnership": "Sole Proprietorship",
       "registrationType": "Business Names Registration Act (Cap 499, Laws of Kenya)",
-      "primaryProduct": "Curated Diabetic & Gluten-Free Food Basket",
-      "productPackaging": "Eco-friendly branded kraft shopping bags and organized pantry jars",
-      "unitSellingPrice": 1850,
-      "unitCostOfProduction": 1250,
-      "monthlyProductionUnitsYear1": 220,
-      "annualGrowthRateYear2": 0.3,
+      "county": "Nairobi County",
+      "townOrMarket": "Westlands / Kilimani Commercial Corridor, Nairobi",
+      "primaryProduct": "Curated Therapeutic Health Food & Certified Nutraceutical Wellness Basket",
+      "productPackaging": "Tamper-evident manufacturer-sealed nutraceutical bottles and food-grade barrier pouches packed in eco-friendly branded kraft carrier bags with printed dosage & dietary usage guides",
+      "unitSellingPrice": 2200,
+      "unitCostOfProduction": 1400,
+      "monthlyProductionUnitsYear1": 260,
+      "annualGrowthRateYear2": 0.25,
       "annualGrowthRateYear3": 0.25,
-      "targetCustomersDescription": "Individuals diagnosed with Celiac disease, gluten intolerance, type 2 diabetes, keto lifestyle followers, and health-conscious families.",
-      "totalMarketPopulation": "18,000 middle- and upper-income households in municipality",
-      "projectedMarketSharePercentage": 4.8,
+      "targetCustomersDescription": "Urban working professionals, individuals managing Type 2 diabetes, hypertension, gut health, or gluten/lactose intolerance, expectant and lactating mothers requiring micronutrient support, gym and fitness enthusiasts, and outpatient clinic referrals in Nairobi.",
+      "totalMarketPopulation": "45,000+ health-conscious urban households, commuter shoppers, and clinic/gym clients within the target Nairobi catchment [Confirm via local market survey]",
+      "projectedMarketSharePercentage": 5.5,
       "competitors": [
         {
-          "name": "General Supermarkets & Retail Minimarts [Confirm locally]",
-          "location": "Town CBD & Residential Mall Hubs",
-          "priceLevel": "KES 1480 per item",
-          "strengths": "One-stop household shopping convenience and high daily customer footfall",
-          "weaknesses": "Limited selection of specialized therapeutic/allergen-free foods and no trained nutritionist at the counter to guide buyers"
+          "name": "Healthy U (Healthy U 2000 Ltd) — Flagship & Mall Network [Confirm nearest branch prices]",
+          "location": "Sarit Centre (Westlands), Junction Mall, Yaya Centre, Two Rivers, Garden City, Hub Karen & Nairobi CBD",
+          "priceLevel": "KES 1,800 – 6,500 per supplement / specialty health food basket [Confirm current branch price list]",
+          "strengths": "East Africa's pioneer health-food and supplement retail chain (45+ branches), wide international nutraceutical brands, in-store nutritionists, and e-commerce delivery",
+          "weaknesses": "Premium mall positioning and imported brand pricing can be prohibitive for middle-income neighbourhood shoppers seeking affordable local whole-food alternatives"
         },
         {
-          "name": "Conventional Retail Pharmacies & Chemists [Confirm locally]",
-          "location": "Main Commercial Streets",
-          "priceLevel": "KES 2310 per unit",
-          "strengths": "Trusted clinical image and walk-in prescription traffic",
-          "weaknesses": "Focus primarily on pharmaceutical drugs rather than holistic whole-food therapeutic groceries and individualized dietetic counseling"
+          "name": "Goodlife Pharmacy & MYDAWA E-Health Platform [Confirm locally]",
+          "location": "Major Shopping Malls, High Streets & Online Delivery across Nairobi",
+          "priceLevel": "KES 1,500 – 4,800 per imported vitamin or nutraceutical unit [Confirm current shelf prices]",
+          "strengths": "Extensive retail pharmacy footprint (150+ stores), strong prescription footfall, and trusted imported supplement lines (Webber Naturals, Jamieson, Natures Aid, Centrum)",
+          "weaknesses": "Primarily pharmaceutical-focused; limited assortment of culinary whole foods, gluten-free/diabetic pantry staples, organic seeds, and personalized culinary meal planning"
+        },
+        {
+          "name": "Zucchini Food Market, Kalimoni Greens & Bridges Organic Health [Confirm locally]",
+          "location": "Westlands, Kilimani, Karen, Lavington & Nairobi CBD",
+          "priceLevel": "KES 1,600 – 3,500 per organic grocery and superfood basket [Confirm locally]",
+          "strengths": "Strong reputation for fresh organic produce, clean-eating groceries, cold-pressed juices, and Kenya Organic Agricultural Network (KOAN)-linked farm sourcing",
+          "weaknesses": "Focus mainly on fresh groceries or organic dining rather than clinically structured micronutrient supplementation and KNDI dietetic screening"
         }
       ],
-      "marketingPromotionBudgetMonthly": 12000,
+      "marketingPromotionBudgetMonthly": 15000,
       "machinery": [
         {
-          "item": "Custom wooden wall display shelves and retail display counter",
+          "item": "Custom Gondola Shelving, Tempered-Glass Nutraceutical Lockable Cabinets & Consultation Counter",
           "quantity": 1,
-          "unitCost": 48000,
-          "supplier": "Local Craftsmen"
+          "unitCost": 85000,
+          "supplier": "Nairobi Commercial Shopfitters & Pharmacy Furniture Suppliers [Quotation required]"
         },
         {
-          "item": "Electronic barcode POS scanner and receipt printer terminal",
+          "item": "Commercial Upright Glass-Door Chiller (2–8°C for Probiotics, Kefir, Cold-Pressed Oils & Nut Milks)",
           "quantity": 1,
-          "unitCost": 28000,
-          "supplier": "Tech Retail Kenya"
+          "unitCost": 68000,
+          "supplier": "Commercial Refrigeration Suppliers, Nairobi [Quotation required]"
         },
         {
-          "item": "Commercial glass display beverage and dairy refrigerator",
+          "item": "Split Air-Conditioning & Thermo-Hygrometer Climate Control System (<25°C Supplement Stability)",
           "quantity": 1,
-          "unitCost": 65000,
-          "supplier": "Refrigeration Depot"
+          "unitCost": 45000,
+          "supplier": "HVAC & Appliance Distributors, Nairobi [Quotation required]"
+        },
+        {
+          "item": "Barcode POS Terminal, Thermal Receipt Printer, Cash Drawer & KRA eTIMS Integration",
+          "quantity": 1,
+          "unitCost": 35000,
+          "supplier": "ETR & Retail POS Systems Vendors, Nairobi [Quotation required]"
+        },
+        {
+          "item": "Multi-Frequency Bioelectrical Impedance Analysis (BIA) Body Composition Scale, Stadiometer & BP Monitor",
+          "quantity": 1,
+          "unitCost": 32000,
+          "supplier": "Medical & Diagnostic Equipment Suppliers, Nairobi [Quotation required]"
         }
       ],
       "rawMaterials": [
         {
-          "material": "Initial retail merchandise stock (Gluten-free flours, nut butters, chia, stevia, oats)",
-          "monthlyQuantity": "Wholesale replenishment",
-          "monthlyCost": 210000,
-          "supplier": "Certified Health Food Distributors"
+          "material": "Wholesale Nutraceutical & Supplement Inventory (PPB-cleared Vitamin D3, Omega-3, Iron-Folic Acid, Magnesium, Probiotics, Herbal Adaptogens & Protein Powders)",
+          "monthlyQuantity": "160 assorted supplement & nutraceutical units",
+          "monthlyCost": 215000,
+          "supplier": "PPB-Licensed Nutraceutical Importers & Pharmaceutical Distributors, Nairobi [Confirm supplier price list]"
         },
         {
-          "material": "Branded kraft paper shopping bags and thermal receipt paper",
-          "monthlyQuantity": "300 bags",
-          "monthlyCost": 4500,
-          "supplier": "Stationery Mart"
+          "material": "Specialty Health Foods & Therapeutic Pantry Stock (KEBS-certified Gluten-Free Oats/Flours, Chia/Flax/Pumpkin Seeds, Raw Almonds/Walnuts, Stevia/Erythritol, Cold-Pressed Oils & Herbal Teas)",
+          "monthlyQuantity": "260 assorted whole-food & therapeutic grocery packs",
+          "monthlyCost": 140000,
+          "supplier": "KEBS-Certified Health Food Processors & KOAN Organic Aggregators [Confirm supplier price list]"
+        },
+        {
+          "material": "Eco-Friendly Branded Kraft Carrier Bags, Tamper-Evident Repack Pouches, Thermal POS Rolls & Printed Nutrition/Dosage Advisory Cards",
+          "monthlyQuantity": "300 customer sets",
+          "monthlyCost": 9000,
+          "supplier": "Nairobi Eco-Packaging & Commercial Print Vendors [Quotation required]"
         }
       ],
-      "workshopSquareMeters": 35,
-      "monthlyRent": 22000,
+      "workshopSquareMeters": 40,
+      "monthlyRent": 28000,
       "staffing": [
         {
-          "position": "Store Manager & Nutritionist / Founder",
+          "position": "Managing Director & Lead Store Nutritionist (Proprietor)",
           "count": 1,
-          "monthlySalary": 42000,
-          "duties": "Product curation, client advice, inventory ordering, accounts",
-          "qualifications": "Diploma in Nutrition & Dietetics"
+          "monthlySalary": 45000,
+          "duties": "In-store nutrition & supplement counselling, body composition screening, PPB/KEBS supplier vetting, FEFO stock audits, and financial management",
+          "qualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with KNDI"
         },
         {
-          "position": "Shop Attendant & Cashier",
+          "position": "Retail Wellness Advisor & POS Cashier",
           "count": 1,
-          "monthlySalary": 18000,
-          "duties": "Customer service, shelf stacking, POS checkout, cleanliness",
-          "qualifications": "Certificate in Sales / Business"
+          "monthlySalary": 20000,
+          "duties": "Customer reception, shelf merchandising, barcode POS/M-PESA checkout, WhatsApp order packing, and daily store hygiene",
+          "qualifications": "Certificate in Nutrition, Community Health, Pharmaceutical Technology, or Retail Sales"
         }
       ],
-      "preOperationalCosts": 40000,
-      "workingCapitalBuffer": 120000,
-      "ownerEquityAmount": 181000,
-      "loanAmount": 120000,
+      "preOperationalCosts": 55000,
+      "workingCapitalBuffer": 140000,
+      "ownerEquityAmount": 280000,
+      "loanAmount": 180000,
       "loanInterestRateAnnual": 12,
       "loanTenureMonths": 24,
       "monthlyOverheads": {
-        "rent": 22000,
-        "electricity": 6000,
+        "rent": 28000,
+        "electricity": 7500,
         "water": 1500,
-        "transport": 8000,
-        "marketing": 12000,
-        "stationeryMisc": 3500
+        "transport": 9000,
+        "marketing": 15000,
+        "stationeryMisc": 4000
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with KNDI, skilled in specialty dietary product curation, consumer nutrition labeling literacy, and retail inventory management.",
-      "productDescription": "Retail boutique and WhatsApp/online store stocking diabetic-friendly, gluten-free, organic grains, cold-pressed oils, and natural superfoods. Delivered as Curated Diabetic & Gluten-Free Food Basket packaged in eco-friendly branded kraft shopping bags and organized pantry jars to serve individuals diagnosed with Celiac disease, gluten intolerance, type 2 diabetes, keto lifestyle followers, and health-conscious families..",
-      "streetOrBuilding": "Main Street Commercial Shopping Arcade, Ground Floor Shop",
-      "locationRationale": "Located along a high-footfall retail corridor near supermarkets, pharmacies, and residential commuter stages, providing strong storefront visibility, easy walk-in access, and reliable power for chilled display units."
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), trained in clinical nutraceutical counselling, dietary supplement safety, KEBS/PPB label verification, and specialty retail inventory management.",
+      "productDescription": "An integrated specialty health food store and nutraceutical dispensary modeled on established Kenyan wellness retailers such as Healthy U, combining (1) KEBS-certified whole and therapeutic foods (diabetic low-GI flours, gluten-free rolled oats, chia/flax/pumpkin seeds, raw nuts, organic honey, cold-pressed coconut/flaxseed oils, and herbal infusions), (2) Pharmacy and Poisons Board (PPB)-listed dietary supplements and nutraceuticals (Vitamin D3, Omega-3 fish oil, chelated iron-folic acid, magnesium glycinate, probiotics, botanical adaptogens, and clean sports proteins), and (3) point-of-sale KNDI-registered nutritionist guidance and non-invasive body composition screening.",
+      "streetOrBuilding": "Ground Floor Retail Unit, Commercial Shopping Arcade [Confirm exact plot/street locally]",
+      "locationRationale": "Positioned along a high-footfall urban commercial and residential corridor in Nairobi with convenient matatu and private vehicle access, proximity to outpatient clinics, fitness centres, and middle-income estates, and stable Kenya Power (KPLC) supply for chilled probiotic/beverage displays and climate-controlled nutraceutical shelving [Confirm lease terms and exact shop unit locally].",
+      "research": {
+        "summary": "Kenyan specialty health food and nutraceutical retail is led by established urban wellness chains and pharmacies—most notably Healthy U (45+ branches across Kenya and Uganda, flagship at Sarit Centre Westlands), Goodlife Pharmacy (150+ stores stocking imported nutraceuticals), MYDAWA (licensed e-pharmacy and wellness retailer), and organic specialty grocers such as Zucchini Food Market, Kalimoni Greens, and Bridges Organic Health in Nairobi.",
+        "sources": [
+          {
+            "title": "Healthy U Kenya — Official Health Food, Vitamins, Supplements & Natural Wellness Retailer (Nairobi & Nationwide Branches)",
+            "url": "https://www.healthyu.co.ke/"
+          },
+          {
+            "title": "Goodlife Pharmacy Kenya — Vitamins, Minerals, Herbal Supplements & Wellness Retail Network",
+            "url": "https://www.goodlife.co.ke/"
+          },
+          {
+            "title": "MYDAWA Kenya — Licensed Online Pharmacy, Vitamins & Nutritional Supplements Retail Platform",
+            "url": "https://mydawa.com/"
+          },
+          {
+            "title": "Zucchini Food Market Nairobi — Fresh Produce, Superfoods, Nuts, Seeds & Health Groceries",
+            "url": "https://zucchini.co.ke/"
+          },
+          {
+            "title": "Kalimoni Greens Kenya — Certified Organic Health Foods, Whole Grains & Natural Pantry Retail",
+            "url": "https://kalimonigreens.com/"
+          },
+          {
+            "title": "Pharmacy and Poisons Board (PPB) Kenya — Guidelines for Registration and Listing of Health Supplements & Nutraceuticals",
+            "url": "https://web.pharmacyboardkenya.org/"
+          },
+          {
+            "title": "Kenya Bureau of Standards (KEBS) — Product Certification & Standardization Mark (SM) Standards",
+            "url": "https://www.kebs.org/"
+          },
+          {
+            "title": "Kenya Nutritionists and Dietitians Institute (KNDI) — Professional Registration & Scope of Practice",
+            "url": "https://www.kndi.institute/"
+          }
+        ],
+        "searchedAt": "2026-11-14T16:00:00Z"
+      }
     }
   },
   {
     "id": "supplements_maternal_baby_retail",
     "number": 27,
-    "title": "Maternal & Baby Nutrition Shop",
+    "title": "Maternal & Clinical Nutraceuticals Shop",
     "group": "E",
     "groupName": "Specialty Retail",
     "archetype": "retail",
@@ -3800,106 +3876,114 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
       "max": 650000
     },
     "targetTracks": [
-      "clinical"
+      "clinical",
+      "community"
     ],
-    "tagline": "Certified Supplements and Nursing Support for Mother & Baby",
-    "summary": "Compliant retail outlet stocking approved micronutrient supplements (Iron-folic acid, calcium, Vitamin D3), medical breast pumps, and weaning tools.",
+    "tagline": "Certified Supplements, Functional Foods & Nursing Support for Mother & Family",
+    "summary": "Compliant nutraceutical and maternal nutrition retail outlet stocking PPB-listed micronutrient supplements (IFAS, prenatal DHA, calcium, Vitamin D3, pediatric probiotics), KEBS-certified weaning foods, and lactation support tools.",
     "compliance": [
       {
         "agency": "Pharmacy and Poisons Board (PPB)",
-        "requirement": "Nutraceutical Retail Clearance",
+        "requirement": "Nutraceutical & Health Supplement Retail Verification (Cap 244)",
         "fee": 20000
       },
       {
         "agency": "County Government",
-        "requirement": "Single Business Permit",
-        "fee": 10000
+        "requirement": "Single Business Permit & Public Health Premises License",
+        "fee": 15000
+      },
+      {
+        "agency": "Kenya Nutritionists and Dietitians Institute (KNDI)",
+        "requirement": "Practising Licence for Maternal & Pediatric Nutrition Counselling",
+        "fee": 5000
       }
     ],
     "defaultSpecs": {
       "businessModel": "retail",
-      "businessName": "MamaBora Nutraceuticals",
-      "tagline": "Certified Supplements and Nursing Support for Mother & Baby",
-      "industrySector": "Nutraceutical Retail & Maternal Supplies",
+      "businessName": "MamaBora Clinical Nutraceuticals & Wellness Store",
+      "tagline": "Certified Supplements, Functional Foods & Nursing Support for Mother & Family",
+      "industrySector": "Nutraceutical Retail, Maternal Supplements & Specialty Pediatric Nutrition",
       "formOfOwnership": "Sole Proprietorship",
       "registrationType": "Business Names Registration Act (Cap 499, Laws of Kenya)",
-      "primaryProduct": "First 1000 Days Maternal Micronutrient & Nursing Kit",
-      "productPackaging": "Boxed kit containing certified IFAS, Omega-3 DHA, silicone feeding sets, and lactation tea",
+      "county": "Nairobi County",
+      "townOrMarket": "Kilimani / Ngong Road Medical & Commercial Corridor, Nairobi",
+      "primaryProduct": "First 1,000 Days Maternal Micronutrient, Prenatal DHA & Complementary Weaning Wellness Kit",
+      "productPackaging": "Tamper-evident boxed kit containing PPB-listed IFAS/prenatal multivitamins, Omega-3 DHA, KEBS-certified biofortified weaning flour, and printed KNDI feeding guide",
       "unitSellingPrice": 3200,
       "unitCostOfProduction": 2150,
       "monthlyProductionUnitsYear1": 150,
       "annualGrowthRateYear2": 0.3,
       "annualGrowthRateYear3": 0.25,
-      "targetCustomersDescription": "Expectant mothers, postpartum women, nursing mothers facing latching issues, and parents starting infant feeding.",
-      "totalMarketPopulation": "12,000 pregnant and nursing mothers in town area",
+      "targetCustomersDescription": "Expectant mothers, postpartum and lactating women, parents introducing complementary infant feeding (6–24 months), and outpatient antenatal/pediatric clinic clients in Nairobi.",
+      "totalMarketPopulation": "22,000+ pregnant mothers, lactating women, and young families within the urban medical corridor catchment [Confirm locally]",
       "projectedMarketSharePercentage": 5,
       "competitors": [
         {
-          "name": "General Supermarkets & Retail Minimarts [Confirm locally]",
-          "location": "Town CBD & Residential Mall Hubs",
-          "priceLevel": "KES 2560 per item",
-          "strengths": "One-stop household shopping convenience and high daily customer footfall",
-          "weaknesses": "Limited selection of specialized therapeutic/allergen-free foods and no trained nutritionist at the counter to guide buyers"
+          "name": "Healthy U & Placid Nutrition Centre [Confirm nearest branch prices]",
+          "location": "Nairobi Shopping Malls (Sarit Centre, Junction, Yaya Centre) & Commercial Hubs",
+          "priceLevel": "KES 2,800 – 5,500 per imported prenatal / pediatric supplement bundle [Confirm locally]",
+          "strengths": "Broad range of imported prenatal vitamins, herbal galactagogues, and organic baby food brands with trained wellness advisors",
+          "weaknesses": "High imported price points and location restricted mainly to premium shopping malls"
         },
         {
-          "name": "Conventional Retail Pharmacies & Chemists [Confirm locally]",
-          "location": "Main Commercial Streets",
-          "priceLevel": "KES 4000 per unit",
-          "strengths": "Trusted clinical image and walk-in prescription traffic",
-          "weaknesses": "Focus primarily on pharmaceutical drugs rather than holistic whole-food therapeutic groceries and individualized dietetic counseling"
+          "name": "Goodlife Pharmacy, MYDAWA & Hospital Outpatient Pharmacies [Confirm locally]",
+          "location": "Major Commercial Streets, Mall Branches & E-Pharmacy Delivery across Nairobi",
+          "priceLevel": "KES 2,200 – 4,500 per prescription/OTC maternal supplement pack [Confirm locally]",
+          "strengths": "Strong clinical trust, direct obstetrician/pediatrician prescription traffic, and wide pharmaceutical distribution",
+          "weaknesses": "Fast counter dispensing with limited time for individualized complementary feeding demonstrations, lactation counselling, and whole-food weaning curation"
         }
       ],
       "marketingPromotionBudgetMonthly": 12000,
       "machinery": [
         {
-          "item": "Locked glass pharmaceutical display cabinets and counter",
+          "item": "Locked Tempered-Glass Nutraceutical Display Cabinets, Gondola Shelves & Consultation Counter",
           "quantity": 2,
           "unitCost": 42000,
-          "supplier": "Pharmacy Furniture Kenya"
+          "supplier": "Nairobi Pharmacy & Retail Shopfitters [Quotation required]"
         },
         {
-          "item": "Air conditioning climate control unit for supplement stability",
+          "item": "Split Air-Conditioning & Digital Hygrometer Climate Control Unit (<25°C Supplement Stability)",
           "quantity": 1,
           "unitCost": 45000,
-          "supplier": "Appliance Centre"
+          "supplier": "HVAC & Appliance Centre, Nairobi [Quotation required]"
         },
         {
-          "item": "Computerized inventory tracking and POS barcode system",
+          "item": "Computerized Barcode POS Inventory System, Thermal Printer & KRA eTIMS Integration",
           "quantity": 1,
           "unitCost": 35000,
-          "supplier": "Tech Retail"
+          "supplier": "Tech Retail & ETR Systems Kenya [Quotation required]"
         }
       ],
       "rawMaterials": [
         {
-          "material": "Registered maternal vitamins, minerals, DHA, and infant weaning tools",
-          "monthlyQuantity": "Wholesale stock",
+          "material": "PPB-Cleared Maternal & Pediatric Nutraceuticals (Chelated Iron-Folic Acid, Prenatal Multivitamins, Omega-3 DHA, Vitamin D3 Drops, Calcium & Pediatric Probiotics)",
+          "monthlyQuantity": "Wholesale monthly stock (150+ kit equivalents)",
           "monthlyCost": 260000,
-          "supplier": "Licensed Pharmaceutical Distributors"
+          "supplier": "PPB-Licensed Pharmaceutical & Nutraceutical Distributors, Nairobi [Confirm supplier price list]"
         },
         {
-          "material": "Eco-friendly branded packaging bags and client advisory leaflets",
-          "monthlyQuantity": "250 sets",
-          "monthlyCost": 5000,
-          "supplier": "Print Works"
+          "material": "KEBS-Certified Complementary Weaning Foods, Lactation Teas, Eco-Friendly Branded Packaging & Printed MOH/KNDI IYCF Feeding Guides",
+          "monthlyQuantity": "250 customer sets",
+          "monthlyCost": 12000,
+          "supplier": "Certified Local Food Processors & Commercial Print Works [Quotation required]"
         }
       ],
       "workshopSquareMeters": 30,
       "monthlyRent": 20000,
       "staffing": [
         {
-          "position": "Lead Nutritionist / Proprietor",
+          "position": "Lead Maternal & Pediatric Nutritionist / Proprietor",
           "count": 1,
           "monthlySalary": 45000,
-          "duties": "Supplement counseling, client assessment, regulatory oversight",
-          "qualifications": "Diploma in Nutrition & Dietetics, KNDI Registered"
+          "duties": "Maternal/infant supplement counselling, breastfeeding & weaning guidance, PPB/KEBS stock verification, and regulatory compliance",
+          "qualifications": "Diploma in Human Nutrition & Dietetics (KNEC), KNDI Registered"
         },
         {
-          "position": "Sales & Stock Clerk",
+          "position": "Retail Wellness & Stock Assistant",
           "count": 1,
           "monthlySalary": 18000,
-          "duties": "Checkout, stock count, shelf rotation, client inquiries",
-          "qualifications": "Certificate in Sales"
+          "duties": "POS checkout, FEFO batch/expiry tracking, shelf merchandising, and WhatsApp delivery coordination",
+          "qualifications": "Certificate in Nutrition, Community Health, or Retail Sales"
         }
       ],
       "preOperationalCosts": 45000,
@@ -3916,10 +4000,36 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 12000,
         "stationeryMisc": 3500
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with KNDI, skilled in specialty dietary product curation, consumer nutrition labeling literacy, and retail inventory management.",
-      "productDescription": "Compliant retail outlet stocking approved micronutrient supplements (Iron-folic acid, calcium, Vitamin D3), medical breast pumps, and weaning tools. Delivered as First 1000 Days Maternal Micronutrient & Nursing Kit packaged in boxed kit containing certified IFAS, Omega-3 DHA, silicone feeding sets, and lactation tea to serve expectant mothers, postpartum women, nursing mothers facing latching issues, and parents starting infant feeding..",
-      "streetOrBuilding": "Main Street Commercial Shopping Arcade, Ground Floor Shop",
-      "locationRationale": "Located along a high-footfall retail corridor near supermarkets, pharmacies, and residential commuter stages, providing strong storefront visibility, easy walk-in access, and reliable power for chilled display units."
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), skilled in maternal and infant nutrition (MIYCN), nutraceutical safety, Breast Milk Substitutes (Regulation and Control) Act compliance, and retail inventory management.",
+      "productDescription": "Compliant nutraceutical and maternal nutrition retail outlet stocking PPB-cleared micronutrient supplements (Iron-folic acid, prenatal Omega-3 DHA, calcium, Vitamin D3, pediatric probiotics), KEBS-certified complementary weaning foods, and nursing support tools, paired with KNDI-registered maternal and infant nutrition counselling.",
+      "streetOrBuilding": "Ground Floor Commercial Arcade near Maternal & Child Health Clinics [Confirm exact plot/street locally]",
+      "locationRationale": "Located along a busy urban medical and commercial corridor near antenatal clinics, maternity hospitals, and residential commuter stages, providing walk-in convenience and reliable power for climate-controlled nutraceutical storage [Confirm site specifics locally].",
+      "research": {
+        "summary": "Maternal and clinical nutraceutical retail in Kenya operates alongside established benchmarks such as Healthy U, Goodlife Pharmacy, MYDAWA, and Placid Nutrition Centre, under strict oversight from the Pharmacy and Poisons Board (PPB), Kenya Bureau of Standards (KEBS), Kenya Nutritionists and Dietitians Institute (KNDI), and the Breast Milk Substitutes (Regulation and Control) Act (No. 34 of 2012).",
+        "sources": [
+          {
+            "title": "Healthy U Kenya — Maternal, Infant & Family Vitamins, Minerals and Health Food Retail",
+            "url": "https://www.healthyu.co.ke/"
+          },
+          {
+            "title": "Goodlife Pharmacy Kenya — Mother & Baby Healthcare, Prenatal Vitamins & Nutraceuticals",
+            "url": "https://www.goodlife.co.ke/"
+          },
+          {
+            "title": "MYDAWA Kenya — Licensed E-Pharmacy for Maternal Supplements & Wellness Products",
+            "url": "https://mydawa.com/"
+          },
+          {
+            "title": "Pharmacy and Poisons Board (PPB) Kenya — Listing of Health Supplements and Nutraceuticals",
+            "url": "https://web.pharmacyboardkenya.org/"
+          },
+          {
+            "title": "Ministry of Health Kenya — National Maternal, Infant and Young Child Nutrition (MIYCN) Policy Guidelines",
+            "url": "https://www.health.go.ke/"
+          }
+        ],
+        "searchedAt": "2026-11-14T16:00:00Z"
+      }
     }
   },
   {

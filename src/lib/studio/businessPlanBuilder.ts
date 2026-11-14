@@ -438,7 +438,7 @@ The enterprise operates within the **${specs.industrySector}** sector. ${
         : isAgribusiness
           ? `It links nutrition-sensitive agriculture with household food security by producing, aggregating, grading, and preserving micronutrient-rich farm produce for local consumers and institutional buyers.`
           : isRetail
-            ? `It operates as a specialized nutrition retail and distribution hub, curating verified therapeutic foods, allergen-free groceries, and certified nutritional supplies supported by professional dietetic guidance.`
+            ? `It operates as a specialized healthy food store and nutraceutical retail dispensary, curating KEBS-certified therapeutic whole foods, allergen-free groceries, and Pharmacy and Poisons Board (PPB)-listed dietary supplements supported by point-of-sale KNDI-registered nutritionist guidance and body composition screening.`
             : isEducation
               ? `It operates as a practical nutrition education, culinary demonstration, and community capacity-building enterprise serving households, caregivers, schools, and local institutions.`
               : `It bridges agricultural value addition and public health nutrition by transforming quality raw ingredients through hygienic processing, standardized formulation, and protective packaging into nutrient-dense consumer products.`
@@ -496,7 +496,11 @@ The promoter's training in Human Nutrition and Dietetics provides practical grou
 #### 1.4.1 National and County Sector Overview
 The enterprise operates within Kenya's expanding nutrition, food systems, and preventive health sector. Reports from the Kenya National Bureau of Statistics (KNBS) and the Ministry of Health highlight the dual burden of malnutrition across Kenyan counties: persistent micronutrient deficiencies and childhood stunting alongside a rising prevalence of diet-related non-communicable diseases (diabetes, hypertension, cardiovascular conditions, and obesity) in urban and peri-urban areas.
 
-National frameworks—including **Kenya Vision 2030**, the **National Food and Nutrition Security Policy**, and the **Kenya National Nutrition Action Plan (KNNAP)**—emphasize preventive dietary interventions, value addition to nutrient-dense foods, and food safety compliance.
+${
+  isRetail
+    ? `In Nairobi and major Kenyan urban centers, consumer demand for preventive wellness, whole-food nutrition, and targeted micronutrient supplementation has driven the growth of specialized health-food and nutraceutical retail chains—most notably **Healthy U** (45+ branches across Kenya and Uganda with flagship stores at Sarit Centre, Junction Mall, Yaya Centre, and Two Rivers), retail pharmacy wellness networks such as **Goodlife Pharmacy** and **MYDAWA**, and specialty organic grocers including **Zucchini Food Market**, **Kalimoni Greens**, and **Bridges Organic Health**. However, outside premium shopping malls, middle-income residential corridors and county commercial hubs remain underserved by outlets that combine verified **KEBS-certified health foods**, **Pharmacy and Poisons Board (PPB)-cleared nutraceuticals**, and accessible **KNDI-registered nutritionist guidance** under one roof.\n\n`
+    : ""
+}National frameworks—including **Kenya Vision 2030**, the **National Food and Nutrition Security Policy**, and the **Kenya National Nutrition Action Plan (KNNAP)**—emphasize preventive dietary interventions, value addition to nutrient-dense foods, and food safety compliance.
 
 #### 1.4.2 Commercial Viability and Market Opportunity
 The proposed venture is justified by four practical market factors in **${specs.townOrMarket}, ${specs.county}**:
@@ -521,10 +525,21 @@ The enterprise will deliver standardized nutritional offerings under the brand *
 - **Estimated Direct Cost per Unit**: **KES ${formatKES(specs.unitCostOfProduction)}** per unit.
 
 #### 1.5.2 Unique Selling Propositions (USPs)
-1. **Professional Nutrition Formulation**: Designed and supervised by a trained nutritionist adhering to Kenya Ministry of Health dietary guidelines and Kenya Food Composition Tables.
+1. **Professional Nutrition Formulation & Curation**: Designed and supervised by a trained nutritionist adhering to Kenya Ministry of Health dietary guidelines and Kenya Food Composition Tables.
 2. **Hygienic Presentation & Labeling**: Delivered in **${specs.productPackaging}** with clear ingredient disclosure, nutritional guidance, and usage instructions.
 3. **Competitive Local Pricing**: Priced at **KES ${formatKES(specs.unitSellingPrice)}** to remain accessible to target households and institutions in ${specs.townOrMarket} while sustaining a **${fin.grossProfitMarginPercent}%** gross margin.
-4. **Customer Guidance & After-Sales Support**: Buyers receive practical dietary usage tips and responsive local customer support.`
+4. **Customer Guidance & After-Sales Support**: Buyers receive practical dietary usage tips and responsive local customer support.${
+  isRetail
+    ? `\n\n#### 1.5.3 Core Health Food & Nutraceutical Merchandising Assortment
+| Retail Category | Representative Stock Lines | Regulatory / Quality Standard | Target Consumer Need |
+| :--- | :--- | :--- | :--- |
+| **1. Therapeutic & Allergen-Free Whole Foods** | Gluten-free rolled oats, low-GI diabetic composite flours, quinoa, brown basmati, stevia/erythritol, raw honey | KEBS Standardization Mark (SM) / KOAN Organic | Type 2 diabetes, celiac/gluten intolerance, weight & glycemic control |
+| **2. Superfood Seeds, Nuts & Cold-Pressed Oils** | Chia seeds, flaxseeds, pumpkin seeds, raw almonds/walnuts, cold-pressed virgin coconut & flaxseed oils | KEBS SM / Moisture & peroxide-value batch checks | Cardiovascular wellness, omega fatty acids, culinary nutrient density |
+| **3. Micronutrient Vitamins & Minerals** | Vitamin D3 (cholecalciferol), Chelated Iron + Folic Acid (IFAS), Magnesium Glycinate, Zinc, Calcium, B-Complex | Pharmacy and Poisons Board (PPB) Listed / GMP | Micronutrient deficiency correction, maternal health, bone & immune support |
+| **4. Clinical, Gut & Botanical Nutraceuticals** | Pharmaceutical-grade Omega-3 fish oil, multi-strain probiotics (chilled 2–8°C), Ashwagandha, Moringa, Baobab, Whey/Pea protein | PPB Listed / KEBS Certified | Gut microbiome balance, stress adaptogens, sports recovery & healthy aging |
+| **5. In-Store Nutritionist Screening & Advisory** | BIA body-composition check, blood pressure/BMI screening, supplement interaction check, and label interpretation | KNDI Registered Nutritionist Scope of Practice | Safe, evidence-based product selection and referral of clinical cases |`
+    : ""
+}`
   );
 
   add(
@@ -698,9 +713,9 @@ Unlike general vendors without formal nutrition training or distant national bra
 The enterprise applies a **Cost-Plus and Competitor-Benchmarked Pricing Strategy**. This ensures that every unit sold covers its direct variable cost (**KES ${formatKES(specs.unitCostOfProduction)}**) and contributes **KES ${formatKES(fin.contributionMarginPerUnit)}** toward monthly fixed overheads and net profit.
 
 #### 2.4.1 Unit Economics Breakdown (${specs.primaryProduct})
-- **Primary Inputs / Materials (${Math.round(specs.unitCostOfProduction * 0.75) > 0 ? "75%" : "Direct"})**: KES ${formatKES(Math.round(specs.unitCostOfProduction * 0.75))}
-- **Packaging / Presentation & Consumables (15%)**: KES ${formatKES(Math.round(specs.unitCostOfProduction * 0.15))}
-- **Direct Utility / Handling Allowance (10%)**: KES ${formatKES(specs.unitCostOfProduction - Math.round(specs.unitCostOfProduction * 0.75) - Math.round(specs.unitCostOfProduction * 0.15))}
+- **${isRetail ? "Landed Wholesale Merchandise Cost — Health Foods & Nutraceuticals" : "Primary Inputs / Materials"} (${Math.round(specs.unitCostOfProduction * 0.75) > 0 ? "75%" : "Direct"})**: KES ${formatKES(Math.round(specs.unitCostOfProduction * 0.75))}
+- **${isRetail ? "Eco-Friendly Branded Kraft Carrier, Repack Seals & Dosage Guides" : "Packaging / Presentation & Consumables"} (15%)**: KES ${formatKES(Math.round(specs.unitCostOfProduction * 0.15))}
+- **${isRetail ? "Inbound Cold-Chain, Freight & Inventory Handling Allowance" : "Direct Utility / Handling Allowance"} (10%)**: KES ${formatKES(specs.unitCostOfProduction - Math.round(specs.unitCostOfProduction * 0.75) - Math.round(specs.unitCostOfProduction * 0.15))}
 - **Total Unit Variable Cost**: **KES ${formatKES(specs.unitCostOfProduction)}**
 - **Standard Selling Price**: **KES ${formatKES(specs.unitSellingPrice)}**
 - **Unit Contribution Margin**: **KES ${formatKES(fin.contributionMarginPerUnit)} (${fin.grossProfitMarginPercent}% Gross Margin)**
@@ -880,20 +895,24 @@ Prior to commencing commercial operations in **${specs.townOrMarket}, ${specs.co
       isEducation || isConsultancy
         ? "Professional Accreditation / Practice Clearance"
         : isRetail
-          ? "Food Handling & Retail Product Compliance"
+          ? "Nutraceutical Listing, KEBS Stock Verification & In-Store Nutritionist Licence"
           : isAgribusiness
             ? "Agricultural Produce & Food Safety Clearance"
             : "Product Quality / Standardization Mark (SM) & Food Handlers Certificates"
     }** | ${
       isEducation || isConsultancy
         ? "Kenya Nutritionists & Dietitians Institute (KNDI)"
-        : isRetail || isFoodService
-          ? "County Public Health / Relevant Regulatory Body"
-          : "Kenya Bureau of Standards (KEBS) / County Public Health"
+        : isRetail
+          ? "Pharmacy and Poisons Board (PPB), KEBS & KNDI"
+          : isFoodService
+            ? "County Public Health / Relevant Regulatory Body"
+            : "Kenya Bureau of Standards (KEBS) / County Public Health"
     } | ${
       isEducation || isConsultancy
         ? "Nutritionists and Dietitians Act (No. 18 of 2007)"
-        : "Standards Act (Cap 496) / Food, Drugs & Chemical Substances Act (Cap 254)"
+        : isRetail
+          ? "Pharmacy & Poisons Act (Cap 244), Standards Act (Cap 496) & KNDI Act (No. 18 of 2007)"
+          : "Standards Act (Cap 496) / Food, Drugs & Chemical Substances Act (Cap 254)"
     } | Confirm applicable fee & schedule |
 | **KRA PIN & Tax Compliance** | Kenya Revenue Authority (iTax) | Income Tax Act (Cap 470) | Free registration; monthly/annual filing |
 | **NSSF & SHA Employer Registration** | NSSF / Social Health Authority | NSSF Act & Social Health Insurance Act | Statutory monthly remittance |`
@@ -994,18 +1013,18 @@ Label batches with harvest date and dispatch to retail or household buyers
 6. **Market Dispatch**: Packed units are delivered directly to households, retail grocers, and institutional kitchens.`
       : isRetail
         ? `\`\`\`flow
-Vet suppliers and verify KEBS, PPB, or Public Health certifications
-Receive wholesale stock, inspect expiry dates, and log into POS inventory
-Arrange products on clean, categorized, and climate-appropriate shelves
-Guide walk-in and online customers on product selection and dietary usage
-Process checkout, M-PESA payment, and pack in branded carrier bags
-Conduct daily stock reconciliation and FEFO (First-Expired, First-Out) checks
+Vet suppliers and verify KEBS Standardization Marks & PPB nutraceutical listings
+Receive wholesale stock, inspect batch/expiry (>75% shelf life), and log into POS
+Merchandise shelves by dietary category and store sensitive supplements at <25°C / 2–8°C
+Provide KNDI nutritionist screening, label literacy, and safe supplement guidance
+Process barcode POS / KRA eTIMS checkout, M-PESA payment, and branded eco-packing
+Conduct daily POS reconciliation and weekly FEFO (First-Expired, First-Out) stock audits
 \`\`\`
-1. **Supplier Vetting & Procurement**: Products are ordered exclusively from licensed manufacturers and distributors with valid quality marks and batch documentation.
-2. **Receiving & Quality Verification**: Incoming stock is checked for seal integrity, accurate nutrition labeling, and a minimum remaining shelf life of 75% before being entered into the POS system.
-3. **Categorized Merchandising**: Items are organized by dietary category (e.g., diabetic-friendly, gluten-free, maternal/infant, functional foods) under appropriate temperature and lighting conditions.
-4. **Nutritionist-Guided Customer Service**: The store nutritionist assists buyers in reading food labels and selecting items aligned with their household or clinical diet plans.
-5. **Checkout & Order Fulfillment**: Purchases are billed through the POS terminal, packed in **${specs.productPackaging}**, and handed over or dispatched via local courier.`
+1. **Supplier Vetting & Regulatory Verification**: Health foods and nutraceuticals are procured exclusively from KEBS-certified manufacturers, KOAN-linked organic aggregators, and Pharmacy and Poisons Board (PPB)-licensed nutraceutical importers/distributors with valid batch Certificates of Analysis (COA).
+2. **Receiving & Shelf-Life Inspection**: Incoming stock is checked for tamper-evident seal integrity, compliant nutrition and dosage labeling, and a minimum remaining shelf life of 75% before barcode entry into the POS inventory system.
+3. **Climate-Controlled & Categorized Merchandising**: Products are arranged by therapeutic category (diabetic/low-GI, gluten-free, maternal/pediatric, heart/seed oils, sports & clinical nutraceuticals), with heat-sensitive softgels and vitamins kept below 25°C and live probiotics/cold-pressed flaxseed oils stored in the 2–8°C display chiller.
+4. **In-Store KNDI Nutritionist Advisory**: The store nutritionist conducts optional BIA body-composition screening, checks for dietary or medication contraindications, and guides buyers on evidence-based food and supplement selection (referring clinical cases to physicians).
+5. **POS / eTIMS Checkout & Order Fulfillment**: Purchases are billed via the KRA eTIMS-integrated barcode POS, paid via M-PESA Till or cash, and packed in **${specs.productPackaging}** for walk-in handover or local rider delivery.`
         : isEducation
           ? `\`\`\`flow
 Assess client or institutional learning needs and customize curriculum module
@@ -1129,13 +1148,14 @@ Organic vegetable trimmings and food peelings are segregated into covered bins f
 #### 4.6.2 Agricultural Byproduct and Waste Management
 Crop residues, culled leaves, and organic farm byproducts are composted on-site into organic manure or supplied as livestock fodder, creating a zero-waste circular production loop.`
       : isRetail
-        ? `#### 4.6.1 Retail Quality and Inventory Assurance
-- **Supplier & Product Verification**: Only products with valid KEBS Standardization Marks, PPB clearances (where applicable), and intact tamper-evident seals are accepted into stock.
-- **FEFO Stock Rotation**: Shelves and display chillers are audited weekly under First-Expired, First-Out (FEFO) rules so no expired or heat-damaged item is ever sold.
-- **Accurate Nutrition Guidance**: The store nutritionist ensures product recommendations respect client allergies, medical prescriptions, and age appropriateness.
+        ? `#### 4.6.1 Retail Quality, Cold-Chain and Nutraceutical Safety Assurance
+- **Supplier & Regulatory Mark Verification**: Only products bearing valid KEBS Standardization Marks (SM), Pharmacy and Poisons Board (PPB) listing/clearance numbers (for dietary supplements and nutraceuticals), and intact tamper-evident seals are accepted into store inventory.
+- **Climate & Cold-Chain Monitoring**: Ambient store temperature (<25°C, <60% relative humidity) and display chiller temperature (2°C–8°C for live probiotics, kefir, and cold-pressed flaxseed oils) are logged twice daily using calibrated thermo-hygrometers to prevent omega-3 oxidation or probiotic potency loss.
+- **FEFO Stock Rotation & Expiry Quarantine**: Shelves and lockable nutraceutical cabinets are audited weekly under strict First-Expired, First-Out (FEFO) rules; any item within 90 days of expiry is flagged for supplier return or promotional clearance, and expired/damaged stock is immediately moved to a locked quarantine bin.
+- **Ethical KNDI Nutritionist Advisory**: The store nutritionist ensures supplement and specialty food recommendations respect client allergies, pregnancy/lactation status, and physician prescriptions, with zero unsubstantiated disease-cure claims.
 
 #### 4.6.2 Packaging and Store Waste Management
-Cardboard shipping cartons and plastic wraps are flattened for recycling, while damaged or expired items are quarantined and disposed of in accordance with County Public Health guidelines.`
+Cardboard shipping cartons and clean outer wraps are segregated for recycling, while quarantined expired or damaged nutraceuticals are documented and disposed of through County Public Health and PPB-compliant waste disposal protocols.`
         : isEducation
           ? `#### 4.6.1 Educational Quality and Demonstration Safety
 - **Evidence-Based Curriculum**: All training manuals, recipes, and growth-monitoring charts are cross-checked against Kenya Ministry of Health, KNDI, and WHO nutrition guidelines.
@@ -1383,10 +1403,11 @@ ${specs.rawMaterials.map((item) => `| ${item.material} | ${item.monthlyQuantity}
 Record dated customer interview summaries and observed competitor prices in **${specs.townOrMarket}, ${specs.county}** to substantiate the demand and pricing assumptions in Chapter 2.`
   );
 
+  const definitions = new Map(
+    getWorkspaceSections("business_plan", specs.level, resolvedModel).map((definition) => [definition.key, definition])
+  );
+
   if (isConsultancy) {
-    const definitions = new Map(
-      getWorkspaceSections("business_plan", specs.level, resolvedModel).map((definition) => [definition.key, definition])
-    );
     return results.map((section) => {
       const definition = definitions.get(section.section_key);
       const title = definition?.title || section.title;
@@ -1408,5 +1429,14 @@ Record dated customer interview summaries and observed competitor prices in **${
     });
   }
 
-  return results;
+  return results.map((section) => {
+    const definition = definitions.get(section.section_key);
+    if (!definition || definition.title === section.title) return section;
+    const updatedContent = section.content.replace(/^###\s+[^\n]+/, `### ${definition.title}`);
+    return {
+      ...section,
+      title: definition.title,
+      content: updatedContent,
+    };
+  });
 }
