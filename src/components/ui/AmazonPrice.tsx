@@ -2,6 +2,7 @@ import React from "react";
 
 interface AmazonPriceProps {
   amount: number | string;
+  originalAmount?: number | string | null;
   currency?: string;
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
   className?: string;
@@ -42,25 +43,42 @@ const SIZE_STYLES = {
 
 export function AmazonPrice({
   amount,
+  originalAmount,
   currency = "KES",
   size = "md",
   className = "",
 }: AmazonPriceProps) {
   const num = Number(amount) || 0;
   const formattedWhole = num.toLocaleString();
+  const origNum =
+    originalAmount !== null && originalAmount !== undefined && originalAmount !== ""
+      ? Number(originalAmount)
+      : 0;
+  const hasDiscount = Number.isFinite(origNum) && origNum > num;
   const styles = SIZE_STYLES[size] || SIZE_STYLES.md;
 
   return (
     <span
-      className={`inline-flex items-baseline font-sans text-[#0f1111] leading-none select-none ${styles.container} ${className}`}
-      aria-label={`${currency} ${formattedWhole}`}
+      className={`inline-flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 font-sans text-[#0f1111] leading-none select-none ${styles.container} ${className}`}
+      aria-label={
+        hasDiscount
+          ? `${currency} ${formattedWhole}, reduced from ${currency} ${origNum.toLocaleString()}`
+          : `${currency} ${formattedWhole}`
+      }
     >
-      <span className={`relative text-slate-600 font-medium tracking-tight uppercase mr-1 ${styles.symbol}`}>
-        {currency}
+      <span className="inline-flex items-baseline whitespace-nowrap">
+        <span className={`relative text-slate-600 font-medium tracking-tight uppercase mr-1 ${styles.symbol}`}>
+          {currency}
+        </span>
+        <span className={`tracking-tight text-[#0f1111] font-sans tabular-nums ${styles.whole}`}>
+          {formattedWhole}
+        </span>
       </span>
-      <span className={`tracking-tight text-[#0f1111] font-sans ${styles.whole}`}>
-        {formattedWhole}
-      </span>
+      {hasDiscount && (
+        <span className="text-[11px] font-medium text-slate-500 line-through decoration-slate-400 whitespace-nowrap tabular-nums">
+          {currency} {origNum.toLocaleString()}
+        </span>
+      )}
     </span>
   );
 }

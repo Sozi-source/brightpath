@@ -50,14 +50,14 @@ export function MarketplaceProjectCard({
           <div className="flex items-center justify-between gap-2 mb-2.5">
             <span
               style={{ color: palette.accentHex }}
-              className="text-[10px] font-semibold uppercase tracking-wider truncate"
+              className="text-[11px] font-semibold uppercase tracking-wider truncate"
             >
               {isBusinessPlan ? "Business Plan" : project.category || getMaterialTypeLabel(project.material_type)}
             </span>
 
             {reviewCount > 0 && (
-              <span className="inline-flex items-center gap-0.5 text-[10.5px] font-semibold text-slate-700 shrink-0">
-                <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
+              <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-slate-800 shrink-0">
+                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-500" />
                 {average.toFixed(1)}
               </span>
             )}
@@ -79,21 +79,25 @@ export function MarketplaceProjectCard({
                 />
               </div>
             )}
-            <h3 className="text-[13.5px] font-semibold leading-snug text-slate-900 group-hover:text-[#087f8c] line-clamp-2 transition-colors min-h-[38px]">
+            <h3 className="text-sm font-semibold leading-snug text-slate-900 group-hover:text-[#087f8c] line-clamp-2 transition-colors min-h-[40px]">
               {exactTitle}
             </h3>
-            <p className="mt-1 text-[11px] text-slate-500 truncate">
+            <p className="mt-1 text-xs text-slate-600 truncate">
               {levelLabel}
             </p>
           </Link>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-          <AmazonPrice amount={project.price_kes} size="sm" />
+        <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+          <AmazonPrice
+            amount={project.price_kes}
+            originalAmount={project.original_price_kes}
+            size="sm"
+          />
           <BuyButton
             projectId={project.id}
             isOwner={viewerId === project.trainer_id}
-            className="px-2.5 py-1 text-[11px] h-7"
+            className="px-2.5 py-1.5 text-xs h-8"
           />
         </div>
       </div>

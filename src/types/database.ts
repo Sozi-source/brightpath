@@ -62,6 +62,7 @@ export interface Project {
   material_type: MarketplaceMaterialType;
   cover_path: string | null;
   price_kes: number;
+  original_price_kes?: number | null;
   file_path: string;
   preview_path: string | null;
   download_count?: number;

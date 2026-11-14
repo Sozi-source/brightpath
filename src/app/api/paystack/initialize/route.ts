@@ -107,6 +107,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         authorization_url: data.data.authorization_url,
+        access_code: data.data.access_code,
         reference,
       });
     } catch (err: unknown) {
@@ -236,6 +237,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       authorization_url: data.data.authorization_url,
+      access_code: data.data.access_code,
       reference,
     });
   } catch (err: unknown) {

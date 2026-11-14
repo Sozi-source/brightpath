@@ -13,8 +13,8 @@
   --surface-muted: #f8fafc;
   --border: #e4e9f0;
   --border-strong: #d5dde8;
-  --muted: #565959;
-  --muted-strong: #333333;
+  --muted: #475569;
+  --muted-strong: #1e293b;
   --brand: #087f8c;
   --brand-strong: #086b76;
   --brand-soft: #e8f5f5;
@@ -28,8 +28,8 @@
   --shadow-hover: 0 4px 20px rgba(15, 17, 17, .08);
 
   --text-heading: #0f172a;
-  --text-body: #334155;
-  --text-muted: #64748b;
+  --text-body: #1e293b;
+  --text-muted: #475569;
 }
 
 @theme inline {
@@ -58,8 +58,7 @@ body {
   letter-spacing: -0.006em;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum";
   font-synthesis: none;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 img, svg, video, canvas { max-width: 100%; }

@@ -13,8 +13,6 @@ import {
   ChevronRight,
   X,
   Loader2,
-  FlaskConical,
-  LineChart,
   Briefcase,
   Package,
   Wrench,
@@ -153,9 +151,7 @@ export function ProjectAreaCatalog({
   admissionNumber = "",
   course = "Diploma in Human Nutrition and Dietetics",
   level = "diploma",
-  initialTrack = "business_plan",
 }: ProjectAreaCatalogProps) {
-  const [activeTrack, setActiveTrack] = useState<"business_plan" | "trade_fabrication" | "research_secondary">(initialTrack);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<GroupFilter>("ALL");
   const [selectedCapital, setSelectedCapital] = useState<"ALL" | "Low" | "Medium" | "High">("ALL");
@@ -227,19 +223,6 @@ export function ProjectAreaCatalog({
     });
   };
 
-  const handleLaunchCustomTrack = (track: "trade_fabrication" | "research_secondary") => {
-    startTransition(async () => {
-      const formData = new FormData();
-      formData.set("workspaceType", track);
-      formData.set("level", formLevel);
-      formData.set("course", course);
-      formData.set("admissionNumber", formAdmissionNumber);
-      formData.set("privacyConsent", "on");
-
-      await createWorkspace(formData);
-    });
-  };
-
   const detailPalette = detailVenture ? getCanvasPalette(detailVenture.id || detailVenture.number) : null;
   const detailUnitPrice = detailVenture?.defaultSpecs.unitSellingPrice || 0;
   const detailUnitCost = detailVenture?.defaultSpecs.unitCostOfProduction || 0;
@@ -265,66 +248,8 @@ export function ProjectAreaCatalog({
 
   return (
     <div className="space-y-4">
-      {/* Track Selector Tabs */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
-        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-lg border border-slate-200/80">
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTrack("business_plan");
-              setDetailVenture(null);
-            }}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-              activeTrack === "business_plan"
-                ? "bg-white text-[#087f8c] shadow-2xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <Briefcase className="h-3.5 w-3.5 text-[#087f8c]" />
-            <span>1. Business Enterprises</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTrack("trade_fabrication");
-              setDetailVenture(null);
-            }}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-              activeTrack === "trade_fabrication"
-                ? "bg-white text-[#087f8c] shadow-2xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <FlaskConical className="h-3.5 w-3.5 text-[#087f8c]" />
-            <span>2. Food Science Formulation</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTrack("research_secondary");
-              setDetailVenture(null);
-            }}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-              activeTrack === "research_secondary"
-                ? "bg-white text-[#087f8c] shadow-2xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <LineChart className="h-3.5 w-3.5 text-[#087f8c]" />
-            <span>3. Nutrition Research</span>
-          </button>
-        </div>
-
-        <div className="text-xs text-slate-500 font-medium font-mono">
-          {activeTrack === "business_plan" &&
-            (detailVenture
-              ? `Area #${detailVenture.number} of 35`
-              : `${filteredVentures.length} of 35 areas`)}
-        </div>
-      </div>
-
-      {/* Track 1: Nutrition Enterprise (35 Curated Areas) */}
-      {activeTrack === "business_plan" && !detailVenture && (
+      {/* Track 1: Business Enterprises (35 Curated Areas) */}
+      {!detailVenture && (
         <div className="space-y-4">
           {/* Controls Strip: Search and Filter Bar */}
           <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-xs lg:flex-row lg:items-center lg:justify-between">
@@ -416,11 +341,11 @@ export function ProjectAreaCatalog({
                         <div className="flex items-center justify-between gap-2 mb-2">
                           <span
                             style={{ color: palette.accentHex }}
-                            className="text-[10px] font-semibold uppercase tracking-wider truncate"
+                            className="text-[11px] font-semibold uppercase tracking-wider truncate"
                           >
                             {venture.groupName}
                           </span>
-                          <span className="font-mono text-[10px] font-semibold text-slate-400 shrink-0">
+                          <span className="font-mono text-[11px] font-semibold text-slate-600 shrink-0">
                             #{venture.number}
                           </span>
                         </div>
@@ -432,29 +357,29 @@ export function ProjectAreaCatalog({
                           className="w-full text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#087f8c] rounded"
                           title={venture.title}
                         >
-                          <h4 className="font-semibold text-[13.5px] leading-snug text-slate-900 group-hover:text-[#087f8c] transition-colors line-clamp-2 min-h-[38px]">
+                          <h4 className="font-semibold text-sm leading-snug text-slate-900 group-hover:text-[#087f8c] transition-colors line-clamp-2 min-h-[40px]">
                             {shortName}
                           </h4>
                         </button>
                       </div>
 
                       {/* Minimal Footer: Details + Start */}
-                      <div className="mt-4 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                         <button
                           type="button"
                           onClick={() => setDetailVenture(venture)}
-                          className="text-[11px] font-medium text-slate-500 hover:text-slate-900 cursor-pointer"
+                          className="text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
                         >
                           Details
                         </button>
                         <button
                           type="button"
                           onClick={() => handleOpenVentureModal(venture)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold text-white shadow-2xs hover:opacity-90 transition-opacity cursor-pointer"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-semibold text-white shadow-2xs hover:opacity-90 transition-opacity cursor-pointer"
                           style={{ backgroundColor: palette.accentHex }}
                         >
                           <span>Start</span>
-                          <ArrowRight className="h-3 w-3" />
+                          <ArrowRight className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     </div>
@@ -467,7 +392,7 @@ export function ProjectAreaCatalog({
       )}
 
       {/* Venture Details View */}
-      {activeTrack === "business_plan" && detailVenture && (
+      {detailVenture && (
         <div className="space-y-5">
           {/* Top Breadcrumb & Navigation */}
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
@@ -793,64 +718,6 @@ export function ProjectAreaCatalog({
                 </div>
               )}
             </aside>
-          </div>
-        </div>
-      )}
-
-      {/* Track 2: Food Science Formulation */}
-      {activeTrack === "trade_fabrication" && (
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="max-w-xl space-y-3">
-            <div className="inline-flex items-center gap-2 text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">
-              <FlaskConical className="h-4 w-4" />
-              <span>Laboratory Formulation & Proximate Analysis</span>
-            </div>
-            <h3 className="text-base font-semibold text-slate-900 tracking-tight">
-              Food Science Formulation Track
-            </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Conduct recipe optimization, proximate compositional analysis (moisture, ash, crude protein, lipid, fiber, carbohydrate), and 9-point Hedonic sensory evaluation following KNEC trade test procedures.
-            </p>
-            <div className="pt-2">
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={() => handleLaunchCustomTrack("trade_fabrication")}
-                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700 shadow-2xs disabled:opacity-50 cursor-pointer"
-              >
-                {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-                <span>Start Food Science Project</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Track 3: Nutrition Research */}
-      {activeTrack === "research_secondary" && (
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-          <div className="max-w-xl space-y-3">
-            <div className="inline-flex items-center gap-2 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md">
-              <LineChart className="h-4 w-4" />
-              <span>Secondary Epidemiology & Survey Analysis</span>
-            </div>
-            <h3 className="text-base font-semibold text-slate-900 tracking-tight">
-              Nutrition Research Track
-            </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Perform rigorous secondary data analysis utilizing KDHS, KNBS census data, or MOH nutrition surveillance surveys. Includes cross-tabulation, prevalence rates, and public health policy recommendations.
-            </p>
-            <div className="pt-2">
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={() => handleLaunchCustomTrack("research_secondary")}
-                className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700 shadow-2xs disabled:opacity-50 cursor-pointer"
-              >
-                {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-                <span>Start Nutrition Research Project</span>
-              </button>
-            </div>
           </div>
         </div>
       )}

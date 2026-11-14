@@ -279,20 +279,20 @@ export function AppShell({
           <div className="h-1 w-full shrink-0 bg-gradient-to-r from-[#087f8c] via-teal-500 to-amber-400" />
 
           {/* Continuous Identity & Role Header (Always unified across Admin, Staff, and Students) */}
-          <div className="shrink-0 border-b border-slate-100 bg-slate-50/70 px-3.5 py-3">
+          <div className="shrink-0 border-b border-slate-200/80 bg-slate-50/70 px-3.5 py-3">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-xs font-semibold text-[#087f8c] border border-teal-200/80">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-xs font-semibold text-[#087f8c] border border-teal-200/80">
                 {userInitials}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-1">
-                  <p className="truncate text-xs font-semibold text-slate-900">
+                  <p className="truncate text-[13px] font-semibold text-slate-900">
                     {displayName}
                   </p>
                 </div>
                 <div className="mt-0.5 flex items-center gap-1.5">
                   <span
-                    className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[9.5px] font-semibold uppercase tracking-wider ${
+                    className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wider ${
                       isRoleAdmin
                         ? "bg-teal-100/80 text-teal-900"
                         : isRoleSupervisor
@@ -303,9 +303,9 @@ export function AppShell({
                     }`}
                   >
                     {isRoleSupervisor ? (
-                      <ShieldCheck className="h-2.5 w-2.5 shrink-0" />
+                      <ShieldCheck className="h-3 w-3 shrink-0" />
                     ) : (
-                      <GraduationCap className="h-2.5 w-2.5 shrink-0" />
+                      <GraduationCap className="h-3 w-3 shrink-0" />
                     )}
                     <span className="truncate">{roleBadgeLabel}</span>
                   </span>
@@ -313,7 +313,7 @@ export function AppShell({
               </div>
             </div>
             {(activeContextTitle || profile?.course || institutionName) && (
-              <p className="mt-2 truncate rounded-md border border-slate-200/80 bg-white px-2 py-1 text-[10.5px] font-medium text-slate-600">
+              <p className="mt-2 truncate rounded-md border border-slate-200 bg-white px-2.5 py-1 text-[11.5px] font-medium text-slate-700">
                 {activeContextTitle || profile?.course || institutionName}
               </p>
             )}
@@ -323,7 +323,7 @@ export function AppShell({
           <div className="flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable] px-3 py-3 space-y-5">
             {/* Group 1: Core Workspace Navigation */}
             <nav aria-label="Core workspace" className="space-y-1">
-              <div className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              <div className="px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                 Workspace
               </div>
               {navItems.map((item) => {
@@ -338,17 +338,17 @@ export function AppShell({
                     href={item.href}
                     onClick={() => setSidebarOpen(false)}
                     aria-current={isActive ? "page" : undefined}
-                    className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs transition-all ${
+                    className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] transition-all ${
                       isActive
                         ? "bg-[#087f8c] text-white font-semibold shadow-xs"
-                        : "font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
+                        : "font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900"
                     }`}
                   >
                     <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-white" : item.iconColor}`} />
                     <span className="truncate">{item.label}</span>
                     <ChevronRight
                       className={`ml-auto h-3.5 w-3.5 shrink-0 ${
-                        isActive ? "text-teal-100" : "text-slate-300"
+                        isActive ? "text-teal-100" : "text-slate-400"
                       }`}
                     />
                   </Link>
@@ -358,9 +358,9 @@ export function AppShell({
 
             {/* Group 2: Continuous Role Operations (Admin, Staff/Supervisor, or Student) */}
             {isRoleSupervisor ? (
-              <div className="space-y-4 border-t border-slate-100 pt-3.5">
+              <div className="space-y-4 border-t border-slate-200/70 pt-3.5">
                 <nav aria-label="Staff and governance" className="space-y-1">
-                  <div className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                  <div className="px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                     Staff & Governance
                   </div>
 
@@ -368,10 +368,10 @@ export function AppShell({
                     href="/supervisor"
                     onClick={() => setSidebarOpen(false)}
                     aria-current={pathname.startsWith("/supervisor") ? "page" : undefined}
-                    className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-xs transition-all ${
+                    className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-[13px] transition-all ${
                       pathname.startsWith("/supervisor")
                         ? "bg-[#087f8c] text-white font-semibold shadow-xs"
-                        : "font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
+                        : "font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900"
                     }`}
                   >
                     <div className="flex min-w-0 items-center gap-2.5">
@@ -384,7 +384,7 @@ export function AppShell({
                     </div>
                     <ChevronRight
                       className={`h-3.5 w-3.5 shrink-0 ${
-                        pathname.startsWith("/supervisor") ? "text-teal-100" : "text-slate-300"
+                        pathname.startsWith("/supervisor") ? "text-teal-100" : "text-slate-400"
                       }`}
                     />
                   </Link>
@@ -394,10 +394,10 @@ export function AppShell({
                       href="/admin"
                       onClick={() => setSidebarOpen(false)}
                       aria-current={pathname === "/admin" ? "page" : undefined}
-                      className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-xs transition-all ${
+                      className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-[13px] transition-all ${
                         pathname === "/admin"
                           ? "bg-[#087f8c] text-white font-semibold shadow-xs"
-                          : "font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
+                          : "font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900"
                       }`}
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
@@ -410,7 +410,7 @@ export function AppShell({
                       </div>
                       <ChevronRight
                         className={`h-3.5 w-3.5 shrink-0 ${
-                          pathname === "/admin" ? "text-teal-100" : "text-slate-300"
+                          pathname === "/admin" ? "text-teal-100" : "text-slate-400"
                         }`}
                       />
                     </Link>
@@ -419,7 +419,7 @@ export function AppShell({
 
                 {isRoleAdmin && (
                   <nav aria-label="Admin modules" className="space-y-0.5">
-                    <div className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                    <div className="px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                       Admin Modules
                     </div>
                     {adminModules.map((item) => {
@@ -429,13 +429,13 @@ export function AppShell({
                           key={item.href}
                           href={item.href}
                           onClick={() => setSidebarOpen(false)}
-                          className="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 transition-colors"
+                          className="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-[12.5px] font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 transition-colors"
                         >
                           <span className="flex min-w-0 items-center gap-2">
-                            <ModuleIcon className={`h-3.5 w-3.5 shrink-0 ${item.iconColor}`} />
+                            <ModuleIcon className={`h-4 w-4 shrink-0 ${item.iconColor}`} />
                             <span className="truncate">{item.label}</span>
                           </span>
-                          <ChevronRight className="h-3 w-3 shrink-0 text-slate-300" />
+                          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-400" />
                         </Link>
                       );
                     })}
@@ -444,18 +444,18 @@ export function AppShell({
               </div>
             ) : (
               /* Continuous Student Workspace Section (Sleek single-line rows matching Admin Modules) */
-              <nav aria-label="Student workspace" className="space-y-0.5 border-t border-slate-100 pt-3.5">
+              <nav aria-label="Student workspace" className="space-y-0.5 border-t border-slate-200/70 pt-3.5">
                 <div className="flex items-center justify-between gap-2 px-2.5 pb-1">
-                  <span className="truncate text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                  <span className="truncate text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                     {canAccessStudio ? "Studio Drafts" : "Student Access"}
                   </span>
                   {canAccessStudio && (
                     <Link
                       href="/studio/new"
                       onClick={() => setSidebarOpen(false)}
-                      className="inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-semibold text-[#087f8c] hover:bg-teal-50 transition-colors"
+                      className="inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap rounded px-1.5 py-0.5 text-[11px] font-semibold text-[#087f8c] hover:bg-teal-50 transition-colors"
                     >
-                      <Plus className="h-2.5 w-2.5" />
+                      <Plus className="h-3 w-3" />
                       <span>New</span>
                     </Link>
                   )}
@@ -467,14 +467,14 @@ export function AppShell({
                       type="button"
                       onClick={() => setActiveProjectsOpen((prev) => !prev)}
                       aria-expanded={activeProjectsOpen}
-                      className="flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 transition-colors cursor-pointer"
+                      className="flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-[12.5px] font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 transition-colors cursor-pointer"
                     >
                       <span className="flex min-w-0 items-center gap-2">
-                        <FileText className="h-3.5 w-3.5 shrink-0 text-teal-600" />
+                        <FileText className="h-4 w-4 shrink-0 text-teal-600" />
                         <span className="truncate">Active Projects</span>
                       </span>
                       <span className="flex shrink-0 items-center gap-1">
-                        <span className="rounded-full bg-teal-50 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[#087f8c]">
+                        <span className="rounded-full bg-teal-50 px-2 py-0.5 font-mono text-[11px] font-semibold text-[#087f8c]">
                           {studioWorkspaces.length}
                         </span>
                         <ChevronRight
@@ -501,20 +501,20 @@ export function AppShell({
                               className={`flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
                                 isCurrent
                                   ? "border border-teal-200 bg-teal-50 font-semibold text-[#087f8c]"
-                                  : "border border-transparent font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
+                                  : "border border-transparent font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900"
                               }`}
                             >
                               <span className="flex min-w-0 items-center gap-2">
                                 {isApproved ? (
-                                  <CheckCircle2 className="h-3 w-3 shrink-0 text-emerald-600" />
+                                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
                                 ) : isPending ? (
-                                  <Clock3 className="h-3 w-3 shrink-0 text-amber-500" />
+                                  <Clock3 className="h-3.5 w-3.5 shrink-0 text-amber-500" />
                                 ) : (
-                                  <FileText className="h-3 w-3 shrink-0 text-teal-600" />
+                                  <FileText className="h-3.5 w-3.5 shrink-0 text-teal-600" />
                                 )}
                                 <span className="truncate">{ws.title}</span>
                               </span>
-                              <span className="shrink-0 font-mono text-[9.5px] text-slate-500">
+                              <span className="shrink-0 font-mono text-[11px] text-slate-600">
                                 {ws.progressPct}%
                               </span>
                             </Link>
@@ -529,25 +529,25 @@ export function AppShell({
                       <Link
                         href="/studio"
                         onClick={() => setSidebarOpen(false)}
-                        className="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 transition-colors"
+                        className="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-[12.5px] font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 transition-colors"
                       >
                         <span className="flex items-center gap-2">
-                          <FileText className="h-3.5 w-3.5 shrink-0 text-teal-600" />
+                          <FileText className="h-4 w-4 shrink-0 text-teal-600" />
                           <span className="truncate">My Studio Drafts</span>
                         </span>
-                        <ChevronRight className="h-3 w-3 shrink-0 text-slate-300" />
+                        <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-400" />
                       </Link>
                     )}
                     <Link
                       href="/library"
                       onClick={() => setSidebarOpen(false)}
-                      className="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 transition-colors"
+                      className="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-[12.5px] font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 transition-colors"
                     >
                       <span className="flex items-center gap-2">
-                        <BookOpen className="h-3.5 w-3.5 shrink-0 text-amber-600" />
+                        <BookOpen className="h-4 w-4 shrink-0 text-amber-600" />
                         <span className="truncate">Purchased Downloads</span>
                       </span>
-                      <ChevronRight className="h-3 w-3 shrink-0 text-slate-300" />
+                      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-400" />
                     </Link>
                   </>
                 )}
@@ -555,8 +555,8 @@ export function AppShell({
             )}
 
             {/* Group 3: Continuous Resource Catalog Filter (Visible across all roles & routes) */}
-            <nav aria-label="Marketplace categories" className="space-y-0.5 border-t border-slate-100 pt-3.5">
-              <div className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            <nav aria-label="Marketplace categories" className="space-y-0.5 border-t border-slate-200/70 pt-3.5">
+              <div className="px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                 Resource Catalog
               </div>
               {(marketplaceCategories?.length
@@ -575,28 +575,28 @@ export function AppShell({
                   href={category.href}
                   onClick={() => setSidebarOpen(false)}
                   aria-current={category.active ? "page" : undefined}
-                  className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
+                  className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-[12.5px] transition-colors ${
                     category.active
                       ? "border border-teal-200 bg-teal-50 font-semibold text-[#087f8c]"
-                      : "border border-transparent font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
+                      : "border border-transparent font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900"
                   }`}
                 >
                   <span className="flex min-w-0 items-center gap-2">
-                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${category.dotColor}`} />
+                    <span className={`h-2 w-2 shrink-0 rounded-full ${category.dotColor}`} />
                     <span className="truncate">{category.label}</span>
                   </span>
                   {category.count !== undefined ? (
                     <span
-                      className={`ml-2 rounded-full px-1.5 py-0.2 text-[10px] font-mono ${
+                      className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-mono ${
                         category.active
                           ? "bg-teal-100 text-[#087f8c] font-semibold"
-                          : "bg-slate-100 text-slate-500"
+                          : "bg-slate-100 text-slate-600"
                       }`}
                     >
                       {category.count}
                     </span>
                   ) : (
-                    <ChevronRight className="h-3 w-3 shrink-0 text-slate-300" />
+                    <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-400" />
                   )}
                 </Link>
               ))}
@@ -604,14 +604,14 @@ export function AppShell({
           </div>
 
           {/* Continuous Pinned Institutional Footer */}
-          <div className="shrink-0 border-t border-slate-200/80 bg-slate-50/70 px-3.5 py-2.5">
+          <div className="shrink-0 border-t border-slate-200 bg-slate-50/70 px-3.5 py-2.5">
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-800">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
                   <span className="h-2 w-2 rounded-full bg-emerald-500" />
                   <span className="truncate">TVET Hub Portal</span>
                 </div>
-                <div className="truncate text-[9.5px] text-slate-500">
+                <div className="truncate text-[11px] text-slate-600">
                   KNEC 2026 Series · Verified
                 </div>
               </div>
@@ -619,7 +619,7 @@ export function AppShell({
                 <form action={logout}>
                   <button
                     type="submit"
-                    className="rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold text-slate-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 transition-colors cursor-pointer"
+                    className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 transition-colors cursor-pointer"
                   >
                     Sign out
                   </button>

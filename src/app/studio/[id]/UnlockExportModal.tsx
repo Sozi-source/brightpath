@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Lock, Sparkles, CheckCircle2, FileText, Download, Loader2, ShieldCheck, X } from "lucide-react";
 
 interface UnlockExportModalProps {
@@ -9,6 +10,7 @@ interface UnlockExportModalProps {
 }
 
 export function UnlockExportModal({ workspaceId, businessTitle }: UnlockExportModalProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -26,6 +28,33 @@ export function UnlockExportModal({ workspaceId, businessTitle }: UnlockExportMo
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Unable to initialize unlock checkout.");
+      }
+
+      if (data.access_code) {
+        const PaystackPop = (await import("@paystack/inline-js")).default;
+        const popup = new PaystackPop();
+        setIsOpen(false);
+        popup.resumeTransaction(data.access_code, {
+          onSuccess: (trx) => {
+            const ref = trx?.reference || data.reference;
+            router.push(
+              ref
+                ? `/studio/${workspaceId}?reference=${encodeURIComponent(ref)}&unlocked=true`
+                : `/studio/${workspaceId}?unlocked=true`
+            );
+            router.refresh();
+            setIsInitializing(false);
+          },
+          onCancel: () => {
+            setIsInitializing(false);
+          },
+          onError: (err) => {
+            setIsInitializing(false);
+            setErrorMessage(err?.message || "Payment failed. Please try again.");
+            setIsOpen(true);
+          },
+        });
+        return;
       }
 
       if (data.authorization_url) {

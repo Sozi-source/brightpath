@@ -191,7 +191,9 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
                 <p className="mt-1.5 text-xs text-[#565959]">By <span className="text-[#007185] hover:underline cursor-pointer font-medium">{publisherName}</span></p>
                 <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs text-[#565959]">
                   <span className="inline-flex items-center gap-1 font-semibold text-[#0f1111]"><Star className="h-4 w-4 fill-[#ffa41c] text-[#de7921]" />{reviewCount ? average.toFixed(1) : "New"}{reviewCount > 0 && <span className="font-normal text-[#007185] hover:underline">({reviewCount} customer reviews)</span>}</span>
-                  <span className="inline-flex items-center gap-1 text-[#565959]"><Download className="h-3.5 w-3.5 text-slate-400" />{Number(product.download_count || 0).toLocaleString()} downloads</span>
+                  {Number(product.download_count || 0) > 0 && (
+                    <span className="inline-flex items-center gap-1 text-[#565959]"><Download className="h-3.5 w-3.5 text-slate-400" />{Number(product.download_count).toLocaleString()} {Number(product.download_count) === 1 ? "download" : "downloads"}</span>
+                  )}
                   <span className="inline-flex items-center gap-1 text-[#565959]"><FileText className="h-3.5 w-3.5 text-slate-400" />{extension}</span>
                 </div>
                 <div className="mt-5 border-t border-slate-100 pt-4">
@@ -205,7 +207,11 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
                 <div className="mt-auto flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 pt-4">
                   <div>
                     <span className="block text-[10px] font-medium uppercase tracking-wider text-[#565959]">Price</span>
-                    <AmazonPrice amount={product.price_kes} size="xl" />
+                    <AmazonPrice
+                      amount={product.price_kes}
+                      originalAmount={product.original_price_kes}
+                      size="xl"
+                    />
                   </div>
                   {canDownload ? <div className="flex flex-wrap gap-2">
                     {product.file_path.startsWith("workspace-export:") ? <><a href={`/api/download?projectId=${product.id}&format=pdf`} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700 shadow-xs"><Download className="h-4 w-4" /> Download PDF</a><a href={`/api/download?projectId=${product.id}&format=docx`} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs"><Download className="h-4 w-4" /> Download Word</a></> : <a href={`/api/download?projectId=${product.id}`} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700 shadow-xs"><Download className="h-4 w-4" /> Download</a>}

@@ -223,7 +223,11 @@ export function AdminProjectsManager({
 
                     {/* Price - Amazon E-Commerce Price */}
                     <td className="py-2 px-3 whitespace-nowrap">
-                      <AmazonPrice amount={p.price_kes || 0} size="sm" />
+                      <AmazonPrice
+                        amount={p.price_kes || 0}
+                        originalAmount={p.original_price_kes}
+                        size="sm"
+                      />
                     </td>
 
                     {/* Status Badge */}

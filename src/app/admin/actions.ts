@@ -206,6 +206,18 @@ export async function adminUpdateMarketplaceProduct(formData: FormData) {
     throw new Error("Enter a valid price between KES 0 and KES 1,000,000.");
   }
 
+  const rawOriginalPrice = formData.get("originalPriceKes")?.toString().trim() || "";
+  let originalPriceKes: number | null = null;
+  if (rawOriginalPrice !== "") {
+    const parsedOriginal = parseFloat(rawOriginalPrice);
+    if (!Number.isFinite(parsedOriginal) || parsedOriginal < 0 || parsedOriginal > 1_000_000) {
+      throw new Error("Enter a valid previous price between KES 0 and KES 1,000,000.");
+    }
+    if (parsedOriginal > priceKes) {
+      originalPriceKes = Math.round(parsedOriginal);
+    }
+  }
+
   const status = formData.get("status")?.toString().trim() || "published";
   const validStatuses: ContentStatus[] = ["published", "draft", "pending_review", "rejected"];
   if (!validStatuses.includes(status as ContentStatus)) {
@@ -306,6 +318,7 @@ export async function adminUpdateMarketplaceProduct(formData: FormData) {
     category,
     material_type: materialType,
     price_kes: priceKes,
+    original_price_kes: originalPriceKes,
     status,
   };
 

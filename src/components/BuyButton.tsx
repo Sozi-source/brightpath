@@ -29,6 +29,27 @@ export function BuyButton({ projectId, isOwner = false, className = "" }: BuyBut
       }
 
       const data = await res.json();
+      if (data.access_code) {
+        const PaystackPop = (await import("@paystack/inline-js")).default;
+        const popup = new PaystackPop();
+        popup.resumeTransaction(data.access_code, {
+          onSuccess: (trx) => {
+            const ref = trx?.reference || data.reference;
+            router.push(ref ? `/library?reference=${encodeURIComponent(ref)}` : "/library");
+            router.refresh();
+            setLoading(false);
+          },
+          onCancel: () => {
+            setLoading(false);
+          },
+          onError: (err) => {
+            setLoading(false);
+            alert(err?.message || "Payment failed. Please try again.");
+          },
+        });
+        return;
+      }
+
       if (data.authorization_url) {
         window.location.href = data.authorization_url;
       } else {
@@ -46,17 +67,17 @@ export function BuyButton({ projectId, isOwner = false, className = "" }: BuyBut
       type="button"
       onClick={handleBuy}
       disabled={loading || isOwner}
-      className={`inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#ffd814] hover:bg-[#f7ca00] active:bg-[#f0b800] border border-[#fcd200] hover:border-[#f2c200] text-[#0f1111] font-sans px-3.5 py-2 text-xs font-semibold shadow-2xs hover:shadow-xs transition-all active:scale-[0.98] cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 disabled:opacity-100 ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 whitespace-nowrap shrink-0 rounded-lg bg-[#ffd814] hover:bg-[#f7ca00] active:bg-[#f0b800] border border-[#fcd200] hover:border-[#f2c200] text-[#0f1111] font-sans px-3.5 py-2 text-xs font-semibold shadow-2xs hover:shadow-xs transition-all active:scale-[0.98] cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:border-slate-200 disabled:opacity-100 ${className}`}
     >
       {loading ? (
         <>
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          Processing...
+          <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+          <span>Processing...</span>
         </>
       ) : (
         <>
-          <ShoppingBag className="h-3.5 w-3.5" />
-          {isOwner ? "Your listing" : "Buy now"}
+          <ShoppingBag className="h-3.5 w-3.5 shrink-0" />
+          <span>{isOwner ? "Your listing" : "Buy now"}</span>
         </>
       )}
     </button>
