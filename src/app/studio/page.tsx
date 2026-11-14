@@ -1,14 +1,11 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { connection } from "next/server";
 import { getServerDbClient } from "@/lib/supabase/admin";
 import { AppShell, type SidebarWorkspaceItem } from "@/components/layout/AppShell";
 import { ProjectAreaCatalog } from "@/components/studio/ProjectAreaCatalog";
-import { DeleteDraftButton } from "./DeleteDraftButton";
 import { StudioAccessGate } from "./StudioAccessGate";
 import { hasStudioAccess } from "@/lib/studio/access";
-import { ArrowRight, CheckCircle2, Clock3, FileText } from "lucide-react";
 import type { ProjectWorkspace } from "@/types/database";
 
 export default async function StudioDashboardPage() {
@@ -108,79 +105,13 @@ export default async function StudioDashboardPage() {
       studioWorkspaces={canUseStudio ? sidebarWorkspaces : undefined}
     >
       {canUseStudio ? (
-        <div className="space-y-5">
-          {sidebarWorkspaces.length > 0 && (
-            <section aria-label="Active studio drafts" className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-              <div className="mb-3 flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-50 text-[#087f8c]">
-                    <FileText className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <h2 className="text-sm font-semibold text-slate-900">Your Active Studio Projects</h2>
-                    <p className="text-[11px] text-slate-500">{sidebarWorkspaces.length} saved workspace{sidebarWorkspaces.length === 1 ? "" : "s"}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {sidebarWorkspaces.map((ws) => {
-                  const isApproved = ws.status === "approved";
-                  const isPending = ws.status === "pending";
-                  return (
-                    <div
-                      key={ws.id}
-                      className="flex flex-col justify-between gap-2.5 rounded-lg border border-slate-200/90 bg-slate-50/50 p-3"
-                    >
-                      <div className="min-w-0">
-                        <Link
-                          href={`/studio/${ws.id}`}
-                          className="block truncate text-xs font-semibold text-slate-900 hover:text-[#087f8c]"
-                          title={ws.title}
-                        >
-                          {ws.title}
-                        </Link>
-                        <div className="mt-1.5 flex items-center justify-between gap-2 text-[10.5px]">
-                          <span
-                            className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-medium ${
-                              isApproved
-                                ? "bg-emerald-50 text-emerald-700"
-                                : isPending
-                                ? "bg-amber-50 text-amber-700"
-                                : "bg-white text-slate-600 border border-slate-200"
-                            }`}
-                          >
-                            {isApproved ? <CheckCircle2 className="h-3 w-3" /> : <Clock3 className="h-3 w-3" />}
-                            {isApproved ? "Approved" : isPending ? "Review" : "Draft"}
-                          </span>
-                          <span className="font-mono text-slate-500">
-                            {ws.completedSections}/{ws.totalSections} ({ws.progressPct}%)
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 pt-1 border-t border-slate-200/60">
-                        <Link
-                          href={`/studio/${ws.id}`}
-                          className="flex-1 inline-flex items-center justify-center gap-1 rounded-md bg-[#087f8c] hover:bg-[#066570] px-2.5 py-1.5 text-[11px] font-semibold text-white transition-colors"
-                        >
-                          <span>Continue</span>
-                          <ArrowRight className="h-3 w-3" />
-                        </Link>
-                        <DeleteDraftButton workspaceId={ws.id} title={ws.title} iconOnly />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          )}
-          <ProjectAreaCatalog
-            candidateName={profile?.full_name || user.email || "Candidate"}
-            admissionNumber={profile?.admission_number || ""}
-            course={profile?.course || "Diploma in Human Nutrition and Dietetics"}
-            level={profile?.level || "diploma"}
-            currentWorkspacesCount={workspaces.length}
-          />
-        </div>
+        <ProjectAreaCatalog
+          candidateName={profile?.full_name || user.email || "Candidate"}
+          admissionNumber={profile?.admission_number || ""}
+          course={profile?.course || "Diploma in Human Nutrition and Dietetics"}
+          level={profile?.level || "diploma"}
+          currentWorkspacesCount={workspaces.length}
+        />
       ) : (
         <StudioAccessGate />
       )}

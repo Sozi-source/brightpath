@@ -72,6 +72,7 @@ export function AppShell({
 }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [appLauncherOpen, setAppLauncherOpen] = useState(false);
+  const [activeProjectsOpen, setActiveProjectsOpen] = useState(false);
   const pathname = usePathname();
 
   const isRoleAdmin = profile?.role === "admin";
@@ -461,42 +462,67 @@ export function AppShell({
                 </div>
 
                 {canAccessStudio && studioWorkspaces && studioWorkspaces.length > 0 ? (
-                  studioWorkspaces.map((ws) => {
-                    const isApproved = ws.status === "approved";
-                    const isPending = ws.status === "pending";
-                    const isCurrent = pathname === `/studio/${ws.id}` || pathname.startsWith(`/studio/${ws.id}/`);
-                    return (
-                      <Link
-                        key={ws.id}
-                        href={`/studio/${ws.id}`}
-                        onClick={() => setSidebarOpen(false)}
-                        aria-current={isCurrent ? "page" : undefined}
-                        title={ws.title}
-                        className={`flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
-                          isCurrent
-                            ? "border border-teal-200 bg-teal-50 font-semibold text-[#087f8c]"
-                            : "border border-transparent font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
-                        }`}
-                      >
-                        <span className="flex min-w-0 items-center gap-2">
-                          {isApproved ? (
-                            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
-                          ) : isPending ? (
-                            <Clock3 className="h-3.5 w-3.5 shrink-0 text-amber-500" />
-                          ) : (
-                            <FileText className="h-3.5 w-3.5 shrink-0 text-teal-600" />
-                          )}
-                          <span className="truncate">{ws.title}</span>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setActiveProjectsOpen((prev) => !prev)}
+                      aria-expanded={activeProjectsOpen}
+                      className="flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 transition-colors cursor-pointer"
+                    >
+                      <span className="flex min-w-0 items-center gap-2">
+                        <FileText className="h-3.5 w-3.5 shrink-0 text-teal-600" />
+                        <span className="truncate">Active Projects</span>
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1">
+                        <span className="rounded-full bg-teal-50 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[#087f8c]">
+                          {studioWorkspaces.length}
                         </span>
-                        <span className="flex shrink-0 items-center gap-1">
-                          <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[9.5px] text-slate-600">
-                            {ws.progressPct}%
-                          </span>
-                          <ChevronRight className="h-3 w-3 text-slate-300" />
-                        </span>
-                      </Link>
-                    );
-                  })
+                        <ChevronRight
+                          className={`h-3.5 w-3.5 text-slate-400 transition-transform duration-150 ${
+                            activeProjectsOpen ? "rotate-90" : ""
+                          }`}
+                        />
+                      </span>
+                    </button>
+
+                    {activeProjectsOpen && (
+                      <div className="space-y-0.5 pl-2 pt-0.5">
+                        {studioWorkspaces.map((ws) => {
+                          const isApproved = ws.status === "approved";
+                          const isPending = ws.status === "pending";
+                          const isCurrent = pathname === `/studio/${ws.id}` || pathname.startsWith(`/studio/${ws.id}/`);
+                          return (
+                            <Link
+                              key={ws.id}
+                              href={`/studio/${ws.id}`}
+                              onClick={() => setSidebarOpen(false)}
+                              aria-current={isCurrent ? "page" : undefined}
+                              title={ws.title}
+                              className={`flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
+                                isCurrent
+                                  ? "border border-teal-200 bg-teal-50 font-semibold text-[#087f8c]"
+                                  : "border border-transparent font-medium text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
+                              }`}
+                            >
+                              <span className="flex min-w-0 items-center gap-2">
+                                {isApproved ? (
+                                  <CheckCircle2 className="h-3 w-3 shrink-0 text-emerald-600" />
+                                ) : isPending ? (
+                                  <Clock3 className="h-3 w-3 shrink-0 text-amber-500" />
+                                ) : (
+                                  <FileText className="h-3 w-3 shrink-0 text-teal-600" />
+                                )}
+                                <span className="truncate">{ws.title}</span>
+                              </span>
+                              <span className="shrink-0 font-mono text-[9.5px] text-slate-500">
+                                {ws.progressPct}%
+                              </span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <>
                     {canAccessStudio && (
