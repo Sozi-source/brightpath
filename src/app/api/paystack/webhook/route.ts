@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
       currency: String(event.data.currency ?? ""),
       paymentStatus: String(event.data.status ?? ""),
       metadataModuleId,
+      metadata: event.data.metadata,
     });
 
     if (!result.success && result.status !== "already_processed") {

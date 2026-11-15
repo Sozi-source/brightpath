@@ -4,6 +4,9 @@ import {
   updateUserRole,
   approveTrainer,
   purgePendingOrdersAction,
+  deletePendingOrderAction,
+  toggleArchiveStudentAction,
+  deleteStudentAction,
   toggleStudentStudioAccess,
   updateClassStudioCode,
 } from "./actions";
@@ -230,9 +233,16 @@ export default async function AdminPage() {
               {profilesList.map((p) => {
                 const studioAllowed = p.role === "admin" || p.role === "supervisor" || Boolean(p.institution_id);
                 return (
-                <tr key={p.id} className="hover:bg-slate-50/60 transition-colors">
+                <tr key={p.id} className={`hover:bg-slate-50/60 transition-colors ${p.archived_at ? "opacity-65 bg-slate-50/40" : ""}`}>
                   <td className="py-2 px-3 font-semibold text-slate-900 whitespace-nowrap">
-                    {p.full_name || "Unnamed"}
+                    <div className="inline-flex items-center gap-1.5">
+                      <span>{p.full_name || "Unnamed"}</span>
+                      {p.archived_at && (
+                        <span className="rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
+                          Archived
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="py-2 px-3 whitespace-nowrap">
                     <span
@@ -284,23 +294,48 @@ export default async function AdminPage() {
                   </td>
                   <td className="py-2 px-3 text-right whitespace-nowrap">
                     {p.id !== user.id && (
-                      <form action={updateUserRole} className="inline-flex gap-1.5 items-center justify-end">
-                        <input type="hidden" name="userId" value={p.id} />
-                        <select
-                          name="role"
-                          defaultValue={p.role}
-                          className="rounded-md border border-slate-300 bg-white text-xs px-2 py-0.5 font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-600"
-                        >
-                          <option value="student">Student</option>
-                          <option value="admin">Admin</option>
-                        </select>
-                        <button
-                          type="submit"
-                          className="rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs px-2.5 py-0.5 font-semibold cursor-pointer transition-colors shadow-2xs"
-                        >
-                          Set
-                        </button>
-                      </form>
+                      <div className="inline-flex items-center justify-end gap-1.5">
+                        <form action={updateUserRole} className="inline-flex gap-1.5 items-center">
+                          <input type="hidden" name="userId" value={p.id} />
+                          <select
+                            name="role"
+                            defaultValue={p.role}
+                            className="rounded-md border border-slate-300 bg-white text-xs px-2 py-0.5 font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-600"
+                          >
+                            <option value="student">Student</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                          <button
+                            type="submit"
+                            className="rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs px-2.5 py-0.5 font-semibold cursor-pointer transition-colors shadow-2xs"
+                          >
+                            Set
+                          </button>
+                        </form>
+                        {p.role !== "admin" && (
+                          <>
+                            <form action={toggleArchiveStudentAction} className="inline">
+                              <input type="hidden" name="userId" value={p.id} />
+                              <input type="hidden" name="archive" value={p.archived_at ? "false" : "true"} />
+                              <button
+                                type="submit"
+                                className="rounded-md border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 text-[11px] px-2 py-0.5 font-semibold cursor-pointer transition-colors whitespace-nowrap"
+                              >
+                                {p.archived_at ? "Restore" : "Archive"}
+                              </button>
+                            </form>
+                            <form action={deleteStudentAction} className="inline">
+                              <input type="hidden" name="userId" value={p.id} />
+                              <button
+                                type="submit"
+                                className="rounded-md border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] px-2 py-0.5 font-semibold cursor-pointer transition-colors whitespace-nowrap"
+                              >
+                                Delete
+                              </button>
+                            </form>
+                          </>
+                        )}
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -375,6 +410,7 @@ export default async function AdminPage() {
                   <th className="py-2 px-3">Author Share</th>
                   <th className="py-2 px-3">Status</th>
                   <th className="py-2 px-3">Date</th>
+                  <th className="py-2 px-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -397,6 +433,21 @@ export default async function AdminPage() {
                     </td>
                     <td className="py-2 px-3 text-slate-500 font-mono text-[11px]">
                       {o.created_at ? new Date(o.created_at).toLocaleDateString() : "-"}
+                    </td>
+                    <td className="py-2 px-3 text-right whitespace-nowrap">
+                      {o.status !== "paid" ? (
+                        <form action={deletePendingOrderAction} className="inline">
+                          <input type="hidden" name="orderId" value={o.id} />
+                          <button
+                            type="submit"
+                            className="rounded-md border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 px-2.5 py-0.5 text-[11px] font-semibold transition-colors cursor-pointer whitespace-nowrap"
+                          >
+                            Delete
+                          </button>
+                        </form>
+                      ) : (
+                        <span className="text-[11px] font-medium text-slate-400">Posted</span>
+                      )}
                     </td>
                   </tr>
                 ))}

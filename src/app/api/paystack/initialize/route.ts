@@ -159,28 +159,23 @@ export async function POST(request: NextRequest) {
 
   const reference = `BP_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
-  // Record pending order
-  const { error: orderErr } = await adminClient.from("orders").insert({
-    student_id: user.id,
-    project_id: project.id,
-    trainer_id: project.trainer_id,
-    amount_kes: amountKes,
-    commission_kes: commissionKes,
-    trainer_share_kes: trainerShareKes,
-    paystack_reference: reference,
-    status: "pending",
-  });
-
-  if (orderErr) {
-    return NextResponse.json({ error: "Failed to initialize order." }, { status: 500 });
-  }
-
-  // If resource is free (KES 0), fulfill immediately
+  // If resource is free (KES 0), post completed order immediately
   if (amountKes <= 0) {
-    await adminClient
-      .from("orders")
-      .update({ status: "paid", paid_at: new Date().toISOString() })
-      .eq("paystack_reference", reference);
+    const { error: orderErr } = await adminClient.from("orders").insert({
+      student_id: user.id,
+      project_id: project.id,
+      trainer_id: project.trainer_id,
+      amount_kes: 0,
+      commission_kes: 0,
+      trainer_share_kes: 0,
+      paystack_reference: reference,
+      status: "paid",
+      paid_at: new Date().toISOString(),
+    });
+
+    if (orderErr) {
+      return NextResponse.json({ error: "Failed to record order." }, { status: 500 });
+    }
 
     return NextResponse.json({
       authorization_url: `${siteUrl}/library`,
@@ -201,13 +196,19 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Call Paystack API
+  // Call Paystack API (only completed transactions are posted to orders upon verification/webhook)
   const paystackPayload: Record<string, unknown> = {
     email,
     amount: Math.round(amountKes * 100), // in kobo/cents
     currency: "KES",
     reference,
     callback_url: `${siteUrl}/library`,
+    metadata: {
+      type: "project_purchase",
+      project_id: project.id,
+      student_id: user.id,
+      trainer_id: project.trainer_id,
+    },
   };
 
   // Only route subaccount payouts for non-business-plan materials (trainer-owned resources)

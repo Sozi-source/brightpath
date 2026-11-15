@@ -39,6 +39,7 @@ export interface UserProfile {
   institution: string | null;
   admission_number: string | null;
   institution_id: string | null;
+  archived_at?: string | null;
   created_at: string;
   institutions?: Institution | null;
 }

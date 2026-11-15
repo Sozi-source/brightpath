@@ -41,7 +41,7 @@ export default async function LibraryPage({
       .eq("paystack_reference", redirectRef)
       .maybeSingle();
 
-    if (pendingOrder && pendingOrder.status === "pending") {
+    if (!pendingOrder || pendingOrder.status === "pending") {
       await verifyTransactionWithPaystack(redirectRef);
     }
   }

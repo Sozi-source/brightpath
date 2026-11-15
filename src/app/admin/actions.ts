@@ -602,3 +602,72 @@ export async function updateClassStudioCode(formData: FormData) {
 
   revalidatePath("/admin");
 }
+
+export async function deletePendingOrderAction(formData: FormData) {
+  await verifyAdmin();
+  const orderId = formData.get("orderId")?.toString().trim();
+  if (!orderId) throw new Error("Missing orderId");
+
+  const adminClient = createAdminClient();
+  const { error } = await adminClient
+    .from("orders")
+    .delete()
+    .eq("id", orderId)
+    .neq("status", "paid");
+
+  if (error) throw error;
+  revalidatePath("/admin");
+}
+
+export async function toggleArchiveStudentAction(formData: FormData) {
+  const { user } = await verifyAdmin();
+  const userId = formData.get("userId")?.toString().trim();
+  const archive = formData.get("archive")?.toString() === "true";
+  if (!userId) throw new Error("Missing userId");
+  if (userId === user.id) throw new Error("You cannot archive your own account.");
+
+  const adminClient = createAdminClient();
+  const { data: targetProfile } = await adminClient
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (targetProfile?.role === "admin") {
+    throw new Error("Admin accounts cannot be archived here.");
+  }
+
+  const { error } = await adminClient
+    .from("profiles")
+    .update({ archived_at: archive ? new Date().toISOString() : null })
+    .eq("id", userId);
+
+  if (error) throw error;
+  revalidatePath("/admin");
+}
+
+export async function deleteStudentAction(formData: FormData) {
+  const { user } = await verifyAdmin();
+  const userId = formData.get("userId")?.toString().trim();
+  if (!userId) throw new Error("Missing userId");
+  if (userId === user.id) throw new Error("You cannot delete your own account.");
+
+  const adminClient = createAdminClient();
+  const { data: targetProfile } = await adminClient
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (targetProfile?.role === "admin") {
+    throw new Error("Admin accounts cannot be deleted here.");
+  }
+
+  const { error: authErr } = await adminClient.auth.admin.deleteUser(userId);
+  if (authErr) {
+    const { error: profErr } = await adminClient.from("profiles").delete().eq("id", userId);
+    if (profErr) throw authErr;
+  }
+
+  revalidatePath("/admin");
+}

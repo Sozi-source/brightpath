@@ -49,12 +49,14 @@ export async function fulfillOrder({
   currency,
   paymentStatus,
   metadataModuleId,
+  metadata,
 }: {
   reference: string;
   paidSubunit: number;
   currency: string;
   paymentStatus: string;
   metadataModuleId?: string;
+  metadata?: Record<string, unknown>;
 }): Promise<FulfillmentResult> {
   const adminClient = createAdminClient();
 
@@ -64,8 +66,86 @@ export async function fulfillOrder({
     .eq("paystack_reference", reference)
     .maybeSingle();
 
-  if (orderErr || !order) {
-    return { success: false, status: "not_found", error: "Order not found" };
+  if (orderErr) {
+    return { success: false, status: "not_found", error: orderErr.message };
+  }
+
+  if (!order) {
+    // Only post a new order row when payment is strictly completed and verified
+    if (paymentStatus.toLowerCase() !== "success") {
+      return { success: false, status: "failed", error: `Paystack status was ${paymentStatus}` };
+    }
+    if (currency.toUpperCase() !== "KES") {
+      return { success: false, status: "failed", error: `Currency mismatch: expected KES, got ${currency}` };
+    }
+
+    const projectId = typeof metadata?.project_id === "string" ? metadata.project_id : "";
+    const studentId = typeof metadata?.student_id === "string" ? metadata.student_id : "";
+    if (!projectId || !studentId) {
+      return { success: false, status: "not_found", error: "Order not found" };
+    }
+
+    const [{ data: project }, { data: settings }] = await Promise.all([
+      adminClient
+        .from("projects")
+        .select("id, price_kes, trainer_id, material_type")
+        .eq("id", projectId)
+        .maybeSingle(),
+      adminClient.from("platform_settings").select("commission_percent").eq("id", 1).maybeSingle(),
+    ]);
+
+    if (!project) {
+      return { success: false, status: "not_found", error: "Project not found" };
+    }
+
+    const amountKes = Number(project.price_kes);
+    const expectedSubunit = Math.round(amountKes * 100);
+    if (paidSubunit < expectedSubunit) {
+      return {
+        success: false,
+        status: "failed",
+        error: `Underpaid: expected ${expectedSubunit} subunits, received ${paidSubunit}`,
+      };
+    }
+
+    const isBusinessPlan = project.material_type === "business_plan";
+    const commissionPercent = Number(settings?.commission_percent ?? 20);
+    const commissionKes = isBusinessPlan
+      ? amountKes
+      : Math.round(amountKes * (commissionPercent / 100) * 100) / 100;
+    const trainerShareKes = isBusinessPlan
+      ? 0
+      : Math.round((amountKes - commissionKes) * 100) / 100;
+
+    const { data: insertedOrder, error: insertErr } = await adminClient
+      .from("orders")
+      .insert({
+        student_id: studentId,
+        project_id: project.id,
+        trainer_id: project.trainer_id,
+        amount_kes: amountKes,
+        commission_kes: commissionKes,
+        trainer_share_kes: trainerShareKes,
+        paystack_reference: reference,
+        status: "paid",
+        paid_at: new Date().toISOString(),
+      })
+      .select("id")
+      .single();
+
+    if (insertErr || !insertedOrder) {
+      return { success: false, status: "failed", error: insertErr?.message || "Failed to record paid order" };
+    }
+
+    if (metadataModuleId) {
+      await adminClient.from("module_access").upsert({
+        user_id: studentId,
+        module_id: metadataModuleId,
+        granted_by: "purchase",
+      });
+    }
+
+    return { success: true, orderId: insertedOrder.id, status: "paid" };
   }
 
   // Idempotency: if already paid, return early without repeating side effects
@@ -164,6 +244,7 @@ export async function verifyTransactionWithPaystack(reference: string): Promise<
       currency: String(data.currency ?? "KES"),
       paymentStatus: String(data.status ?? ""),
       metadataModuleId,
+      metadata: (data.metadata as Record<string, unknown> | undefined) || undefined,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to verify transaction";
