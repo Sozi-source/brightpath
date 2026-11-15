@@ -25,9 +25,7 @@ const featuredResources = [
 function HeroSection() {
   return (
     <section className="border-b border-slate-200/70 bg-[#eaf4f5] px-3 py-3 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
-      <div className="relative mx-auto min-h-[620px] max-w-[1500px] overflow-hidden rounded-xl border border-slate-200 bg-slate-900 shadow-[0_20px_60px_rgba(15,23,42,.14)] sm:min-h-[680px]">
-        <img src="https://www.tusaladeestudio.com/assets/students-studying-DeSJsi8B.jpg" alt="A diverse group of learners sharing books and a tablet while studying together" className="absolute inset-0 h-full w-full object-cover brightness-125 saturate-110" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0f2136]/75 via-[#0f2136]/35 to-[#0f2136]/5" />
+      <div className="relative mx-auto min-h-[620px] max-w-[1500px] overflow-hidden rounded-xl border border-slate-200 bg-[#0b5c8e] shadow-[0_20px_60px_rgba(15,23,42,.14)] sm:min-h-[680px]">
         <div className="relative z-10 flex min-h-[620px] max-w-2xl flex-col justify-center px-5 py-14 sm:min-h-[680px] sm:px-10 lg:px-16">
           <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-amber-300 backdrop-blur-sm"><ShieldCheck className="h-4 w-4" /> Learn with confidence</div>
           <h1 className="!text-white mt-6 max-w-xl text-3xl font-semibold leading-[1.1] tracking-tight sm:text-4xl lg:text-5xl">Your learning journey, made <span className="text-teal-200">simple.</span></h1>
