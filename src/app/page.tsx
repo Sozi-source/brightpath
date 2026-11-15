@@ -2,6 +2,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/(auth)/actions";
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/seo";
 import {
   ArrowRight, ArrowUpRight, BookMarked, Building2, Check,
   CheckCircle2, ClipboardCheck, FileCheck2, FileText,
@@ -69,8 +70,36 @@ export default async function HomePage() {
       ? "/studio"
       : "/projects";
 
+  const homeJsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "EducationalOrganization",
+        name: SITE_NAME,
+        url: SITE_URL,
+        description: SITE_DESCRIPTION,
+      },
+      {
+        "@type": "WebSite",
+        name: SITE_NAME,
+        url: SITE_URL,
+        potentialAction: {
+          "@type": "SearchAction",
+          target: `${SITE_URL}/projects?q={search_term_string}`,
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
+  };
+
   return (
     <div className="landing-page min-h-screen overflow-x-hidden bg-[#f4f7fb] text-slate-900">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(homeJsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 shadow-xs backdrop-blur"><div className="mx-auto flex h-16 w-full max-w-[1600px] items-center justify-between gap-2 px-2 sm:gap-3 sm:px-6 lg:px-8 2xl:max-w-[1800px]"><div className="flex min-w-0 items-center gap-1.5 sm:gap-3"><Link href={user ? dashboardHref : "/projects"} aria-label="Application Switcher" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-[#13243a] transition-colors hover:bg-slate-50"><LayoutGrid className="h-4 w-4" /></Link><Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-2.5"><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#087f8c] text-sm font-bold text-white shadow-xs"><span className="text-amber-300">T</span>H</div><div className="min-w-0"><span className="block text-sm font-semibold leading-tight tracking-tight text-slate-900">TVET Hub</span><span className="hidden text-[10px] font-medium tracking-wider text-[#087f8c] sm:block">Simple · Reliable · Innovative</span></div></Link></div><nav className="hidden items-center gap-5 text-xs font-semibold text-slate-600 lg:flex"><Link href="/projects" className="transition-colors hover:text-[#087f8c]">Find Resources</Link><Link href="/library" className="transition-colors hover:text-[#087f8c]">My Library</Link>{(!user || canAccessStudio) && <Link href="/studio" className="transition-colors hover:text-[#087f8c]">Project Studio</Link>}</nav><div className="flex shrink-0 items-center gap-1 sm:gap-2.5">{user ? <div className="flex items-center gap-2.5"><span className="hidden text-xs font-semibold text-slate-700 lg:inline-block">{fullName}</span><Link href={dashboardHref} className="bp-btn-primary whitespace-nowrap px-2.5 py-2 text-[11px] shadow-xs sm:px-3.5 sm:text-xs">Dashboard</Link><form action={logout}><button type="submit" className="hidden rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 sm:block">Sign out</button></form></div> : <><Link href="/login" className="whitespace-nowrap rounded-lg px-2 py-2 text-[11px] font-semibold text-slate-700 transition-colors hover:bg-slate-50 sm:px-3.5 sm:text-xs">Sign In</Link><Link href="/signup" className="bp-btn-primary whitespace-nowrap px-2.5 py-2 text-[11px] shadow-xs sm:px-3.5 sm:text-xs">Get Started</Link></>}</div></div></header>
       <main>
         <HeroSection />

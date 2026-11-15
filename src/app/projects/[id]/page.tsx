@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -10,9 +11,58 @@ import { StructuredDescription } from "@/components/ui/StructuredDescription";
 import { createClient } from "@/lib/supabase/server";
 import { getMaterialTypeLabel, getExactBusinessTitle } from "@/lib/marketplace";
 import { getCanvasPalette } from "@/lib/canvasTheme";
+import { SITE_URL } from "@/lib/seo";
 import type { UserProfile } from "@/types/database";
 
 type MarketplaceProductPageProps = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({
+  params,
+}: MarketplaceProductPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data: product } = await supabase
+    .from("projects")
+    .select("id, title, description, category, material_type, cover_path, status")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!product || product.status !== "published") {
+    return {
+      title: "Learning Resource",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const exactTitle = getExactBusinessTitle(product.title);
+  const typeLabel = getMaterialTypeLabel(product.material_type);
+  const description = (
+    product.description ||
+    `${exactTitle} — Verified Kenya TVET ${typeLabel} available for instant download on TVET Hub.`
+  )
+    .replace(/\s+/g, " ")
+    .slice(0, 160);
+  const coverUrl = product.cover_path ? `${SITE_URL}/api/projects/${product.id}/cover` : undefined;
+
+  return {
+    title: `${exactTitle} — ${typeLabel}`,
+    description,
+    alternates: { canonical: `/projects/${product.id}` },
+    openGraph: {
+      title: exactTitle,
+      description,
+      url: `${SITE_URL}/projects/${product.id}`,
+      type: "website",
+      ...(coverUrl ? { images: [{ url: coverUrl, alt: exactTitle }] } : {}),
+    },
+    twitter: {
+      card: coverUrl ? "summary_large_image" : "summary",
+      title: exactTitle,
+      description,
+      ...(coverUrl ? { images: [coverUrl] } : {}),
+    },
+  };
+}
 
 export default async function MarketplaceProductPage({ params }: MarketplaceProductPageProps) {
   await connection();
@@ -67,8 +117,42 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
     ? "PDF + Word"
     : product.file_path.split(".").pop()?.toUpperCase() || "Digital file";
 
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: exactTitle,
+    description: (product.description || `${exactTitle} — Verified Kenya TVET learning resource.`)
+      .replace(/\s+/g, " ")
+      .slice(0, 500),
+    category: product.category || getMaterialTypeLabel(product.material_type),
+    url: `${SITE_URL}/projects/${product.id}`,
+    ...(product.cover_path ? { image: `${SITE_URL}/api/projects/${product.id}/cover` } : {}),
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "KES",
+      price: Number(product.price_kes || 0),
+      availability: "https://schema.org/InStock",
+      url: `${SITE_URL}/projects/${product.id}`,
+    },
+    ...(reviewCount > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: Number(average.toFixed(1)),
+            reviewCount,
+          },
+        }
+      : {}),
+  };
+
   return (
     <AppShell user={user} profile={profile} activeContextTitle="Learning Resource Marketplace">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(productJsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       {/* Sleek Minimal Breadcrumb Bar */}
       <div className="flex items-center justify-between gap-3 text-xs text-slate-500 mb-1">
         <nav aria-label="Breadcrumbs" className="flex items-center gap-1.5 flex-wrap">

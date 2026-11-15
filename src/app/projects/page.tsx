@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
@@ -11,6 +12,40 @@ import { getWorkspaceSections } from "@/lib/studio/templates";
 type ProjectsPageProps = {
   searchParams: Promise<{ q?: string; category?: string; type?: string; sort?: string; page?: string }>;
 };
+
+export async function generateMetadata({ searchParams }: ProjectsPageProps): Promise<Metadata> {
+  const filters = await searchParams;
+  const typeLabel = filters.type
+    ? filters.type === "study_resources"
+      ? "Study Resources"
+      : getMaterialTypeLabel(filters.type)
+    : "";
+  const category = filters.category?.trim() || "";
+  const q = filters.q?.trim() || "";
+
+  const title = q
+    ? `Search "${q}" — Learning Catalog`
+    : typeLabel
+    ? `${typeLabel} — Learning Catalog`
+    : category
+    ? `${category} — Learning Catalog`
+    : "Learning Catalog — KNEC Business Plans, Notes & Past Papers";
+
+  const description =
+    "Browse verified Kenya TVET learning materials, KNEC 5-chapter business plans, lecture notes, and past papers with instant Word & PDF downloads.";
+
+  return {
+    title,
+    description,
+    alternates: { canonical: "/projects" },
+    openGraph: {
+      title,
+      description,
+      url: "/projects",
+      type: "website",
+    },
+  };
+}
 
 export default async function ProjectsPage({ searchParams }: ProjectsPageProps) {
   await connection();
