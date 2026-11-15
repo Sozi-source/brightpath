@@ -568,6 +568,7 @@ export async function toggleStudentStudioAccess(formData: FormData) {
   }
 
   revalidatePath("/admin");
+  revalidatePath(`/admin/users/${userId}`);
   revalidatePath("/studio");
   revalidatePath("/learn");
 }
@@ -644,11 +645,13 @@ export async function toggleArchiveStudentAction(formData: FormData) {
 
   if (error) throw error;
   revalidatePath("/admin");
+  revalidatePath(`/admin/users/${userId}`);
 }
 
 export async function deleteStudentAction(formData: FormData) {
   const { user } = await verifyAdmin();
   const userId = formData.get("userId")?.toString().trim();
+  const redirectTo = formData.get("redirectTo")?.toString().trim();
   if (!userId) throw new Error("Missing userId");
   if (userId === user.id) throw new Error("You cannot delete your own account.");
 
@@ -670,4 +673,7 @@ export async function deleteStudentAction(formData: FormData) {
   }
 
   revalidatePath("/admin");
+  if (redirectTo) {
+    redirect(redirectTo);
+  }
 }

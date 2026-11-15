@@ -1,13 +1,10 @@
 import { connection } from "next/server";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import {
-  updateUserRole,
   approveTrainer,
   purgePendingOrdersAction,
   deletePendingOrderAction,
-  toggleArchiveStudentAction,
-  deleteStudentAction,
-  toggleStudentStudioAccess,
   updateClassStudioCode,
 } from "./actions";
 import { redirect } from "next/navigation";
@@ -226,7 +223,7 @@ export default async function AdminPage() {
                 <th className="py-2 px-3">Studio Access</th>
                 <th className="py-2 px-3">Course / Institution</th>
                 <th className="py-2 px-3">Joined</th>
-                <th className="py-2 px-3 text-right">Change Role</th>
+                <th className="py-2 px-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -236,7 +233,12 @@ export default async function AdminPage() {
                 <tr key={p.id} className={`hover:bg-slate-50/60 transition-colors ${p.archived_at ? "opacity-65 bg-slate-50/40" : ""}`}>
                   <td className="py-2 px-3 font-semibold text-slate-900 whitespace-nowrap">
                     <div className="inline-flex items-center gap-1.5">
-                      <span>{p.full_name || "Unnamed"}</span>
+                      <Link
+                        href={`/admin/users/${p.id}`}
+                        className="hover:text-[#087f8c] hover:underline transition-colors"
+                      >
+                        {p.full_name || "Unnamed"}
+                      </Link>
                       {p.archived_at && (
                         <span className="rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
                           Archived
@@ -258,33 +260,15 @@ export default async function AdminPage() {
                     </span>
                   </td>
                   <td className="py-2 px-3 whitespace-nowrap">
-                    <div className="inline-flex items-center gap-2">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${
-                          studioAllowed
-                            ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                            : "bg-slate-100 text-slate-600 border border-slate-200"
-                        }`}
-                      >
-                        {studioAllowed ? "Studio Class" : "Marketplace Only"}
-                      </span>
-                      {p.role === "student" && (
-                        <form action={toggleStudentStudioAccess} className="inline">
-                          <input type="hidden" name="userId" value={p.id} />
-                          <input type="hidden" name="grant" value={studioAllowed ? "false" : "true"} />
-                          <button
-                            type="submit"
-                            className={`rounded-md px-2 py-0.5 text-[10.5px] font-semibold transition-colors cursor-pointer ${
-                              studioAllowed
-                                ? "border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
-                                : "bg-teal-600 text-white hover:bg-teal-700 shadow-2xs"
-                            }`}
-                          >
-                            {studioAllowed ? "Revoke" : "Grant Studio"}
-                          </button>
-                        </form>
-                      )}
-                    </div>
+                    <span
+                      className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${
+                        studioAllowed
+                          ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                          : "bg-slate-100 text-slate-600 border border-slate-200"
+                      }`}
+                    >
+                      {studioAllowed ? "Studio Class" : "Marketplace Only"}
+                    </span>
                   </td>
                   <td className="py-2 px-3 text-slate-600">
                     {p.institution || p.course || "-"}
@@ -293,50 +277,12 @@ export default async function AdminPage() {
                     {p.created_at ? new Date(p.created_at).toLocaleDateString() : "-"}
                   </td>
                   <td className="py-2 px-3 text-right whitespace-nowrap">
-                    {p.id !== user.id && (
-                      <div className="inline-flex items-center justify-end gap-1.5">
-                        <form action={updateUserRole} className="inline-flex gap-1.5 items-center">
-                          <input type="hidden" name="userId" value={p.id} />
-                          <select
-                            name="role"
-                            defaultValue={p.role}
-                            className="rounded-md border border-slate-300 bg-white text-xs px-2 py-0.5 font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-600"
-                          >
-                            <option value="student">Student</option>
-                            <option value="admin">Admin</option>
-                          </select>
-                          <button
-                            type="submit"
-                            className="rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs px-2.5 py-0.5 font-semibold cursor-pointer transition-colors shadow-2xs"
-                          >
-                            Set
-                          </button>
-                        </form>
-                        {p.role !== "admin" && (
-                          <>
-                            <form action={toggleArchiveStudentAction} className="inline">
-                              <input type="hidden" name="userId" value={p.id} />
-                              <input type="hidden" name="archive" value={p.archived_at ? "false" : "true"} />
-                              <button
-                                type="submit"
-                                className="rounded-md border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 text-[11px] px-2 py-0.5 font-semibold cursor-pointer transition-colors whitespace-nowrap"
-                              >
-                                {p.archived_at ? "Restore" : "Archive"}
-                              </button>
-                            </form>
-                            <form action={deleteStudentAction} className="inline">
-                              <input type="hidden" name="userId" value={p.id} />
-                              <button
-                                type="submit"
-                                className="rounded-md border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] px-2 py-0.5 font-semibold cursor-pointer transition-colors whitespace-nowrap"
-                              >
-                                Delete
-                              </button>
-                            </form>
-                          </>
-                        )}
-                      </div>
-                    )}
+                    <Link
+                      href={`/admin/users/${p.id}`}
+                      className="inline-flex items-center rounded-md border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 hover:border-[#087f8c]/50 hover:text-[#087f8c] transition-colors whitespace-nowrap"
+                    >
+                      Manage
+                    </Link>
                   </td>
                 </tr>
                 );

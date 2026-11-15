@@ -48,10 +48,27 @@ export default async function LearningHubPage() {
     <AppShell user={user} profile={profile} activeContextTitle="Learning Hub">
       <PageHeaderCard title="Learning Hub" subtitle="Choose what you need next." breadcrumbs={[{ label: "Home", active: true }]} />
 
-      <section className="overflow-hidden rounded-xl border border-teal-800/20 bg-gradient-to-r from-[#065f6b] via-[#087f8c] to-[#0d9488] p-5 text-white shadow-xs sm:p-7">
-        <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-          <div className="max-w-2xl"><p className="text-[11px] font-semibold uppercase tracking-[.16em] text-teal-100">Welcome back{firstName ? `, ${firstName}` : ""}</p><h2 className="!text-white mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Keep your learning moving.</h2><p className="mt-2 max-w-xl text-sm leading-6 text-teal-50">Find resources, practise your skills, and make progress at your pace.</p></div>
-          <Link href="/projects" className="inline-flex w-fit items-center gap-2 whitespace-nowrap rounded-lg bg-white px-4 py-2.5 text-xs font-semibold text-[#065f6b] shadow-xs transition hover:bg-teal-50"><Search className="h-4 w-4 shrink-0" /> Explore resources</Link>
+      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+        <div className="h-1 w-full bg-gradient-to-r from-[#087f8c] via-[#087f8c] to-amber-400" />
+        <div className="flex flex-col justify-between gap-6 p-5 sm:p-7 lg:flex-row lg:items-end">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-md border border-teal-200/80 bg-teal-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[.14em] text-[#087f8c]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#087f8c]" />
+              <span>Welcome back{firstName ? `, ${firstName}` : ""}</span>
+            </div>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+              Keep your learning moving.
+            </h2>
+            <p className="mt-1.5 max-w-xl text-sm leading-6 text-slate-600">
+              Find resources, practise your skills, and make progress at your pace.
+            </p>
+          </div>
+          <Link
+            href="/projects"
+            className="inline-flex w-fit items-center gap-2 whitespace-nowrap rounded-lg bg-[#087f8c] px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-[#066570]"
+          >
+            <Search className="h-4 w-4 shrink-0" /> Explore resources
+          </Link>
         </div>
       </section>
 
