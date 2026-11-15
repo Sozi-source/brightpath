@@ -323,7 +323,7 @@ export function ProjectAreaCatalog({
               </button>
             </div>
           ) : (
-            <div className="grid w-full min-w-0 grid-cols-1 gap-3.5 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-5">
               {filteredVentures.map((venture, index) => {
                 const palette = getCanvasPalette(venture.id || venture.number, index);
                 const shortName = getShortVentureCardName(venture.title);
@@ -331,21 +331,21 @@ export function ProjectAreaCatalog({
                 return (
                   <article
                     key={venture.id}
-                    className={`group flex min-w-0 flex-col justify-between rounded-xl border border-slate-200/90 bg-white shadow-xs ${palette.hoverBorder} hover:shadow-md transition-all duration-200 overflow-hidden`}
+                    className={`group flex min-w-0 flex-col justify-between rounded-xl border border-slate-200 bg-white shadow-xs ${palette.hoverBorder} hover:shadow-md transition-all duration-200 overflow-hidden`}
                   >
-                    {/* Minimal Top Accent Bar */}
-                    <div className={`h-1 w-full bg-gradient-to-r ${palette.bgGradient}`} />
+                    {/* Semantic Top Strip */}
+                    <div className="h-0.5 w-full" style={{ backgroundColor: palette.accentHex }} />
 
-                    <div className="flex flex-1 flex-col justify-between p-4">
+                    <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
                       <div>
-                        <div className="flex items-center justify-between gap-2 mb-2">
+                        <div className="flex items-center justify-between gap-2 mb-3">
                           <span
                             style={{ color: palette.accentHex }}
-                            className="text-[11px] font-semibold uppercase tracking-wider truncate"
+                            className="inline-flex items-center rounded-md border border-slate-200/80 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold tracking-tight truncate"
                           >
                             {venture.groupName}
                           </span>
-                          <span className="font-mono text-[11px] font-semibold text-slate-600 shrink-0">
+                          <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10.5px] font-semibold text-slate-600 shrink-0 tabular-nums">
                             #{venture.number}
                           </span>
                         </div>
@@ -357,14 +357,17 @@ export function ProjectAreaCatalog({
                           className="w-full text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#087f8c] rounded"
                           title={venture.title}
                         >
-                          <h4 className="font-semibold text-sm leading-snug text-slate-900 group-hover:text-[#087f8c] transition-colors line-clamp-2 min-h-[40px]">
+                          <h4 className="font-semibold text-[15px] leading-snug tracking-tight text-slate-900 group-hover:text-[#087f8c] transition-colors line-clamp-2 min-h-[42px]">
                             {shortName}
                           </h4>
+                          <p className="mt-1.5 text-xs font-medium text-slate-600 truncate">
+                            {venture.capitalTier} Capital · 5 KNEC Chapters
+                          </p>
                         </button>
                       </div>
 
                       {/* Minimal Footer: Details + Start */}
-                      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                      <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between gap-2">
                         <button
                           type="button"
                           onClick={() => setDetailVenture(venture)}
@@ -375,7 +378,7 @@ export function ProjectAreaCatalog({
                         <button
                           type="button"
                           onClick={() => handleOpenVentureModal(venture)}
-                          className="inline-flex items-center gap-1 whitespace-nowrap shrink-0 px-2.5 py-1 rounded-md text-xs font-semibold text-white shadow-2xs hover:opacity-90 transition-opacity cursor-pointer"
+                          className="inline-flex items-center gap-1 whitespace-nowrap shrink-0 px-3 py-1.5 rounded-md text-xs font-semibold text-white shadow-2xs hover:opacity-90 transition-opacity cursor-pointer"
                           style={{ backgroundColor: palette.accentHex }}
                         >
                           <span>Start</span>

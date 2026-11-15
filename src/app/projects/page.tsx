@@ -122,17 +122,58 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
   return (
     <AppShell user={user} profile={profile} activeContextTitle="Learning Resource Marketplace" marketplaceCategories={sidebarCategories}>
       <section className="min-w-0 w-full overflow-x-hidden">
-        <form action="/projects" className="mb-4 flex flex-col gap-2 bp-card p-3 sm:flex-row">
+        {/* Enterprise Catalog Header */}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-slate-900">
+              Learning Catalog
+            </h1>
+            <p className="text-xs text-slate-600">
+              Verified KNEC business plans, notes, and revision dossiers.
+            </p>
+          </div>
+          <span className="rounded-md border border-slate-200 bg-white px-2.5 py-1 font-mono text-xs font-medium text-slate-700 tabular-nums">
+            {visibleProjects.length} {visibleProjects.length === 1 ? "resource" : "resources"}
+          </span>
+        </div>
+
+        <form action="/projects" className="mb-3 flex flex-col gap-2 bp-card p-3 sm:flex-row">
           <label htmlFor="marketplace-search" className="sr-only">Search learning materials</label>
           <div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" /><input id="marketplace-search" name="q" defaultValue={filters.q || ""} placeholder="Search materials, subjects, or authors" className="h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-100" /></div>
           {selectedCategory && <input type="hidden" name="category" value={selectedCategory} />}
           {selectedType && <input type="hidden" name="type" value={selectedType} />}
           <label htmlFor="marketplace-sort" className="sr-only">Sort materials</label>
-          <select id="marketplace-sort" name="sort" defaultValue={sort} className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-xs text-slate-800"><option value="newest">Latest</option><option value="rating">Top rated</option><option value="downloads">Most downloaded</option><option value="price_low">Price: low to high</option><option value="price_high">Price: high to low</option></select>
-          <button className="h-10 bp-btn-primary px-5 text-sm cursor-pointer">Search</button>
-          {isPublisher ? <Link href="/admin" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-800 hover:bg-slate-50"><Layers className="h-4 w-4 text-indigo-600" />Admin</Link> : <Link href="/library" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-4 w-4 text-indigo-600" />My Library</Link>}
-          {profile?.role === "admin" && <a href="#approved-student-plans" className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Approved plans ({approvedPlans?.length || 0})</a>}
+          <select id="marketplace-sort" name="sort" defaultValue={sort} className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-xs font-medium text-slate-800"><option value="newest">Latest</option><option value="rating">Top rated</option><option value="downloads">Most downloaded</option><option value="price_low">Price: low to high</option><option value="price_high">Price: high to low</option></select>
+          <button className="h-10 bp-btn-primary px-5 text-sm cursor-pointer whitespace-nowrap">Search</button>
+          {isPublisher ? <Link href="/admin" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 whitespace-nowrap"><Layers className="h-4 w-4 text-indigo-600" />Admin</Link> : <Link href="/library" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 whitespace-nowrap"><Download className="h-4 w-4 text-indigo-600" />My Library</Link>}
+          {profile?.role === "admin" && <a href="#approved-student-plans" className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 whitespace-nowrap">Approved plans ({approvedPlans?.length || 0})</a>}
         </form>
+
+        {/* Quick-Filter Category Pills */}
+        <div className="mb-5 flex items-center gap-1.5 overflow-x-auto pb-1">
+          {sidebarCategories
+            .filter((cat) => cat.label === "All materials" || cat.count > 0)
+            .map((cat) => (
+              <Link
+                key={cat.label}
+                href={cat.href}
+                className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  cat.active
+                    ? "bg-[#087f8c] text-white shadow-2xs"
+                    : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300"
+                }`}
+              >
+                <span>{cat.label}</span>
+                <span
+                  className={`font-mono text-[11px] tabular-nums ${
+                    cat.active ? "text-teal-100" : "text-slate-500"
+                  }`}
+                >
+                  {cat.count}
+                </span>
+              </Link>
+            ))}
+        </div>
 
         {showShelves ? (
           visibleProjects.length ? <div className="space-y-8">
@@ -147,7 +188,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                   </div>
                   <Link href={filterHref({ type: category.value, category: "" })} className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">See all <span aria-hidden="true">→</span></Link>
                 </div>
-                <div className="grid w-full min-w-0 grid-cols-1 gap-3.5 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-5">
                   {shelfProjects.map((project, index) => (
                     <MarketplaceProjectCard
                       key={project.id}
@@ -171,7 +212,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
             <Link href="/projects" className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">Browse all</Link>
           </div>
           {visibleProjects.length ? (
-            <div className="grid w-full min-w-0 grid-cols-1 gap-3.5 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-5">
               {pageProjects.map((project, index) => (
                 <MarketplaceProjectCard
                   key={project.id}
