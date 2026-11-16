@@ -35,6 +35,8 @@ export interface ResearchSpecs {
   specificObjectives: string[];
   researchQuestions: string[];
   problemContext?: string;
+  dedicationText?: string;
+  acknowledgementsText?: string;
   seed: string;
   identity: ResearchIdentity;
   kind?: ResearchKind;

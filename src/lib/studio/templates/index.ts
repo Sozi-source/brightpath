@@ -45,8 +45,10 @@ export function getWorkspaceSections(
 
       // Trade/Research projects scale base words by level; Business Plans use the
       // explicit KNEC section minWords defined in src/lib/studio/templates/business.ts.
+      const diplomaScale = type === "research_secondary" ? 2.3 : 3.1;
+      const craftScale = type === "research_secondary" ? 1.2 : 1.25;
       const scaledMinWords = isSubstantiveChapter
-        ? Math.round((baseWords * (isDiploma ? 3.1 : 1.25)) / 10) * 10
+        ? Math.round((baseWords * (isDiploma ? diplomaScale : craftScale)) / 10) * 10
         : type !== "business_plan" && isDiploma && sec.phase === "proposal"
         ? Math.round((baseWords * 1.5) / 10) * 10
         : baseWords;

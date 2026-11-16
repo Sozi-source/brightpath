@@ -1,0 +1,662 @@
+{
+  "country": "Kenya",
+  "countryIso3": "KEN",
+  "retrievedAt": "2026-11-16T19:20:33.931Z",
+  "provider": "World Bank Indicators API v2 (https://api.worldbank.org/v2)",
+  "indicators": [
+    {
+      "id": "stunting_u5",
+      "wbCode": "SH.STA.STNT.ZS",
+      "label": "Prevalence of stunting, height for age (% of children under 5)",
+      "shortLabel": "Child Stunting (<5 yrs)",
+      "unit": "%",
+      "domain": "child_malnutrition",
+      "definition": "Percentage of children under age 5 whose height-for-age is more than two standard deviations below the median for the WHO Child Growth Standards.",
+      "sourceOrg": "UNICEF, WHO, World Bank (Joint Child Malnutrition Estimates) via World Bank WDI",
+      "sourceUrl": "https://data.worldbank.org/indicator/SH.STA.STNT.ZS?locations=KE",
+      "apiUrl": "https://api.worldbank.org/v2/country/KEN/indicator/SH.STA.STNT.ZS?format=json&per_page=100",
+      "series": [
+        {
+          "year": 1998,
+          "value": 36.8
+        },
+        {
+          "year": 2000,
+          "value": 40.8
+        },
+        {
+          "year": 2003,
+          "value": 35.8
+        },
+        {
+          "year": 2005,
+          "value": 40.3
+        },
+        {
+          "year": 2008,
+          "value": 35.5
+        },
+        {
+          "year": 2011,
+          "value": 26.3
+        },
+        {
+          "year": 2014,
+          "value": 26.2
+        },
+        {
+          "year": 2016,
+          "value": 28.6
+        },
+        {
+          "year": 2022,
+          "value": 17.6
+        }
+      ]
+    },
+    {
+      "id": "wasting_u5",
+      "wbCode": "SH.STA.WAST.ZS",
+      "label": "Prevalence of wasting, weight for height (% of children under 5)",
+      "shortLabel": "Child Wasting (<5 yrs)",
+      "unit": "%",
+      "domain": "child_malnutrition",
+      "definition": "Percentage of children under age 5 whose weight-for-height is more than two standard deviations below the median for the WHO Child Growth Standards.",
+      "sourceOrg": "UNICEF, WHO, World Bank (Joint Child Malnutrition Estimates) via World Bank WDI",
+      "sourceUrl": "https://data.worldbank.org/indicator/SH.STA.WAST.ZS?locations=KE",
+      "apiUrl": "https://api.worldbank.org/v2/country/KEN/indicator/SH.STA.WAST.ZS?format=json&per_page=100",
+      "series": [
+        {
+          "year": 1998,
+          "value": 7.5
+        },
+        {
+          "year": 2000,
+          "value": 7.4
+        },
+        {
+          "year": 2003,
+          "value": 6.2
+        },
+        {
+          "year": 2005,
+          "value": 6.9
+        },
+        {
+          "year": 2008,
+          "value": 6.9
+        },
+        {
+          "year": 2011,
+          "value": 6
+        },
+        {
+          "year": 2014,
+          "value": 4.2
+        },
+        {
+          "year": 2016,
+          "value": 6.7
+        },
+        {
+          "year": 2022,
+          "value": 4.5
+        }
+      ]
+    },
+    {
+      "id": "underweight_u5",
+      "wbCode": "SH.STA.MALN.ZS",
+      "label": "Prevalence of underweight, weight for age (% of children under 5)",
+      "shortLabel": "Child Underweight (<5 yrs)",
+      "unit": "%",
+      "domain": "child_malnutrition",
+      "definition": "Percentage of children under age 5 whose weight-for-age is more than two standard deviations below the median for the WHO Child Growth Standards.",
+      "sourceOrg": "UNICEF, WHO, World Bank (Joint Child Malnutrition Estimates) via World Bank WDI",
+      "sourceUrl": "https://data.worldbank.org/indicator/SH.STA.MALN.ZS?locations=KE",
+      "apiUrl": "https://api.worldbank.org/v2/country/KEN/indicator/SH.STA.MALN.ZS?format=json&per_page=100",
+      "series": [
+        {
+          "year": 1998,
+          "value": 17.8
+        },
+        {
+          "year": 2000,
+          "value": 17.1
+        },
+        {
+          "year": 2003,
+          "value": 16.4
+        },
+        {
+          "year": 2005,
+          "value": 18
+        },
+        {
+          "year": 2008,
+          "value": 16.5
+        },
+        {
+          "year": 2011,
+          "value": 12.4
+        },
+        {
+          "year": 2014,
+          "value": 11.2
+        },
+        {
+          "year": 2016,
+          "value": 13
+        },
+        {
+          "year": 2022,
+          "value": 9.8
+        }
+      ]
+    },
+    {
+      "id": "overweight_u5",
+      "wbCode": "SH.STA.OWGH.ZS",
+      "label": "Prevalence of overweight, weight for height (% of children under 5)",
+      "shortLabel": "Child Overweight (<5 yrs)",
+      "unit": "%",
+      "domain": "child_malnutrition",
+      "definition": "Percentage of children under age 5 whose weight-for-height is more than two standard deviations above the median for the WHO Child Growth Standards.",
+      "sourceOrg": "UNICEF, WHO, World Bank (Joint Child Malnutrition Estimates) via World Bank WDI",
+      "sourceUrl": "https://data.worldbank.org/indicator/SH.STA.OWGH.ZS?locations=KE",
+      "apiUrl": "https://api.worldbank.org/v2/country/KEN/indicator/SH.STA.OWGH.ZS?format=json&per_page=100",
+      "series": [
+        {
+          "year": 1998,
+          "value": 7.5
+        },
+        {
+          "year": 2000,
+          "value": 8.1
+        },
+        {
+          "year": 2003,
+          "value": 5.8
+        },
+        {
+          "year": 2005,
+          "value": 7.9
+        },
+        {
+          "year": 2008,
+          "value": 5
+        },
+        {
+          "year": 2014,
+          "value": 4.1
+        },
+        {
+          "year": 2016,
+          "value": 5.8
+        },
+        {
+          "year": 2022,
+          "value": 3.4
+        }
+      ]
+    },
+    {
+      "id": "exclusive_breastfeeding",
+      "wbCode": "SH.STA.BFED.ZS",
+      "label": "Exclusive breastfeeding (% of children under 6 months)",
+      "shortLabel": "Exclusive Breastfeeding (<6 mos)",
+      "unit": "%",
+      "domain": "iycf_feeding",
+      "definition": "Percentage of infants 0-5 months of age who are fed exclusively with breast milk in the 24 hours preceding the survey.",
+      "sourceOrg": "UNICEF / DHS Program via World Bank WDI",
+      "sourceUrl": "https://data.worldbank.org/indicator/SH.STA.BFED.ZS?locations=KE",
+      "apiUrl": "https://api.worldbank.org/v2/country/KEN/indicator/SH.STA.BFED.ZS?format=json&per_page=100",
+      "series": [
+        {
+          "year": 1998,
+          "value": 12.6
+        },
+        {
+          "year": 2000,
+          "value": 13.8
+        },
+        {
+          "year": 2003,
+          "value": 12.2
+        },
+        {
+          "year": 2009,
+          "value": 31.9
+        },
+        {
+          "year": 2014,
+          "value": 61.4
+        }
+      ]
+    },
+    {
+      "id": "anaemia_pregnant",
+      "wbCode": "SH.PRG.ANEM",
+      "label": "Prevalence of anaemia among pregnant women (%)",
+      "shortLabel": "Pregnant Women Anaemia",
+      "unit": "%",
+      "domain": "maternal_nutrition",
+      "definition": "Percentage of pregnant women whose haemoglobin level is less than 110 grams per litre at sea level.",
+      "sourceOrg": "WHO Global Health Observatory via World Bank WDI",
+      "sourceUrl": "https://data.worldbank.org/indicator/SH.PRG.ANEM?locations=KE",
+      "apiUrl": "https://api.worldbank.org/v2/country/KEN/indicator/SH.PRG.ANEM?format=json&per_page=100",
+      "series": [
+        {
+          "year": 2000,
+          "value": 45.8
+        },
+        {
+          "year": 2001,
+          "value": 45.1
+        },
+        {
+          "year": 2002,
+          "value": 44.5
+        },
+        {
+          "year": 2003,
+          "value": 43.8
+        },
+        {
+          "year": 2004,
+          "value": 43.1
+        },
+        {
+          "year": 2005,
+          "value": 42.3
+        },
+        {
+          "year": 2006,
+          "value": 41.6
+        },
+        {
+          "year": 2007,
+          "value": 40.9
+        },
+        {
+          "year": 2008,
+          "value": 40.2
+        },
+        {
+          "year": 2009,
+          "value": 39.6
+        },
+        {
+          "year": 2010,
+          "value": 39.1
+        },
+        {
+          "year": 2011,
+          "value": 38.8
+        },
+        {
+          "year": 2012,
+          "value": 38.6
+        },
+        {
+          "year": 2013,
+          "value": 38.5
+        },
+        {
+          "year": 2014,
+          "value": 38.5
+        },
+        {
+          "year": 2015,
+          "value": 38.5
+        },
+        {
+          "year": 2016,
+          "value": 38.5
+        },
+        {
+          "year": 2017,
+          "value": 38.6
+        },
+        {
+          "year": 2018,
+          "value": 38.7
+        },
+        {
+          "year": 2019,
+          "value": 38.8
+        },
+        {
+          "year": 2020,
+          "value": 38.9
+        },
+        {
+          "year": 2021,
+          "value": 39.1
+        },
+        {
+          "year": 2022,
+          "value": 39.5
+        },
+        {
+          "year": 2023,
+          "value": 39.8
+        }
+      ]
+    },
+    {
+      "id": "antenatal_care_4plus",
+      "wbCode": "SH.STA.ANVC.ZS",
+      "label": "Pregnant women receiving prenatal care (%)",
+      "shortLabel": "Antenatal Care Coverage",
+      "unit": "%",
+      "domain": "maternal_nutrition",
+      "definition": "Percentage of women attended at least once during pregnancy by skilled health personnel for reasons related to pregnancy.",
+      "sourceOrg": "UNICEF / DHS / MICS via World Bank WDI",
+      "sourceUrl": "https://data.worldbank.org/indicator/SH.STA.ANVC.ZS?locations=KE",
+      "apiUrl": "https://api.worldbank.org/v2/country/KEN/indicator/SH.STA.ANVC.ZS?format=json&per_page=100",
+      "series": [
+        {
+          "year": 1998,
+          "value": 91.9
+        },
+        {
+          "year": 2000,
+          "value": 76.2
+        },
+        {
+          "year": 2003,
+          "value": 88.1
+        },
+        {
+          "year": 2009,
+          "value": 91.5
+        },
+        {
+          "year": 2010,
+          "value": 85.8
+        },
+        {
+          "year": 2014,
+          "value": 95.5
+        },
+        {
+          "year": 2015,
+          "value": 93.7
+        },
+        {
+          "year": 2020,
+          "value": 92.8
+        }
+      ]
+    },
+    {
+      "id": "under5_mortality",
+      "wbCode": "SH.DYN.MORT",
+      "label": "Mortality rate, under-5 (per 1,000 live births)",
+      "shortLabel": "Under-5 Mortality Rate",
+      "unit": "per 1,000 live births",
+      "domain": "child_health",
+      "definition": "Probability per 1,000 that a newborn baby will die before reaching age five, if subject to age-specific mortality rates of the specified year.",
+      "sourceOrg": "UN Inter-agency Group for Child Mortality Estimation (IGME) via World Bank WDI",
+      "sourceUrl": "https://data.worldbank.org/indicator/SH.DYN.MORT?locations=KE",
+      "apiUrl": "https://api.worldbank.org/v2/country/KEN/indicator/SH.DYN.MORT?format=json&per_page=100",
+      "series": [
+        {
+          "year": 1995,
+          "value": 109.3
+        },
+        {
+          "year": 1996,
+          "value": 108
+        },
+        {
+          "year": 1997,
+          "value": 105.9
+        },
+        {
+          "year": 1998,
+          "value": 103
+        },
+        {
+          "year": 1999,
+          "value": 99.5
+        },
+        {
+          "year": 2000,
+          "value": 95.2
+        },
+        {
+          "year": 2001,
+          "value": 90.5
+        },
+        {
+          "year": 2002,
+          "value": 85.6
+        },
+        {
+          "year": 2003,
+          "value": 80.8
+        },
+        {
+          "year": 2004,
+          "value": 76.1
+        },
+        {
+          "year": 2005,
+          "value": 71.2
+        },
+        {
+          "year": 2006,
+          "value": 66.8
+        },
+        {
+          "year": 2007,
+          "value": 62.9
+        },
+        {
+          "year": 2008,
+          "value": 58
+        },
+        {
+          "year": 2009,
+          "value": 55.2
+        },
+        {
+          "year": 2010,
+          "value": 53.1
+        },
+        {
+          "year": 2011,
+          "value": 51.7
+        },
+        {
+          "year": 2012,
+          "value": 50.7
+        },
+        {
+          "year": 2013,
+          "value": 49.4
+        },
+        {
+          "year": 2014,
+          "value": 48.3
+        },
+        {
+          "year": 2015,
+          "value": 46.8
+        },
+        {
+          "year": 2016,
+          "value": 45.5
+        },
+        {
+          "year": 2017,
+          "value": 44.7
+        },
+        {
+          "year": 2018,
+          "value": 43.7
+        },
+        {
+          "year": 2019,
+          "value": 42.7
+        },
+        {
+          "year": 2020,
+          "value": 42.1
+        },
+        {
+          "year": 2021,
+          "value": 41.3
+        },
+        {
+          "year": 2022,
+          "value": 40.5
+        },
+        {
+          "year": 2023,
+          "value": 39.6
+        },
+        {
+          "year": 2024,
+          "value": 38.8
+        }
+      ]
+    },
+    {
+      "id": "infant_mortality",
+      "wbCode": "SP.DYN.IMRT.IN",
+      "label": "Mortality rate, infant (per 1,000 live births)",
+      "shortLabel": "Infant Mortality Rate",
+      "unit": "per 1,000 live births",
+      "domain": "child_health",
+      "definition": "Number of infants dying before reaching one year of age, per 1,000 live births in a given year.",
+      "sourceOrg": "UN Inter-agency Group for Child Mortality Estimation (IGME) via World Bank WDI",
+      "sourceUrl": "https://data.worldbank.org/indicator/SP.DYN.IMRT.IN?locations=KE",
+      "apiUrl": "https://api.worldbank.org/v2/country/KEN/indicator/SP.DYN.IMRT.IN?format=json&per_page=100",
+      "series": [
+        {
+          "year": 1995,
+          "value": 70.9
+        },
+        {
+          "year": 1996,
+          "value": 70.2
+        },
+        {
+          "year": 1997,
+          "value": 69.1
+        },
+        {
+          "year": 1998,
+          "value": 67.7
+        },
+        {
+          "year": 1999,
+          "value": 66
+        },
+        {
+          "year": 2000,
+          "value": 63.7
+        },
+        {
+          "year": 2001,
+          "value": 61.2
+        },
+        {
+          "year": 2002,
+          "value": 58.3
+        },
+        {
+          "year": 2003,
+          "value": 55.5
+        },
+        {
+          "year": 2004,
+          "value": 52.6
+        },
+        {
+          "year": 2005,
+          "value": 49.5
+        },
+        {
+          "year": 2006,
+          "value": 47
+        },
+        {
+          "year": 2007,
+          "value": 45
+        },
+        {
+          "year": 2008,
+          "value": 42.6
+        },
+        {
+          "year": 2009,
+          "value": 42.1
+        },
+        {
+          "year": 2010,
+          "value": 41.5
+        },
+        {
+          "year": 2011,
+          "value": 41
+        },
+        {
+          "year": 2012,
+          "value": 41.1
+        },
+        {
+          "year": 2013,
+          "value": 40.7
+        },
+        {
+          "year": 2014,
+          "value": 40
+        },
+        {
+          "year": 2015,
+          "value": 38.9
+        },
+        {
+          "year": 2016,
+          "value": 38.4
+        },
+        {
+          "year": 2017,
+          "value": 38.2
+        },
+        {
+          "year": 2018,
+          "value": 37.5
+        },
+        {
+          "year": 2019,
+          "value": 37
+        },
+        {
+          "year": 2020,
+          "value": 36.5
+        },
+        {
+          "year": 2021,
+          "value": 36
+        },
+        {
+          "year": 2022,
+          "value": 35.5
+        },
+        {
+          "year": 2023,
+          "value": 34.7
+        },
+        {
+          "year": 2024,
+          "value": 34.2
+        }
+      ]
+    }
+  ]
+}

@@ -54,7 +54,19 @@ function orderSections(sections: BusinessPlanDocxSection[]): BusinessPlanDocxSec
     .map(({ section }) => section);
 }
 
-function chapterHeading(group: string): string | null {
+export type DocumentKind = "business_plan" | "research";
+
+function chapterHeading(group: string, documentKind: DocumentKind = "business_plan"): string | null {
+  if (documentKind === "research") {
+    const labels: Record<string, string> = {
+      ch1: "CHAPTER ONE: INTRODUCTION",
+      ch2: "CHAPTER TWO: LITERATURE REVIEW",
+      ch3: "CHAPTER THREE: RESEARCH METHODOLOGY",
+      ch4: "CHAPTER FOUR: RESULTS AND DISCUSSION",
+      ch5: "CHAPTER FIVE: SUMMARY, CONCLUSIONS, AND RECOMMENDATIONS",
+    };
+    return labels[group] || null;
+  }
   const labels: Record<string, string> = {
     ch1: "CHAPTER ONE: BUSINESS DESCRIPTION",
     ch2: "CHAPTER TWO: MARKETING PLAN",
@@ -827,7 +839,8 @@ export interface BusinessPlanLayoutEstimate {
 
 /** Layout simulation shared by the TOC and the page-budget checks. */
 export function computeBusinessPlanLayout(
-  rawSections: BusinessPlanDocxSection[]
+  rawSections: BusinessPlanDocxSection[],
+  documentKind: DocumentKind = "business_plan"
 ): BusinessPlanLayoutEstimate {
   const sections = orderSections(rawSections);
   const tracker: PageLayoutTracker = {
@@ -875,7 +888,7 @@ export function computeBusinessPlanLayout(
       forceNewPage(tracker);
     }
     if (group.startsWith("ch") && group !== previousGroup) {
-      registerHeadingBookmark(tracker, chapterHeading(group) || section.title.toUpperCase(), 0, 720);
+      registerHeadingBookmark(tracker, chapterHeading(group, documentKind) || section.title.toUpperCase(), 0, 720);
     }
     const level: 0 | 1 = group.startsWith("ch") ? 1 : 0;
     registerHeadingBookmark(tracker, section.title, level, 580);
@@ -913,10 +926,12 @@ export function createBusinessPlanDocx(params: {
   industrySector?: string | null;
   primaryProduct?: string | null;
   isInstitutional?: boolean;
+  documentKind?: DocumentKind;
   course: string;
   level: string;
   sections: BusinessPlanDocxSection[];
 }): Uint8Array {
+  const documentKind: DocumentKind = params.documentKind || "business_plan";
   const sections = orderSections(params.sections);
   const brand = createBusinessPlanBrand({
     name: params.businessName || params.title,
@@ -1096,7 +1111,7 @@ export function createBusinessPlanDocx(params: {
       forceNewPage(tracker);
     }
     if (group.startsWith("ch") && group !== previousGroup) {
-      const chapTitle = chapterHeading(group) || section.title.toUpperCase();
+      const chapTitle = chapterHeading(group, documentKind) || section.title.toUpperCase();
       const chapBm = registerHeadingBookmark(tracker, chapTitle, 0, 720);
       content.push(
         centeredParagraph(

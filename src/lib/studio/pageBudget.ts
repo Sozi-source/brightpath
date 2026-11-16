@@ -200,7 +200,8 @@ function trimSectionProse<T extends BudgetSection>(
   section: T,
   maxWords: number,
   maxProseBlocks?: number,
-  maxListItems?: number
+  maxListItems?: number,
+  trimListSentences = false
 ): T {
   const blocks = section.content.split(/\n{2,}/);
   let firstProse = true;
@@ -212,7 +213,12 @@ function trimSectionProse<T extends BudgetSection>(
     const hasStructural = lines.some((l) => isStructural(l));
     if (hasStructural) {
       if (maxListItems && lines.every((l) => !l.trim() || /^[-*+]\s+/.test(l.trim()) || /^\d+[.)]\s+/.test(l.trim()))) {
-        next.push(lines.filter((l) => l.trim()).slice(0, maxListItems).join("\n"));
+        const sliced = lines.filter((l) => l.trim()).slice(0, maxListItems);
+        next.push(
+          trimListSentences
+            ? sliced.map((l) => trimParagraph(l, 22)).join("\n")
+            : sliced.join("\n")
+        );
       } else {
         next.push(block);
       }
@@ -275,10 +281,12 @@ export function fitToPageBudget<T extends BudgetSection>(
   }
 
   if (current > max) {
-    for (const cap of [50, 40]) {
+    for (const cap of [50, 40, 32]) {
       if (current <= target) break;
       sections = sections.map((s) =>
-        isProtected(s.section_key, opts.protectedKeys) ? s : trimSectionProse(s, cap, 1, 4)
+        isProtected(s.section_key, opts.protectedKeys)
+          ? s
+          : trimSectionProse(s, cap, 1, cap <= 32 ? 3 : 4, cap <= 40)
       );
       passes.push(`compact-${cap}`);
       current = pages();

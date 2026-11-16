@@ -28,7 +28,10 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
   if (!workspace) return NextResponse.json({ error: "Business plan not found." }, { status: 404 });
   const authorized = workspace.student_id === user.id || profile?.role === "admin" || (profile?.role === "supervisor" && workspace.supervisor_id === user.id);
   if (!authorized) return NextResponse.json({ error: "You cannot download this plan." }, { status: 403 });
-  if (workspace.workspace_type !== "business_plan") return NextResponse.json({ error: "Document export is available for business plans." }, { status: 400 });
+  const isResearch = workspace.workspace_type === "research_secondary";
+  if (workspace.workspace_type !== "business_plan" && !isResearch) {
+    return NextResponse.json({ error: "Document export is available for business plans and research projects." }, { status: 400 });
+  }
 
   const { data: rows, error } = await db.from("workspace_sections")
     .select("section_key, current_text").eq("workspace_id", workspaceId);
@@ -89,14 +92,22 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
 
   const businessModel = resolveBusinessPlanModel(businessSpecs);
   const sectionsByKey = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
-  const sections = getWorkspaceSections("business_plan", workspace.level, businessModel)
+  const sections = getWorkspaceSections(workspace.workspace_type, workspace.level, isResearch ? undefined : businessModel)
     .map((definition) => {
       let content = sectionsByKey.get(definition.key) || "";
       if (definition.key === "prelim.declaration" && isPlaceholderPreliminary(content)) {
         content = variedPrelims.declaration;
-      } else if (definition.key === "prelim.dedication" && isPlaceholderPreliminary(content)) {
+      } else if (
+        definition.key === "prelim.dedication" &&
+        ((businessSpecs?.dedicationText?.trim() && !isPlaceholderPreliminary(businessSpecs.dedicationText)) ||
+          isPlaceholderPreliminary(content))
+      ) {
         content = variedPrelims.dedication;
-      } else if (definition.key === "prelim.acknowledgements" && isPlaceholderPreliminary(content)) {
+      } else if (
+        definition.key === "prelim.acknowledgements" &&
+        ((businessSpecs?.acknowledgementsText?.trim() && !isPlaceholderPreliminary(businessSpecs.acknowledgementsText)) ||
+          isPlaceholderPreliminary(content))
+      ) {
         content = variedPrelims.acknowledgements;
       } else if (content) {
         content = content
@@ -133,9 +144,10 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
     institution: resolvedInstitution,
     supervisor: resolvedSupervisor,
     businessName: resolvedBusinessName,
-    tagline: businessSpecs?.tagline,
-    industrySector: businessSpecs?.industrySector,
-    primaryProduct: businessSpecs?.primaryProduct,
+    tagline: isResearch ? undefined : businessSpecs?.tagline,
+    industrySector: isResearch ? undefined : businessSpecs?.industrySector,
+    primaryProduct: isResearch ? undefined : businessSpecs?.primaryProduct,
+    documentKind: isResearch ? ("research" as const) : ("business_plan" as const),
     isInstitutional: businessSpecs?.isInstitutional === true,
     course: workspace.course || businessSpecs?.course || "Human Nutrition and Dietetics",
     level: workspace.level === "craft" ? "Certificate" : "Diploma",

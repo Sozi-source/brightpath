@@ -7,6 +7,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
+import https from "node:https";
 
 const INDICATORS = [
   {
@@ -187,56 +188,104 @@ const INDICATORS = [
   },
 ];
 
+function getJson(url, timeoutMs = 15000) {
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, { family: 4, timeout: timeoutMs }, (res) => {
+      if (res.statusCode && res.statusCode >= 400) {
+        res.resume();
+        return reject(new Error(`HTTP ${res.statusCode}`));
+      }
+      let raw = "";
+      res.setEncoding("utf8");
+      res.on("data", (chunk) => (raw += chunk));
+      res.on("end", () => {
+        try {
+          resolve(JSON.parse(raw));
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
+    req.on("timeout", () => {
+      req.destroy(new Error("Request timeout"));
+    });
+    req.on("error", reject);
+  });
+}
+
 async function fetchIndicator(meta) {
   const url = `https://api.worldbank.org/v2/country/KEN/indicator/${meta.wbCode}?format=json&per_page=100`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status} for ${meta.wbCode}`);
-  }
-  const json = await res.json();
-  if (!Array.isArray(json) || !Array.isArray(json[1])) {
-    throw new Error(`Unexpected response for ${meta.wbCode}`);
-  }
-  const rows = json[1]
-    .filter((r) => r && r.value !== null && r.value !== undefined && Number.isFinite(Number(r.value)))
-    .map((r) => ({
-      year: Number(r.date),
-      value: Math.round(Number(r.value) * 10) / 10,
-    }))
-    .filter((r) => r.year >= 1995)
-    .sort((a, b) => a.year - b.year);
+  let lastErr;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      const json = await getJson(url, 15000);
+      if (!Array.isArray(json) || !Array.isArray(json[1])) {
+        throw new Error(`Unexpected response for ${meta.wbCode}`);
+      }
+      const rows = json[1]
+        .filter((r) => r && r.value !== null && r.value !== undefined && Number.isFinite(Number(r.value)))
+        .map((r) => ({
+          year: Number(r.date),
+          value: Math.round(Number(r.value) * 10) / 10,
+        }))
+        .filter((r) => r.year >= 1995)
+        .sort((a, b) => a.year - b.year);
 
-  return {
-    id: meta.id,
-    wbCode: meta.wbCode,
-    label: meta.label,
-    shortLabel: meta.shortLabel,
-    unit: meta.unit,
-    domain: meta.domain,
-    definition: meta.definition,
-    sourceOrg: meta.sourceOrg,
-    sourceUrl: `https://data.worldbank.org/indicator/${meta.wbCode}?locations=KE`,
-    apiUrl: url,
-    series: rows,
-  };
+      return {
+        id: meta.id,
+        wbCode: meta.wbCode,
+        label: meta.label,
+        shortLabel: meta.shortLabel,
+        unit: meta.unit,
+        domain: meta.domain,
+        definition: meta.definition,
+        sourceOrg: meta.sourceOrg,
+        sourceUrl: `https://data.worldbank.org/indicator/${meta.wbCode}?locations=KE`,
+        apiUrl: url,
+        series: rows,
+      };
+    } catch (err) {
+      lastErr = err;
+      await new Promise((r) => setTimeout(r, 800 * attempt));
+    }
+  }
+  throw lastErr;
 }
 
 async function main() {
-  const results = [];
+  const outPath = path.resolve(process.cwd(), "src/lib/studio/researchDataSnapshot.json");
+  const existingMap = new Map();
+  if (fs.existsSync(outPath)) {
+    try {
+      const prev = JSON.parse(fs.readFileSync(outPath, "utf8"));
+      for (const item of prev.indicators || []) {
+        existingMap.set(item.id, item);
+      }
+    } catch {
+      // ignore invalid previous file
+    }
+  }
+
   for (const meta of INDICATORS) {
+    if (existingMap.has(meta.id) && (existingMap.get(meta.id).series || []).length >= 3) {
+      console.log(`Cached ${meta.id} (${meta.wbCode}): ${existingMap.get(meta.id).series.length} points`);
+      continue;
+    }
     try {
       const data = await fetchIndicator(meta);
       console.log(`Fetched ${meta.id} (${meta.wbCode}): ${data.series.length} points (${data.series[0]?.year}-${data.series[data.series.length - 1]?.year})`);
       if (data.series.length >= 3) {
-        results.push(data);
+        existingMap.set(meta.id, data);
       } else {
         console.warn(`Skipping ${meta.id}: fewer than 3 data points`);
       }
     } catch (err) {
       console.error(`Failed ${meta.id} (${meta.wbCode}):`, err.message);
     }
+    await new Promise((r) => setTimeout(r, 400));
   }
 
+  const results = INDICATORS.map((m) => existingMap.get(m.id)).filter(Boolean);
   const snapshot = {
     country: "Kenya",
     countryIso3: "KEN",
@@ -245,7 +294,6 @@ async function main() {
     indicators: results,
   };
 
-  const outPath = path.resolve(process.cwd(), "src/lib/studio/researchDataSnapshot.json");
   fs.writeFileSync(outPath, JSON.stringify(snapshot, null, 2) + "\n", "utf8");
   console.log(`\nWrote ${results.length} indicators to ${outPath}`);
 }

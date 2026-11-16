@@ -244,9 +244,10 @@ async function tryLlmBusinessPlanPolish(params: {
   guidance: string;
   context: WorkspaceContext;
 }): Promise<string | null> {
+  const groqKey = process.env.GROQ_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
   const openaiKey = process.env.OPENAI_API_KEY;
-  if (!geminiKey && !openaiKey) return null;
+  if (!groqKey && !geminiKey && !openaiKey) return null;
 
   const prompt = `You are a writing coach helping a Kenyan TVET student prepare a business plan using the supplied institutional template.
 Polish only the student's draft for clear, concise, well-organized business-plan writing.
@@ -269,13 +270,11 @@ Candidate draft:
 ${params.draftText}`;
 
   try {
-    if (geminiKey) {
-      const text = await callGeminiText(prompt, geminiKey, {
-        temperature: 0.2,
-        timeoutMs: 25000,
-      });
-      if (text?.trim()) return text.trim();
-    }
+    const primaryText = await callPrimaryLlmText(prompt, {
+      temperature: 0.2,
+      timeoutMs: 25000,
+    });
+    if (primaryText?.trim()) return primaryText.trim();
     if (openaiKey) {
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
@@ -334,10 +333,11 @@ async function tryLlmTopicNarrowing(
   query: string,
   context: WorkspaceContext
 ): Promise<TopicNarrowingResult | null> {
+  const groqKey = process.env.GROQ_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
   const openaiKey = process.env.OPENAI_API_KEY;
 
-  if (!geminiKey && !openaiKey) return null;
+  if (!groqKey && !geminiKey && !openaiKey) return null;
 
   const isBusiness = context.workspaceType === "business_plan";
   const isSecondaryResearch = context.workspaceType === "research_secondary";
@@ -389,14 +389,11 @@ Return strictly valid JSON with this shape:
 }`;
 
     try {
-      if (geminiKey) {
-        const jsonText = await callGeminiText(
-          `${businessPrompt}\n\nStudent Idea: ${query}`,
-          geminiKey,
-          { jsonMode: true, temperature: 0.3, timeoutMs: 18000 }
-        );
-        if (jsonText) return JSON.parse(jsonText);
-      }
+      const jsonText = await callPrimaryLlmText(
+        `${businessPrompt}\n\nStudent Idea: ${query}`,
+        { jsonMode: true, temperature: 0.3, timeoutMs: 18000 }
+      );
+      if (jsonText) return JSON.parse(jsonText);
       if (openaiKey) {
         const res = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
@@ -480,14 +477,11 @@ Return strictly valid JSON with this shape:
 }`;
 
   try {
-    if (geminiKey) {
-      const jsonText = await callGeminiText(
-        `${systemPrompt}\n\nStudent Idea: ${query}`,
-        geminiKey,
-        { jsonMode: true, temperature: 0.3, timeoutMs: 18000 }
-      );
-      if (jsonText) return JSON.parse(jsonText);
-    }
+    const jsonText = await callPrimaryLlmText(
+      `${systemPrompt}\n\nStudent Idea: ${query}`,
+      { jsonMode: true, temperature: 0.3, timeoutMs: 18000 }
+    );
+    if (jsonText) return JSON.parse(jsonText);
 
     if (openaiKey) {
       const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -525,6 +519,66 @@ const DEFAULT_GEMINI_MODELS = [
   "gemini-2.0-flash",
   "gemini-1.5-flash",
 ];
+
+const DEFAULT_GROQ_MODELS = [
+  "openai/gpt-oss-20b",
+  "llama-3.3-70b-versatile",
+  "llama-3.1-8b-instant",
+];
+
+async function callGroqText(
+  promptText: string,
+  apiKey: string,
+  options: { jsonMode?: boolean; temperature?: number; timeoutMs?: number } = {}
+): Promise<string | null> {
+  const configuredModel = process.env.GROQ_MODEL?.trim();
+  const models = configuredModel
+    ? [configuredModel, ...DEFAULT_GROQ_MODELS.filter((m) => m !== configuredModel)]
+    : DEFAULT_GROQ_MODELS;
+
+  for (const model of models) {
+    try {
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey.trim()}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "user", content: promptText }],
+          temperature: options.temperature ?? 0.4,
+          ...(options.jsonMode ? { response_format: { type: "json_object" } } : {}),
+        }),
+        signal: AbortSignal.timeout(options.timeoutMs ?? 25000),
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      const text = data?.choices?.[0]?.message?.content;
+      if (typeof text === "string" && text.trim()) return text.trim();
+    } catch {
+      // try next Groq model
+    }
+  }
+  return null;
+}
+
+/** Retains Groq as the primary AI provider, falling back to Gemini if unavailable. */
+async function callPrimaryLlmText(
+  promptText: string,
+  options: { jsonMode?: boolean; temperature?: number; timeoutMs?: number } = {}
+): Promise<string | null> {
+  const groqKey = process.env.GROQ_API_KEY?.trim();
+  if (groqKey) {
+    const groqResult = await callGroqText(promptText, groqKey, options);
+    if (groqResult) return groqResult;
+  }
+  const geminiKey = process.env.GEMINI_API_KEY?.trim();
+  if (geminiKey) {
+    return callGeminiText(promptText, geminiKey, options);
+  }
+  return null;
+}
 
 async function callGeminiText(
   promptText: string,
@@ -628,10 +682,11 @@ async function tryLlmSectionPolish(params: {
   context: WorkspaceContext;
   evidence: EvidenceNote[];
 }): Promise<string | null> {
+  const groqKey = process.env.GROQ_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
   const openaiKey = process.env.OPENAI_API_KEY;
 
-  if (!geminiKey && !openaiKey) return null;
+  if (!groqKey && !geminiKey && !openaiKey) return null;
 
   const { sectionKey, sectionTitle, guidance, minWords, context, evidence } = params;
   const cleanedDraft = stripDuplicateTitleHeaders(params.draftText);
@@ -686,14 +741,11 @@ SOURCE NOTES
 ${sourceNotes}`;
 
   try {
-    if (geminiKey) {
-      const text = await callGeminiText(
-        `${prompt}\n\nCandidate Draft & Context Notes:\n${cleanedDraft}`,
-        geminiKey,
-        { temperature: 0.35, timeoutMs: 25000 }
-      );
-      if (text && text.length > 50) return text;
-    }
+    const primaryText = await callPrimaryLlmText(
+      `${prompt}\n\nCandidate Draft & Context Notes:\n${cleanedDraft}`,
+      { temperature: 0.35, timeoutMs: 25000 }
+    );
+    if (primaryText && primaryText.length > 50) return primaryText;
 
     if (openaiKey) {
       const res = await fetch("https://api.openai.com/v1/chat/completions", {

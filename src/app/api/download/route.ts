@@ -155,8 +155,11 @@ export async function GET(request: NextRequest) {
       .replace(new RegExp(`\\s+in\\s+${(specs?.townOrMarket || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:,\\s*${(specs?.county || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})?$`, "i"), "")
       .trim();
 
-    const cleanBusinessTitle = rawEnterpriseName || "Enterprise Business Plan";
-    const coverTitle = `Business Plan for ${cleanBusinessTitle} in ${townOrMarket}, ${county}`;
+    const isResearch = /research/i.test(snapshot.title || project.title || "");
+    const cleanBusinessTitle = rawEnterpriseName || (isResearch ? "Research Project" : "Enterprise Business Plan");
+    const coverTitle = isResearch
+      ? cleanBusinessTitle.replace(/\s*—\s*Complete KNEC Research Project.*$/i, "").trim()
+      : `Business Plan for ${cleanBusinessTitle} in ${townOrMarket}, ${county}`;
 
     const sections = stampMarketplaceBusinessPlan(rawSections, {
       seed: `${project.id}|${sourceWorkspaceId || ""}`,
@@ -177,9 +180,10 @@ export async function GET(request: NextRequest) {
     const document = {
       title: coverTitle,
       businessName: cleanBusinessTitle,
-      tagline: specs?.tagline,
-      industrySector: specs?.industrySector,
-      primaryProduct: specs?.primaryProduct,
+      tagline: isResearch ? undefined : specs?.tagline,
+      industrySector: isResearch ? undefined : specs?.industrySector,
+      primaryProduct: isResearch ? undefined : specs?.primaryProduct,
+      documentKind: isResearch ? ("research" as const) : ("business_plan" as const),
       candidate: candidateName,
       admissionNumber,
       institution: institutionName,

@@ -15,6 +15,7 @@ import { StructuredDescription } from "@/components/ui/StructuredDescription";
 import { hasStudioAccess } from "@/lib/studio/access";
 import { DeleteDraftButton } from "../DeleteDraftButton";
 import { BusinessPlanBuilderModal } from "./BusinessPlanBuilderModal";
+import { ResearchBuilderButton } from "./ResearchBuilderButton";
 import { FinalProjectSubmissionForm } from "./FinalProjectSubmissionForm";
 import {
   CheckCircle2,
@@ -315,7 +316,7 @@ export default async function WorkspaceOverviewPage({
                   </>
                 )}
 
-                {hasPlanContent && !isUnlocked && isBusiness && (
+                {hasPlanContent && !isUnlocked && (isBusiness || workspace.workspace_type === "research_secondary") && (
                   <UnlockExportModal
                     workspaceId={workspaceId}
                     businessTitle={cleanBusinessTitle}
@@ -341,6 +342,12 @@ export default async function WorkspaceOverviewPage({
                         <span>{hasPlanContent ? "Configure & Rebuild" : "Build Business Plan"}</span>
                       </button>
                     }
+                  />
+                ) : workspace.workspace_type === "research_secondary" && (workspace.student_id === user.id || profile?.role === "admin") ? (
+                  <ResearchBuilderButton
+                    workspaceId={workspaceId}
+                    currentTitle={workspace.title}
+                    hasExistingContent={hasPlanContent}
                   />
                 ) : (
                   <Link

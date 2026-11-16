@@ -13,12 +13,13 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
   const { data: workspace, error: workspaceError } = await db.from("project_workspaces")
     .select("id, student_id, workspace_type, level, title, course, problem_area, business_plan_specs, marketplace_price_kes, final_project_status, student:student_id(full_name, admission_number), supervisor:supervisor_id(full_name), institution:institution_id(name)")
     .eq("id", workspaceId).maybeSingle();
-  if (workspaceError || !workspace) throw new Error(workspaceError?.message || "Business plan workspace not found.");
+  if (workspaceError || !workspace) throw new Error(workspaceError?.message || "Workspace not found.");
+  const isResearch = workspace.workspace_type === "research_secondary";
   if (
-    workspace.workspace_type !== "business_plan" ||
+    (workspace.workspace_type !== "business_plan" && !isResearch) ||
     (workspace.final_project_status !== "approved" && workspace.final_project_status !== "pending_review")
   ) {
-    throw new Error("Only business plans submitted for review or approved can enter marketplace review.");
+    throw new Error("Only business plans or research projects submitted for review or approved can enter marketplace review.");
   }
 
   // Under Option A: All approved work remains 100% property of the platform/system.
@@ -41,11 +42,13 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
   if (planSpecs?.isInstitutional || planSpecs?.adminOnly) {
     throw new Error("Institutional and admin-only business plans cannot be published to the marketplace.");
   }
-  const definitions = getWorkspaceSections("business_plan", workspace.level, resolveBusinessPlanModel(planSpecs));
+  const definitions = isResearch
+    ? getWorkspaceSections("research_secondary", workspace.level)
+    : getWorkspaceSections("business_plan", workspace.level, resolveBusinessPlanModel(planSpecs));
   const { data: rows, error: sectionsError } = await db.from("workspace_sections")
     .select("section_key, current_text").eq("workspace_id", workspaceId);
   if (sectionsError) throw new Error(sectionsError.message || "Could not load approved plan sections.");
-  if (planSpecs) {
+  if (!isResearch && planSpecs) {
     const conflicts = getBusinessModelConflictFindings(planSpecs, (rows || []).map((row) => ({
       key: row.section_key,
       content: row.current_text || "",
@@ -54,8 +57,9 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
   }
   const sectionText = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
   const incomplete = definitions.filter((definition) => {
+    const minReq = isResearch ? Math.min(definition.minWords || 30, 30) : (definition.minWords || 30);
     const words = (sectionText.get(definition.key) || "").trim().split(/\s+/).filter(Boolean).length;
-    return words < (definition.minWords || 30);
+    return words < minReq;
   });
   if (incomplete.length) throw new Error("The business plan no longer meets the completion requirements.");
 
@@ -128,7 +132,9 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
     .replace(/\{\{CANDIDATE_NAME\}\}/g, "")
     .replace(/\s*—\s*Complete KNEC Business Plan.*/i, "")
     .trim();
-  const listingTitle = `${baseTitle} — Complete KNEC Business Plan`;
+  const listingTitle = isResearch
+    ? `${baseTitle} — Complete KNEC Research Project`
+    : `${baseTitle} — Complete KNEC Business Plan`;
 
   const realTown = specs?.townOrMarket?.trim() || "Nairobi";
   const realCounty = specs?.county?.trim() || "Nairobi County";
@@ -158,6 +164,9 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
     .select("id, status").eq("file_path", filePath).maybeSingle();
   if (existingError) throw new Error(existingError.message || "Could not check the marketplace queue.");
 
+  const listingCategory = isResearch ? "Research Project" : "Business Plan";
+  const listingMaterialType = isResearch ? "research_secondary" : "business_plan";
+
   let projectId = existing?.id;
   let createdProject = false;
   if (existing) {
@@ -166,8 +175,8 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
       trainer_id: platformOwnerId,
       title: listingTitle,
       description: listingDescription,
-      category: "Business Plan",
-      material_type: "business_plan",
+      category: listingCategory,
+      material_type: listingMaterialType,
       price_kes: priceKes,
       status: nextListingStatus,
     }).eq("id", existing.id);
@@ -177,8 +186,8 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
       trainer_id: platformOwnerId,
       title: listingTitle,
       description: listingDescription,
-      category: "Business Plan",
-      material_type: "business_plan",
+      category: listingCategory,
+      material_type: listingMaterialType,
       price_kes: priceKes,
       file_path: filePath,
       status: "pending_review",

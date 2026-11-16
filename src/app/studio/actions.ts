@@ -7,6 +7,8 @@ import {
   getSectionStarterContent,
 } from "@/lib/studio/templates";
 import { buildCompleteBusinessPlan } from "@/lib/studio/businessPlanBuilder";
+import { buildResearchDocument } from "@/lib/studio/researchBuilder";
+import { RESEARCH_TOPIC_CATALOGUE, buildResearchSpecsFromBlueprint } from "@/lib/studio/researchTopics";
 import {
   draftBusinessPlanSections,
   reviewWholeBusinessPlan,
@@ -147,23 +149,27 @@ export async function createWorkspace(formData: FormData) {
     throw new Error("Project Studio is restricted to enrolled class students. Enter your trainer's Class Access Code first.");
   }
 
-  const institutionId = existingProfile?.institution_id || defaultInst?.id || null;
-  const supervisorId = defaultSupervisor?.id || null;
+  const isAdminMaster = existingProfile?.role === "admin";
+  const institutionId = isAdminMaster ? null : (existingProfile?.institution_id || defaultInst?.id || null);
+  const supervisorId = isAdminMaster ? null : (defaultSupervisor?.id || null);
 
-  // 1. Update student profile with academic registration info
-  const { error: profileErr } = await db
-    .from("profiles")
-    .update({
-      admission_number: admissionNumber,
-      institution_id: institutionId,
-      course,
-      level,
-    })
-    .eq("id", user.id);
+  // 1. Update student profile with academic registration info (skip for Admin Studio masters)
+  if (!isAdminMaster) {
+    const { error: profileErr } = await db
+      .from("profiles")
+      .update({
+        admission_number: admissionNumber,
+        institution_id: institutionId,
+        course,
+        level,
+      })
+      .eq("id", user.id);
 
-  if (profileErr) throw new Error(profileErr.message);
+    if (profileErr) throw new Error(profileErr.message);
+  }
 
   const ventureId = formData.get("ventureId")?.toString().trim();
+  const researchTopicId = formData.get("researchTopicId")?.toString().trim();
   const townOrMarket = formData.get("townOrMarket")?.toString().trim() || "Juja";
   const county = formData.get("county")?.toString().trim() || "Kiambu";
   const customBusinessName = formData.get("businessName")?.toString().trim();
@@ -180,14 +186,27 @@ export async function createWorkspace(formData: FormData) {
       businessPlanSpecs = {
         ...venture.defaultSpecs,
         businessName: finalTitle,
-        townOrMarket,
-        county,
-        candidateName: existingProfile?.full_name || user.email || "Candidate",
-        admissionNumber,
+        townOrMarket: isAdminMaster ? "{{TARGET_TOWN}}" : townOrMarket,
+        county: isAdminMaster ? "{{TARGET_COUNTY}}" : county,
+        candidateName: isAdminMaster ? "{{CANDIDATE_NAME}}" : (existingProfile?.full_name || user.email || "Candidate"),
+        admissionNumber: isAdminMaster ? "{{ADMISSION_NUMBER}}" : admissionNumber,
+        institutionName: isAdminMaster ? "{{INSTITUTION_NAME}}" : undefined,
+        supervisorName: isAdminMaster ? "{{SUPERVISOR_NAME}}" : undefined,
         course,
         level,
       };
     }
+  }
+
+  const researchBlueprint =
+    workspaceType === "research_secondary"
+      ? RESEARCH_TOPIC_CATALOGUE.find((t) => t.id === researchTopicId) ||
+        (finalTitle ? RESEARCH_TOPIC_CATALOGUE.find((t) => t.title.toLowerCase() === finalTitle?.toLowerCase()) : undefined)
+      : undefined;
+
+  if (researchBlueprint) {
+    finalTitle = finalTitle || researchBlueprint.title;
+    finalProblem = finalProblem || researchBlueprint.problemContext;
   }
 
   // 2. Insert new project workspace
@@ -215,8 +234,33 @@ export async function createWorkspace(formData: FormData) {
   // 3. Populate workspace sections
   const resolvedModel = workspaceType === "business_plan" ? resolveBusinessPlanModel(businessPlanSpecs as BusinessPlanSpecs | null) : undefined;
   const sectionDefs = getWorkspaceSections(workspaceType, level, resolvedModel);
+
+  const prebuiltResearchMap = new Map<string, string>();
+  if (workspaceType === "research_secondary" && researchBlueprint) {
+    const specs = buildResearchSpecsFromBlueprint(researchBlueprint, {
+      level,
+      seed: `${workspace.id}|${researchBlueprint.id}`,
+      identity: isAdminMaster
+        ? { mode: "master" }
+        : {
+            mode: "candidate",
+            candidateName: existingProfile?.full_name || user.email || "Candidate",
+            admissionNumber,
+            institutionName: "Accredited TVET Institution",
+            supervisorName: "Project Supervisor",
+            county,
+          },
+      kind: "full",
+    });
+    for (const sec of buildResearchDocument(specs, "full")) {
+      prebuiltResearchMap.set(sec.section_key, sec.content);
+    }
+  }
+
   const sectionsPayload = sectionDefs.map((def, idx) => {
-    const starterText = getSectionStarterContent(workspaceType, level, def.key, resolvedModel);
+    const starterText =
+      prebuiltResearchMap.get(def.key) ??
+      getSectionStarterContent(workspaceType, level, def.key, resolvedModel);
 
     return {
       workspace_id: workspace.id,
@@ -1631,9 +1675,13 @@ async function runCompleteBusinessPlanBuild(
   const existingByKey = new Map(
     (existingSections || []).map((s) => [s.section_key, s.current_text || ""])
   );
+  const hasUserDedication = Boolean(specs.dedicationText?.trim());
+  const hasUserAcknowledgements = Boolean(specs.acknowledgementsText?.trim());
   const pendingDefinitions = replaceExisting
     ? sectionDefinitions
     : sectionDefinitions.filter((def) => {
+        if (def.key === "prelim.dedication" && hasUserDedication) return true;
+        if (def.key === "prelim.acknowledgements" && hasUserAcknowledgements) return true;
         const currentText = existingByKey.get(def.key) || "";
         const starterText = getSectionStarterContent("business_plan", ws.level, def.key, specs.businessModel);
         return !currentText.trim() || (starterText !== "" && currentText === starterText);
@@ -2160,6 +2208,92 @@ export async function reviewBusinessPlanDocumentAction(formData: FormData) {
   };
 }
 
+export async function buildCompleteResearchProjectAction(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const workspaceId = formData.get("workspaceId")?.toString();
+  const kind = (formData.get("kind")?.toString() === "proposal" ? "proposal" : "full") as "proposal" | "full";
+  const topicId = formData.get("topicId")?.toString().trim();
+  const dedicationText = formData.get("dedicationText")?.toString().trim();
+  const acknowledgementsText = formData.get("acknowledgementsText")?.toString().trim();
+  const confirmReplace = formData.get("confirmReplace")?.toString() === "true";
+  if (!workspaceId) return { error: "Missing workspace ID." };
+
+  const db = getServerDbClient(supabase);
+  const [{ data: profile }, { data: workspace }] = await Promise.all([
+    db.from("profiles").select("role, full_name, admission_number, institution_id, institutions(name)").eq("id", user.id).maybeSingle(),
+    db.from("project_workspaces").select("id, student_id, workspace_type, level, course, title, problem_area").eq("id", workspaceId).maybeSingle(),
+  ]);
+
+  if (!workspace || (workspace.student_id !== user.id && profile?.role !== "admin")) {
+    return { error: "Workspace not found or unauthorized." };
+  }
+  if (workspace.workspace_type !== "research_secondary") {
+    return { error: "Research builder is only available for secondary-data research workspaces." };
+  }
+
+  const blueprint =
+    RESEARCH_TOPIC_CATALOGUE.find((t) => t.id === topicId) ||
+    RESEARCH_TOPIC_CATALOGUE.find((t) => t.title.toLowerCase() === (workspace.title || "").toLowerCase()) ||
+    RESEARCH_TOPIC_CATALOGUE[0];
+
+  const isAdminMaster = profile?.role === "admin";
+  const rawInst = profile?.institutions as unknown;
+  const instName =
+    (Array.isArray(rawInst) ? (rawInst[0] as { name?: string })?.name : (rawInst as { name?: string })?.name) ||
+    "Accredited TVET Institution";
+
+  const specs = buildResearchSpecsFromBlueprint(blueprint, {
+    level: workspace.level,
+    seed: `${workspace.id}|${blueprint.id}`,
+    identity: isAdminMaster
+      ? { mode: "master" }
+      : {
+          mode: "candidate",
+          candidateName: profile?.full_name || user.email || "Candidate",
+          admissionNumber: profile?.admission_number || "ADM/2026/001",
+          institutionName: instName,
+          supervisorName: "Project Supervisor",
+        },
+    kind,
+  });
+  if (workspace.title) specs.title = workspace.title;
+  if (workspace.problem_area) specs.problemContext = workspace.problem_area;
+  if (dedicationText) specs.dedicationText = dedicationText;
+  if (acknowledgementsText) specs.acknowledgementsText = acknowledgementsText;
+
+  const generated = buildResearchDocument(specs, kind);
+  const { data: existingRows } = await db
+    .from("workspace_sections")
+    .select("id, section_key, current_text")
+    .eq("workspace_id", workspaceId);
+
+  const existingByKey = new Map((existingRows || []).map((r) => [r.section_key, r]));
+  for (let i = 0; i < generated.length; i += 1) {
+    const item = generated[i];
+    const row = existingByKey.get(item.section_key);
+    if (row) {
+      const hasContent = Boolean((row.current_text || "").trim());
+      if (hasContent && !confirmReplace) continue;
+      await db.from("workspace_sections").update({ current_text: item.content }).eq("id", row.id);
+    } else {
+      await db.from("workspace_sections").insert({
+        workspace_id: workspaceId,
+        section_key: item.section_key,
+        phase: "project",
+        position: i + 1,
+        current_text: item.content,
+        status: "draft",
+      });
+    }
+  }
+
+  revalidatePath(`/studio/${workspaceId}`);
+  return { success: true as const, sectionsCount: generated.length, kind };
+}
+
 export async function publishBusinessPlanToMarketplace(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -2169,12 +2303,28 @@ export async function publishBusinessPlanToMarketplace(formData: FormData) {
   if (!workspaceId) throw new Error("Missing workspace ID.");
 
   const db = getServerDbClient(supabase);
-  const { data: workspace } = await db.from("project_workspaces")
-    .select("id, student_id, workspace_type, final_project_status")
-    .eq("id", workspaceId).maybeSingle();
-  if (!workspace || workspace.student_id !== user.id) throw new Error("This business plan is not yours.");
-  if (workspace.workspace_type !== "business_plan") throw new Error("Only business plans can be submitted from this workspace.");
-  if (workspace.final_project_status !== "approved") throw new Error("A supervisor must approve the complete project before marketplace publication.");
+  const [{ data: profile }, { data: workspace }] = await Promise.all([
+    db.from("profiles").select("role").eq("id", user.id).maybeSingle(),
+    db.from("project_workspaces")
+      .select("id, student_id, workspace_type, final_project_status")
+      .eq("id", workspaceId).maybeSingle(),
+  ]);
+  const isAdmin = profile?.role === "admin";
+  if (!workspace || (workspace.student_id !== user.id && !isAdmin)) throw new Error("This project is not yours.");
+  if (workspace.workspace_type !== "business_plan" && workspace.workspace_type !== "research_secondary") {
+    throw new Error("Only business plans and secondary-data research projects can be submitted from this workspace.");
+  }
+  if (workspace.final_project_status !== "approved") {
+    if (isAdmin) {
+      await db.from("project_workspaces").update({
+        status: "approved",
+        final_project_status: "approved",
+        final_project_approved_at: new Date().toISOString(),
+      }).eq("id", workspaceId);
+    } else {
+      throw new Error("A supervisor must approve the complete project before marketplace publication.");
+    }
+  }
 
   await queueApprovedBusinessPlanListing(workspaceId);
 
