@@ -13,6 +13,7 @@ import {
   buildVariedBrandSymbolismBlock,
 } from "./businessPlanPreliminaries";
 import { getWorkspaceSections } from "./templates";
+import { fitToPageBudget } from "./pageBudget";
 
 export interface GeneratedSectionPayload {
   section_key: string;
@@ -305,7 +306,21 @@ The final institutional feasibility file must attach dated regulatory approval l
   return sections;
 }
 
+/**
+ * Builds the complete plan and fits it to the level's page budget
+ * (Certificate: 30 pages, limit 35; Diploma: 42 pages, limit 45) with minimal bold.
+ */
 export function buildCompleteBusinessPlan(rawSpecs: Partial<BusinessPlanSpecs>): GeneratedSectionPayload[] {
+  const raw = buildCompleteBusinessPlanRaw(rawSpecs);
+  const level = normalizeBusinessPlanSpecs(rawSpecs).level;
+  return fitToPageBudget(raw, level, {
+    protectedKeys: [/^prelim\./, "references", /^ch5\.(cashflow|income|balance|startup|breakeven|ratios)$/],
+    optionalKeys: ["app.invoices", "app.workplan"],
+    boilerplateAnchorKey: "ch5.assumptions",
+  }).sections;
+}
+
+function buildCompleteBusinessPlanRaw(rawSpecs: Partial<BusinessPlanSpecs>): GeneratedSectionPayload[] {
   const specs = normalizeBusinessPlanSpecs(rawSpecs);
   if (specs.isInstitutional === true) return buildInstitutionalCoursePlan(specs);
   const fin = computeBusinessPlanFinancials(specs);

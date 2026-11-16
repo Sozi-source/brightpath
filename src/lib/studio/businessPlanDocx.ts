@@ -135,7 +135,9 @@ function inlineRuns(
     .replace(/<\/?(?:strong|b)>/gi, "**")
     .replace(/<\/?(?:em|i)>/gi, "*");
 
-  if (!normalized.startsWith("**")) {
+  // Bold is used sparingly: only where the source text marks it explicitly.
+  // Plain "Label: value" lines are no longer auto-bolded.
+  if (autoBoldLeadLabel && !normalized.startsWith("**")) {
     const labelMatch = normalized.match(/^([A-Za-z0-9][A-Za-z0-9\s/&(),.\-–]{1,36}):\s+(.+)$/);
     if (labelMatch) {
       normalized = `**${labelMatch[1]}:** ${labelMatch[2]}`;
@@ -810,6 +812,23 @@ function buildNumberingXml(maxOrderedNumId: number): string {
 export function computeBusinessPlanTocEntries(
   rawSections: BusinessPlanDocxSection[]
 ): TocComputedEntry[] {
+  return computeBusinessPlanLayout(rawSections).entries;
+}
+
+export interface BusinessPlanLayoutEstimate {
+  entries: TocComputedEntry[];
+  /** Roman-numbered front-matter pages (cover counts as 1). */
+  prelimPages: number;
+  /** Arabic-numbered body pages (Chapter 1 onward, incl. references/appendices). */
+  mainPages: number;
+  /** Front matter plus body. */
+  totalPages: number;
+}
+
+/** Layout simulation shared by the TOC and the page-budget checks. */
+export function computeBusinessPlanLayout(
+  rawSections: BusinessPlanDocxSection[]
+): BusinessPlanLayoutEstimate {
   const sections = orderSections(rawSections);
   const tracker: PageLayoutTracker = {
     isMainBody: false,
@@ -873,7 +892,14 @@ export function computeBusinessPlanTocEntries(
     previousGroup = group;
   }
 
-  return tracker.tocEntries;
+  const prelimPages = Math.max(1, tracker.prelimPage);
+  const mainPages = hasMainSection ? tracker.mainPage : 0;
+  return {
+    entries: tracker.tocEntries,
+    prelimPages,
+    mainPages,
+    totalPages: prelimPages + mainPages,
+  };
 }
 
 export function createBusinessPlanDocx(params: {
