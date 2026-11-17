@@ -14,13 +14,13 @@ export interface AdminInstitutionalPlanRow {
 export function AdminInstitutionalPlans({ plans }: { plans: AdminInstitutionalPlanRow[] }) {
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50/60 p-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/70 p-3">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-11 w-16 items-center justify-center rounded-lg border border-blue-200 bg-white p-1">
+          <div className="flex h-11 w-16 items-center justify-center rounded-lg border border-slate-200 bg-white p-1">
             <Image src="/branding/icmhs-logo.webp" alt="ICMHS" width={64} height={44} className="max-h-full max-w-full object-contain" />
           </div>
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-blue-200">
-            <ShieldCheck className="h-4 w-4 text-blue-700" />
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-slate-200">
+            <ShieldCheck className="h-4 w-4 text-[#092B68]" />
           </span>
           <div>
             <p className="text-xs font-semibold text-slate-900">Internal feasibility workspace</p>
@@ -28,7 +28,7 @@ export function AdminInstitutionalPlans({ plans }: { plans: AdminInstitutionalPl
           </div>
         </div>
         <form action={createIcmhsInstitutionalPlan}>
-          <button type="submit" className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700">
+          <button type="submit" className="inline-flex items-center gap-1.5 rounded-lg bg-[#092B68] px-3 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#07204f] transition-colors cursor-pointer">
             <Plus className="h-3.5 w-3.5" /> New ICMHS plan
           </button>
         </form>
@@ -49,11 +49,11 @@ export function AdminInstitutionalPlans({ plans }: { plans: AdminInstitutionalPl
               {plans.map((plan) => (
                 <tr key={plan.id} className="hover:bg-slate-50/60">
                   <td className="px-3 py-2.5 font-semibold text-slate-900">{plan.title || "ICMHS institutional plan"}</td>
-                  <td className="px-3 py-2.5"><span className="rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-800">{plan.final_project_status || plan.status || "Draft"}</span></td>
+                  <td className="px-3 py-2.5"><span className="rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700">{plan.final_project_status || plan.status || "Draft"}</span></td>
                   <td className="px-3 py-2.5 font-mono text-[11px] text-slate-500">{new Date(plan.updated_at).toLocaleDateString()}</td>
                   <td className="px-3 py-2.5 text-right whitespace-nowrap">
                     <Link href={`/studio/${plan.id}`} className="mr-2 inline-flex items-center rounded-md border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50">Open</Link>
-                    <Link href={`/api/studio/${plan.id}/export?format=docx`} className="inline-flex items-center rounded-md bg-indigo-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-indigo-700">Download DOCX</Link>
+                    <Link href={`/api/studio/${plan.id}/export?format=docx`} className="inline-flex items-center rounded-md bg-[#092B68] px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-[#07204f] transition-colors">Download DOCX</Link>
                   </td>
                 </tr>
               ))}

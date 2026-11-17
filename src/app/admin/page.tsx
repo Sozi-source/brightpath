@@ -1,8 +1,6 @@
 import { connection } from "next/server";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import {
-  approveTrainer,
   purgePendingOrdersAction,
   deletePendingOrderAction,
 } from "./actions";
@@ -14,7 +12,6 @@ import {
   Layers,
   AlertCircle,
   Coins,
-  ShieldCheck,
 } from "lucide-react";
 import type {
   Project,
@@ -22,7 +19,6 @@ import type {
   ContentReport,
 } from "@/types/database";
 import { AdminProjectsManager } from "@/components/admin/AdminProjectsManager";
-import { AdminInstitutionalPlans, type AdminInstitutionalPlanRow } from "@/components/admin/AdminInstitutionalPlans";
 
 export default async function AdminPage() {
   await connection();
@@ -48,30 +44,20 @@ export default async function AdminPage() {
   // Fetch admin dashboard data in parallel
   const [
     { count: studentCountRaw },
-    { count: adminCountRaw },
     { data: allProjects },
     { data: allOrders },
     { data: allReports },
-    { data: institutionalWorkspaces },
-    { data: pendingTrainerProfiles },
   ] = await Promise.all([
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "student"),
-    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "admin"),
     supabase.from("projects").select("*, profiles:trainer_id(full_name)").order("created_at", { ascending: false }),
     supabase.from("orders").select("*").order("created_at", { ascending: false }),
     supabase.from("reports").select("*").order("created_at", { ascending: false }),
-    supabase.from("project_workspaces").select("id, title, status, final_project_status, updated_at, workspace_type, business_plan_specs").eq("workspace_type", "business_plan").order("updated_at", { ascending: false }),
-    supabase.from("trainer_profiles").select("user_id, status, profiles(full_name)").eq("status", "pending"),
   ]);
 
-  const adminCount = adminCountRaw || 0;
   const studentCount = studentCountRaw || 0;
   const projectsList: Project[] = (allProjects as unknown as Project[]) || [];
   const ordersList: Order[] = (allOrders as unknown as Order[]) || [];
   const reportsList: ContentReport[] = (allReports as unknown as ContentReport[]) || [];
-  const institutionalPlans: AdminInstitutionalPlanRow[] = ((institutionalWorkspaces || []) as Array<AdminInstitutionalPlanRow & { workspace_type?: string; business_plan_specs?: { isInstitutional?: boolean } | null }>)
-    .filter((workspace) => workspace.business_plan_specs?.isInstitutional === true)
-    .map(({ id, title, status, final_project_status, updated_at }) => ({ id, title, status, final_project_status, updated_at }));
 
   const pendingProjects = projectsList.filter((p) => p.status === "pending_review");
 
@@ -160,39 +146,6 @@ export default async function AdminPage() {
           <AdminProjectsManager
             projects={projectsList}
           />
-        </ContentCard>
-      </div>
-
-      <div id="institutional-plans" className="scroll-mt-20">
-        <ContentCard
-          title="Institutional Plans"
-          subtitle="ICMHS feasibility workspaces"
-          icon={ShieldCheck}
-          compact
-          headerRight={<span className="text-[11px] font-semibold rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-blue-800">Admin only</span>}
-        >
-          <AdminInstitutionalPlans plans={institutionalPlans} />
-        </ContentCard>
-      </div>
-
-      <div id="trainer-approvals" className="scroll-mt-20">
-        <ContentCard
-          title="Trainer approvals"
-          subtitle="Review access requests before enabling trainer tools"
-          icon={ShieldCheck}
-          compact
-          headerRight={<span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">{pendingTrainerProfiles?.length || 0} Pending</span>}
-        >
-          {!pendingTrainerProfiles?.length ? (
-            <p className="text-xs text-slate-500">No trainer applications are waiting for review.</p>
-          ) : (
-            <div className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white">
-              {pendingTrainerProfiles.map((trainer) => {
-                const trainerProfile = trainer.profiles as unknown as { full_name?: string | null } | null;
-                return <div key={trainer.user_id} className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-semibold text-slate-900">{trainerProfile?.full_name || "Unnamed applicant"}</p><p className="text-xs text-slate-500">Trainer access request</p></div><form action={approveTrainer}><input type="hidden" name="userId" value={trainer.user_id} /><button type="submit" className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-xs hover:bg-emerald-700">Approve trainer</button></form></div>;
-              })}
-            </div>
-          )}
         </ContentCard>
       </div>
 
