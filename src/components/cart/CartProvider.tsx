@@ -60,16 +60,30 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }
 
   function addItem(item: CartItem) {
-    if (items.some((existing) => existing.id === item.id)) {
-      setIsOpen(true);
-      return;
-    }
-    persist([...items, item]);
-    setIsOpen(true);
+    setItems((prev) => {
+      if (prev.some((existing) => existing.id === item.id)) {
+        return prev;
+      }
+      const next = [...prev, item];
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // Ignore storage errors
+      }
+      return next;
+    });
   }
 
   function removeItem(id: string) {
-    persist(items.filter((item) => item.id !== id));
+    setItems((prev) => {
+      const next = prev.filter((item) => item.id !== id);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // Ignore storage errors
+      }
+      return next;
+    });
   }
 
   function clearCart() {

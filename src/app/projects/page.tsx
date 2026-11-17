@@ -3,7 +3,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
-import { Download, Search, Layers } from "lucide-react";
+import { Search, Layers } from "lucide-react";
 import type { Project, UserProfile } from "@/types/database";
 import { MarketplaceProjectCard } from "./MarketplaceProjectCard";
 import { getMaterialTypeLabel } from "@/lib/marketplace";
@@ -154,7 +154,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
           <label htmlFor="marketplace-sort" className="sr-only">Sort materials</label>
           <select id="marketplace-sort" name="sort" defaultValue={sort} className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-xs font-medium text-slate-800"><option value="newest">Latest</option><option value="rating">Top rated</option><option value="downloads">Most downloaded</option><option value="price_low">Price: low to high</option><option value="price_high">Price: high to low</option></select>
           <button className="h-10 bp-btn-primary px-5 text-sm cursor-pointer whitespace-nowrap">Search</button>
-          {isPublisher ? <Link href="/admin" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 whitespace-nowrap"><Layers className="h-4 w-4 text-[#092B68]" />Admin</Link> : <Link href="/library" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 whitespace-nowrap"><Download className="h-4 w-4 text-[#092B68]" />My Library</Link>}
+          {isPublisher && <Link href="/admin" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 whitespace-nowrap"><Layers className="h-4 w-4 text-[#092B68]" />Admin</Link>}
         </form>
 
         {/* Quick-Filter Category Pills */}

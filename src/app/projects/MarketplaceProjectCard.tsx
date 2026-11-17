@@ -172,9 +172,9 @@ export function MarketplaceProjectCard({
           </Link>
         </div>
 
-        {/* Zone 3: Footer (Pricing + Single Clear CTA) */}
-        <div className="mt-4 pt-3.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
-          <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+        {/* Zone 3: Footer (Symmetrical Pricing + Equal-Width Action Buttons) */}
+        <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-2.5">
+          <div className="flex min-h-[26px] flex-wrap items-center justify-between gap-1.5">
             <AmazonPrice
               amount={project.price_kes}
               originalAmount={project.original_price_kes}
@@ -186,19 +186,23 @@ export function MarketplaceProjectCard({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1.5">
+          <div
+            className={`grid gap-2 ${
+              viewerId === project.trainer_id ? "grid-cols-1" : "grid-cols-2"
+            }`}
+          >
             <AddToCartButton
               projectId={project.id}
               title={project.title}
               priceKes={Number(project.price_kes || 0)}
               materialType={project.material_type}
               disabled={viewerId === project.trainer_id}
-              className="px-2.5 py-1.5 text-[11px] h-8"
+              className="w-full min-w-0 px-2 py-1.5 text-[11px] h-8 gap-1"
             />
             <BuyButton
               projectId={project.id}
               isOwner={viewerId === project.trainer_id}
-              className="px-3 py-1.5 text-xs h-8"
+              className="w-full min-w-0 px-2 py-1.5 text-[11px] h-8 gap-1"
             />
           </div>
         </div>
