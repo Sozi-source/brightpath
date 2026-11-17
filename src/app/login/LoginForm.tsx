@@ -35,6 +35,17 @@ export function LoginForm({ error, message, redirectUrl }: LoginFormProps) {
           <div><label htmlFor="password" className="mb-1 block text-xs font-semibold text-slate-700">Password</label><input id="password" name="password" type="password" autoComplete="current-password" required className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-100" /></div>
           <button type="submit" className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white shadow-xs transition hover:bg-indigo-700">Sign in <ArrowRight className="h-4 w-4" /></button>
         </form>
+        <p className="text-center text-[11px] text-slate-500">
+          By continuing, you agree to our{" "}
+          <Link href="/terms" className="font-semibold text-slate-700 hover:text-[#087f8c] underline">
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="font-semibold text-slate-700 hover:text-[#087f8c] underline">
+            Privacy Policy
+          </Link>
+          .
+        </p>
         <div className="border-t border-slate-100 pt-4 text-center text-xs text-slate-600"><span>New here?</span><div className="mt-2 flex items-center justify-center gap-3 font-semibold"><Link href="/signup" className="text-indigo-700 hover:text-indigo-900">Create student account</Link><span className="text-slate-300">|</span><Link href="/signup/faculty" className="text-emerald-700 hover:text-emerald-900">Apply as trainer</Link></div></div>
       </div>
       <div className="flex items-center justify-center gap-1.5 border-t border-slate-100 bg-slate-50 px-6 py-3 text-[11px] text-slate-500"><ShieldCheck className="h-3.5 w-3.5 text-indigo-600" /><span>Secure email sign-in</span></div>

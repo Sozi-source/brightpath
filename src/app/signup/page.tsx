@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { signup } from "@/app/(auth)/actions";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
 
 interface SignupPageProps {
@@ -14,22 +15,9 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
   return (
     <main className="flex h-dvh min-h-dvh flex-col items-center justify-start overflow-hidden bg-[#f4f7fb] px-4 pb-4 pt-4 sm:pt-8 lg:justify-center lg:py-8">
       {/* Institutional Brand Header */}
-      <div className="mb-4 text-center space-y-2">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2.5 font-semibold text-xl text-slate-900 tracking-tight"
-        >
-          <div className="h-10 w-10 rounded-xl bg-[#087f8c] flex items-center justify-center text-white font-bold text-base shadow-xs">
-            <span className="text-amber-300">T</span>H
-          </div>
-          <div className="text-left">
-            <span className="block font-semibold text-base sm:text-lg text-slate-900 leading-tight">
-              TVET Hub
-            </span>
-            <span className="block text-[10px] font-medium text-[#087f8c] tracking-wider">
-              Simple · Reliable · Innovative
-            </span>
-          </div>
+      <div className="mb-4 text-center">
+        <Link href="/" className="inline-flex items-center justify-center">
+          <BrandLogo size="md" />
         </Link>
       </div>
 
@@ -146,6 +134,18 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
               <ArrowRight className="h-4 w-4" />
             </button>
           </form>
+
+          <p className="text-center text-[11px] text-slate-500">
+            By continuing, you agree to our{" "}
+            <Link href="/terms" className="font-semibold text-slate-700 hover:text-[#087f8c] underline">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="font-semibold text-slate-700 hover:text-[#087f8c] underline">
+              Privacy Policy
+            </Link>
+            .
+          </p>
 
           <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
               <span>Already have an account?</span>

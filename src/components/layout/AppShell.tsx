@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { logout } from "@/app/(auth)/actions";
 import { DeleteDraftButton } from "@/app/studio/DeleteDraftButton";
 import { BrandIcon, type BrandIconName } from "@/components/ui/BrandIcon";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import {
   LayoutGrid,
   Home,
@@ -212,18 +213,8 @@ export function AppShell({
           </div>
 
           {/* Official Portal Branding */}
-          <Link href="/" className="flex min-w-0 items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-[#087f8c] flex items-center justify-center text-white font-semibold text-sm shadow-xs">
-              <span className="text-amber-300">T</span>H
-            </div>
-            <div className="flex min-w-0 flex-col">
-              <span className="truncate font-semibold text-sm sm:text-lg text-slate-900 tracking-tight leading-none">
-                TVET Hub
-              </span>
-              <span className="hidden text-[10px] font-medium text-[#087f8c] tracking-wider sm:block">
-                Simple · Reliable · Innovative
-              </span>
-            </div>
+          <Link href="/" className="flex min-w-0 items-center">
+            <BrandLogo size="sm" />
           </Link>
         </div>
 

@@ -36,6 +36,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  icons: {
+    icon: "/logo/TVETHub_320px.svg",
+  },
   openGraph: {
     type: "website",
     locale: "en_KE",
