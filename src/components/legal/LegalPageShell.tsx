@@ -43,7 +43,7 @@ export function LegalPageShell({
             </Link>
             <Link
               href="/login"
-              className="rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-700 transition-colors"
+              className="rounded-lg bg-[#092B68] px-3 py-1.5 text-white hover:bg-[#07204f] transition-colors"
             >
               Sign In
             </Link>
@@ -64,13 +64,13 @@ export function LegalPageShell({
 
         <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
           <div className="flex h-1.5 w-full">
-            <div className="h-full w-3/5 bg-blue-700" />
-            <div className="h-full w-2/5 bg-amber-500" />
+            <div className="h-full w-3/5 bg-[#092B68]" />
+            <div className="h-full w-2/5 bg-[#F5A000]" />
           </div>
 
           <div className="p-6 sm:p-8 space-y-6">
             <header className="border-b border-slate-100 pb-5 space-y-2">
-              <span className="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-800">
+              <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-[#092B68]">
                 {badge}
               </span>
               <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">

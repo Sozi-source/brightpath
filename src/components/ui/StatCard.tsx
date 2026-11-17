@@ -12,12 +12,12 @@ interface StatCardProps {
 }
 
 const colorVariants: Record<StatCardColor, { iconBg: string; iconColor: string; accent: string }> = {
-  indigo: { iconBg: "bg-teal-50", iconColor: "text-teal-700", accent: "bg-teal-600" },
-  emerald: { iconBg: "bg-emerald-50", iconColor: "text-emerald-700", accent: "bg-emerald-600" },
+  indigo: { iconBg: "bg-slate-100", iconColor: "text-[#092B68]", accent: "bg-[#092B68]" },
+  emerald: { iconBg: "bg-slate-100", iconColor: "text-[#092B68]", accent: "bg-[#092B68]" },
   rose: { iconBg: "bg-rose-50", iconColor: "text-rose-700", accent: "bg-rose-600" },
-  amber: { iconBg: "bg-amber-50", iconColor: "text-amber-700", accent: "bg-amber-500" },
-  blue: { iconBg: "bg-sky-50", iconColor: "text-sky-700", accent: "bg-sky-600" },
-  purple: { iconBg: "bg-violet-50", iconColor: "text-violet-700", accent: "bg-violet-600" },
+  amber: { iconBg: "bg-amber-50", iconColor: "text-amber-700", accent: "bg-[#F5A000]" },
+  blue: { iconBg: "bg-slate-100", iconColor: "text-[#092B68]", accent: "bg-[#092B68]" },
+  purple: { iconBg: "bg-slate-100", iconColor: "text-[#092B68]", accent: "bg-[#092B68]" },
 };
 
 export function StatCard({ label, value, icon: Icon, color = "indigo", className = "", subtext }: StatCardProps) {

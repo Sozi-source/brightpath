@@ -220,8 +220,8 @@ export function AppShell({
 
         {/* Top Right User & Examination Series Context */}
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-4">
-          <div className="hidden lg:flex items-center gap-2 bg-teal-50/80 px-3 py-1 rounded-md border border-teal-200/70 text-xs font-semibold text-slate-900">
-            <Calendar className="h-3.5 w-3.5 text-[#087f8c]" />
+          <div className="hidden lg:flex items-center gap-2 bg-slate-100/80 px-3 py-1 rounded-md border border-slate-200 text-xs font-semibold text-slate-800">
+            <Calendar className="h-3.5 w-3.5 text-[#092B68]" />
             <span>KNEC 2026 Academic Series</span>
           </div>
 
@@ -249,7 +249,7 @@ export function AppShell({
           ) : (
             <Link
               href="/login"
-              className="whitespace-nowrap shrink-0 text-xs font-semibold px-4 py-2 rounded-lg bg-[#087f8c] hover:bg-[#066570] text-white transition-colors"
+              className="whitespace-nowrap shrink-0 text-xs font-semibold px-4 py-2 rounded-lg bg-[#092B68] hover:bg-[#07204f] text-white transition-colors"
             >
               Sign In
             </Link>
@@ -266,13 +266,16 @@ export function AppShell({
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          {/* Signature KEC Two-Tone Accent Stripe */}
-          <div className="h-1 w-full shrink-0 bg-gradient-to-r from-[#087f8c] via-teal-500 to-amber-400" />
+          {/* Signature Two-Tone Brand Accent Stripe */}
+          <div className="h-1 w-full shrink-0 flex">
+            <div className="w-[60%] bg-[#092B68]" />
+            <div className="w-[40%] bg-[#F5A000]" />
+          </div>
 
           {/* Continuous Identity & Role Header (Always unified across Admin, Staff, and Students) */}
           <div className="shrink-0 border-b border-slate-200/80 bg-slate-50/70 px-3.5 py-3">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-xs font-semibold text-[#087f8c] border border-teal-200/80">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs font-semibold text-[#092B68] border border-slate-200">
                 {userInitials}
               </div>
               <div className="min-w-0 flex-1">
@@ -283,14 +286,14 @@ export function AppShell({
                 </div>
                 <div className="mt-0.5 flex items-center gap-1.5">
                   <span
-                    className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wider ${
+                    className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wider border ${
                       isRoleAdmin
-                        ? "bg-teal-100/80 text-teal-900"
+                        ? "bg-slate-100 text-[#092B68] border-slate-200"
                         : isRoleSupervisor
-                        ? "bg-blue-100/80 text-blue-800"
+                        ? "bg-slate-100 text-[#092B68] border-slate-200"
                         : canAccessStudio
-                        ? "bg-emerald-100/80 text-emerald-800"
-                        : "bg-amber-100/80 text-amber-800"
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                        : "bg-amber-50 text-amber-800 border-amber-200"
                     }`}
                   >
                     {isRoleSupervisor ? (
@@ -331,15 +334,15 @@ export function AppShell({
                     aria-current={isActive ? "page" : undefined}
                     className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] transition-all ${
                       isActive
-                        ? "bg-[#087f8c] text-white font-semibold shadow-xs"
+                        ? "bg-[#092B68] text-white font-semibold shadow-xs"
                         : "font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900"
                     }`}
                   >
-                    <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-white" : item.iconColor}`} />
+                    <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-white" : "text-slate-500"}`} />
                     <span className="truncate">{item.label}</span>
                     <ChevronRight
                       className={`ml-auto h-3.5 w-3.5 shrink-0 ${
-                        isActive ? "text-teal-100" : "text-slate-400"
+                        isActive ? "text-blue-200" : "text-slate-400"
                       }`}
                     />
                   </Link>
@@ -361,21 +364,21 @@ export function AppShell({
                     aria-current={pathname.startsWith("/supervisor") ? "page" : undefined}
                     className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-[13px] transition-all ${
                       pathname.startsWith("/supervisor")
-                        ? "bg-[#087f8c] text-white font-semibold shadow-xs"
+                        ? "bg-[#092B68] text-white font-semibold shadow-xs"
                         : "font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900"
                     }`}
                   >
                     <div className="flex min-w-0 items-center gap-2.5">
                       <ShieldCheck
                         className={`h-4 w-4 shrink-0 ${
-                          pathname.startsWith("/supervisor") ? "text-white" : "text-blue-600"
+                          pathname.startsWith("/supervisor") ? "text-white" : "text-slate-500"
                         }`}
                       />
                       <span className="truncate">Supervisor Portal</span>
                     </div>
                     <ChevronRight
                       className={`h-3.5 w-3.5 shrink-0 ${
-                        pathname.startsWith("/supervisor") ? "text-teal-100" : "text-slate-400"
+                        pathname.startsWith("/supervisor") ? "text-blue-200" : "text-slate-400"
                       }`}
                     />
                   </Link>
@@ -387,21 +390,21 @@ export function AppShell({
                       aria-current={pathname === "/admin" ? "page" : undefined}
                       className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-[13px] transition-all ${
                         pathname === "/admin"
-                          ? "bg-[#087f8c] text-white font-semibold shadow-xs"
+                          ? "bg-[#092B68] text-white font-semibold shadow-xs"
                           : "font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900"
                       }`}
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
                         <Settings
                           className={`h-4 w-4 shrink-0 ${
-                            pathname === "/admin" ? "text-white" : "text-teal-600"
+                            pathname === "/admin" ? "text-white" : "text-slate-500"
                           }`}
                         />
                         <span className="truncate">Admin Console</span>
                       </div>
                       <ChevronRight
                         className={`h-3.5 w-3.5 shrink-0 ${
-                          pathname === "/admin" ? "text-teal-100" : "text-slate-400"
+                          pathname === "/admin" ? "text-blue-200" : "text-slate-400"
                         }`}
                       />
                     </Link>

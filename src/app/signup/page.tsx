@@ -22,10 +22,10 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
       </div>
 
       <div className="w-full max-w-md bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-        {/* Two-Tone KEC Accent Stripe */}
+        {/* Two-Tone TVETHub Accent Stripe */}
         <div className="h-1.5 w-full flex">
-          <div className="h-full w-3/5 bg-blue-700" />
-          <div className="h-full w-2/5 bg-amber-500" />
+          <div className="h-full w-3/5 bg-[#092B68]" />
+          <div className="h-full w-2/5 bg-[#F5A000]" />
         </div>
 
         <div className="p-7 sm:p-8 space-y-6">
@@ -128,7 +128,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
 
             <button
               type="submit"
-              className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 text-xs sm:text-sm font-semibold transition-colors shadow-xs cursor-pointer"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#092B68] hover:bg-[#07204f] text-white py-2.5 text-xs sm:text-sm font-semibold transition-colors shadow-xs cursor-pointer"
             >
               <span>Register Candidate</span>
               <ArrowRight className="h-4 w-4" />
@@ -149,14 +149,14 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
 
           <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
               <span>Already have an account?</span>
-            <Link href="/login" className="font-semibold text-indigo-600 hover:underline">Sign in</Link>
+            <Link href="/login" className="font-semibold text-[#092B68] hover:underline">Sign in</Link>
           </div>
-          <div className="text-center text-xs text-slate-600">Are you a trainer? <Link href="/signup/faculty" className="font-semibold text-emerald-700 hover:underline">Apply for trainer access</Link></div>
+          <div className="text-center text-xs text-slate-600">Are you a trainer? <Link href="/signup/faculty" className="font-semibold text-[#092B68] hover:underline">Apply for trainer access</Link></div>
         </div>
 
         {/* Security Footer */}
         <div className="bg-slate-50 px-6 py-3 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-500">
-          <ShieldCheck className="h-3.5 w-3.5 text-indigo-600" />
+          <ShieldCheck className="h-3.5 w-3.5 text-[#092B68]" />
           <span>Encrypted Session • TVET Examination Standards Compliant</span>
         </div>
       </div>

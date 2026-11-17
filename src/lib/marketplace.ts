@@ -19,6 +19,33 @@ export function isMarketplaceMaterialType(value: string): value is MarketplaceMa
   return MARKETPLACE_MATERIAL_TYPES.some((item) => item.value === value);
 }
 
+const LOWERCASE_TITLE_WORDS = new Set([
+  "a", "an", "and", "as", "at", "by", "for", "from", "in", "into", "of", "on", "or", "the", "to", "with",
+]);
+
+const ACRONYM_WORDS = new Set([
+  "HIV", "AIDS", "WHO", "KDHS", "IYCF", "KNEC", "TVET", "KES", "WASH", "UNICEF", "MOH", "KNBS", "BMI",
+]);
+
+function normalizeAllCapsTitle(title: string): string {
+  const lettersOnly = title.replace(/[^A-Za-z]/g, "");
+  if (lettersOnly.length < 4 || lettersOnly !== lettersOnly.toUpperCase()) {
+    return title;
+  }
+  const words = title.split(/\s+/);
+  return words
+    .map((word, idx) => {
+      const upper = word.toUpperCase();
+      if (ACRONYM_WORDS.has(upper)) return upper;
+      const lower = word.toLowerCase();
+      if (idx > 0 && idx < words.length - 1 && LOWERCASE_TITLE_WORDS.has(lower)) {
+        return lower;
+      }
+      return lower.replace(/^([a-z])/, (ch) => ch.toUpperCase());
+    })
+    .join(" ");
+}
+
 /**
  * Extracts the exact, clean business or document title from raw marketplace titles,
  * purging verbose prefixes ("Business Plan for"), regional/county placeholders
@@ -65,10 +92,10 @@ export function getExactBusinessTitle(rawTitle: string | null | undefined): stri
   // Strip trailing County or rogue location commas
   title = title.replace(/,\s*[A-Za-z0-9'.-]+(?:\s+[A-Za-z0-9'.-]+)?\s+County$/i, "");
 
-  // 5. Clean trailing/leading punctuation
+  // 5. Clean trailing/leading punctuation and normalize ALL-CAPS titles
   title = title.replace(/^[\s—–.:,-]+|[\s—–.:,-]+$/g, "").trim();
 
-  return title || rawTitle.trim();
+  return normalizeAllCapsTitle(title || rawTitle.trim());
 }
 
 /**

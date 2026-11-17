@@ -179,8 +179,8 @@ export function AdminProjectsManager({
                             className="object-cover"
                           />
                         ) : (
-                          <div className="relative h-full w-full bg-gradient-to-br from-sky-500 via-blue-600 to-cyan-800 flex items-center justify-center text-white">
-                            <div className="absolute inset-0.5 rounded-[2px] border border-white/25 pointer-events-none" />
+                          <div className="relative h-full w-full bg-gradient-to-br from-[#092B68] to-[#133b82] flex items-center justify-center text-white">
+                            <div className="absolute inset-0.5 rounded-[2px] border border-[#F5A000]/35 pointer-events-none" />
                             <BookOpen className="h-3.5 w-3.5 text-white/95 drop-shadow-2xs" />
                           </div>
                         )}
@@ -202,15 +202,15 @@ export function AdminProjectsManager({
                         </span>
                       </div>
                       {(isWorkspaceExport || p.material_type !== "business_plan") && (
-                        <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-500">
+                        <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-600">
                           {p.material_type !== "business_plan" && (
-                            <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-indigo-700 font-medium border border-indigo-100">
+                            <span className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-700 font-medium border border-slate-200">
                               {getMaterialTypeLabel(p.material_type)}
                             </span>
                           )}
                           {isWorkspaceExport && (
-                            <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-emerald-700 font-medium border border-emerald-100">
-                              KNEC 47 Sections
+                            <span className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-700 font-medium border border-slate-200">
+                              {p.material_type === "research_project" ? "Full Manuscript" : "KNEC 47 Sections"}
                             </span>
                           )}
                         </div>
@@ -285,8 +285,8 @@ export function AdminProjectsManager({
                         {isWorkspaceExport && (
                           <Link
                             href={`/supervisor/${p.file_path.replace("workspace-export:", "")}`}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors"
-                            title="Inspect full 47-section workspace in Supervisor Review"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold bg-white text-[#092B68] border border-slate-300 hover:bg-slate-50 transition-colors"
+                            title="Inspect full workspace in Supervisor Review"
                           >
                             <span>Review</span>
                           </Link>
