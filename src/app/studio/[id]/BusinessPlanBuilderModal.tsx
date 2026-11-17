@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useMemo } from "react";
+import { useState, useTransition, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Sparkles,
@@ -165,6 +165,32 @@ export function BusinessPlanBuilderModal({
       },
     ...initialSpecs,
   }));
+
+  const draftStorageKey = `bp_draft_specs:${workspaceId}`;
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(draftStorageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved) as Partial<BusinessPlanSpecs>;
+        if (parsed && typeof parsed === "object" && parsed.businessName) {
+          setSpecs((prev) => ({ ...prev, ...parsed }));
+        }
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, [draftStorageKey]);
+
+  useEffect(() => {
+    try {
+      if (specs.businessName || specs.dedicationText || specs.acknowledgementsText) {
+        window.localStorage.setItem(draftStorageKey, JSON.stringify(specs));
+      }
+    } catch {
+      // ignore storage quota errors
+    }
+  }, [draftStorageKey, specs]);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [isReviewing, startReviewTransition] = useTransition();
@@ -351,6 +377,11 @@ export function BusinessPlanBuilderModal({
         researchSources: res.researchSources,
         factReviewWarning: res.factReviewWarning,
       });
+      try {
+        window.localStorage.removeItem(draftStorageKey);
+      } catch {
+        // ignore
+      }
       setGenerationStep("");
       if (onPlanGenerated) {
         onPlanGenerated();

@@ -1614,7 +1614,9 @@ async function runCompleteBusinessPlanBuild(
     return { success: false, error: "Enter valid monthly overhead amounts." };
   }
 
-  // ── Research ──────────────────────────────────────────────────────────────
+  // ── 1. Persist specs & commit deterministic bulk draft IMMEDIATELY ───────
+  // Save user inputs and deterministic sections BEFORE any external AI/research
+  // network call so built work always persists in the DB even if connectivity drops.
   const priorSpecs = ws.business_plan_specs as BusinessPlanSpecs | null;
   const priorResearch = priorSpecs?.research;
   const canReuseResearch = Boolean(
@@ -1628,25 +1630,13 @@ async function runCompleteBusinessPlanBuild(
       priorSpecs?.townOrMarket === specs.townOrMarket
   );
 
-  let research: BusinessPlanResearch;
-  let researchFallbackUsed = false;
-  if (canReuseResearch) {
-    research = priorResearch as BusinessPlanResearch;
-  } else {
-    try {
-      research = await researchBusinessPlan(specs, aiProvider);
-    } catch {
-      // Fall back to a minimal stub so generation can still proceed with
-      // script-derived content. The user is informed via factReviewWarning.
-      researchFallbackUsed = true;
-      research = {
-        summary:
-          `Market research for ${specs.businessName} in ${specs.industrySector} (${specs.county}).`,
+  const stubResearch: BusinessPlanResearch = canReuseResearch
+    ? (priorResearch as BusinessPlanResearch)
+    : {
+        summary: `Market research for ${specs.businessName} in ${specs.industrySector} (${specs.county}).`,
         sources: [],
         searchedAt: new Date().toISOString(),
       };
-    }
-  }
 
   // ── Determine pending chapters ────────────────────────────────────────────
   const sectionDefinitions = getWorkspaceSections("business_plan", ws.level, specs.businessModel).filter(
@@ -1690,7 +1680,7 @@ async function runCompleteBusinessPlanBuild(
     ...new Set(pendingDefinitions.map((def) => def.chapter || def.phase)),
   ] as string[];
 
-  // ── Save specs + research ─────────────────────────────────────────────────
+  // ── Save specs immediately (with prior/stub research) ─────────────────────
   const priorExportMeta = priorSpecs as (BusinessPlanSpecs & {
     export_unlocked?: boolean;
     unlocked_at?: string;
@@ -1702,7 +1692,7 @@ async function runCompleteBusinessPlanBuild(
     paystack_reference?: string;
   } = {
     ...specs,
-    research,
+    research: stubResearch,
     ...(priorExportMeta?.export_unlocked
       ? {
           export_unlocked: true,
@@ -1735,16 +1725,10 @@ async function runCompleteBusinessPlanBuild(
     };
   }
 
-  // ── 1. Build & commit deterministic bulk draft immediately ────────────────
-  // Per AGENTS.md ("Build the bulk draft deterministically. AI may make limited
-  // evidence-supported corrections"): commit all pending sections deterministically
-  // first so every chapter (including Chapter 5 financials, preliminaries,
-  // references, and appendices) is guaranteed to be saved even if the AI
-  // provider is rate-limited or hits the request time budget.
   const preservedSectionsCount = sectionDefinitions.length - pendingDefinitions.length;
   let totalGeneratedSections = 0;
   let totalPreservedSections = preservedSectionsCount;
-  let factReviewWarning = researchFallbackUsed;
+  let factReviewWarning = false;
   let chaptersBuilt = 0;
 
   let activeProvider: BusinessPlanAIProvider = aiProvider;
@@ -1865,6 +1849,23 @@ async function runCompleteBusinessPlanBuild(
         totalPreservedSections += Number(stats?.preserved_sections) || 0;
       }
     }
+  }
+
+  // ── 1b. Live Research (after deterministic draft is safely persisted) ─────
+  let research: BusinessPlanResearch = stubResearch;
+  if (!canReuseResearch && providerAvailable) {
+    try {
+      research = await researchBusinessPlan(specs, activeProvider);
+      savedSpecs.research = research;
+      await db
+        .from("project_workspaces")
+        .update({ business_plan_specs: savedSpecs })
+        .eq("id", workspaceId);
+    } catch {
+      factReviewWarning = true;
+    }
+  } else if (!canReuseResearch) {
+    factReviewWarning = true;
   }
 
   // ── 2. Bounded AI refinement pass across pending chapters ─────────────────
@@ -2267,26 +2268,34 @@ export async function buildCompleteResearchProjectAction(formData: FormData) {
   const generated = buildResearchDocument(specs, kind);
   const { data: existingRows } = await db
     .from("workspace_sections")
-    .select("id, section_key, current_text")
+    .select("section_key, current_text")
     .eq("workspace_id", workspaceId);
 
-  const existingByKey = new Map((existingRows || []).map((r) => [r.section_key, r]));
-  for (let i = 0; i < generated.length; i += 1) {
-    const item = generated[i];
-    const row = existingByKey.get(item.section_key);
-    if (row) {
-      const hasContent = Boolean((row.current_text || "").trim());
-      if (hasContent && !confirmReplace) continue;
-      await db.from("workspace_sections").update({ current_text: item.content }).eq("id", row.id);
-    } else {
-      await db.from("workspace_sections").insert({
-        workspace_id: workspaceId,
-        section_key: item.section_key,
-        phase: "project",
-        position: i + 1,
-        current_text: item.content,
-        status: "draft",
-      });
+  const existingByKey = new Map((existingRows || []).map((r) => [r.section_key, r.current_text || ""]));
+  const rowsToUpsert = generated
+    .map((item, i) => ({ item, position: i + 1 }))
+    .filter(({ item }) => {
+      if (confirmReplace) return true;
+      if (item.section_key === "prelim.dedication" && dedicationText) return true;
+      if (item.section_key === "prelim.acknowledgements" && acknowledgementsText) return true;
+      const prev = existingByKey.get(item.section_key) || "";
+      return !prev.trim();
+    })
+    .map(({ item, position }) => ({
+      workspace_id: workspaceId,
+      section_key: item.section_key,
+      phase: "project",
+      position,
+      current_text: item.content,
+      status: "draft",
+    }));
+
+  if (rowsToUpsert.length > 0) {
+    const { error: upsertErr } = await db
+      .from("workspace_sections")
+      .upsert(rowsToUpsert, { onConflict: "workspace_id,section_key" });
+    if (upsertErr) {
+      return { error: upsertErr.message || "Could not save research project sections." };
     }
   }
 
