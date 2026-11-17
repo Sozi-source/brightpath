@@ -196,7 +196,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                   </div>
                   <Link href={filterHref({ type: category.value, category: "" })} className="text-xs font-semibold text-[#092B68] hover:underline transition-colors">See all <span aria-hidden="true">→</span></Link>
                 </div>
-                <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-5">
+                <div className="grid w-full min-w-0 grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 sm:gap-4 xl:gap-5">
                   {shelfProjects.map((project, index) => (
                     <MarketplaceProjectCard
                       key={project.id}
@@ -220,7 +220,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
             <Link href="/projects" className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">Browse all</Link>
           </div>
           {visibleProjects.length ? (
-            <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-5">
+            <div className="grid w-full min-w-0 grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 sm:gap-4 xl:gap-5">
               {pageProjects.map((project, index) => (
                 <MarketplaceProjectCard
                   key={project.id}

@@ -621,7 +621,7 @@ export function AppShell({
                   aria-current={category.active ? "page" : undefined}
                   className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-[12.5px] transition-colors ${
                     category.active
-                      ? "border border-teal-200 bg-teal-50 font-semibold text-[#087f8c]"
+                      ? "border border-slate-200 bg-slate-100 font-semibold text-[#092B68]"
                       : "border border-transparent font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900"
                   }`}
                 >
@@ -633,7 +633,7 @@ export function AppShell({
                     <span
                       className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-mono ${
                         category.active
-                          ? "bg-teal-100 text-[#087f8c] font-semibold"
+                          ? "bg-[#092B68] text-white font-semibold"
                           : "bg-slate-100 text-slate-600"
                       }`}
                     >
@@ -684,11 +684,72 @@ export function AppShell({
 
         {/* 3. Main Content Stage */}
         <main className={fullScreenWorkspace
-          ? "h-[calc(100vh-4rem)] min-w-0 flex-1 overflow-y-auto"
-          : "min-w-0 w-full flex-1 px-3 py-3 sm:px-5 sm:py-5 md:ml-60 lg:px-8 lg:py-6 2xl:px-10 space-y-4 sm:space-y-6"}>
+          ? "h-[calc(100vh-4rem)] min-w-0 flex-1 overflow-y-auto pb-16 md:pb-0"
+          : "min-w-0 w-full flex-1 px-3 py-3 pb-20 sm:px-5 sm:py-5 md:ml-60 md:pb-6 lg:px-7 lg:py-6 xl:px-8 2xl:px-10 space-y-3.5 sm:space-y-5"}>
           {children}
         </main>
       </div>
+
+      {/* Native-like Mobile Bottom Navigation Bar */}
+      {!fullScreenWorkspace && (
+        <MobileBottomNav pathname={pathname} canAccessStudio={canAccessStudio} />
+      )}
     </div>
+  );
+}
+
+function MobileBottomNav({
+  pathname,
+  canAccessStudio,
+}: {
+  pathname: string;
+  canAccessStudio: boolean;
+}) {
+  const { items, setIsOpen } = useCart();
+  const navClass = (active: boolean) =>
+    `flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-semibold transition-colors ${
+      active ? "text-[#092B68]" : "text-slate-500 hover:text-slate-800"
+    }`;
+
+  return (
+    <nav
+      aria-label="Mobile navigation"
+      className="fixed bottom-0 inset-x-0 z-30 flex items-center border-t border-slate-200 bg-white/95 backdrop-blur md:hidden shadow-[0_-4px_16px_rgba(15,23,42,0.06)]"
+    >
+      <Link href="/" className={navClass(pathname === "/")}>
+        <Home className={`h-4 w-4 ${pathname === "/" ? "text-[#F5A000]" : ""}`} />
+        <span>Home</span>
+      </Link>
+      <Link href="/projects" className={navClass(pathname.startsWith("/projects"))}>
+        <ShoppingBag className={`h-4 w-4 ${pathname.startsWith("/projects") ? "text-[#F5A000]" : ""}`} />
+        <span>Store</span>
+      </Link>
+      <Link href="/library" className={navClass(pathname.startsWith("/library"))}>
+        <BookOpen className={`h-4 w-4 ${pathname.startsWith("/library") ? "text-[#F5A000]" : ""}`} />
+        <span>Library</span>
+      </Link>
+      {canAccessStudio ? (
+        <Link href="/studio" className={navClass(pathname.startsWith("/studio"))}>
+          <Layers className={`h-4 w-4 ${pathname.startsWith("/studio") ? "text-[#F5A000]" : ""}`} />
+          <span>Studio</span>
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="relative flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-semibold text-slate-600 hover:text-[#092B68]"
+        >
+          <div className="relative">
+            <ShoppingCart className="h-4 w-4 text-[#F5A000]" />
+            {items.length > 0 && (
+              <span className="absolute -right-2 -top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#F5A000] px-0.5 text-[9px] font-bold text-[#092B68]">
+                {items.length}
+              </span>
+            )}
+          </div>
+          <span>Cart</span>
+        </button>
+      )}
+    </nav>
   );
 }

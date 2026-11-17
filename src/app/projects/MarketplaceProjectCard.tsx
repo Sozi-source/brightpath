@@ -120,7 +120,7 @@ export function MarketplaceProjectCard({
       {/* Semantic Category Top Strip */}
       <div className={`h-0.5 w-full ${theme.bar}`} />
 
-      <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
+      <div className="flex flex-1 flex-col justify-between p-3.5 sm:p-4 xl:p-5">
         {/* Zone 1: Header (Category Pill + Rating or Format) */}
         <div>
           <div className="flex items-center justify-between gap-2 mb-3">

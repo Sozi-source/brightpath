@@ -11,7 +11,7 @@ export default async function FacultySignupPage({ searchParams }: FacultySignupP
   const { error } = await searchParams;
 
   return (
-    <main className="flex h-dvh min-h-dvh flex-col items-center justify-start overflow-hidden bg-[#f4f7fb] px-4 pb-4 pt-4 sm:pt-8 lg:justify-center lg:py-8">
+    <main className="flex min-h-dvh flex-col items-center justify-center overflow-y-auto bg-[#f4f7fb] px-3.5 py-6 sm:px-6 sm:py-10">
       <div className="mb-4 text-center"><Link href="/" className="inline-flex items-center justify-center"><BrandLogo size="md" /></Link></div>
       <div className="w-full max-w-md overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
         <div className="flex h-1.5 w-full"><div className="h-full w-3/5 bg-[#092B68]" /><div className="h-full w-2/5 bg-[#F5A000]" /></div>

@@ -13,7 +13,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
   const error = params?.error;
 
   return (
-    <main className="flex h-dvh min-h-dvh flex-col items-center justify-start overflow-hidden bg-[#f4f7fb] px-4 pb-4 pt-4 sm:pt-8 lg:justify-center lg:py-8">
+    <main className="flex min-h-dvh flex-col items-center justify-center overflow-y-auto bg-[#f4f7fb] px-3.5 py-6 sm:px-6 sm:py-10">
       {/* Institutional Brand Header */}
       <div className="mb-4 text-center">
         <Link href="/" className="inline-flex items-center justify-center">
