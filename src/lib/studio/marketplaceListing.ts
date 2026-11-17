@@ -165,7 +165,7 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
   if (existingError) throw new Error(existingError.message || "Could not check the marketplace queue.");
 
   const listingCategory = isResearch ? "Research Project" : "Business Plan";
-  const listingMaterialType = isResearch ? "research_secondary" : "business_plan";
+  const listingMaterialType = isResearch ? "research_project" : "business_plan";
 
   let projectId = existing?.id;
   let createdProject = false;

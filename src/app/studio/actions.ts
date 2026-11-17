@@ -2209,6 +2209,103 @@ export async function reviewBusinessPlanDocumentAction(formData: FormData) {
   };
 }
 
+export async function createAndBuildResearchWorkspace(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const db = getServerDbClient(supabase);
+  const { data: existingProfile } = await db
+    .from("profiles")
+    .select("role, institution_id, full_name, admission_number, institutions(name)")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!hasStudioAccess(existingProfile)) {
+    throw new Error("Project Studio is restricted to enrolled class students. Enter your trainer's Class Access Code first.");
+  }
+
+  const isAdminMaster = existingProfile?.role === "admin";
+  const level = (formData.get("level")?.toString() === "craft" ? "craft" : "diploma") as WorkspaceLevel;
+  const topicId = formData.get("topicId")?.toString().trim() || RESEARCH_TOPIC_CATALOGUE[0].id;
+  const kind = (formData.get("kind")?.toString() === "proposal" ? "proposal" : "full") as "proposal" | "full";
+  const customTitle = formData.get("customTitle")?.toString().trim();
+  const dedicationText = formData.get("dedicationText")?.toString().trim();
+  const acknowledgementsText = formData.get("acknowledgementsText")?.toString().trim();
+  const admissionNumber = formData.get("admissionNumber")?.toString().trim() || existingProfile?.admission_number || "ADM/2026/001";
+  const supervisorName = formData.get("supervisorName")?.toString().trim() || "Project Supervisor";
+
+  const blueprint = RESEARCH_TOPIC_CATALOGUE.find((t) => t.id === topicId) || RESEARCH_TOPIC_CATALOGUE[0];
+  const finalTitle = customTitle || blueprint.title;
+  const institutionId = isAdminMaster ? null : (existingProfile?.institution_id || null);
+
+  const { data: workspace, error: wsErr } = await db
+    .from("project_workspaces")
+    .insert({
+      student_id: user.id,
+      supervisor_id: null,
+      institution_id: institutionId,
+      workspace_type: "research_secondary",
+      level,
+      course: blueprint.course,
+      title: finalTitle,
+      problem_area: blueprint.problemContext,
+      status: isAdminMaster ? "approved" : "proposal_pending",
+    })
+    .select("id")
+    .single();
+
+  if (wsErr || !workspace) {
+    throw new Error(wsErr?.message || "Failed to create research workspace.");
+  }
+
+  const rawInst = existingProfile?.institutions as unknown;
+  const instName =
+    (Array.isArray(rawInst) ? (rawInst[0] as { name?: string })?.name : (rawInst as { name?: string })?.name) ||
+    "Accredited TVET Institution";
+
+  const specs = buildResearchSpecsFromBlueprint(blueprint, {
+    level,
+    seed: `${workspace.id}|${blueprint.id}`,
+    identity: isAdminMaster
+      ? { mode: "master" }
+      : {
+          mode: "candidate",
+          candidateName: existingProfile?.full_name || user.email || "Candidate",
+          admissionNumber,
+          institutionName: instName,
+          supervisorName,
+        },
+    kind,
+  });
+  specs.title = finalTitle;
+  if (dedicationText) specs.dedicationText = dedicationText;
+  if (acknowledgementsText) specs.acknowledgementsText = acknowledgementsText;
+
+  const generated = buildResearchDocument(specs, kind);
+  const rows = generated.map((sec, idx) => ({
+    workspace_id: workspace.id,
+    section_key: sec.section_key,
+    phase: "project",
+    position: idx + 1,
+    current_text: sec.content,
+    status: "draft",
+  }));
+
+  const { error: secErr } = await db
+    .from("workspace_sections")
+    .upsert(rows, { onConflict: "workspace_id,section_key" });
+
+  if (secErr) {
+    throw new Error(secErr.message || "Failed to save research sections.");
+  }
+
+  revalidatePath("/studio");
+  redirect(`/studio/${workspace.id}`);
+}
+
 export async function buildCompleteResearchProjectAction(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

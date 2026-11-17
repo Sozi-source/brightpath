@@ -10,7 +10,7 @@ import { getMaterialTypeLabel } from "@/lib/marketplace";
 import { getWorkspaceSections } from "@/lib/studio/templates";
 
 type ProjectsPageProps = {
-  searchParams: Promise<{ q?: string; category?: string; type?: string; sort?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; category?: string; type?: string; sort?: string; page?: string; view?: string }>;
 };
 
 export async function generateMetadata({ searchParams }: ProjectsPageProps): Promise<Metadata> {
@@ -152,7 +152,8 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
     count: projects.filter((project) => !category.types || category.types.includes(project.material_type || "")).length,
     active: selectedType === category.value,
   }));
-  const showShelves = !query && !selectedType && !selectedCategory;
+  const needsTypeSelection = !query && !selectedType && !selectedCategory && filters.view !== "all";
+  const showShelves = !query && !selectedType && !selectedCategory && filters.view === "all";
 
   return (
     <AppShell user={user} profile={profile} activeContextTitle="Learning Resource Marketplace" marketplaceCategories={sidebarCategories}>
@@ -210,7 +211,47 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
             ))}
         </div>
 
-        {showShelves ? (
+        {needsTypeSelection ? (
+          <div className="bp-card p-6 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div>
+                <h2 className="text-base font-semibold tracking-tight text-slate-900">
+                  Select Marketplace Listing Type
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Choose a category below to view available listings.
+                </p>
+              </div>
+              <Link
+                href="/projects?view=all"
+                className="text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+              >
+                Show all listings →
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {sidebarCategories
+                .filter((cat) => cat.label !== "All materials")
+                .map((cat) => (
+                  <Link
+                    key={cat.label}
+                    href={cat.href}
+                    className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-left hover:border-indigo-300 hover:bg-indigo-50/40 transition-colors"
+                  >
+                    <div>
+                      <div className="text-sm font-semibold text-slate-900">{cat.label}</div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">
+                        {cat.count} {cat.count === 1 ? "listing" : "listings"}
+                      </div>
+                    </div>
+                    <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-xs font-semibold text-slate-700">
+                      {cat.count}
+                    </span>
+                  </Link>
+                ))}
+            </div>
+          </div>
+        ) : showShelves ? (
           visibleProjects.length ? <div className="space-y-8">
             {browseCategories.filter((category) => category.value).map((category) => {
               const shelfProjects = visibleProjects.filter((project) => category.types?.includes(project.material_type || ""));

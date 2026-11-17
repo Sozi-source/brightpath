@@ -6,6 +6,8 @@ import { AppShell, type SidebarWorkspaceItem } from "@/components/layout/AppShel
 import { ProjectAreaCatalog } from "@/components/studio/ProjectAreaCatalog";
 import { StudioAccessGate } from "./StudioAccessGate";
 import { hasStudioAccess } from "@/lib/studio/access";
+import Link from "next/link";
+import { BookOpen, ArrowRight } from "lucide-react";
 import type { ProjectWorkspace } from "@/types/database";
 
 export default async function StudioDashboardPage() {
@@ -105,13 +107,38 @@ export default async function StudioDashboardPage() {
       studioWorkspaces={canUseStudio ? sidebarWorkspaces : undefined}
     >
       {canUseStudio ? (
-        <ProjectAreaCatalog
-          candidateName={profile?.full_name || user.email || "Candidate"}
-          admissionNumber={profile?.admission_number || ""}
-          course={profile?.course || "Diploma in Human Nutrition and Dietetics"}
-          level={profile?.level || "diploma"}
-          currentWorkspacesCount={workspaces.length}
-        />
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-2xs">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-lg bg-indigo-50 text-indigo-700">
+                <BookOpen className="h-4 w-4" />
+              </div>
+              <div>
+                <div className="text-xs font-semibold text-slate-900">
+                  KNEC Secondary-Data Research Projects
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  Separate builder for proposals and 5-chapter research reports.
+                </div>
+              </div>
+            </div>
+            <Link
+              href="/studio/research/new"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors"
+            >
+              <span>New Research Project</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
+          <ProjectAreaCatalog
+            candidateName={profile?.full_name || user.email || "Candidate"}
+            admissionNumber={profile?.admission_number || ""}
+            course={profile?.course || "Diploma in Human Nutrition and Dietetics"}
+            level={profile?.level || "diploma"}
+            currentWorkspacesCount={workspaces.length}
+          />
+        </div>
       ) : (
         <StudioAccessGate />
       )}
