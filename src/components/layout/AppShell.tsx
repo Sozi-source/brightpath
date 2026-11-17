@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/(auth)/actions";
-import { DeleteDraftButton } from "@/app/studio/DeleteDraftButton";
 import { BrandIcon, type BrandIconName } from "@/components/ui/BrandIcon";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { useCart } from "@/components/cart/CartProvider";
@@ -12,7 +11,6 @@ import {
   LayoutGrid,
   Home,
   Layers,
-  Library,
   GraduationCap,
   ShieldCheck,
   Settings,
@@ -24,7 +22,6 @@ import {
   ShoppingBag,
   ShoppingCart,
   Plus,
-  ArrowRight,
   CheckCircle2,
   Clock3,
   Users,
@@ -145,22 +142,22 @@ export function AppShell({
     .join("") || "TH";
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb] pt-16 text-slate-800 font-sans">
+    <div className="min-h-screen bg-[#f4f7fb] pt-14 sm:pt-16 text-slate-800 font-sans">
       {/* 1. Global Institutional Top Bar (KEC White Bar with App Launcher) */}
-      <header className="fixed inset-x-0 top-0 z-40 flex h-16 min-w-0 items-center justify-between gap-2 border-b border-slate-200 bg-white px-3 shadow-xs sm:px-6">
-        <div className="flex min-w-0 items-center gap-2 sm:gap-4">
+      <header className="fixed inset-x-0 top-0 z-40 flex h-14 sm:h-16 min-w-0 items-center justify-between gap-2 border-b border-slate-200/90 bg-white/95 backdrop-blur-sm px-3 sm:px-6">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3.5">
           {/* Mobile Menu Toggle */}
           {!fullScreenWorkspace && <button
             type="button"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+            className="md:hidden -ml-1 inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 active:bg-slate-200/70 transition-colors"
             aria-label="Toggle navigation menu"
           >
             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>}
 
-          {/* 9-Dot Matrix App Launcher (KEC Benchmark) */}
-          <div className="relative">
+          {/* 9-Dot Matrix App Launcher (Desktop Institutional Bar) */}
+          <div className="relative hidden md:block">
             <button
               type="button"
               onClick={() => setAppLauncherOpen(!appLauncherOpen)}
@@ -198,7 +195,7 @@ export function AppShell({
                     <div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg">
                       <BrandIcon name="marketplace" size="xs" />
                     </div>
-                    <span className="text-xs font-semibold text-slate-800">Marketplace</span>
+                    <span className="text-xs font-semibold text-slate-800">Resource Store</span>
                   </Link>
                   <Link
                     href="/library"
