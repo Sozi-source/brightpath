@@ -3,11 +3,10 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/AppShell";
-import { FileText, Download, Search, Layers } from "lucide-react";
+import { Download, Search, Layers } from "lucide-react";
 import type { Project, UserProfile } from "@/types/database";
 import { MarketplaceProjectCard } from "./MarketplaceProjectCard";
 import { getMaterialTypeLabel } from "@/lib/marketplace";
-import { getWorkspaceSections } from "@/lib/studio/templates";
 
 type ProjectsPageProps = {
   searchParams: Promise<{ q?: string; category?: string; type?: string; sort?: string; page?: string; view?: string }>;
@@ -97,31 +96,6 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
 
   const isPublisher = profile?.role === "admin";
 
-  const { data: approvedPlans } = profile?.role === "admin"
-    ? await supabase.from("project_workspaces")
-        .select("id, title, course, level, student:student_id(full_name, admission_number)")
-        .eq("workspace_type", "business_plan").eq("final_project_status", "approved").order("updated_at", { ascending: false })
-    : { data: [] };
-  const planIds = (approvedPlans || []).map((plan) => plan.id);
-  const { data: planSections } = planIds.length
-    ? await supabase.from("workspace_sections").select("workspace_id, section_key, current_text").in("workspace_id", planIds)
-    : { data: [] };
-  const { data: planListings } = planIds.length
-    ? await supabase.from("projects").select("id, file_path").in("file_path", planIds.map((id) => `workspace-export:${id}`))
-    : { data: [] };
-  const listingByWorkspace = new Map((planListings || []).map((listing) => [listing.file_path.replace("workspace-export:", ""), listing.id]));
-  const sectionsByPlan = new Map<string, Map<string, string>>();
-  for (const section of planSections || []) {
-    if (!sectionsByPlan.has(section.workspace_id)) sectionsByPlan.set(section.workspace_id, new Map());
-    sectionsByPlan.get(section.workspace_id)!.set(section.section_key, section.current_text || "");
-  }
-  const readyPlanIds = new Set((approvedPlans || []).filter((plan) => {
-    const sections = sectionsByPlan.get(plan.id);
-    return getWorkspaceSections("business_plan", plan.level).every((definition) =>
-      (sections?.get(definition.key) || "").trim().split(/\s+/).filter(Boolean).length >= (definition.minWords || 30)
-    );
-  }).map((plan) => plan.id));
-
   function filterHref(next: { q?: string; category?: string; type?: string; sort?: string; page?: string }) {
     const params = new URLSearchParams();
     const q = next.q ?? filters.q;
@@ -181,8 +155,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
           <label htmlFor="marketplace-sort" className="sr-only">Sort materials</label>
           <select id="marketplace-sort" name="sort" defaultValue={sort} className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-xs font-medium text-slate-800"><option value="newest">Latest</option><option value="rating">Top rated</option><option value="downloads">Most downloaded</option><option value="price_low">Price: low to high</option><option value="price_high">Price: high to low</option></select>
           <button className="h-10 bp-btn-primary px-5 text-sm cursor-pointer whitespace-nowrap">Search</button>
-          {isPublisher ? <Link href="/admin" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 whitespace-nowrap"><Layers className="h-4 w-4 text-indigo-600" />Admin</Link> : <Link href="/library" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 whitespace-nowrap"><Download className="h-4 w-4 text-indigo-600" />My Library</Link>}
-          {profile?.role === "admin" && <a href="#approved-student-plans" className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 whitespace-nowrap">Approved plans ({approvedPlans?.length || 0})</a>}
+          {isPublisher ? <Link href="/admin" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 whitespace-nowrap"><Layers className="h-4 w-4 text-[#092B68]" />Admin</Link> : <Link href="/library" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 whitespace-nowrap"><Download className="h-4 w-4 text-[#092B68]" />My Library</Link>}
         </form>
 
         {/* Quick-Filter Category Pills */}
@@ -306,27 +279,6 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
           {resultCount > pageSize && <nav aria-label="Marketplace pages" className="mt-5 flex items-center justify-between bp-card p-3"><span className="text-xs text-slate-600">Page {pageNumber} of {pageCount}</span><div className="flex gap-2">{pageNumber > 1 && <Link href={filterHref({ page: String(pageNumber - 1) })} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Previous</Link>}{pageNumber < pageCount && <Link href={filterHref({ page: String(pageNumber + 1) })} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Next</Link>}</div></nav>}
         </>}
       </section>
-      {profile?.role === "admin" && (
-        <section id="approved-student-plans" className="mb-5 scroll-mt-20 bp-card overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-indigo-600 via-indigo-600 to-amber-400" />
-          <div className="p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3"><span className="bp-icon-tile h-9 w-9"><FileText className="h-4 w-4" /></span><div><h2 className="text-sm font-semibold text-slate-900">Approved Student Plans</h2><p className="text-xs text-slate-600">Final review downloads</p></div></div>
-              <span className="text-xs font-semibold text-slate-600">{approvedPlans?.length || 0} Approved</span>
-            </div>
-            {approvedPlans?.length ? <div className="divide-y divide-slate-200 rounded-lg border border-slate-200">
-              {approvedPlans.map((plan) => {
-                const student = plan.student as unknown as { full_name?: string | null; admission_number?: string | null } | null;
-                const listingId = listingByWorkspace.get(plan.id);
-                return <div key={plan.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
-                  <div><p className="text-sm font-semibold text-slate-900">{plan.title || "Business Plan"}</p><p className="text-xs text-slate-600">{student?.full_name || "Student"}{student?.admission_number ? ` · ${student.admission_number}` : ""} · {plan.course || "Business Plan"} · {readyPlanIds.has(plan.id) ? "Ready" : "Incomplete"}</p></div>
-                  {listingId && readyPlanIds.has(plan.id) && <div className="flex gap-2"><Link href={`/api/download?projectId=${encodeURIComponent(listingId)}&format=docx`} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"><Download className="h-3.5 w-3.5" /> Word (.docx)</Link></div>}
-                </div>;
-              })}
-            </div> : <p className="rounded-lg border border-dashed border-slate-200 py-4 text-center text-xs text-slate-600">No final approvals yet.</p>}
-          </div>
-        </section>
-      )}
 
     </AppShell>
   );
