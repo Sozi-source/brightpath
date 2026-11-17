@@ -232,7 +232,7 @@ export function AppShell({
                   {displayName}
                 </span>
                 <span className="text-[10px] font-mono text-slate-500">
-                  {profile?.admission_number ? `Adm: ${profile.admission_number}` : roleBadgeLabel}
+                  {!isRoleSupervisor && profile?.admission_number ? `Adm: ${profile.admission_number}` : roleBadgeLabel}
                 </span>
               </div>
 

@@ -234,8 +234,6 @@ export default async function AdminPage() {
                 <tr>
                   <th className="py-2 px-3">Reference</th>
                   <th className="py-2 px-3">Amount</th>
-                  <th className="py-2 px-3">Platform Cut</th>
-                  <th className="py-2 px-3">Author Share</th>
                   <th className="py-2 px-3">Status</th>
                   <th className="py-2 px-3">Date</th>
                   <th className="py-2 px-3 text-right">Actions</th>
@@ -246,8 +244,6 @@ export default async function AdminPage() {
                   <tr key={o.id} className="hover:bg-slate-50/60 transition-colors">
                     <td className="py-2 px-3 font-mono text-xs text-slate-700">{o.paystack_reference}</td>
                     <td className="py-2 px-3 font-semibold text-slate-900">KES {Number(o.amount_kes).toLocaleString()}</td>
-                    <td className="py-2 px-3 text-emerald-700 font-mono font-semibold">+KES {Number(o.commission_kes).toLocaleString()}</td>
-                    <td className="py-2 px-3 text-slate-600 font-mono">KES {Number(o.trainer_share_kes).toLocaleString()}</td>
                     <td className="py-2 px-3">
                       <span
                         className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${

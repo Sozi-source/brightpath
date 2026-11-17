@@ -426,20 +426,10 @@ export function AdminProductEditModal({
                   )}
                 </div>
 
-                <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3 space-y-1.5 text-xs">
+                <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3 space-y-1 text-xs">
                   <div className="font-semibold text-slate-800 flex items-center justify-between">
-                    <span>Revenue Breakdown</span>
-                    <span className="font-mono text-indigo-700">KES {priceKes.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-600 text-[11px]">
-                    <span>Platform Commission ({commissionPercent}%):</span>
-                    <span className="font-mono">KES {platformFee.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-600 text-[11px]">
-                    <span>Author / Net Payout ({100 - commissionPercent}%):</span>
-                    <span className="font-mono text-emerald-700 font-semibold">
-                      KES {authorEarnings.toLocaleString()}
-                    </span>
+                    <span>Admin Revenue (100%)</span>
+                    <span className="font-mono text-[#092B68]">KES {priceKes.toLocaleString()}</span>
                   </div>
                 </div>
               </div>

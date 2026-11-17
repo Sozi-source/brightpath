@@ -45,6 +45,16 @@ export async function updateStudentPersonalizationAction(formData: FormData) {
   const admissionNumber = formData.get("admissionNumber")?.toString().trim();
   const institution = formData.get("institution")?.toString().trim();
 
+  const { data: currentProfile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (currentProfile?.role !== "student") {
+    return { success: true };
+  }
+
   const updates: Record<string, string> = {};
   if (fullName) updates.full_name = fullName;
   if (admissionNumber) updates.admission_number = admissionNumber;

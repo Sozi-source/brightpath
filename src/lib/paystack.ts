@@ -108,14 +108,9 @@ export async function fulfillOrder({
       };
     }
 
-    const isBusinessPlan = project.material_type === "business_plan";
-    const commissionPercent = Number(settings?.commission_percent ?? 20);
-    const commissionKes = isBusinessPlan
-      ? amountKes
-      : Math.round(amountKes * (commissionPercent / 100) * 100) / 100;
-    const trainerShareKes = isBusinessPlan
-      ? 0
-      : Math.round((amountKes - commissionKes) * 100) / 100;
+    // 100% of marketplace revenue goes to the admin/platform (no author split).
+    const commissionKes = amountKes;
+    const trainerShareKes = 0;
 
     const { data: insertedOrder, error: insertErr } = await adminClient
       .from("orders")

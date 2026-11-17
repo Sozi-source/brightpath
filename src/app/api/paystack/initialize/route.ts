@@ -134,28 +134,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "You cannot purchase your own listing." }, { status: 400 });
   }
 
-  // Fetch trainer subaccount code & platform commission
   const adminClient = createAdminClient();
-  const [{ data: trainerProfile }, { data: settings }] = await Promise.all([
-    adminClient
-      .from("trainer_profiles")
-      .select("paystack_subaccount_code")
-      .eq("user_id", project.trainer_id)
-      .maybeSingle(),
-    adminClient.from("platform_settings").select("commission_percent").eq("id", 1).single(),
-  ]);
-
-  const isBusinessPlan = project.material_type === "business_plan";
-  const commissionPercent = Number(settings?.commission_percent ?? 20);
   const amountKes = Number(project.price_kes);
 
-  // Under Option A: Business plans are 100% platform property. Platform retains 100% of revenue.
-  const commissionKes = isBusinessPlan
-    ? amountKes
-    : Math.round((amountKes * (commissionPercent / 100)) * 100) / 100;
-  const trainerShareKes = isBusinessPlan
-    ? 0
-    : Math.round((amountKes - commissionKes) * 100) / 100;
+  // 100% of marketplace revenue goes to the admin/platform (no author split).
+  const commissionKes = amountKes;
+  const trainerShareKes = 0;
 
   const reference = `BP_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
@@ -196,7 +180,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Call Paystack API (only completed transactions are posted to orders upon verification/webhook)
+  // Call Paystack API (100% admin/platform payout; no subaccount split)
   const paystackPayload: Record<string, unknown> = {
     email,
     amount: Math.round(amountKes * 100), // in kobo/cents
@@ -210,12 +194,6 @@ export async function POST(request: NextRequest) {
       trainer_id: project.trainer_id,
     },
   };
-
-  // Only route subaccount payouts for non-business-plan materials (trainer-owned resources)
-  if (!isBusinessPlan && trainerProfile?.paystack_subaccount_code) {
-    paystackPayload.subaccount = trainerProfile.paystack_subaccount_code;
-    paystackPayload.transaction_charge = Math.round(commissionKes * 100);
-  }
 
   try {
     const res = await fetch("https://api.paystack.co/transaction/initialize", {
