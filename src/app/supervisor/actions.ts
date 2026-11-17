@@ -59,110 +59,131 @@ async function assertSectionCommentsResolved(db: SupabaseClient, workspaceId: st
   if ((count || 0) > 0) throw new Error("Resolve every open section comment before approving this project.");
 }
 
-export async function approveCompletedProjectForMarketplace(formData: FormData) {
-  const workspaceId = formData.get("workspaceId")?.toString();
-  const comment = formData.get("comment")?.toString().trim() || "Completed project reviewed and approved for marketplace consideration.";
-  if (!workspaceId) throw new Error("Missing workspace ID.");
-  const { supabase: db, user, workspace, role } = await verifySupervisorOrAdmin(workspaceId);
-  if (role !== "admin" && workspace.supervisor_id !== user.id) throw new Error("This project is assigned to another supervisor.");
-  if (role !== "admin" && workspace.final_project_status !== "pending_review") {
-    throw new Error("This project is not awaiting final review.");
-  }
-  await assertSectionCommentsResolved(db, workspaceId);
-
-  const { data: fullWorkspace } = await db.from("project_workspaces")
-    .select("workspace_type, level, business_plan_specs").eq("id", workspaceId).single();
-  if (!fullWorkspace) throw new Error("Project not found.");
-  const specs = fullWorkspace.business_plan_specs as BusinessPlanSpecs | null;
-  const model = fullWorkspace.workspace_type === "business_plan" ? resolveBusinessPlanModel(specs) : undefined;
-  const definitions = getWorkspaceSections(fullWorkspace.workspace_type, fullWorkspace.level, model);
-  const { data: rows, error: rowsError } = await db.from("workspace_sections")
-    .select("section_key, current_text").eq("workspace_id", workspaceId);
-  if (rowsError) throw new Error(rowsError.message || "Could not verify project sections.");
-  if (fullWorkspace.workspace_type === "business_plan" && specs) {
-    const conflicts = getBusinessModelConflictFindings(specs, (rows || []).map((row) => ({
-      key: row.section_key,
-      content: row.current_text || "",
-    })));
-    if (conflicts.length) throw new Error(`Resolve the business-model mismatch in ${conflicts.map((item) => item.sectionKey).join(", ")} before final approval.`);
-  }
-  const contentByKey = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
-  const incomplete = definitions.filter((definition) => {
-    const words = (contentByKey.get(definition.key) || "").trim().split(/\s+/).filter(Boolean).length;
-    return words < (definition.minWords || 30);
-  });
-  if (incomplete.length) throw new Error("The completed project no longer meets every section minimum.");
-
-  const { error: statusError } = await db.from("project_workspaces")
-    .update({ status: "approved", final_project_status: "approved", final_project_approved_at: new Date().toISOString() }).eq("id", workspaceId);
-
-  if (statusError) throw new Error(statusError.message || "Could not record final approval.");
-
+export async function approveCompletedProjectForMarketplace(
+  formData: FormData
+): Promise<{ ok?: boolean; error?: string }> {
   try {
-    if (fullWorkspace.workspace_type === "business_plan" && !specs?.isInstitutional && !specs?.adminOnly) {
-      await queueApprovedBusinessPlanListing(workspaceId);
+    const workspaceId = formData.get("workspaceId")?.toString();
+    const comment = formData.get("comment")?.toString().trim() || "Completed project reviewed and approved for marketplace consideration.";
+    if (!workspaceId) return { error: "Missing workspace ID." };
+    const { supabase: db, user, workspace, role } = await verifySupervisorOrAdmin(workspaceId);
+    if (role !== "admin" && workspace.supervisor_id !== user.id) return { error: "This project is assigned to another supervisor." };
+    if (role !== "admin" && workspace.final_project_status !== "pending_review") {
+      return { error: "This project is not awaiting final review." };
     }
-  } catch (error) {
-    await db.from("project_workspaces").update({ final_project_status: "pending_review", final_project_approved_at: null }).eq("id", workspaceId);
-    throw error;
-  }
+    await assertSectionCommentsResolved(db, workspaceId);
 
-  const { error: reviewError } = await db.from("supervisor_reviews").insert({
-    workspace_id: workspaceId,
-    supervisor_id: user.id,
-    status: "approved",
-    review_stage: "final_project",
-    comment,
-  });
-  if (reviewError) throw new Error(reviewError.message || "Final approval was saved but its review record could not be written.");
-  await db.from("project_log_entries").insert({
-    workspace_id: workspaceId,
-    activity: fullWorkspace.workspace_type === "business_plan" && (specs?.isInstitutional || specs?.adminOnly)
-      ? "Institutional business plan approved for internal management use; marketplace publication blocked."
-      : fullWorkspace.workspace_type === "business_plan"
-      ? "Supervisor approved the completed project; business plan published live to marketplace."
-      : "Supervisor approved the completed project.",
-    supervisor_comment: comment,
-    auto_generated: true,
-    supervisor_signed_at: new Date().toISOString(),
-  });
-  revalidatePath(`/supervisor/${workspaceId}`);
-  revalidatePath(`/studio/${workspaceId}`);
-  revalidatePath("/supervisor");
-  revalidatePath("/admin");
-  revalidatePath("/projects");
+    const { data: fullWorkspace } = await db.from("project_workspaces")
+      .select("workspace_type, level, business_plan_specs").eq("id", workspaceId).single();
+    if (!fullWorkspace) return { error: "Project not found." };
+    const specs = fullWorkspace.business_plan_specs as BusinessPlanSpecs | null;
+    const model = fullWorkspace.workspace_type === "business_plan" ? resolveBusinessPlanModel(specs) : undefined;
+    const definitions = getWorkspaceSections(fullWorkspace.workspace_type, fullWorkspace.level, model);
+    const { data: rows, error: rowsError } = await db.from("workspace_sections")
+      .select("section_key, current_text").eq("workspace_id", workspaceId);
+    if (rowsError) return { error: rowsError.message || "Could not verify project sections." };
+    if (fullWorkspace.workspace_type === "business_plan" && specs) {
+      const conflicts = getBusinessModelConflictFindings(specs, (rows || []).map((row) => ({
+        key: row.section_key,
+        content: row.current_text || "",
+      })));
+      if (conflicts.length) return { error: `Resolve the business-model mismatch in ${conflicts.map((item) => item.sectionKey).join(", ")} before final approval.` };
+    }
+    const contentByKey = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
+    const optionalTrimmedKeys = new Set(["app.invoices", "app.workplan", "app.budget"]);
+    const incomplete = definitions.filter((definition) => {
+      if (optionalTrimmedKeys.has(definition.key) && !contentByKey.has(definition.key)) return false;
+      const minReq = fullWorkspace.level === "craft" ? Math.min(definition.minWords || 30, 30) : (definition.minWords || 30);
+      const words = (contentByKey.get(definition.key) || "").trim().split(/\s+/).filter(Boolean).length;
+      return words < minReq;
+    });
+    if (incomplete.length) return { error: `The completed project no longer meets every section minimum (${incomplete[0].title}).` };
+
+    const { error: statusError } = await db.from("project_workspaces")
+      .update({ status: "approved", final_project_status: "approved", final_project_approved_at: new Date().toISOString() }).eq("id", workspaceId);
+
+    if (statusError) return { error: statusError.message || "Could not record final approval." };
+
+    try {
+      if (
+        (fullWorkspace.workspace_type === "business_plan" || fullWorkspace.workspace_type === "research_secondary") &&
+        !specs?.isInstitutional &&
+        !specs?.adminOnly
+      ) {
+        await queueApprovedBusinessPlanListing(workspaceId);
+      }
+    } catch (error) {
+      await db.from("project_workspaces").update({ final_project_status: "pending_review", final_project_approved_at: null }).eq("id", workspaceId);
+      return { error: error instanceof Error ? error.message : "Could not queue marketplace listing." };
+    }
+
+    const { error: reviewError } = await db.from("supervisor_reviews").insert({
+      workspace_id: workspaceId,
+      supervisor_id: user.id,
+      status: "approved",
+      review_stage: "final_project",
+      comment,
+    });
+    if (reviewError) return { error: reviewError.message || "Final approval was saved but its review record could not be written." };
+    await db.from("project_log_entries").insert({
+      workspace_id: workspaceId,
+      activity: fullWorkspace.workspace_type === "business_plan" && (specs?.isInstitutional || specs?.adminOnly)
+        ? "Institutional business plan approved for internal management use; marketplace publication blocked."
+        : fullWorkspace.workspace_type === "business_plan" || fullWorkspace.workspace_type === "research_secondary"
+        ? "Supervisor approved the completed project; manuscript queued for marketplace."
+        : "Supervisor approved the completed project.",
+      supervisor_comment: comment,
+      auto_generated: true,
+      supervisor_signed_at: new Date().toISOString(),
+    });
+    revalidatePath(`/supervisor/${workspaceId}`);
+    revalidatePath(`/studio/${workspaceId}`);
+    revalidatePath("/supervisor");
+    revalidatePath("/admin");
+    revalidatePath("/projects");
+    return { ok: true };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "The review could not be saved. Please try again." };
+  }
 }
 
-export async function requestFinalProjectChanges(formData: FormData) {
-  const workspaceId = formData.get("workspaceId")?.toString();
-  const comment = formData.get("comment")?.toString().trim();
-  if (!workspaceId || !comment) throw new Error("A clear final-review revision note is required.");
-  const { supabase: db, user, workspace, role } = await verifySupervisorOrAdmin(workspaceId);
-  if (role !== "admin" && workspace.supervisor_id !== user.id) throw new Error("This project is assigned to another supervisor.");
-  if (workspace.final_project_status !== "pending_review") throw new Error("This project is not awaiting final review.");
+export async function requestFinalProjectChanges(
+  formData: FormData
+): Promise<{ ok?: boolean; error?: string }> {
+  try {
+    const workspaceId = formData.get("workspaceId")?.toString();
+    const comment = formData.get("comment")?.toString().trim();
+    if (!workspaceId || !comment) return { error: "A clear final-review revision note is required." };
+    const { supabase: db, user, workspace, role } = await verifySupervisorOrAdmin(workspaceId);
+    if (role !== "admin" && workspace.supervisor_id !== user.id) return { error: "This project is assigned to another supervisor." };
+    if (role !== "admin" && workspace.final_project_status !== "pending_review") return { error: "This project is not awaiting final review." };
 
-  const { error: statusError } = await db.from("project_workspaces")
-    .update({ final_project_status: "changes_requested", final_project_approved_at: null }).eq("id", workspaceId)
+    const { error: statusError } = await db.from("project_workspaces")
+      .update({ final_project_status: "changes_requested", final_project_approved_at: null }).eq("id", workspaceId);
 
-  if (statusError) throw new Error(statusError.message || "Could not request project changes.");
-  const { error: reviewError } = await db.from("supervisor_reviews").insert({
-    workspace_id: workspaceId,
-    supervisor_id: user.id,
-    status: "changes_requested",
-    review_stage: "final_project",
-    comment,
-  });
-  if (reviewError) throw new Error(reviewError.message || "Could not save the final-review notes.");
-  await db.from("project_log_entries").insert({
-    workspace_id: workspaceId,
-    activity: "Supervisor requested changes to the completed project.",
-    supervisor_comment: comment,
-    auto_generated: true,
-    supervisor_signed_at: new Date().toISOString(),
-  });
-  revalidatePath(`/supervisor/${workspaceId}`);
-  revalidatePath(`/studio/${workspaceId}`);
-  revalidatePath("/supervisor");
+    if (statusError) return { error: statusError.message || "Could not request project changes." };
+    const { error: reviewError } = await db.from("supervisor_reviews").insert({
+      workspace_id: workspaceId,
+      supervisor_id: user.id,
+      status: "changes_requested",
+      review_stage: "final_project",
+      comment,
+    });
+    if (reviewError) return { error: reviewError.message || "Could not save the final-review notes." };
+    await db.from("project_log_entries").insert({
+      workspace_id: workspaceId,
+      activity: "Supervisor requested changes to the completed project.",
+      supervisor_comment: comment,
+      auto_generated: true,
+      supervisor_signed_at: new Date().toISOString(),
+    });
+    revalidatePath(`/supervisor/${workspaceId}`);
+    revalidatePath(`/studio/${workspaceId}`);
+    revalidatePath("/supervisor");
+    return { ok: true };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Could not save revision request." };
+  }
 }
 
 export async function reviewSupervisorBusinessPlanDocument(formData: FormData) {

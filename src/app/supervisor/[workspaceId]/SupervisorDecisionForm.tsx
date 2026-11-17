@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type FormEvent, type ReactNode } from "react";
 
-type SupervisorFormAction = (formData: FormData) => Promise<void>;
+type SupervisorFormActionResult = { ok?: boolean; error?: string } | void;
+type SupervisorFormAction = (formData: FormData) => Promise<SupervisorFormActionResult>;
 
 export function SupervisorDecisionForm({
   action,
@@ -33,7 +34,11 @@ export function SupervisorDecisionForm({
     setFeedback(null);
     startTransition(async () => {
       try {
-        await action(formData);
+        const result = await action(formData);
+        if (result && typeof result === "object" && result.error) {
+          setFeedback({ kind: "error", text: result.error });
+          return;
+        }
         setFeedback({ kind: "success", text: successMessage });
         router.refresh();
       } catch (error) {
