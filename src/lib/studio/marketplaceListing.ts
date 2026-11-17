@@ -226,7 +226,10 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
     level: workspace.level,
     sections: definitions.map((definition) => ({
       title: definition.title,
-      content: marketplacePreliminaries[definition.key] || redactPrivateDetails(sectionText.get(definition.key) || ""),
+      content:
+        !isResearch && marketplacePreliminaries[definition.key]
+          ? marketplacePreliminaries[definition.key]
+          : redactPrivateDetails(sectionText.get(definition.key) || ""),
     })),
   }, { onConflict: "project_id" });
   if (snapshotError) {
@@ -306,16 +309,17 @@ export function stampMarketplaceBusinessPlan(
   };
 
   const isNairobiTarget = /nairobi/i.test(buyer.townOrMarket) || /nairobi/i.test(buyer.county);
+  const isResearchDoc = sections.some((s) => /1\.1\s+background|research project/i.test(s.title) || /research project/i.test(s.content));
 
   return sections.map((sec) => {
     const titleNorm = sec.title.trim().toLowerCase();
-    if (/declaration|approval/i.test(titleNorm)) {
+    if (!isResearchDoc && /declaration|approval/i.test(titleNorm)) {
       return { title: sec.title, content: prelims.declaration };
     }
-    if (/^dedication$|prelim\.dedication/i.test(titleNorm)) {
+    if (!isResearchDoc && /^dedication$|prelim\.dedication/i.test(titleNorm)) {
       return { title: sec.title, content: prelims.dedication };
     }
-    if (/acknowledg/i.test(titleNorm)) {
+    if (!isResearchDoc && /acknowledg/i.test(titleNorm)) {
       return { title: sec.title, content: prelims.acknowledgements };
     }
 

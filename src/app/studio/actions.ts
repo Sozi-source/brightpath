@@ -8,7 +8,7 @@ import {
 } from "@/lib/studio/templates";
 import { buildCompleteBusinessPlan } from "@/lib/studio/businessPlanBuilder";
 import { buildResearchDocument } from "@/lib/studio/researchBuilder";
-import { RESEARCH_TOPIC_CATALOGUE, buildResearchSpecsFromBlueprint } from "@/lib/studio/researchTopics";
+import { RESEARCH_TOPIC_CATALOGUE, buildResearchSpecsFromBlueprint, findBestResearchBlueprint } from "@/lib/studio/researchTopics";
 import {
   draftBusinessPlanSections,
   reviewWholeBusinessPlan,
@@ -2333,9 +2333,8 @@ export async function buildCompleteResearchProjectAction(formData: FormData) {
   }
 
   const blueprint =
-    RESEARCH_TOPIC_CATALOGUE.find((t) => t.id === topicId) ||
-    RESEARCH_TOPIC_CATALOGUE.find((t) => t.title.toLowerCase() === (workspace.title || "").toLowerCase()) ||
-    RESEARCH_TOPIC_CATALOGUE[0];
+    (topicId ? RESEARCH_TOPIC_CATALOGUE.find((t) => t.id === topicId) : undefined) ||
+    findBestResearchBlueprint(workspace.title);
 
   const isAdminMaster = profile?.role === "admin";
   const rawInst = profile?.institutions as unknown;

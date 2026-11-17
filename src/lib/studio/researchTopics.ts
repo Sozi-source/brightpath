@@ -361,6 +361,49 @@ export const RESEARCH_TOPIC_CATALOGUE: ResearchTopicBlueprint[] = [
   },
 ];
 
+export function findBestResearchBlueprint(
+  titleOrQuery?: string | null
+): ResearchTopicBlueprint {
+  const q = (titleOrQuery || "").toLowerCase().trim();
+  if (!q) return RESEARCH_TOPIC_CATALOGUE[0];
+
+  const exact = RESEARCH_TOPIC_CATALOGUE.find((t) => t.title.toLowerCase() === q);
+  if (exact) return exact;
+
+  if (/complement|compliment|weaning|0-6\s*months|0–6\s*months/.test(q)) {
+    return RESEARCH_TOPIC_CATALOGUE.find((t) => t.id === "early_complementary_feeding_kenya") || RESEARCH_TOPIC_CATALOGUE[0];
+  }
+  if (/exclusive\s*breastfeeding|breastfeed/.test(q)) {
+    return RESEARCH_TOPIC_CATALOGUE.find((t) => t.id === "exclusive_breastfeeding_stunting_kenya") || RESEARCH_TOPIC_CATALOGUE[0];
+  }
+  if (/wasting/.test(q) && /overweight/.test(q)) {
+    return RESEARCH_TOPIC_CATALOGUE.find((t) => t.id === "wasting_overweight_double_burden_kenya") || RESEARCH_TOPIC_CATALOGUE[0];
+  }
+  if (/wasting|underweight/.test(q)) {
+    return RESEARCH_TOPIC_CATALOGUE.find((t) => t.id === "acute_chronic_undernutrition_kenya") || RESEARCH_TOPIC_CATALOGUE[0];
+  }
+  if (/anaemia|anemia/.test(q) && /pregnan|maternal/.test(q)) {
+    return RESEARCH_TOPIC_CATALOGUE.find((t) => t.id === "maternal_anaemia_pregnancy_kenya") || RESEARCH_TOPIC_CATALOGUE[0];
+  }
+  if (/anaemia|anemia/.test(q)) {
+    return RESEARCH_TOPIC_CATALOGUE.find((t) => t.id === "child_maternal_anaemia_kenya") || RESEARCH_TOPIC_CATALOGUE[0];
+  }
+  if (/antenatal|birthweight|birth\s*weight/.test(q)) {
+    return RESEARCH_TOPIC_CATALOGUE.find((t) => t.id === "antenatal_low_birthweight_kenya") || RESEARCH_TOPIC_CATALOGUE[0];
+  }
+  if (/mortality|survival/.test(q)) {
+    return RESEARCH_TOPIC_CATALOGUE.find((t) => t.id === "child_mortality_nutrition_kenya") || RESEARCH_TOPIC_CATALOGUE[0];
+  }
+  if (/immuniz|vitamin\s*a/.test(q)) {
+    return RESEARCH_TOPIC_CATALOGUE.find((t) => t.id === "immunization_vitamin_a_kenya") || RESEARCH_TOPIC_CATALOGUE[0];
+  }
+  if (/food\s*insecurity|undernourish/.test(q)) {
+    return RESEARCH_TOPIC_CATALOGUE.find((t) => t.id === "food_insecurity_undernourishment_kenya") || RESEARCH_TOPIC_CATALOGUE[0];
+  }
+
+  return RESEARCH_TOPIC_CATALOGUE[0];
+}
+
 export function buildResearchSpecsFromBlueprint(
   blueprint: ResearchTopicBlueprint,
   options: {

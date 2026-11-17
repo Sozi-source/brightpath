@@ -65,10 +65,19 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
   const supervisor = workspace.supervisor as unknown as { full_name?: string | null } | null;
   const institution = workspace.institution as unknown as { name?: string | null } | null;
 
-  const resolvedCandidate = businessSpecs?.candidateName?.trim() || student?.full_name?.trim() || "Candidate";
-  const resolvedAdmission = businessSpecs?.admissionNumber?.trim() || student?.admission_number?.trim() || "ADM/2026/001";
-  const resolvedInstitution = businessSpecs?.institutionName?.trim() || institution?.name?.trim() || "Kenya Education Cloud TVET Institute";
-  const resolvedSupervisor = businessSpecs?.supervisorName?.trim() || supervisor?.full_name?.trim() || "Project Supervisor";
+  const isAdminMaster = workspace.supervisor_id === null && !institution?.name;
+  const resolvedCandidate = isAdminMaster
+    ? "{{CANDIDATE_NAME}}"
+    : businessSpecs?.candidateName?.trim() || student?.full_name?.trim() || "Candidate";
+  const resolvedAdmission = isAdminMaster
+    ? "{{ADMISSION_NUMBER}}"
+    : businessSpecs?.admissionNumber?.trim() || student?.admission_number?.trim() || "ADM/2026/001";
+  const resolvedInstitution = isAdminMaster
+    ? "{{INSTITUTION_NAME}}"
+    : businessSpecs?.institutionName?.trim() || institution?.name?.trim() || "Kenya Education Cloud TVET Institute";
+  const resolvedSupervisor = isAdminMaster
+    ? "{{SUPERVISOR_NAME}}"
+    : businessSpecs?.supervisorName?.trim() || supervisor?.full_name?.trim() || "Project Supervisor";
   const resolvedTown = businessSpecs?.townOrMarket?.trim() || "Nairobi";
   const resolvedCounty = businessSpecs?.county?.trim() || "Nairobi County";
   const resolvedBusinessName = businessSpecs?.businessName?.trim() || workspace.title || "Business Plan";
@@ -95,15 +104,17 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
   const sections = getWorkspaceSections(workspace.workspace_type, workspace.level, isResearch ? undefined : businessModel)
     .map((definition) => {
       let content = sectionsByKey.get(definition.key) || "";
-      if (definition.key === "prelim.declaration" && isPlaceholderPreliminary(content)) {
+      if (!isResearch && definition.key === "prelim.declaration" && isPlaceholderPreliminary(content)) {
         content = variedPrelims.declaration;
       } else if (
+        !isResearch &&
         definition.key === "prelim.dedication" &&
         ((businessSpecs?.dedicationText?.trim() && !isPlaceholderPreliminary(businessSpecs.dedicationText)) ||
           isPlaceholderPreliminary(content))
       ) {
         content = variedPrelims.dedication;
       } else if (
+        !isResearch &&
         definition.key === "prelim.acknowledgements" &&
         ((businessSpecs?.acknowledgementsText?.trim() && !isPlaceholderPreliminary(businessSpecs.acknowledgementsText)) ||
           isPlaceholderPreliminary(content))

@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpen, Sparkles, Loader2, CheckCircle2 } from "lucide-react";
 import { buildCompleteResearchProjectAction } from "../actions";
-import { RESEARCH_TOPIC_CATALOGUE } from "@/lib/studio/researchTopics";
+import { RESEARCH_TOPIC_CATALOGUE, findBestResearchBlueprint } from "@/lib/studio/researchTopics";
 
 interface ResearchBuilderButtonProps {
   workspaceId: string;
@@ -19,10 +19,7 @@ export function ResearchBuilderButton({
 }: ResearchBuilderButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const matched =
-    RESEARCH_TOPIC_CATALOGUE.find(
-      (t) => t.title.toLowerCase() === (currentTitle || "").toLowerCase()
-    )?.id || RESEARCH_TOPIC_CATALOGUE[0].id;
+  const matched = findBestResearchBlueprint(currentTitle).id;
   const [topicId, setTopicId] = useState(matched);
   const [showPersonalize, setShowPersonalize] = useState(false);
   const [dedicationText, setDedicationText] = useState("");

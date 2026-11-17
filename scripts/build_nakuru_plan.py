@@ -103,9 +103,44 @@ def set_table_rows(table, rows):
 for t in doc.tables:
     if not t.rows:
         continue
-    hdr = " ".join(c.text.strip().lower() for c in t.rows[0].cells)
+    hdr = " ".join(" ".join(c.text.split()).lower() for c in t.rows[0].cells)
 
-    if "programme line" in hdr and "cohort tuition" in hdr:
+    if "purpose and rationale" in hdr and "proposed level" in hdr:
+        set_table_rows(
+            t,
+            [
+                ["Course", "Purpose and rationale", "Proposed level", "Delivery model", "Regulatory status"],
+                [
+                    "Mortuary Science",
+                    "Assess demand for structured mortuary operations, anatomy, embalming, bereavement support, infection prevention and compliant mortuary practice training.",
+                    "Level 5 (Certificate, 5 terms) & Level 6 (Diploma, 8 terms)",
+                    "Skills-lab demonstrations plus supervised field/practicum placement",
+                    "Approval pathway, curriculum and practice-site requirements [Confirm locally]",
+                ],
+                [
+                    "Optometry",
+                    "Assess demand for eye-care support and optometric training linked to community screening, refraction and supervised clinical practice.",
+                    "Diploma / Level 6 (8 terms; confirm if Level 5 is offered)",
+                    "Optometry skills laboratory plus supervised clinical placement",
+                    "Approval pathway, professional-body requirements and clinical-site capacity [Confirm locally]",
+                ],
+                [
+                    "Orthopedic and Trauma Medicine",
+                    "Assess demand for practical orthopedic, fracture-care, trauma-response and rehabilitation-support skills across health facilities and emergency-care settings.",
+                    "Level 5 (Certificate, 5 terms) & Level 6 (Diploma, 8 terms)",
+                    "Simulation-based skills training plus supervised clinical placement",
+                    "Approval pathway, scope of practice and clinical placement requirements [Confirm locally]",
+                ],
+                [
+                    "Artificial Intelligence for Health and Medical Applications",
+                    "Assess demand for applied AI, health informatics, data literacy and responsible automation skills supporting modern healthcare delivery.",
+                    "6 terms (Level 5/6 or modular award to confirm with regulator)",
+                    "Computer laboratory, project-based learning and industry-linked delivery",
+                    "Curriculum ownership, certification route, data-protection and laboratory requirements [Confirm locally]",
+                ],
+            ],
+        )
+    elif "programme line" in hdr and "cohort tuition" in hdr:
         set_table_rows(
             t,
             [
@@ -261,7 +296,12 @@ for t in doc.tables:
             sh.set(qn("w:fill"), "153B5B" if ri == 0 else ("EEF4F8" if ri % 2 else "FFFFFF"))
             tcPr.append(sh)
 
-doc.save(DOCX_OUT)
+try:
+    doc.save(DOCX_OUT)
+except PermissionError:
+    DOCX_OUT = OUT / "ICMHS_Nakuru_business_plan_directors_edition_updated.docx"
+    PDF_OUT = OUT / "ICMHS_Nakuru_business_plan_directors_edition_updated.pdf"
+    doc.save(DOCX_OUT)
 
 
 def iter_blocks(parent: DocType):
