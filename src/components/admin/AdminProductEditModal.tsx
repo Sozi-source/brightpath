@@ -601,16 +601,10 @@ export function AdminProductEditModal({
                       <ExternalLink className="h-3.5 w-3.5" /> Review Manuscript
                     </Link>
                     <Link
-                      href={`/api/download?projectId=${encodeURIComponent(project.id)}&format=pdf`}
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs"
-                    >
-                      <Download className="h-3.5 w-3.5 text-slate-500" /> PDF
-                    </Link>
-                    <Link
                       href={`/api/download?projectId=${encodeURIComponent(project.id)}&format=docx`}
                       className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs"
                     >
-                      <Download className="h-3.5 w-3.5 text-slate-500" /> Word
+                      <Download className="h-3.5 w-3.5 text-slate-500" /> Word (.docx)
                     </Link>
                   </>
                 )}

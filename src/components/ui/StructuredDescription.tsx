@@ -4,16 +4,20 @@ interface StructuredDescriptionProps {
   text?: string | null;
   fallback?: string;
   compact?: boolean;
+  hidePrivateFields?: boolean;
   className?: string;
 }
 
 const KNOWN_LABELS =
   /^(Business|Enterprise|Ownership|Form of Ownership|Location|Target Location|Product or service|Primary Product|Flagship Offering|Sector|Industry Sector|Course|Level|Institution|Candidate|Supervisor)\s*:\s*(.+)$/i;
 
+const PRIVATE_FIELD_LABELS = /^(Location|Target Location|Institution|Candidate|Supervisor)$/i;
+
 export function StructuredDescription({
   text,
   fallback = "A verified digital resource for TVET learners.",
   compact = false,
+  hidePrivateFields = false,
   className = "",
 }: StructuredDescriptionProps) {
   const raw = (text || "").trim();
@@ -26,20 +30,22 @@ export function StructuredDescription({
     .map((line) => line.trim())
     .filter(Boolean);
 
-  const parsedLines = lines.map((line) => {
-    const match = line.match(KNOWN_LABELS) || line.match(/^([A-Za-z][A-Za-z0-9\s/&()-]{1,28}):\s+(.+)$/);
-    if (match) {
+  const parsedLines = lines
+    .map((line) => {
+      const match = line.match(KNOWN_LABELS) || line.match(/^([A-Za-z][A-Za-z0-9\s/&()-]{1,28}):\s+(.+)$/);
+      if (match) {
+        return {
+          isKeyValue: true as const,
+          label: match[1].trim(),
+          value: match[2].trim(),
+        };
+      }
       return {
-        isKeyValue: true as const,
-        label: match[1].trim(),
-        value: match[2].trim(),
+        isKeyValue: false as const,
+        text: line,
       };
-    }
-    return {
-      isKeyValue: false as const,
-      text: line,
-    };
-  });
+    })
+    .filter((item) => !(hidePrivateFields && item.isKeyValue && PRIVATE_FIELD_LABELS.test(item.label)));
 
   const hasStructuredRows = parsedLines.some((item) => item.isKeyValue);
 

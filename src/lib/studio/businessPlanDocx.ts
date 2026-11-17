@@ -674,7 +674,6 @@ function markdownToWord(
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index].trim();
     if (!line) {
-      activeOrderedNumId = null;
       continue;
     }
     if (/^(---+|\*\*\*+)$/.test(line)) {
@@ -769,12 +768,13 @@ function markdownToWord(
       continue;
     }
 
-    const numbered = line.match(/^\d+[.)]\s+(.+)$/);
+    const numbered = line.match(/^(\d+)[.)]\s+(.+)$/);
     if (numbered) {
-      if (activeOrderedNumId === null) {
+      const itemNum = Number(numbered[1]);
+      if (activeOrderedNumId === null || itemNum === 1) {
         activeOrderedNumId = allocateOrderedListNumId();
       }
-      const itemText = numbered[1].replace(/<br\s*\/?>/gi, " ").trim();
+      const itemText = numbered[2].replace(/<br\s*\/?>/gi, " ").trim();
       const wrappedLines = Math.max(1, Math.ceil(stripMarkdownMarkers(itemText).length / 76));
       consumeHeight(tracker, wrappedLines * 340 + 100);
       output.push(listItemParagraph(itemText, activeOrderedNumId));

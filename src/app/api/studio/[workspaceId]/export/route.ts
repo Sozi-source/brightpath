@@ -8,7 +8,6 @@ import {
   isPlaceholderPreliminary,
 } from "@/lib/studio/businessPlanPreliminaries";
 import { createBusinessPlanDocx } from "@/lib/studio/businessPlanDocx";
-import { createBusinessPlanPdf } from "@/lib/studio/businessPlanPdf";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function GET(_request: NextRequest, context: RouteContext<"/api/studio/[workspaceId]/export">) {
@@ -183,18 +182,6 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
     sections,
   };
   const stem = (workspace.title || "business-plan").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "business-plan";
-  // Students only receive the editable Word (.docx) copy; PDF export is restricted to admin.
-  if (profile?.role === "admin" && _request.nextUrl.searchParams.get("format") === "pdf") {
-    try {
-      const pdf = await createBusinessPlanPdf(document);
-      return new Response(pdf as unknown as BodyInit, {
-        headers: { "Content-Type": "application/pdf", "Content-Disposition": `attachment; filename="${stem}.pdf"`, "Cache-Control": "private, no-store" },
-      });
-    } catch (error) {
-      console.error("Business plan PDF export failed:", error);
-      return NextResponse.json({ error: "PDF export is temporarily unavailable. Download the Word copy instead." }, { status: 503 });
-    }
-  }
   const docx = createBusinessPlanDocx(document);
   const filename = `${stem}.docx`;
   return new Response(docx as unknown as BodyInit, {

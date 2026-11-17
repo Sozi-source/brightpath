@@ -71,8 +71,8 @@ export function StudioDownloadModal({
     }
   }
 
-  function buildDownloadUrl(format: "docx" | "pdf", withPlaceholders = false) {
-    const params = new URLSearchParams({ format });
+  function buildDownloadUrl(withPlaceholders = false) {
+    const params = new URLSearchParams({ format: "docx" });
     if (!withPlaceholders) {
       if (candidateName.trim()) params.set("candidateName", candidateName.trim());
       if (admissionNumber.trim()) params.set("admissionNumber", admissionNumber.trim());
@@ -87,7 +87,7 @@ export function StudioDownloadModal({
   function handleSubmitDownload(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     saveDraftDetails();
-    const url = buildDownloadUrl("docx", false);
+    const url = buildDownloadUrl(false);
     setIsOpen(false);
     window.location.href = url;
   }
@@ -229,7 +229,7 @@ export function StudioDownloadModal({
               <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
                 {isAdmin ? (
                   <a
-                    href={buildDownloadUrl("docx", true)}
+                    href={buildDownloadUrl(true)}
                     onClick={() => setIsOpen(false)}
                     className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
                   >

@@ -240,7 +240,7 @@ export default async function WorkspaceOverviewPage({
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
               <span>
-                <strong>Payment confirmed!</strong> Official KNEC Word (.docx) and PDF export has been unlocked for this workspace.
+                <strong>Payment confirmed!</strong> Official KNEC Word (.docx) export has been unlocked for this workspace.
               </span>
             </div>
             <div className="flex items-center gap-2">

@@ -142,28 +142,26 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
     ? `${baseTitle} — Complete KNEC Research Project`
     : `${baseTitle} — Complete KNEC Business Plan`;
 
-  const realTown = specs?.townOrMarket?.trim() || "Nairobi";
-  const realCounty = specs?.county?.trim() || "Nairobi County";
-  const cleanStreet = (specs?.streetOrBuilding || "")
-    .replace(/\s*\[Confirm exact plot\/street locally\]/gi, "")
-    .trim();
-
   const listingDescription = redactPrivateDetails(
     workspace.problem_area ||
-    `Complete KNEC business plan for ${baseTitle}. Includes comprehensive executive summary, marketing, operations, human resources, and financial schedules prepared in full compliance with KNEC TVET assessment regulations.`
+    `Complete ${isResearch ? "research project" : "business plan"} for ${baseTitle}.`
   )
-    .replace(/\{\{STREET_ADDRESS\}\},\s*\{\{TARGET_TOWN\}\},\s*\{\{TARGET_COUNTY\}\}/g, `${realTown}, ${realCounty}`)
-    .replace(/\{\{TARGET_TOWN\}\}/g, realTown)
-    .replace(/\{\{TARGET_COUNTY\}\}/g, realCounty)
+    .replace(/^(?:Location|Target Location)\s*:.*$/gim, "")
+    .replace(/\{\{STREET_ADDRESS\}\},\s*\{\{TARGET_TOWN\}\},\s*\{\{TARGET_COUNTY\}\}/g, "Customizable upon download")
+    .replace(/\{\{TARGET_TOWN\}\},\s*\{\{TARGET_COUNTY\}\}/g, "Customizable upon download")
+    .replace(/\{\{TARGET_TOWN\}\}/g, "Target Town")
+    .replace(/\{\{TARGET_COUNTY\}\}/g, "Target County")
     .replace(/\{\{INSTITUTION_NAME\}\}/g, "Accredited TVET Institution")
     .replace(/\{\{CANDIDATE_NAME\}\}/g, "Candidate")
     .replace(/\{\{ADMISSION_NUMBER\}\}/g, "")
     .replace(/\{\{SUPERVISOR_NAME\}\}/g, "Institutional Supervisor")
-    .replace(/\{\{STREET_ADDRESS\}\}/g, cleanStreet || realTown)
-    .replace(/\{\{PHONE_NUMBER\}\}/g, "+254 700 000 000")
-    .replace(/\{\{EMAIL_ADDRESS\}\}/g, "info@enterprise.co.ke")
-    .replace(/\{\{POSTAL_ADDRESS\}\}/g, "P.O. Box 100")
-    .replace(/\s*\[Confirm exact plot\/street locally\]/gi, "");
+    .replace(/\{\{STREET_ADDRESS\}\}/g, "")
+    .replace(/\{\{PHONE_NUMBER\}\}/g, "")
+    .replace(/\{\{EMAIL_ADDRESS\}\}/g, "")
+    .replace(/\{\{POSTAL_ADDRESS\}\}/g, "")
+    .replace(/\s*\[Confirm exact plot\/street locally\]/gi, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 
   const filePath = `workspace-export:${workspaceId}`;
   const { data: existing, error: existingError } = await db.from("projects")

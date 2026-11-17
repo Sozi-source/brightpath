@@ -285,6 +285,7 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
                   <StructuredDescription
                     text={product.description}
                     fallback="A verified digital resource for TVET learners."
+                    hidePrivateFields
                     className="mt-2"
                   />
                 </div>
@@ -298,7 +299,7 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
                     />
                   </div>
                   {canDownload ? <div className="flex flex-wrap gap-2">
-                    {product.file_path.startsWith("workspace-export:") ? <><a href={`/api/download?projectId=${product.id}&format=pdf`} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700 shadow-xs"><Download className="h-4 w-4" /> Download PDF</a><a href={`/api/download?projectId=${product.id}&format=docx`} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs"><Download className="h-4 w-4" /> Download Word</a></> : <a href={`/api/download?projectId=${product.id}`} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700 shadow-xs"><Download className="h-4 w-4" /> Download</a>}
+                    {product.file_path.startsWith("workspace-export:") ? <a href={`/api/download?projectId=${product.id}&format=docx`} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700 shadow-xs"><Download className="h-4 w-4" /> Download Word (.docx)</a> : <a href={`/api/download?projectId=${product.id}`} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700 shadow-xs"><Download className="h-4 w-4" /> Download</a>}
                   </div> : <BuyButton projectId={product.id} isOwner={isOwner} />}
                 </div>
               </div>

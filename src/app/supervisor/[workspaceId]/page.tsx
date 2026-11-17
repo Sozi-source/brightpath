@@ -265,8 +265,7 @@ export default async function SupervisorWorkspacePage({ params }: SupervisorWork
         <section aria-label="Download business plan" className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
           <h2 className="text-sm font-semibold tracking-tight text-slate-900">Download business plan</h2>
           <div className="flex flex-wrap gap-2">
-            <Link href={`/api/studio/${workspaceId}/export?format=pdf`} className="inline-flex items-center rounded-lg border border-indigo-600 bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700">Download PDF</Link>
-            <Link href={`/api/studio/${workspaceId}/export?format=docx`} className="inline-flex items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50">Download Word</Link>
+            <Link href={`/api/studio/${workspaceId}/export?format=docx`} className="inline-flex items-center rounded-lg border border-indigo-600 bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700">Download Word (.docx)</Link>
           </div>
         </section>
       )}

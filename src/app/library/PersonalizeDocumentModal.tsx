@@ -82,10 +82,10 @@ export function PersonalizeDocumentModal({
     }
   }
 
-  function getDownloadUrl(format: "pdf" | "docx") {
+  function getDownloadUrl() {
     const params = new URLSearchParams({
       projectId,
-      format,
+      format: "docx",
     });
     const resolvedCandidate = (candidateName || defaultFullName).trim();
     const resolvedAdmission = (admissionNumber || defaultAdmissionNumber).trim();
@@ -131,18 +131,11 @@ export function PersonalizeDocumentModal({
         <span className="text-[11px] text-slate-500 font-medium">Download Dossier:</span>
         <div className="flex gap-2">
           <a
-            href={getDownloadUrl("pdf")}
+            href={getDownloadUrl()}
             className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-teal-700 transition-colors"
           >
             <Download className="h-3.5 w-3.5" />
-            <span>PDF</span>
-          </a>
-          <a
-            href={getDownloadUrl("docx")}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors"
-          >
-            <Download className="h-3.5 w-3.5" />
-            <span>Word</span>
+            <span>Word (.docx)</span>
           </a>
         </div>
       </div>
@@ -301,20 +294,12 @@ export function PersonalizeDocumentModal({
 
                 <div className="flex gap-2">
                   <a
-                    href={getDownloadUrl("docx")}
-                    onClick={() => handleSave()}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    <span>Download Word</span>
-                  </a>
-                  <a
-                    href={getDownloadUrl("pdf")}
+                    href={getDownloadUrl()}
                     onClick={() => handleSave()}
                     className="inline-flex items-center gap-1.5 rounded-lg bg-[#0f1111] hover:bg-slate-800 text-white px-3.5 py-2 text-xs font-semibold transition-colors shadow-2xs"
                   >
                     <Download className="h-3.5 w-3.5" />
-                    <span>Download PDF</span>
+                    <span>Download Word (.docx)</span>
                   </a>
                 </div>
               </div>

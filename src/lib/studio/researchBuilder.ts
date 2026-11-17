@@ -95,13 +95,26 @@ function fmtSigned(val: number, unit: string): string {
   return unit === "%" ? `${sign}${val.toFixed(1)} percentage points` : `${sign}${val.toFixed(1)} ${unit}`;
 }
 
-function describeTrend(b: IndicatorBundle): string {
+function isEarlyComplementaryTopic(specs: ResearchSpecs): boolean {
+  return (
+    specs.topicId === "early_complementary_feeding_kenya" ||
+    /complementary\s+feeding/i.test(specs.title)
+  );
+}
+
+function describeTrend(b: IndicatorBundle, specs?: ResearchSpecs): string {
   const { indicator, stats } = b;
   const start = fmtVal(stats.firstValue, indicator.unit);
   const end = fmtVal(stats.lastValue, indicator.unit);
   const chg = fmtSigned(stats.absoluteChange, indicator.unit);
   const pct = stats.percentChange !== null ? ` (${stats.percentChange > 0 ? "+" : ""}${stats.percentChange.toFixed(1)}%)` : "";
-  return `${indicator.shortLabel} moved from ${start} in ${stats.firstYear} to ${end} in ${stats.lastYear}, a net change of ${chg}${pct}`;
+  const base = `${indicator.shortLabel} moved from ${start} in ${stats.firstYear} to ${end} in ${stats.lastYear}, a net change of ${chg}${pct}`;
+  if (specs && indicator.id === "exclusive_breastfeeding" && isEarlyComplementaryTopic(specs)) {
+    const earlyStart = (100 - stats.firstValue).toFixed(1);
+    const earlyEnd = (100 - stats.lastValue).toFixed(1);
+    return `${base} (corresponding to a shift in estimated early complementary feeding before 6 months from ${earlyStart}% to ${earlyEnd}%)`;
+  }
+  return base;
 }
 
 function makeSection(key: string, title: string, content: string): GeneratedSectionPayload {
@@ -169,7 +182,6 @@ function buildPrelims(
     "| FAO | Food and Agriculture Organization |",
     "| KDHS | Kenya Demographic and Health Survey |",
     "| KNBS | Kenya National Bureau of Statistics |",
-    "| KNEC | Kenya National Examinations Council |",
     "| MOH | Ministry of Health (Kenya) |",
     "| SD | Standard Deviation |",
     "| UNICEF | United Nations Children's Fund |",
@@ -180,8 +192,8 @@ function buildPrelims(
   const out: GeneratedSectionPayload[] = [];
   if (kind === "full" && primary) {
     const summarySentence = secondary
-      ? `${describeTrend(primary)}, whereas ${describeTrend(secondary)}.`
-      : `${describeTrend(primary)}.`;
+      ? `${describeTrend(primary, specs)}, whereas ${describeTrend(secondary, specs)}.`
+      : `${describeTrend(primary, specs)}.`;
     const abstractText = [
       `This study examined national trends in ${bundles.map((b) => b.indicator.shortLabel.toLowerCase()).join(" and ")} in ${specs.country} using published secondary data covering ${primary.stats.firstYear} to ${primary.stats.lastYear}.`,
       `${specs.problemContext || ""} The general objective was ${specs.generalObjective.charAt(0).toLowerCase()}${specs.generalObjective.slice(1)}`,
@@ -266,9 +278,9 @@ function buildChapter1(
   ]);
   const problemData = primary
     ? pickVariant(`${seed}|probData`, [
-        `Published national data demonstrate notable shifts alongside unfinished progress: ${describeTrend(primary)}${secondary ? `, while ${describeTrend(secondary)}` : ""} ${cWdi}.`,
-        `Verified time-series records show that ${describeTrend(primary)}${secondary ? `; over the same window, ${describeTrend(secondary)}` : ""} ${cWdi}.`,
-        `National estimates reveal mixed momentum: ${describeTrend(primary)}${secondary ? `, whereas ${describeTrend(secondary)}` : ""} ${cWdi}.`,
+        `Published national data demonstrate notable shifts alongside unfinished progress: ${describeTrend(primary, specs)}${secondary ? `, while ${describeTrend(secondary, specs)}` : ""} ${cWdi}.`,
+        `Verified time-series records show that ${describeTrend(primary, specs)}${secondary ? `; over the same window, ${describeTrend(secondary, specs)}` : ""} ${cWdi}.`,
+        `National estimates reveal mixed momentum: ${describeTrend(primary, specs)}${secondary ? `, whereas ${describeTrend(secondary, specs)}` : ""} ${cWdi}.`,
       ])
     : "";
   const problemGap = `${specs.problemContext || ""} ${pickVariant(`${seed}|probGap`, [
@@ -282,15 +294,15 @@ function buildChapter1(
   const problem = [problemLead, problemData, problemGap, problemDiploma].filter(Boolean).join("\n\n");
 
   const objectives = [
-    "1.3.1 General Objective",
+    "### 1.3.1 General Objective",
     specs.generalObjective,
-    "1.3.2 Specific Objectives",
-    ...specs.specificObjectives.map((o, i) => `${i + 1}. ${o.replace(/^\d+\.\s*/, "")}`),
+    "### 1.3.2 Specific Objectives",
+    specs.specificObjectives.map((o, i) => `${i + 1}. ${o.replace(/^\d+\.\s*/, "")}`).join("\n"),
   ].join("\n\n");
 
   const questions = specs.researchQuestions
     .map((q, i) => `${i + 1}. ${q.replace(/^\d+\.\s*/, "")}`)
-    .join("\n\n");
+    .join("\n");
 
   const justPoints = orderBySeed(`${seed}|just`, [
     `Policy and programme utility: Findings provide county nutrition coordinators and Ministry of Health planners with a concise multi-year trend reference aligned with the Kenya Nutrition Action Plan ${cMoh}.`,
@@ -329,7 +341,7 @@ function buildChapter1(
     ]),
     ...(isDiploma
       ? [
-          `Methodologically, the scope is restricted to published, quality-assured time-series estimates retrieved from the World Bank World Development Indicators repository, ensuring that every figure cited in the report is traceable to an official dataset and verifiable by KNEC examiners.`,
+          `Methodologically, the scope is restricted to published, quality-assured time-series estimates retrieved from the World Bank World Development Indicators repository, ensuring that every figure cited in the report is traceable to an official dataset and independently verifiable.`,
         ]
       : []),
   ].join("\n\n");
@@ -347,7 +359,7 @@ function buildChapter1(
     ]),
     ...(isDiploma
       ? [
-          `In addition, the study assumes that World Bank Development Indicators and Kenya Demographic and Health Survey harmonization procedures maintained consistent age-group definitions and weighting across reporting waves. While minor methodological updates can occur between survey decades, relying exclusively on officially harmonized series minimizes comparability bias and preserves transparency for KNEC assessment.`,
+          `In addition, the study assumes that World Bank Development Indicators and Kenya Demographic and Health Survey harmonization procedures maintained consistent age-group definitions and weighting across reporting waves. While minor methodological updates can occur between survey decades, relying exclusively on officially harmonized series minimizes comparability bias and preserves analytical transparency.`,
         ]
       : []),
   ].join("\n\n");
@@ -462,9 +474,16 @@ function buildChapter2(
   const empBlocks = bundles.map((b, idx) => {
     const num = idx + 1;
     const { indicator } = b;
+    const isEarlyCompProxy = indicator.id === "exclusive_breastfeeding" && isEarlyComplementaryTopic(specs);
+    const sectionLabel = isEarlyCompProxy
+      ? `Early Introduction of Complementary Feeding and ${indicator.shortLabel}`
+      : indicator.shortLabel;
+    const topicLinkSentence = isEarlyCompProxy
+      ? `In the context of early complementary feeding, exclusive breastfeeding under six months serves as the direct inverse epidemiological indicator: infants not exclusively breastfed before six months (100% minus exclusive breastfeeding prevalence) are already receiving early solid, semi-solid, or non-breastmilk liquids.`
+      : "";
     const baseEmp = [
-      `2.4.${num} ${indicator.shortLabel}`,
-      `${indicator.definition} Global monitoring syntheses emphasize that sustained progress requires coordinated nutrition-specific and nutrition-sensitive interventions ${cJme}; ${cBlack}.`,
+      `2.4.${num} ${sectionLabel}`,
+      `${indicator.definition} ${topicLinkSentence} Global monitoring syntheses emphasize that sustained progress requires coordinated nutrition-specific and nutrition-sensitive interventions ${cJme}; ${cBlack}.`.replace(/\s{2,}/g, " "),
       `In Kenya, national surveys conducted across multiple waves have documented shifting burdens across rural and urban populations ${cKdhs14}; ${cKdhs22}. ${domainExtraCite ? `Technical guidance highlights standardized measurement definitions and public health severity thresholds to ensure comparability across survey rounds ${domainExtraCite}.` : `Consistent survey methodology enables valid cross-year comparison when indicator definitions remain harmonized ${cWdi}.`}`,
     ];
     if (isDiploma) {
@@ -532,13 +551,13 @@ function buildChapter3(
 
   const design = [
     pickVariant(`${seed}|design`, [
-      `This study adopted a descriptive longitudinal secondary-data research design (KNEC Chapter Three Option B: Secondary Data Research). Descriptive designs systematically document quantitative characteristics and temporal patterns of a population without manipulating variables ${cCreswell}.`,
-      `Following KNEC Option B guidelines for secondary-data research, the study employed a quantitative descriptive trend design using pre-existing official time-series records ${cCreswell}. No primary fieldwork, questionnaires, or clinical sampling were conducted.`,
+      `This study adopted a descriptive longitudinal secondary-data research design. Descriptive designs systematically document quantitative characteristics and temporal patterns of a population without manipulating variables ${cCreswell}.`,
+      `The study employed a quantitative descriptive longitudinal trend design using pre-existing official time-series records ${cCreswell}. No primary fieldwork, questionnaires, or clinical sampling were conducted.`,
     ]),
     `This design is well suited to the study objectives because it permits objective comparison of standardized national indicators across multiple survey years while avoiding primary data-collection costs and respondent burden.`,
     ...(isDiploma
       ? [
-          `In accordance with KNEC Diploma research methodology standards, a longitudinal secondary-data design offers three distinct analytical advantages: first, it preserves standardized indicator definitions across multi-decade survey waves; second, it enables calculation of both point-to-point changes and linear trend slopes without recall bias; and third, it allows transparent verification against published national and United Nations statistical repositories ${cCreswell}; ${cWdi}.`,
+          `A longitudinal secondary-data design offers three distinct analytical advantages: first, it preserves standardized indicator definitions across multi-decade survey waves; second, it enables calculation of both point-to-point changes and linear trend slopes without recall bias; and third, it allows transparent verification against published national and United Nations statistical repositories ${cCreswell}; ${cWdi}.`,
           `Unlike cross-sectional primary surveys restricted to a single facility or sub-location, this national secondary design situates observed changes within Kenya's broader demographic and policy timeline, making it directly applicable to county-level benchmarking and programme planning.`,
         ]
       : []),
@@ -589,7 +608,7 @@ function buildChapter3(
     ]),
     ...(isDiploma
       ? [
-          `Quality assurance was enforced through a four-step audit checklist: (1) verifying that the World Bank indicator code and unit matched the conceptual definition; (2) sorting observations strictly in ascending chronological order; (3) confirming that no duplicate year entries or rounded approximations altered baseline-to-latest differences; and (4) logging exact source URLs and retrieval dates in Appendix I for independent verification by KNEC moderators.`,
+          `Quality assurance was enforced through a four-step audit checklist: (1) verifying that the World Bank indicator code and unit matched the conceptual definition; (2) sorting observations strictly in ascending chronological order; (3) confirming that no duplicate year entries or rounded approximations altered baseline-to-latest differences; and (4) logging exact source URLs and retrieval dates in Appendix I for independent verification.`,
         ]
       : []),
   ].join("\n\n");
@@ -597,7 +616,7 @@ function buildChapter3(
   const diplomaStatsDetail = isDiploma
     ? [
         `Specifically, sample standard deviation quantifies dispersion around the multi-year mean; compound annual growth rate (CAGR) captures geometric annualized shift between baseline and latest positive values; and ordinary least-squares (OLS) linear regression estimates the average annual slope across all reported observations, reducing sensitivity to single-year fluctuations.`,
-        `In interpreting these quantitative metrics for Kenyan public health planning, positive and negative slopes are evaluated alongside absolute percentage-point changes and public health severity thresholds. Presenting both tabular year-by-year records and aggregated summary statistics ensures transparency for KNEC assessors and enables county health teams to replicate the calculations directly in standard spreadsheet software.`,
+        `In interpreting these quantitative metrics for Kenyan public health planning, positive and negative slopes are evaluated alongside absolute percentage-point changes and public health severity thresholds. Presenting both tabular year-by-year records and aggregated summary statistics ensures analytical transparency and enables county health teams to replicate the calculations directly in standard spreadsheet software.`,
       ].join("\n\n")
     : "";
 
@@ -634,7 +653,7 @@ function buildChapter3(
     ]),
     ...(isDiploma
       ? [
-          `Furthermore, the researcher adhered strictly to institutional anti-plagiarism standards and KNEC Examination Regulations by paraphrasing conceptual and empirical literature accurately, avoiding selective reporting of favourable survey years, and documenting every dataset URL and retrieval date so that supervisors and moderation panels can independently audit every reported figure.`,
+          `Furthermore, the researcher adhered strictly to institutional anti-plagiarism and academic integrity standards by paraphrasing conceptual and empirical literature accurately, avoiding selective reporting of favourable survey years, and documenting every dataset URL and retrieval date so that supervisors and reviewers can independently audit every reported figure.`,
         ]
       : []),
   ].join("\n\n");
@@ -682,8 +701,11 @@ function buildChapter4(
     resultsBlocks.push(seriesRows);
 
     const summaryStatsText = [
-      `Across ${stats.count} reported observations between ${stats.firstYear} and ${stats.lastYear}, ${describeTrend(b)}.`,
+      `Across ${stats.count} reported observations between ${stats.firstYear} and ${stats.lastYear}, ${describeTrend(b, specs)}.`,
       `The series averaged ${fmtVal(stats.mean, indicator.unit)}, ranging from a low of ${fmtVal(stats.minValue, indicator.unit)} in ${stats.minYear} to a peak of ${fmtVal(stats.maxValue, indicator.unit)} in ${stats.maxYear}, with an average annual shift of ${stats.avgAnnualChange > 0 ? "+" : ""}${stats.avgAnnualChange} per year.`,
+      indicator.id === "exclusive_breastfeeding" && isEarlyComplementaryTopic(specs)
+        ? `Interpreted through the study's complementary feeding lens, the change in exclusive breastfeeding from ${fmtVal(stats.firstValue, indicator.unit)} (${stats.firstYear}) to ${fmtVal(stats.lastValue, indicator.unit)} (${stats.lastYear}) corresponds to a reduction in estimated early introduction of complementary foods or liquids before six months from ${(100 - stats.firstValue).toFixed(1)}% to ${(100 - stats.lastValue).toFixed(1)}%.`
+        : "",
       isDiploma
         ? `Linear trend estimation yielded an ordinary least-squares slope of ${stats.linearSlopePerYear > 0 ? "+" : ""}${stats.linearSlopePerYear} per year (SD = ${stats.stdDev})${stats.cagrPercent !== null ? ` and a compound annual rate of ${stats.cagrPercent > 0 ? "+" : ""}${stats.cagrPercent}% per year` : ""}.`
         : "",
@@ -787,8 +809,8 @@ function buildChapter4(
           `From a Kenyan health-systems perspective, these findings highlight the importance of strengthening Kenya's Community Health Promoters (CHPs) network, integrating nutrition indicators into routine county health management information systems, and ensuring that facility-level staff receive continuous refresher training on standardized WHO and Ministry of Health protocols ${cMoh}.`,
           `Methodologically, these findings corroborate the value of longitudinal secondary-data analysis in Kenyan TVET nutrition research. By comparing multi-decade series side by side, practitioners can distinguish durable structural progress from short-term survey fluctuations and formulate evidence-grounded recommendations for county health departments.`,
           `In Kenya's devolved health system, county nutrition coordinators and sub-county health management teams can apply these longitudinal benchmarks during annual performance reviews and county integrated development planning (CIDP) cycles. Aligning local resource allocation with verified national trend direction helps ensure that preventive maternal and child nutrition programmes receive sustained funding across successive budget years ${cMoh}.`,
-          `Additionally, training institutions offering KNEC Diploma programmes in Human Nutrition and Dietetics and Community Health can use these verified trend summaries to bridge classroom theory with real-world Kenyan epidemiological evidence, preparing graduates to interpret national datasets accurately in clinical and public health practice.`,
-          `Finally, documenting multi-year national trends alongside clear source citations establishes an auditable reference point for future KNEC candidates, county nutritionists, and health facility teams seeking to monitor Kenya's progress toward national nutrition and child survival goals ${cKdhs22}.`,
+          `Additionally, training institutions offering Diploma programmes in Human Nutrition and Dietetics and Community Health can use these verified trend summaries to bridge classroom theory with real-world Kenyan epidemiological evidence, preparing graduates to interpret national datasets accurately in clinical and public health practice.`,
+          `Finally, documenting multi-year national trends alongside clear source citations establishes an auditable reference point for future researchers, county nutritionists, and health facility teams seeking to monitor Kenya's progress toward national nutrition and child survival goals ${cKdhs22}.`,
         ]
       : []),
   ];
@@ -818,7 +840,7 @@ function buildChapter5(
     ]),
     ...bundles.map(
       (b, i) =>
-        `${i + 1}. ${describeTrend(b)}. Across ${b.stats.count} published observations, the indicator averaged ${fmtVal(b.stats.mean, b.indicator.unit)}, reaching a peak of ${fmtVal(b.stats.maxValue, b.indicator.unit)} in ${b.stats.maxYear} and a minimum of ${fmtVal(b.stats.minValue, b.indicator.unit)} in ${b.stats.minYear} (average annual shift: ${b.stats.avgAnnualChange > 0 ? "+" : ""}${b.stats.avgAnnualChange} per year${isDiploma ? `; linear slope: ${b.stats.linearSlopePerYear > 0 ? "+" : ""}${b.stats.linearSlopePerYear} per year` : ""}).`
+        `${i + 1}. ${describeTrend(b, specs)}. Across ${b.stats.count} published observations, the indicator averaged ${fmtVal(b.stats.mean, b.indicator.unit)}, reaching a peak of ${fmtVal(b.stats.maxValue, b.indicator.unit)} in ${b.stats.maxYear} and a minimum of ${fmtVal(b.stats.minValue, b.indicator.unit)} in ${b.stats.minYear} (average annual shift: ${b.stats.avgAnnualChange > 0 ? "+" : ""}${b.stats.avgAnnualChange} per year${isDiploma ? `; linear slope: ${b.stats.linearSlopePerYear > 0 ? "+" : ""}${b.stats.linearSlopePerYear} per year` : ""}).`
     ),
     bundles.length >= 2
       ? `Taken together, cross-indicator comparison confirms that ${bundles[0].indicator.shortLabel} (${bundles[0].stats.direction}) and ${bundles[1].indicator.shortLabel} (${bundles[1].stats.direction}) evolved at distinct rates over the study window, underscoring the need to interpret individual survey snapshots within their broader multi-decade trajectory ${cKdhs22}.`
@@ -829,7 +851,7 @@ function buildChapter5(
     ...specs.researchQuestions.map((q, i) => {
       const b = bundles[i] || bundles[0];
       const ans = b
-        ? `Based on verified national observations (${b.stats.firstYear}-${b.stats.lastYear}), ${describeTrend(b)}. This confirms a ${b.stats.direction} trajectory around a long-term mean of ${fmtVal(b.stats.mean, b.indicator.unit)}, indicating that sustained policy and service-delivery focus remains essential to consolidate gains.`
+        ? `Based on verified national observations (${b.stats.firstYear}-${b.stats.lastYear}), ${describeTrend(b, specs)}. This confirms a ${b.stats.direction} trajectory around a long-term mean of ${fmtVal(b.stats.mean, b.indicator.unit)}, indicating that sustained policy and service-delivery focus remains essential to consolidate gains.`
         : "Verified national secondary records confirm measurable shifts across the study window that warrant continued surveillance.";
       return `${i + 1}. In response to "${q.replace(/^\d+\.\s*/, "")}": ${ans}`;
     }),
@@ -856,7 +878,7 @@ function buildChapter5(
       : []),
   ])
     .map((r, i) => `${i + 1}. ${r}`)
-    .join("\n\n");
+    .join("\n");
 
   const furtherResearch = orderBySeed(`${seed}|fur`, [
     `Sub-National Primary Surveys: Future researchers should conduct primary cross-sectional or mixed-methods studies at county, sub-county, and facility levels to examine household socio-economic, cultural, and caregiver determinants that national aggregate series cannot disaggregate.`,
@@ -868,7 +890,7 @@ function buildChapter5(
       : []),
   ])
     .map((r, i) => `${i + 1}. ${r}`)
-    .join("\n\n");
+    .join("\n");
 
   const recMatrix = isDiploma
     ? [
@@ -922,7 +944,7 @@ function buildAppendices(
     "| 2 | Proposal drafting (Chapters 1-3) and moderation | Weeks 3-4 |",
     "| 3 | Secondary data extraction and verification | Weeks 5-6 |",
     "| 4 | Descriptive statistical analysis and Chapter 4-5 drafting | Weeks 7-9 |",
-    "| 5 | Final review, proofreading, and KNEC submission | Weeks 10-12 |",
+    "| 5 | Final review, proofreading, and project submission | Weeks 10-12 |",
   ].join("\n");
   out.push(makeSection("app.workplan", kind === "full" ? "Appendix II: Project Work Plan" : "Appendix I: Project Work Plan", workplan));
 
