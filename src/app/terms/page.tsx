@@ -33,9 +33,12 @@ export default function TermsOfServicePage() {
       <p>
         These Terms of Service govern your use of <strong>TVET Hub</strong>{" "}
         (<strong>https://www.tvethub.co.ke</strong>), operated by{" "}
-        <strong>Clarix Innovators</strong>. By creating an account, browsing, or purchasing
-        materials, you agree to these terms and our{" "}
-        <Link href="/privacy" className="font-semibold text-[#087f8c] hover:underline">
+        <strong>Clarix Innovators</strong> (Business Registration No.{" "}
+        <strong>BN-36SMPL5P</strong>, Nairobi, Kenya). By creating an account, browsing, or
+        purchasing materials, you form a binding electronic agreement under the{" "}
+        <strong>Kenya Information and Communications Act (Cap. 411A)</strong> and agree to these
+        terms and our{" "}
+        <Link href="/privacy" className="font-semibold text-[#092B68] hover:underline">
           Privacy Policy
         </Link>
         .
@@ -133,11 +136,12 @@ export default function TermsOfServicePage() {
         </ul>
         <p>
           Refund requests must be emailed to{" "}
-          <a href="mailto:osoziw@gmail.com" className="font-semibold text-[#087f8c] hover:underline">
-            osoziw@gmail.com
+          <a href="mailto:codepro.source@gmail.com" className="font-semibold text-[#092B68] hover:underline">
+            codepro.source@gmail.com
           </a>{" "}
           within <strong>7 days</strong> of purchase, including your email address and Paystack
-          transaction reference.
+          transaction reference, in line with applicable provisions of the{" "}
+          <strong>Consumer Protection Act, 2012 (No. 46 of 2012)</strong>.
         </p>
       </section>
 
@@ -146,11 +150,12 @@ export default function TermsOfServicePage() {
           6. Intellectual Property &amp; Copyright Takedowns
         </h2>
         <p>
-          All platform branding, software, and original TVET Hub content belong to Clarix
-          Innovators or their respective authors. If you believe a listing infringes your
-          copyright, email{" "}
-          <a href="mailto:osoziw@gmail.com" className="font-semibold text-[#087f8c] hover:underline">
-            osoziw@gmail.com
+          All platform branding, software, and original TVET Hub content are protected under the{" "}
+          <strong>Copyright Act (Cap. 130, Laws of Kenya)</strong> and belong to Clarix Innovators
+          or their respective authors. If you believe a listing infringes your copyright, send a
+          takedown notice under the Copyright Act to{" "}
+          <a href="mailto:codepro.source@gmail.com" className="font-semibold text-[#092B68] hover:underline">
+            codepro.source@gmail.com
           </a>{" "}
           with the listing URL, proof of ownership, and your contact details so we can investigate
           and remove infringing material promptly.
@@ -164,7 +169,10 @@ export default function TermsOfServicePage() {
         <p>
           Study materials are provided &ldquo;as is&rdquo; for educational assistance. TVET Hub
           does not guarantee specific examination grades, assessment scores, or KNEC outcomes, and is{" "}
-          <strong>not affiliated with or endorsed by the Kenya National Examinations Council (KNEC)</strong>.
+          <strong>
+            not affiliated with or endorsed by the Kenya National Examinations Council (KNEC)
+          </strong>{" "}
+          established under the Kenya National Examinations Council Act, 2012.
         </p>
         <p>
           To the maximum extent permitted by Kenyan law, Clarix Innovators is not liable for
@@ -184,13 +192,14 @@ export default function TermsOfServicePage() {
         </p>
         <p>
           These terms are governed by the laws of the <strong>Republic of Kenya</strong>, and any
-          disputes shall be resolved in the courts of Kenya after good-faith efforts to resolve the
-          matter amicably.
+          disputes shall be resolved in the courts of Kenya in Nairobi after good-faith efforts to
+          resolve the matter amicably.
         </p>
         <p>
-          <strong>Contact:</strong> Clarix Innovators (TVET Hub) · [ADD PHYSICAL ADDRESS] ·{" "}
-          <a href="mailto:osoziw@gmail.com" className="font-semibold text-[#087f8c] hover:underline">
-            osoziw@gmail.com
+          <strong>Contact:</strong> Clarix Innovators (trading as TVET Hub) · Reg. No. BN-36SMPL5P ·
+          Nairobi, Kenya ·{" "}
+          <a href="mailto:codepro.source@gmail.com" className="font-semibold text-[#092B68] hover:underline">
+            codepro.source@gmail.com
           </a>
         </p>
       </section>

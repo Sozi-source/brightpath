@@ -117,8 +117,8 @@ export function LegalPageShell({
             <Link href="/terms" className="hover:text-[#087f8c]">
               Terms of Service
             </Link>
-            <a href="mailto:osoziw@gmail.com" className="hover:text-[#087f8c]">
-              osoziw@gmail.com
+            <a href="mailto:codepro.source@gmail.com" className="hover:text-[#087f8c]">
+              codepro.source@gmail.com
             </a>
           </div>
         </div>

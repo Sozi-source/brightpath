@@ -31,10 +31,12 @@ export default function PrivacyPolicyPage() {
       toc={TOC}
     >
       <p>
-        This Privacy Policy explains how <strong>Clarix Innovators</strong> (trading as{" "}
-        <strong>TVET Hub</strong>, accessible at <strong>https://www.tvethub.co.ke</strong>)
-        collects, uses, stores, and protects your personal information in accordance with the{" "}
-        <strong>Kenya Data Protection Act, 2019</strong>.
+        This Privacy Policy explains how <strong>Clarix Innovators</strong> (registered in the
+        Republic of Kenya under Business Registration No. <strong>BN-36SMPL5P</strong>, trading as{" "}
+        <strong>TVET Hub</strong> at <strong>https://www.tvethub.co.ke</strong>) collects, uses,
+        stores, and protects your personal data in compliance with the{" "}
+        <strong>Data Protection Act, 2019 (No. 24 of 2019)</strong> and the{" "}
+        <strong>Data Protection (General) Regulations, 2021</strong> of Kenya.
       </p>
 
       <section id="who-we-are" className="space-y-2 scroll-mt-20">
@@ -46,15 +48,15 @@ export default function PrivacyPolicyPage() {
             <strong>Data Controller:</strong> Clarix Innovators (trading as TVET Hub)
           </li>
           <li>
-            <strong>Business Registration No.:</strong> [ADD BUSINESS REGISTRATION NUMBER]
+            <strong>Business Registration No.:</strong> BN-36SMPL5P (Registration of Business Names Act, Cap. 499, Laws of Kenya)
           </li>
           <li>
-            <strong>Physical / Postal Address:</strong> [ADD PHYSICAL ADDRESS]
+            <strong>Location:</strong> Nairobi, Kenya
           </li>
           <li>
             <strong>Email:</strong>{" "}
-            <a href="mailto:osoziw@gmail.com" className="font-semibold text-[#087f8c] hover:underline">
-              osoziw@gmail.com
+            <a href="mailto:codepro.source@gmail.com" className="font-semibold text-[#092B68] hover:underline">
+              codepro.source@gmail.com
             </a>
           </li>
         </ul>
@@ -152,27 +154,29 @@ export default function PrivacyPolicyPage() {
 
       <section id="legal-basis-rights" className="space-y-2 scroll-mt-20">
         <h2 className="text-base font-semibold tracking-tight text-slate-900">
-          6. Legal Basis &amp; Your Rights Under the Kenya Data Protection Act
+          6. Legal Basis &amp; Your Rights Under the Data Protection Act, 2019
         </h2>
         <p>
-          We process your personal data based on contract performance (delivering your account and
-          purchased downloads), your consent (such as optional Google sign-in), our legitimate
-          interests (platform security and fraud prevention), and legal compliance.
+          Under Section 30 of the Data Protection Act, 2019, we process your personal data based on
+          contract performance (delivering your account and purchased downloads), your consent (such
+          as optional Google sign-in), our legitimate interests (platform security and fraud
+          prevention), and compliance with Kenyan statutory obligations.
         </p>
-        <p>Under the Kenya Data Protection Act, 2019, you have the right to:</p>
+        <p>Under Section 26 of the Act, you have the right to:</p>
         <ul className="list-disc space-y-1 pl-5">
+          <li>Be informed of the use to which your personal data is to be put.</li>
           <li>Request access to the personal data we hold about you.</li>
-          <li>Request correction of inaccurate or incomplete details.</li>
-          <li>Request deletion of your account and personal data (subject to legal retention).</li>
-          <li>Object to or restrict certain processing of your data.</li>
-          <li>Request portability of your personal data in a structured format.</li>
+          <li>Request correction or deletion of false, inaccurate, or misleading data.</li>
+          <li>Object to the processing of all or part of your personal data.</li>
+          <li>Request data portability in a structured, commonly used electronic format.</li>
         </ul>
         <p>
           To exercise any of these rights, email{" "}
-          <a href="mailto:osoziw@gmail.com" className="font-semibold text-[#087f8c] hover:underline">
-            osoziw@gmail.com
+          <a href="mailto:codepro.source@gmail.com" className="font-semibold text-[#092B68] hover:underline">
+            codepro.source@gmail.com
           </a>
-          . We will verify your identity and respond within statutory timelines.
+          . We will verify your identity and respond within the timelines prescribed under the Data
+          Protection (General) Regulations, 2021.
         </p>
       </section>
 
@@ -218,11 +222,12 @@ export default function PrivacyPolicyPage() {
         </p>
         <p>
           If you have a concern about how your data is handled, please contact us first at{" "}
-          <a href="mailto:osoziw@gmail.com" className="font-semibold text-[#087f8c] hover:underline">
-            osoziw@gmail.com
+          <a href="mailto:codepro.source@gmail.com" className="font-semibold text-[#092B68] hover:underline">
+            codepro.source@gmail.com
           </a>
-          . You also have the right to lodge a complaint with the{" "}
-          <strong>Office of the Data Protection Commissioner (ODPC)</strong>, Kenya.
+          . Under Section 56 of the Data Protection Act, 2019, you also have the right to lodge a
+          complaint with the <strong>Office of the Data Protection Commissioner (ODPC)</strong>,
+          Nairobi, Kenya.
         </p>
       </section>
     </LegalPageShell>
