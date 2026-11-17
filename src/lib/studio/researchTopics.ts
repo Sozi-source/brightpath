@@ -330,6 +330,35 @@ export const RESEARCH_TOPIC_CATALOGUE: ResearchTopicBlueprint[] = [
       { term: "Under-Five Mortality", definition: "Deaths occurring before age five per 1,000 live births." },
     ],
   },
+  {
+    id: "early_complementary_feeding_kenya",
+    title: "Determinants and Trends of Early Introduction of Complementary Feeding in Kenya (1998-2022): A Secondary Data Analysis",
+    domain: "iycf_feeding",
+    course: "Human Nutrition and Dietetics",
+    indicatorIds: ["exclusive_breastfeeding", "antenatal_care_4plus", "underweight_u5"],
+    yearFrom: 1998,
+    yearTo: 2022,
+    generalObjective:
+      "To examine national trends and health-service determinants associated with early introduction of complementary feeding before six months in Kenya using published secondary data.",
+    specificObjectives: [
+      "To describe the national trend in exclusive breastfeeding under six months as an indicator of timely versus early complementary feeding in Kenya.",
+      "To examine trends in skilled antenatal care coverage as a maternal counselling determinant of infant feeding practices.",
+      "To compare shifts in early infant feeding coverage against child underweight prevalence over the study period.",
+    ],
+    researchQuestions: [
+      "How has exclusive breastfeeding under six months (the inverse of early complementary feeding) changed in Kenya across published survey years?",
+      "What trend has been recorded in skilled antenatal care coverage as a platform for infant feeding counselling?",
+      "How do changes in early infant feeding practices compare with national child underweight trends?",
+    ],
+    problemContext:
+      "WHO and Ministry of Health guidelines recommend exclusive breastfeeding for the first six months of life before introducing complementary foods. Early introduction of solids or liquids before six months exposes infants to gastrointestinal infections and suboptimal nutrient intake, making it critical to track feeding trends alongside antenatal counselling coverage and child growth outcomes.",
+    keyTerms: [
+      { term: "Early Introduction of Complementary Feeding", definition: "Giving solid, semi-solid, or non-breastmilk liquids to an infant before reaching six months of age." },
+      { term: "Exclusive Breastfeeding", definition: "Feeding an infant only breast milk for the first six months of life without any other food or liquid." },
+      { term: "Antenatal Care Coverage", definition: "Proportion of pregnant women receiving skilled care where maternal and infant feeding counselling is delivered." },
+      { term: "Underweight", definition: "Weight-for-age z-score more than two standard deviations below the WHO Child Growth Standards median." },
+    ],
+  },
 ];
 
 export function buildResearchSpecsFromBlueprint(
