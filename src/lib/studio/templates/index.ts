@@ -43,12 +43,16 @@ export function getWorkspaceSections(
         sec.chapter !== "preliminary" &&
         sec.chapter !== "appendices";
 
-      // Trade/Research projects scale base words by level; Business Plans use the
+      // Trade projects scale base words by level; Research projects use concise
+      // page-budgeted targets (30-35p craft, <=45p diploma); Business Plans use
       // explicit KNEC section minWords defined in src/lib/studio/templates/business.ts.
-      const diplomaScale = type === "research_secondary" ? 2.3 : 3.1;
-      const craftScale = type === "research_secondary" ? 1.2 : 1.25;
+      const diplomaScale = type === "research_secondary" ? 0.45 : 3.1;
+      const craftScale = type === "research_secondary" ? 0.4 : 1.25;
       const scaledMinWords = isSubstantiveChapter
-        ? Math.round((baseWords * (isDiploma ? diplomaScale : craftScale)) / 10) * 10
+        ? Math.max(
+            type === "research_secondary" ? 30 : 40,
+            Math.round((baseWords * (isDiploma ? diplomaScale : craftScale)) / 10) * 10
+          )
         : type !== "business_plan" && isDiploma && sec.phase === "proposal"
         ? Math.round((baseWords * 1.5) / 10) * 10
         : baseWords;
