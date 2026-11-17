@@ -147,7 +147,7 @@ export function AdminProjectsManager({
             <thead className="border-b border-slate-200 text-[10.5px] font-semibold uppercase tracking-wider text-slate-500 bg-slate-50/80">
               <tr>
                 <th className="py-2 px-3 w-12 text-center">Cover</th>
-                <th className="py-2 px-3">Business Venture</th>
+                <th className="py-2 px-3">Title</th>
                 <th className="py-2 px-3">Author / Candidate</th>
                 <th className="py-2 px-3">Price</th>
                 <th className="py-2 px-3">Status</th>

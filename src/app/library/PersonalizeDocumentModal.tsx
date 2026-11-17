@@ -32,21 +32,24 @@ export function PersonalizeDocumentModal({
   const storageKey = `bp_personalization_${projectId}`;
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.candidateName) setCandidateName(parsed.candidateName);
-        if (parsed.admissionNumber) setAdmissionNumber(parsed.admissionNumber);
-        if (parsed.institutionName) setInstitutionName(parsed.institutionName);
-        if (parsed.townOrMarket && parsed.townOrMarket !== "Regional Center") setTownOrMarket(parsed.townOrMarket);
-        if (parsed.county && parsed.county !== "Regional County") setCounty(parsed.county);
-        if (parsed.supervisorName && parsed.supervisorName !== "Institutional Supervisor") setSupervisorName(parsed.supervisorName);
-        setIsSaved(true);
+    const timer = setTimeout(() => {
+      try {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.candidateName) setCandidateName(parsed.candidateName);
+          if (parsed.admissionNumber) setAdmissionNumber(parsed.admissionNumber);
+          if (parsed.institutionName) setInstitutionName(parsed.institutionName);
+          if (parsed.townOrMarket && parsed.townOrMarket !== "Regional Center") setTownOrMarket(parsed.townOrMarket);
+          if (parsed.county && parsed.county !== "Regional County") setCounty(parsed.county);
+          if (parsed.supervisorName && parsed.supervisorName !== "Institutional Supervisor") setSupervisorName(parsed.supervisorName);
+          setIsSaved(true);
+        }
+      } catch {
+        // Ignore
       }
-    } catch {
-      // Ignore
-    }
+    }, 0);
+    return () => clearTimeout(timer);
   }, [storageKey]);
 
   function handleOpen() {
@@ -128,7 +131,7 @@ export function PersonalizeDocumentModal({
 
       {/* Direct Quick Download Action Bar on Card */}
       <div className="mt-2 flex items-center justify-between gap-2">
-        <span className="text-[11px] text-slate-500 font-medium">Download Dossier:</span>
+        <span className="text-[11px] text-slate-500 font-medium">Download Document:</span>
         <div className="flex gap-2">
           <a
             href={getDownloadUrl()}

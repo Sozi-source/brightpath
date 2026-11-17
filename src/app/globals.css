@@ -154,7 +154,7 @@ button, input, select, textarea { max-width: 100%; font: inherit; }
   min-width: 0;
 }
 .bp-card-interactive { transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
-.bp-card-interactive:hover { border-color: #c7d9dd; box-shadow: var(--shadow-hover); transform: translateY(-1px); }
+.bp-card-interactive:hover { border-color: rgba(245, 160, 0, 0.55); box-shadow: var(--shadow-hover); transform: translateY(-1px); }
 .bp-eyebrow { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; }
 .bp-icon-tile { display: inline-flex; align-items: center; justify-content: center; border: 1px solid #dce5f2; background: var(--brand-soft); color: var(--brand); border-radius: 12px; flex: none; }
 .bp-icon-tile svg { width: 20px; height: 20px; }

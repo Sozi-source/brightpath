@@ -126,20 +126,19 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
     count: projects.filter((project) => !category.types || category.types.includes(project.material_type || "")).length,
     active: selectedType === category.value,
   }));
-  const needsTypeSelection = !query && !selectedType && !selectedCategory && filters.view !== "all";
-  const showShelves = !query && !selectedType && !selectedCategory && filters.view === "all";
+  const showShelves = !query && !selectedType && !selectedCategory;
 
   return (
-    <AppShell user={user} profile={profile} activeContextTitle="Learning Resource Marketplace" marketplaceCategories={sidebarCategories}>
+    <AppShell user={user} profile={profile} activeContextTitle="Resource Store" marketplaceCategories={sidebarCategories}>
       <section className="min-w-0 w-full overflow-x-hidden">
         {/* Enterprise Catalog Header */}
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <div>
             <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-slate-900">
-              Learning Catalog
+              Resource Store
             </h1>
             <p className="text-xs text-slate-600">
-              Verified KNEC business plans, notes, and revision dossiers.
+              Verified business plans, research projects, notes, and past papers.
             </p>
           </div>
           <span className="rounded-md border border-slate-200 bg-white px-2.5 py-1 font-mono text-xs font-medium text-slate-700 tabular-nums">
@@ -149,7 +148,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
 
         <form action="/projects" className="mb-3 flex flex-col gap-2 bp-card p-3 sm:flex-row">
           <label htmlFor="marketplace-search" className="sr-only">Search learning materials</label>
-          <div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" /><input id="marketplace-search" name="q" defaultValue={filters.q || ""} placeholder="Search materials, subjects, or authors" className="h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-100" /></div>
+          <div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" /><input id="marketplace-search" name="q" defaultValue={filters.q || ""} placeholder="Search materials, subjects, or authors" className="h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-500 focus:border-[#092B68] focus:outline-none focus:ring-2 focus:ring-[#092B68]/15" /></div>
           {selectedCategory && <input type="hidden" name="category" value={selectedCategory} />}
           {selectedType && <input type="hidden" name="type" value={selectedType} />}
           <label htmlFor="marketplace-sort" className="sr-only">Sort materials</label>
@@ -168,14 +167,14 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                 href={cat.href}
                 className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                   cat.active
-                    ? "bg-[#087f8c] text-white shadow-2xs"
+                    ? "bg-[#092B68] text-white shadow-2xs"
                     : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300"
                 }`}
               >
                 <span>{cat.label}</span>
                 <span
                   className={`font-mono text-[11px] tabular-nums ${
-                    cat.active ? "text-teal-100" : "text-slate-500"
+                    cat.active ? "text-blue-200" : "text-slate-500"
                   }`}
                 >
                   {cat.count}
@@ -184,47 +183,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
             ))}
         </div>
 
-        {needsTypeSelection ? (
-          <div className="bp-card p-6 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
-              <div>
-                <h2 className="text-base font-semibold tracking-tight text-slate-900">
-                  Select Marketplace Listing Type
-                </h2>
-                <p className="text-xs text-slate-500">
-                  Choose a category below to view available listings.
-                </p>
-              </div>
-              <Link
-                href="/projects?view=all"
-                className="text-xs font-semibold text-indigo-600 hover:text-indigo-800"
-              >
-                Show all listings →
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {sidebarCategories
-                .filter((cat) => cat.label !== "All materials")
-                .map((cat) => (
-                  <Link
-                    key={cat.label}
-                    href={cat.href}
-                    className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-left hover:border-indigo-300 hover:bg-indigo-50/40 transition-colors"
-                  >
-                    <div>
-                      <div className="text-sm font-semibold text-slate-900">{cat.label}</div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">
-                        {cat.count} {cat.count === 1 ? "listing" : "listings"}
-                      </div>
-                    </div>
-                    <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-xs font-semibold text-slate-700">
-                      {cat.count}
-                    </span>
-                  </Link>
-                ))}
-            </div>
-          </div>
-        ) : showShelves ? (
+        {showShelves ? (
           visibleProjects.length ? <div className="space-y-8">
             {browseCategories.filter((category) => category.value).map((category) => {
               const shelfProjects = visibleProjects.filter((project) => category.types?.includes(project.material_type || ""));
@@ -235,7 +194,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                     <h2 id={`shelf-${category.value}`} className="text-base font-semibold tracking-tight text-slate-900">{category.label}</h2>
                     <p className="text-[11px] text-slate-500">{shelfProjects.length} curriculum materials available</p>
                   </div>
-                  <Link href={filterHref({ type: category.value, category: "" })} className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">See all <span aria-hidden="true">→</span></Link>
+                  <Link href={filterHref({ type: category.value, category: "" })} className="text-xs font-semibold text-[#092B68] hover:underline transition-colors">See all <span aria-hidden="true">→</span></Link>
                 </div>
                 <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-5">
                   {shelfProjects.map((project, index) => (

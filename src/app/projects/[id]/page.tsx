@@ -6,6 +6,7 @@ import { connection } from "next/server";
 import { BookOpen, Download, Eye, FileText, Star, CheckCircle2, ChevronRight, ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { BuyButton } from "@/components/BuyButton";
+import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { AmazonPrice } from "@/components/ui/AmazonPrice";
 import { StructuredDescription } from "@/components/ui/StructuredDescription";
 import { createClient } from "@/lib/supabase/server";
@@ -234,11 +235,11 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
                   )}
                 </div>
 
-                {/* Gap Filler: Clean Material Dossier Specifications */}
+                {/* Document Details Specifications */}
                 <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3 text-xs space-y-2 flex-1 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700 border-b border-slate-200/80 pb-1.5">
-                    <span className="uppercase tracking-wider text-[10px] text-slate-500 font-bold">Material Dossier</span>
-                    <span className="font-mono text-[10px] text-[#087f8c] font-bold">Verified</span>
+                    <span className="uppercase tracking-wider text-[10px] text-slate-500 font-bold">Document Details</span>
+                    <span className="font-mono text-[10px] text-[#092B68] font-bold">Verified</span>
                   </div>
 
                   <dl className="space-y-1.5 text-[11px]">
@@ -302,8 +303,18 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
                     />
                   </div>
                   {canDownload ? <div className="flex flex-wrap gap-2">
-                    {product.file_path.startsWith("workspace-export:") ? <a href={`/api/download?projectId=${product.id}&format=docx`} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700 shadow-xs"><Download className="h-4 w-4" /> Download Word (.docx)</a> : <a href={`/api/download?projectId=${product.id}`} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-indigo-700 shadow-xs"><Download className="h-4 w-4" /> Download</a>}
-                  </div> : <BuyButton projectId={product.id} isOwner={isOwner} />}
+                    {product.file_path.startsWith("workspace-export:") ? <a href={`/api/download?projectId=${product.id}&format=docx`} className="inline-flex items-center gap-1.5 rounded-lg bg-[#092B68] px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-[#07204f] shadow-xs"><Download className="h-4 w-4" /> Download Word (.docx)</a> : <a href={`/api/download?projectId=${product.id}`} className="inline-flex items-center gap-1.5 rounded-lg bg-[#092B68] px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-[#07204f] shadow-xs"><Download className="h-4 w-4" /> Download</a>}
+                  </div> : <div className="flex flex-wrap items-center gap-2">
+                    <AddToCartButton
+                      projectId={product.id}
+                      title={product.title}
+                      priceKes={Number(product.price_kes || 0)}
+                      materialType={product.material_type}
+                      disabled={isOwner}
+                      className="px-3.5 py-2.5"
+                    />
+                    <BuyButton projectId={product.id} isOwner={isOwner} className="px-4 py-2.5" />
+                  </div>}
                 </div>
               </div>
             </div>

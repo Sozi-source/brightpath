@@ -4,6 +4,7 @@ import { Star } from "lucide-react";
 import type { Project } from "@/types/database";
 import { getMaterialTypeLabel, getShortCardTitle } from "@/lib/marketplace";
 import { BuyButton } from "@/components/BuyButton";
+import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { AmazonPrice } from "@/components/ui/AmazonPrice";
 
 const MATERIAL_THEMES: Record<
@@ -11,46 +12,46 @@ const MATERIAL_THEMES: Record<
   { bar: string; badge: string; hoverBorder: string; hoverTitle: string }
 > = {
   business_plan: {
-    bar: "bg-[#087f8c]",
-    badge: "bg-teal-50 text-[#087f8c] border-teal-200/70",
-    hoverBorder: "hover:border-[#087f8c]/50",
-    hoverTitle: "group-hover:text-[#087f8c]",
+    bar: "bg-[#092B68]",
+    badge: "bg-slate-100 text-[#092B68] border-slate-200",
+    hoverBorder: "hover:border-[#092B68]/40",
+    hoverTitle: "group-hover:text-[#092B68]",
   },
   lecture_notes: {
-    bar: "bg-indigo-600",
-    badge: "bg-indigo-50 text-indigo-700 border-indigo-200/70",
-    hoverBorder: "hover:border-indigo-300",
-    hoverTitle: "group-hover:text-indigo-700",
+    bar: "bg-slate-700",
+    badge: "bg-slate-100 text-slate-700 border-slate-200",
+    hoverBorder: "hover:border-slate-300",
+    hoverTitle: "group-hover:text-[#092B68]",
   },
   past_paper: {
-    bar: "bg-amber-600",
-    badge: "bg-amber-50 text-amber-800 border-amber-200/70",
+    bar: "bg-[#F5A000]",
+    badge: "bg-amber-50 text-amber-800 border-amber-200/80",
     hoverBorder: "hover:border-amber-300",
-    hoverTitle: "group-hover:text-amber-700",
+    hoverTitle: "group-hover:text-[#092B68]",
   },
   study_guide: {
-    bar: "bg-emerald-600",
-    badge: "bg-emerald-50 text-emerald-700 border-emerald-200/70",
-    hoverBorder: "hover:border-emerald-300",
-    hoverTitle: "group-hover:text-emerald-700",
+    bar: "bg-slate-700",
+    badge: "bg-slate-100 text-slate-700 border-slate-200",
+    hoverBorder: "hover:border-slate-300",
+    hoverTitle: "group-hover:text-[#092B68]",
   },
   reference_book: {
-    bar: "bg-emerald-600",
-    badge: "bg-emerald-50 text-emerald-700 border-emerald-200/70",
-    hoverBorder: "hover:border-emerald-300",
-    hoverTitle: "group-hover:text-emerald-700",
+    bar: "bg-slate-700",
+    badge: "bg-slate-100 text-slate-700 border-slate-200",
+    hoverBorder: "hover:border-slate-300",
+    hoverTitle: "group-hover:text-[#092B68]",
   },
   technical_project: {
-    bar: "bg-sky-600",
-    badge: "bg-sky-50 text-sky-700 border-sky-200/70",
-    hoverBorder: "hover:border-sky-300",
-    hoverTitle: "group-hover:text-sky-700",
+    bar: "bg-[#092B68]",
+    badge: "bg-slate-100 text-[#092B68] border-slate-200",
+    hoverBorder: "hover:border-[#092B68]/40",
+    hoverTitle: "group-hover:text-[#092B68]",
   },
   research_project: {
-    bar: "bg-violet-600",
-    badge: "bg-violet-50 text-violet-700 border-violet-200/70",
-    hoverBorder: "hover:border-violet-300",
-    hoverTitle: "group-hover:text-violet-700",
+    bar: "bg-[#092B68]",
+    badge: "bg-slate-100 text-[#092B68] border-slate-200",
+    hoverBorder: "hover:border-[#092B68]/40",
+    hoverTitle: "group-hover:text-[#092B68]",
   },
 };
 
@@ -98,10 +99,10 @@ export function MarketplaceProjectCard({
   const subtitleLabel = isBusinessPlan
     ? project.category && project.category !== "Business Plan"
       ? project.category
-      : "KNEC 5-Chapter Dossier"
+      : "5-Chapter Plan"
     : isResearchProject
     ? "Research Project"
-    : project.category || "Curriculum Resource";
+    : project.category || "Study Resource";
 
   const cardTitle = getShortCardTitle(project.title);
 
@@ -185,11 +186,21 @@ export function MarketplaceProjectCard({
               </span>
             )}
           </div>
-          <BuyButton
-            projectId={project.id}
-            isOwner={viewerId === project.trainer_id}
-            className="px-3 py-1.5 text-xs h-8"
-          />
+          <div className="flex items-center gap-1.5">
+            <AddToCartButton
+              projectId={project.id}
+              title={project.title}
+              priceKes={Number(project.price_kes || 0)}
+              materialType={project.material_type}
+              disabled={viewerId === project.trainer_id}
+              className="px-2.5 py-1.5 text-[11px] h-8"
+            />
+            <BuyButton
+              projectId={project.id}
+              isOwner={viewerId === project.trainer_id}
+              className="px-3 py-1.5 text-xs h-8"
+            />
+          </div>
         </div>
       </div>
     </article>

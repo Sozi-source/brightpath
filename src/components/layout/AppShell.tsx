@@ -7,6 +7,7 @@ import { logout } from "@/app/(auth)/actions";
 import { DeleteDraftButton } from "@/app/studio/DeleteDraftButton";
 import { BrandIcon, type BrandIconName } from "@/components/ui/BrandIcon";
 import { BrandLogo } from "@/components/ui/BrandLogo";
+import { useCart } from "@/components/cart/CartProvider";
 import {
   LayoutGrid,
   Home,
@@ -21,6 +22,7 @@ import {
   LogOut,
   ChevronRight,
   ShoppingBag,
+  ShoppingCart,
   Plus,
   ArrowRight,
   CheckCircle2,
@@ -61,6 +63,26 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
+function CartNavButton() {
+  const { items, setIsOpen } = useCart();
+  return (
+    <button
+      type="button"
+      onClick={() => setIsOpen(true)}
+      aria-label={`Open cart (${items.length} items)`}
+      className="relative inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50/80 px-2.5 py-1.5 text-xs font-semibold text-[#092B68] hover:bg-amber-100 transition-colors cursor-pointer"
+    >
+      <ShoppingCart className="h-4 w-4 text-[#F5A000]" />
+      <span className="hidden sm:inline">Cart</span>
+      {items.length > 0 && (
+        <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#F5A000] px-1 text-[10px] font-bold text-[#092B68] tabular-nums">
+          {items.length}
+        </span>
+      )}
+    </button>
+  );
+}
+
 export function AppShell({
   user,
   profile,
@@ -83,7 +105,7 @@ export function AppShell({
   const navItems: { label: string; href: string; icon: React.ComponentType<{ className?: string }>; brandIcon: BrandIconName; iconColor: string }[] = [
     { label: "Home", href: profile?.role === "student" ? "/learn" : "/", icon: Home, brandIcon: "dashboard", iconColor: "text-sky-600" },
     ...(canAccessStudio ? [{ label: "Project Studio", href: "/studio", icon: Layers, brandIcon: "projects" as BrandIconName, iconColor: "text-teal-600" }] : []),
-    { label: "Projects Marketplace", href: "/projects", icon: ShoppingBag, brandIcon: "marketplace", iconColor: "text-emerald-600" },
+    { label: "Resource Store", href: "/projects", icon: ShoppingBag, brandIcon: "marketplace", iconColor: "text-emerald-600" },
     { label: "Digital Library", href: "/library", icon: BookOpen, brandIcon: "library" as BrandIconName, iconColor: "text-amber-600" },
   ];
 
@@ -111,8 +133,8 @@ export function AppShell({
     : isRoleSupervisor
     ? "Staff · Supervisor"
     : canAccessStudio
-    ? "Studio Candidate"
-    : "Marketplace Buyer";
+    ? "Studio Student"
+    : "Store Buyer";
 
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "Guest Visitor";
   const userInitials = displayName
@@ -218,10 +240,11 @@ export function AppShell({
           </Link>
         </div>
 
-        {/* Top Right User & Examination Series Context */}
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-4">
-          <div className="hidden lg:flex items-center gap-2 bg-slate-100/80 px-3 py-1 rounded-md border border-slate-200 text-xs font-semibold text-slate-800">
-            <Calendar className="h-3.5 w-3.5 text-[#092B68]" />
+        {/* Top Right User, Cart & Examination Series Context */}
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+          <CartNavButton />
+          <div className="hidden lg:flex items-center gap-2 bg-amber-50/90 px-3 py-1 rounded-md border border-amber-200/80 text-xs font-semibold text-[#092B68]">
+            <Calendar className="h-3.5 w-3.5 text-[#F5A000]" />
             <span>KNEC 2026 Academic Series</span>
           </div>
 

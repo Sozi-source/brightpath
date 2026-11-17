@@ -14,10 +14,23 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json().catch(() => ({}));
-  const { projectId, workspaceId } = body;
+  const { projectId, projectIds, workspaceId } = body as {
+    projectId?: string;
+    projectIds?: string[];
+    workspaceId?: string;
+  };
 
-  if (!projectId && !workspaceId) {
-    return NextResponse.json({ error: "Missing projectId or workspaceId." }, { status: 400 });
+  const normalizedIds = Array.from(
+    new Set(
+      [
+        ...(Array.isArray(projectIds) ? projectIds : []),
+        ...(typeof projectId === "string" && projectId ? [projectId] : []),
+      ].filter((id): id is string => typeof id === "string" && id.trim().length > 0)
+    )
+  );
+
+  if (normalizedIds.length === 0 && !workspaceId) {
+    return NextResponse.json({ error: "Missing projectId, projectIds, or workspaceId." }, { status: 400 });
   }
 
   const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://tvethub.co.ke";
@@ -116,46 +129,60 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // CASE 2: Marketplace Project Purchase
-  // Fetch project details
-  const { data: project, error: projErr } = await supabase
+  // CASE 2: Store Single or Multi-Item Cart Purchase
+  const { data: projects, error: projErr } = await supabase
     .from("projects")
     .select("id, title, price_kes, trainer_id, status, material_type")
-    .eq("id", projectId)
-    .single();
+    .in("id", normalizedIds);
 
-  if (projErr || !project) {
-    return NextResponse.json({ error: "Project not found." }, { status: 404 });
+  if (projErr || !projects || projects.length === 0) {
+    return NextResponse.json({ error: "Selected items were not found." }, { status: 404 });
   }
-  if (project.status !== "published") {
-    return NextResponse.json({ error: "This project is not available for purchase." }, { status: 404 });
-  }
-  if (project.trainer_id === user.id) {
-    return NextResponse.json({ error: "You cannot purchase your own listing." }, { status: 400 });
+
+  const publishedProjects = projects.filter((p) => p.status === "published");
+  if (publishedProjects.length === 0) {
+    return NextResponse.json({ error: "Selected items are not available for purchase." }, { status: 404 });
   }
 
   const adminClient = createAdminClient();
-  const amountKes = Number(project.price_kes);
+  const { data: existingPaid } = await adminClient
+    .from("orders")
+    .select("project_id")
+    .eq("student_id", user.id)
+    .eq("status", "paid")
+    .in("project_id", publishedProjects.map((p) => p.id));
 
-  // 100% of marketplace revenue goes to the admin/platform (no author split).
-  const commissionKes = amountKes;
-  const trainerShareKes = 0;
+  const ownedSet = new Set((existingPaid || []).map((row) => row.project_id));
+  const purchasable = publishedProjects.filter(
+    (p) => p.trainer_id !== user.id && !ownedSet.has(p.id)
+  );
 
+  if (purchasable.length === 0) {
+    return NextResponse.json(
+      { error: "All selected items are already in your library or belong to your account." },
+      { status: 400 }
+    );
+  }
+
+  const amountKes = purchasable.reduce((sum, p) => sum + Number(p.price_kes || 0), 0);
   const reference = `BP_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
-  // If resource is free (KES 0), post completed order immediately
+  // If all selected resources are free (KES 0), post completed orders immediately
   if (amountKes <= 0) {
-    const { error: orderErr } = await adminClient.from("orders").insert({
-      student_id: user.id,
-      project_id: project.id,
-      trainer_id: project.trainer_id,
-      amount_kes: 0,
-      commission_kes: 0,
-      trainer_share_kes: 0,
-      paystack_reference: reference,
-      status: "paid",
-      paid_at: new Date().toISOString(),
-    });
+    const nowIso = new Date().toISOString();
+    const { error: orderErr } = await adminClient.from("orders").insert(
+      purchasable.map((p, idx) => ({
+        student_id: user.id,
+        project_id: p.id,
+        trainer_id: p.trainer_id,
+        amount_kes: 0,
+        commission_kes: 0,
+        trainer_share_kes: 0,
+        paystack_reference: idx === 0 ? reference : `${reference}_${idx + 1}`,
+        status: "paid",
+        paid_at: nowIso,
+      }))
+    );
 
     if (orderErr) {
       return NextResponse.json({ error: "Failed to record order." }, { status: 500 });
@@ -188,10 +215,11 @@ export async function POST(request: NextRequest) {
     reference,
     callback_url: `${siteUrl}/library`,
     metadata: {
-      type: "project_purchase",
-      project_id: project.id,
+      type: purchasable.length > 1 ? "cart_purchase" : "project_purchase",
+      project_id: purchasable[0].id,
+      project_ids: purchasable.map((p) => p.id),
       student_id: user.id,
-      trainer_id: project.trainer_id,
+      trainer_id: purchasable[0].trainer_id,
     },
   };
 

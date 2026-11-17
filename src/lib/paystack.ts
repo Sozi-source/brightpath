@@ -79,27 +79,27 @@ export async function fulfillOrder({
       return { success: false, status: "failed", error: `Currency mismatch: expected KES, got ${currency}` };
     }
 
-    const projectId = typeof metadata?.project_id === "string" ? metadata.project_id : "";
+    const projectIds = Array.isArray(metadata?.project_ids)
+      ? metadata.project_ids.filter((id): id is string => typeof id === "string" && id.trim().length > 0)
+      : typeof metadata?.project_id === "string" && metadata.project_id
+      ? [metadata.project_id]
+      : [];
     const studentId = typeof metadata?.student_id === "string" ? metadata.student_id : "";
-    if (!projectId || !studentId) {
+    if (projectIds.length === 0 || !studentId) {
       return { success: false, status: "not_found", error: "Order not found" };
     }
 
-    const [{ data: project }, { data: settings }] = await Promise.all([
-      adminClient
-        .from("projects")
-        .select("id, price_kes, trainer_id, material_type")
-        .eq("id", projectId)
-        .maybeSingle(),
-      adminClient.from("platform_settings").select("commission_percent").eq("id", 1).maybeSingle(),
-    ]);
+    const { data: projects } = await adminClient
+      .from("projects")
+      .select("id, price_kes, trainer_id, material_type")
+      .in("id", projectIds);
 
-    if (!project) {
+    if (!projects || projects.length === 0) {
       return { success: false, status: "not_found", error: "Project not found" };
     }
 
-    const amountKes = Number(project.price_kes);
-    const expectedSubunit = Math.round(amountKes * 100);
+    const totalAmountKes = projects.reduce((sum, p) => sum + Number(p.price_kes || 0), 0);
+    const expectedSubunit = Math.round(totalAmountKes * 100);
     if (paidSubunit < expectedSubunit) {
       return {
         success: false,
@@ -108,27 +108,41 @@ export async function fulfillOrder({
       };
     }
 
-    // 100% of marketplace revenue goes to the admin/platform (no author split).
-    const commissionKes = amountKes;
-    const trainerShareKes = 0;
-
-    const { data: insertedOrder, error: insertErr } = await adminClient
+    const { data: alreadyOwned } = await adminClient
       .from("orders")
-      .insert({
-        student_id: studentId,
-        project_id: project.id,
-        trainer_id: project.trainer_id,
-        amount_kes: amountKes,
-        commission_kes: commissionKes,
-        trainer_share_kes: trainerShareKes,
-        paystack_reference: reference,
-        status: "paid",
-        paid_at: new Date().toISOString(),
-      })
-      .select("id")
-      .single();
+      .select("project_id")
+      .eq("student_id", studentId)
+      .eq("status", "paid")
+      .in("project_id", projects.map((p) => p.id));
+    const ownedSet = new Set((alreadyOwned || []).map((r) => r.project_id));
+    const toInsert = projects.filter((p) => !ownedSet.has(p.id));
 
-    if (insertErr || !insertedOrder) {
+    if (toInsert.length === 0) {
+      return { success: true, status: "already_processed" };
+    }
+
+    const nowIso = new Date().toISOString();
+    const { data: insertedOrders, error: insertErr } = await adminClient
+      .from("orders")
+      .insert(
+        toInsert.map((p, idx) => {
+          const itemKes = Number(p.price_kes || 0);
+          return {
+            student_id: studentId,
+            project_id: p.id,
+            trainer_id: p.trainer_id,
+            amount_kes: itemKes,
+            commission_kes: itemKes,
+            trainer_share_kes: 0,
+            paystack_reference: idx === 0 ? reference : `${reference}_${idx + 1}`,
+            status: "paid",
+            paid_at: nowIso,
+          };
+        })
+      )
+      .select("id");
+
+    if (insertErr || !insertedOrders || insertedOrders.length === 0) {
       return { success: false, status: "failed", error: insertErr?.message || "Failed to record paid order" };
     }
 
@@ -140,7 +154,7 @@ export async function fulfillOrder({
       });
     }
 
-    return { success: true, orderId: insertedOrder.id, status: "paid" };
+    return { success: true, orderId: insertedOrders[0].id, status: "paid" };
   }
 
   // Idempotency: if already paid, return early without repeating side effects

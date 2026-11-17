@@ -60,7 +60,7 @@ export default async function AdminUsersPage() {
 
       <ContentCard
         title="User Directory"
-        subtitle="Manage Studio class access vs. Marketplace-only buyers"
+        subtitle="Manage Studio class access vs. Store-only buyers"
         icon={Users}
         compact
         headerRight={
@@ -151,7 +151,7 @@ export default async function AdminUsersPage() {
                             : "bg-slate-100 text-slate-600 border border-slate-200"
                         }`}
                       >
-                        {studioAllowed ? "Studio Class" : "Marketplace Only"}
+                        {studioAllowed ? "Studio Class" : "Store Only"}
                       </span>
                     </td>
                     <td className="py-2.5 px-3 text-slate-600">
