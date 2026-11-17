@@ -541,19 +541,26 @@ export default async function WorkspaceOverviewPage({
         </ContentCard>
 
         {/* 4. Final Project Approval Card */}
-        {workspace.student_id === user.id && (isProjectComplete || workspace.final_project_status !== "not_submitted") && (
+        {(workspace.student_id === user.id || profile?.role === "admin") && (isProjectComplete || workspace.final_project_status !== "not_submitted" || workspace.workspace_type === "research_secondary") && (
           <ContentCard title="Final Project Approval" icon={CheckCircle2}>
             {workspace.final_project_status === "approved" ? (
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50/60 p-4">
                 <div>
                   <p className="text-sm font-semibold text-emerald-900">Final supervisor approval recorded</p>
-                  {isBusiness && marketplaceListing && <p className="mt-1 text-xs text-slate-700">Marketplace listing: {marketplaceListing.status.replaceAll("_", " ")} · KES {Number(marketplaceListing.price_kes).toLocaleString()}</p>}
-                  {isBusiness && !marketplaceListing && <p className="mt-1 text-xs text-slate-700">Marketplace listing is being prepared for admin review.</p>}
+                  {(isBusiness || workspace.workspace_type === "research_secondary") && marketplaceListing && <p className="mt-1 text-xs text-slate-700">Marketplace listing: {marketplaceListing.status.replaceAll("_", " ")} · KES {Number(marketplaceListing.price_kes).toLocaleString()}</p>}
+                  {(isBusiness || workspace.workspace_type === "research_secondary") && !marketplaceListing && <p className="mt-1 text-xs text-slate-700">Marketplace listing is being prepared for admin review.</p>}
                 </div>
                 {marketplaceListing?.status === "published" && <Link href="/projects" className="text-xs font-semibold text-[#087f8c] hover:underline">View marketplace</Link>}
               </div>
             ) : workspace.final_project_status === "pending_review" ? (
-              <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">Completed project submitted. Waiting for final supervisor review.</p>
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                <span>Completed project submitted. Waiting for final supervisor review.</span>
+                {(profile?.role === "admin" || profile?.role === "supervisor") && (
+                  <Link href={`/supervisor/${workspaceId}`} className="font-semibold text-indigo-700 hover:underline">
+                    Open Supervisor Review →
+                  </Link>
+                )}
+              </div>
             ) : (
               <div className="space-y-3">
                 {workspace.final_project_status === "changes_requested" && latestReview?.review_stage === "final_project" && (
@@ -563,7 +570,13 @@ export default async function WorkspaceOverviewPage({
                   </div>
                 )}
                 <p className="text-xs text-slate-700">{isProjectComplete ? "Your completed project is ready for a separate final supervisor review." : `${incompleteProjectSections} section(s) still need content before final review.`}</p>
-                {isProjectComplete && <FinalProjectSubmissionForm workspaceId={workspaceId} isBusinessPlan={isBusiness} defaultPrice={workspace.marketplace_price_kes} />}
+                {isProjectComplete && (
+                  <FinalProjectSubmissionForm
+                    workspaceId={workspaceId}
+                    isBusinessPlan={isBusiness || workspace.workspace_type === "research_secondary"}
+                    defaultPrice={workspace.marketplace_price_kes}
+                  />
+                )}
               </div>
             )}
           </ContentCard>

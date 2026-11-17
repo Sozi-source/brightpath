@@ -46,8 +46,8 @@ export function getWorkspaceSections(
       // Trade projects scale base words by level; Research projects use concise
       // page-budgeted targets (30-35p craft, <=45p diploma); Business Plans use
       // explicit KNEC section minWords defined in src/lib/studio/templates/business.ts.
-      const diplomaScale = type === "research_secondary" ? 0.45 : 3.1;
-      const craftScale = type === "research_secondary" ? 0.4 : 1.25;
+      const diplomaScale = type === "research_secondary" ? 0.4 : 3.1;
+      const craftScale = type === "research_secondary" ? 0.35 : 1.25;
       const scaledMinWords = isSubstantiveChapter
         ? Math.max(
             type === "research_secondary" ? 30 : 40,

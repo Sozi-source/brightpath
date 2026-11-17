@@ -524,7 +524,7 @@ export async function submitCompletedProjectForFinalReview(formData: FormData) {
   if ((unresolvedCommentCount || 0) > 0) throw new Error("Ask your supervisor to resolve every section comment before final submission.");
 
   let priceKes: number | null = null;
-  if (workspace.workspace_type === "business_plan") {
+  if (workspace.workspace_type === "business_plan" || workspace.workspace_type === "research_secondary") {
     // Under Option A: Standard institutional pricing (Diploma: KES 2,500, Craft/Certificate: KES 1,500)
     const rawPrice = formData.get("priceKes")?.toString().trim() || "";
     const parsed = Number(rawPrice);
