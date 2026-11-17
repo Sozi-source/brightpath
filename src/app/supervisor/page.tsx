@@ -187,9 +187,17 @@ export default async function SupervisorPage() {
                     <div className="min-w-0 flex-1 space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="text-sm font-semibold tracking-tight text-slate-900 sm:text-base">
-                          {ws.student?.full_name || "Unknown Student"}
+                          {ws.supervisor_id === null && ws.institution_id === null
+                            ? "Marketplace Master"
+                            : ws.student?.full_name || "Unknown Student"}
                         </h3>
-                        {ws.student?.admission_number && <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 font-mono text-[11px] text-slate-700">{ws.student.admission_number}</span>}
+                        {ws.supervisor_id === null && ws.institution_id === null ? (
+                          <span className="rounded-md border border-teal-200 bg-teal-50 px-2 py-0.5 text-[10px] font-semibold text-teal-800">
+                            Admin Built
+                          </span>
+                        ) : (
+                          ws.student?.admission_number && <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 font-mono text-[11px] text-slate-700">{ws.student.admission_number}</span>
+                        )}
                         <span className="rounded-md border border-indigo-100 bg-indigo-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-indigo-800">
                           {ws.level === "craft" ? "Certificate" : "Diploma"}
                         </span>

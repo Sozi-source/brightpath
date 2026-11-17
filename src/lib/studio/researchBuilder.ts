@@ -638,33 +638,54 @@ function buildChapter5(
   cited: Set<string>
 ): GeneratedSectionPayload[] {
   const seed = specs.seed || specs.title;
+  const isDiploma = specs.level === "diploma";
   const cMoh = cite(cited, "moh_kenap_2020");
+  const cKdhs22 = cite(cited, "knbs_kdhs_2022");
 
   const summary = [
-    `This study analysed verified secondary data for ${specs.country} covering ${specs.yearFrom} to ${specs.yearTo} across ${bundles.length} indicators.`,
-    ...bundles.map((b, i) => `${i + 1}. ${describeTrend(b)} (mean ${fmtVal(b.stats.mean, b.indicator.unit)}; range ${fmtVal(b.stats.minValue, b.indicator.unit)}-${fmtVal(b.stats.maxValue, b.indicator.unit)}).`),
+    pickVariant(`${seed}|sumOpen`, [
+      `This study synthesized verified national secondary data for ${specs.country} spanning ${specs.yearFrom} to ${specs.yearTo} across ${bundles.length} core indicators in accordance with the study objectives.`,
+      `Using harmonized time-series records for ${specs.country} between ${specs.yearFrom} and ${specs.yearTo}, the analysis evaluated multi-year trajectories across ${bundles.length} nutrition and health indicators.`,
+      `Chapter Five consolidates the empirical findings derived from ${bundles.length} national indicator series in ${specs.country} over the ${specs.yearFrom}-${specs.yearTo} review period.`,
+    ]),
+    ...bundles.map(
+      (b, i) =>
+        `${i + 1}. ${describeTrend(b)}. Across ${b.stats.count} published observations, the indicator averaged ${fmtVal(b.stats.mean, b.indicator.unit)}, reaching a peak of ${fmtVal(b.stats.maxValue, b.indicator.unit)} in ${b.stats.maxYear} and a minimum of ${fmtVal(b.stats.minValue, b.indicator.unit)} in ${b.stats.minYear} (average annual shift: ${b.stats.avgAnnualChange > 0 ? "+" : ""}${b.stats.avgAnnualChange} per year${isDiploma ? `; linear slope: ${b.stats.linearSlopePerYear > 0 ? "+" : ""}${b.stats.linearSlopePerYear} per year` : ""}).`
+    ),
+    bundles.length >= 2
+      ? `Taken together, cross-indicator comparison confirms that ${bundles[0].indicator.shortLabel} (${bundles[0].stats.direction}) and ${bundles[1].indicator.shortLabel} (${bundles[1].stats.direction}) evolved at distinct rates over the study window, underscoring the need to interpret individual survey snapshots within their broader multi-decade trajectory ${cKdhs22}.`
+      : `Overall, the longitudinal series demonstrates measurable structural shifts across the observed survey rounds ${cKdhs22}.`,
   ].join("\n\n");
 
-  const conclusions = specs.researchQuestions
-    .map((q, i) => {
+  const conclusions = [
+    ...specs.researchQuestions.map((q, i) => {
       const b = bundles[i] || bundles[0];
       const ans = b
-        ? `Evidence shows that ${describeTrend(b)}, indicating a ${b.stats.direction} national pattern over the observed years.`
-        : "National secondary data confirm measurable shifts across the study window.";
-      return `${i + 1}. Regarding \"${q.replace(/^\d+\.\s*/, "")}\": ${ans}`;
-    })
-    .join("\n\n");
+        ? `Based on verified national observations (${b.stats.firstYear}-${b.stats.lastYear}), ${describeTrend(b)}. This confirms a ${b.stats.direction} trajectory around a long-term mean of ${fmtVal(b.stats.mean, b.indicator.unit)}, indicating that sustained policy and service-delivery focus remains essential to consolidate gains.`
+        : "Verified national secondary records confirm measurable shifts across the study window that warrant continued surveillance.";
+      return `${i + 1}. In response to "${q.replace(/^\d+\.\s*/, "")}": ${ans}`;
+    }),
+    pickVariant(`${seed}|concClose`, [
+      `In conclusion, multi-year secondary analysis provides a reliable, cost-effective evidence base for evaluating national nutrition progress and identifying areas where implementation intensity must be strengthened ${cMoh}.`,
+      `Collectively, the evidence demonstrates that while national indicators respond to sustained health and nutrition investments, remaining gaps require targeted county-level follow-through and continuous monitoring ${cMoh}.`,
+    ]),
+  ].join("\n\n");
 
   const recommendations = orderBySeed(`${seed}|rec`, [
-    `Ministry of Health and County Nutrition Coordinators should sustain evidence-based nutrition interventions aligned with the Kenya Nutrition Action Plan, prioritizing counties and vulnerable groups lagging behind national averages ${cMoh}.`,
-    `Health facilities and community health units should strengthen routine growth monitoring, maternal micronutrient supplementation, and nutrition counselling using standardized WHO/MOH protocols.`,
-    `Training institutions and county health departments should utilize open national survey repositories for continuous curriculum updates and local programme benchmarking.`,
-  ]).map((r, i) => `${i + 1}. ${r}`).join("\n\n");
+    `National Policy and Programme Alignment: The Ministry of Health and County Nutrition Coordinators should align annual county nutrition workplans with the Kenya Nutrition Action Plan, prioritizing counties and vulnerable households that lag behind national averages ${cMoh}.`,
+    `Facility and Community Service Delivery: Primary health facilities and community health promoters should strengthen routine growth monitoring, maternal nutrition counselling, and early identification of at-risk mothers and infants using standardized WHO and Ministry of Health guidelines.`,
+    `Surveillance and Data Utilization: County health management teams and TVET training institutions should routinely integrate open national survey series (such as KDHS and World Development Indicators) into programme reviews, resource allocation, and student training.`,
+    `Multi-Sectoral Coordination: County departments of health, agriculture, water, and social protection should coordinate nutrition-sensitive interventions—linking household food security, safe water access, and maternal education—to sustain long-term gains.`,
+  ])
+    .map((r, i) => `${i + 1}. ${r}`)
+    .join("\n\n");
 
   const furtherResearch = orderBySeed(`${seed}|fur`, [
-    `Primary cross-sectional or cohort studies at county and sub-county levels to examine household socio-economic determinants that national aggregate series cannot disaggregate.`,
-    `Mixed-methods evaluations of facility-level nutrition service quality and caregiver adherence to complement national prevalence trends.`,
-  ]).map((r, i) => `${i + 1}. ${r}`).join("\n\n");
+    `Sub-National Primary Surveys: Future researchers should conduct primary cross-sectional or mixed-methods studies at county, sub-county, and facility levels to examine household socio-economic, cultural, and caregiver determinants that national aggregate series cannot disaggregate.`,
+    `Service Quality and Longitudinal Follow-Up: Operational research evaluating facility-level counselling quality, caregiver adherence, and seasonal food-security shocks is recommended to complement national prevalence trends.`,
+  ])
+    .map((r, i) => `${i + 1}. ${r}`)
+    .join("\n\n");
 
   return [
     makeSection("ch5.summary", "5.1 Summary of Key Findings", summary),
@@ -743,7 +764,7 @@ export function buildResearchDocument(
 
   const raw = [...prelims, ...ch1, ...ch2, ...ch3, ...ch4, ...ch5, references, ...appendices];
   return fitToPageBudget(raw, specs.level, {
-    protectedKeys: [/^prelim\./, "references", /^ch4\./],
+    protectedKeys: [/^prelim\./, "references", /^ch4\./, /^ch5\./],
     optionalKeys: ["app.budget", "app.workplan"],
   }).sections;
 }
