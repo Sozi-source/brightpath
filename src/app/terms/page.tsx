@@ -116,7 +116,10 @@ export default function TermsOfServicePage() {
             TVET Hub may review, edit metadata, reject, or remove any listing at its discretion.
           </li>
           <li>
-            <strong>Revenue &amp; Payouts:</strong> [ADD AUTHOR REVENUE SHARE AND PAYOUT SCHEDULE]
+            <strong>Revenue &amp; Payouts:</strong> Approved authors and trainers earn their
+            applicable share of net sales (after payment-processing fees) as communicated during
+            author onboarding or in their trainer agreement, subject to verification of completed
+            orders.
           </li>
         </ul>
       </section>
