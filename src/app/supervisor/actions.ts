@@ -92,7 +92,7 @@ export async function approveCompletedProjectForMarketplace(
     const contentByKey = new Map((rows || []).map((row) => [row.section_key, row.current_text || ""]));
     const optionalTrimmedKeys = new Set(["app.invoices", "app.workplan", "app.budget"]);
     const incomplete = definitions.filter((definition) => {
-      if (optionalTrimmedKeys.has(definition.key) && !contentByKey.has(definition.key)) return false;
+      if (optionalTrimmedKeys.has(definition.key)) return false;
       const minReq = fullWorkspace.level === "craft" ? Math.min(definition.minWords || 30, 30) : (definition.minWords || 30);
       const words = (contentByKey.get(definition.key) || "").trim().split(/\s+/).filter(Boolean).length;
       return words < minReq;
