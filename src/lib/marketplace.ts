@@ -35,9 +35,9 @@ export function getExactBusinessTitle(rawTitle: string | null | undefined): stri
     .trim();
 
   // 2. Strip trailing syllabus / format / complete plan annotations
-  // e.g. "— Complete KNEC Business Plan...", ". Complete KNEC Business Plan...", "- Complete KNEC..."
-  title = title.replace(/(?:[\s—–.-]+|\s+)Complete\s+KNEC\s+Business\s+Plan.*$/i, "");
-  title = title.replace(/(?:[\s—–.-]+|\s+)KNEC\s+Business\s+Plan.*$/i, "");
+  // e.g. "— Complete KNEC Business Plan...", ". Complete KNEC Business Plan...", "— Complete KNEC Research Project..."
+  title = title.replace(/(?:[\s—–.-]+|\s+)Complete\s+KNEC\s+(?:Business\s+Plan|Research\s+Project).*$/i, "");
+  title = title.replace(/(?:[\s—–.-]+|\s+)KNEC\s+(?:Business\s+Plan|Research\s+Project).*$/i, "");
   title = title.replace(/(?:[\s—–.-]+|\s+)Business\s+Plan\b.*$/i, "");
 
   // 3. Strip qualification badges: (Craft Certificate & Diploma), (Diploma), Certificate & Diploma, etc.
@@ -49,11 +49,11 @@ export function getExactBusinessTitle(rawTitle: string | null | undefined): stri
   title = title.replace(/\s+in\s+Regional,\s*County\b.*$/i, "");
   title = title.replace(/\s+Regional,\s*County\b.*$/i, "");
 
-  const lastInIndex = title.lastIndexOf(" in ");
+  const lastInIndex = title.toLowerCase().lastIndexOf(" in ");
   if (lastInIndex > 0) {
     const afterIn = title.substring(lastInIndex + 4).trim();
     if (
-      afterIn.length <= 40 &&
+      afterIn.length <= 45 &&
       !/\b(enterprise|ventures?|solutions?|clinic|center|centre|bakery|farms?|services?|shops?|stores?|depot|hub|mills?|consultancy|limited|ltd)\b/i.test(
         afterIn
       )
@@ -85,9 +85,9 @@ export function getShortCardTitle(rawTitle: string | null | undefined): string {
     .replace(/\s*:\s*Secondary\s+Data\s+(?:Analysis|Review)\s*$/i, "")
     .replace(/\s*\(\d{4}\s*[-–]\s*\d{4}\)\s*/g, " ")
     .replace(/\s+in\s+Kenya\b/gi, "")
-    .replace(/\s+Among\s+Children\s+Under\s+Five\b/gi, "")
+    .replace(/\s+Among\s+(?:Mothers\s+of\s+)?(?:Infants|Children)\s+(?:Aged\s+[\d-]+\s+Months|Under\s+Five)\b/gi, "")
     .replace(/\bDeterminants\s+and\s+Trends\s+of\b/gi, "Determinants of")
-    .replace(/\bEarly\s+Introduction\s+of\s+Complementary\s+Feeding\b/gi, "Early Complementary Feeding")
+    .replace(/\bEarly\s+Introduction\s+of\s+Complementary\s+(?:Feeding|Food|Foods)\b/gi, "Early Complementary Feeding")
     .replace(/\s{2,}/g, " ")
     .replace(/^[\s—–.:,-]+|[\s—–.:,-]+$/g, "")
     .trim();

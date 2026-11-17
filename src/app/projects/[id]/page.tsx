@@ -100,10 +100,13 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
   const publisherName = product.material_type === "business_plan"
     ? "TVET Hub Academic Repository"
     : (publisher?.full_name || "TVET Hub Publisher");
+  const isResearchProject = product.material_type === "research_project";
   const isBusinessPlan =
-    product.material_type === "business_plan" ||
-    (product.category || "").toLowerCase().includes("business") ||
-    product.file_path.startsWith("workspace-export:");
+    !isResearchProject &&
+    (product.material_type === "business_plan" ||
+      (product.category || "").toLowerCase().includes("business") ||
+      product.file_path.startsWith("workspace-export:"));
+  const isDossierCover = isBusinessPlan || isResearchProject;
   const levelMatch = product.title.match(/\((Diploma|Craft Certificate|Certificate|Higher Diploma)\)/i);
   const levelLabel = levelMatch
     ? levelMatch[1]
@@ -114,7 +117,7 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
   const productPalette = getCanvasPalette(product.title || product.id);
 
   const extension = product.file_path.startsWith("workspace-export:")
-    ? "PDF + Word"
+    ? "Word (.docx)"
     : product.file_path.split(".").pop()?.toUpperCase() || "Digital file";
 
   const productJsonLd = {
@@ -181,7 +184,7 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
                 <div className={`relative aspect-[3/4] overflow-hidden rounded-lg border border-slate-200 bg-gradient-to-br ${productPalette.bgGradient} shrink-0`}>
                   {product.cover_path ? (
                     <Image src={`/api/projects/${product.id}/cover`} alt={`${product.title} cover`} fill unoptimized sizes="210px" className="object-cover" />
-                  ) : isBusinessPlan ? (
+                  ) : isDossierCover ? (
                     <div className={`relative h-full w-full overflow-hidden bg-gradient-to-br ${productPalette.bgGradient} p-4 text-white flex flex-col justify-between select-none shadow-inner`}>
                       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent pointer-events-none" />
                       <div className="absolute inset-0 opacity-[0.08] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:10px_10px] pointer-events-none" />
@@ -189,7 +192,7 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
 
                       <div className="relative z-10 text-center pt-1">
                         <span className="inline-block text-[9.5px] font-bold tracking-[0.24em] uppercase !text-amber-300 drop-shadow-xs border-b border-amber-300/40 pb-0.5">
-                          BUSINESS PLAN
+                          {isResearchProject ? "RESEARCH PROJECT" : "BUSINESS PLAN"}
                         </span>
                       </div>
 

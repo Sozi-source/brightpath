@@ -76,10 +76,12 @@ export function MarketplaceProjectCard({
   const reviewCount = Number(rating?.review_count || 0);
   const average = Number(rating?.rating_average || 0);
 
+  const isResearchProject = project.material_type === "research_project";
   const isBusinessPlan =
-    project.material_type === "business_plan" ||
-    (project.category || "").toLowerCase().includes("business") ||
-    project.file_path.startsWith("workspace-export:");
+    !isResearchProject &&
+    (project.material_type === "business_plan" ||
+      (project.category || "").toLowerCase().includes("business") ||
+      project.file_path.startsWith("workspace-export:"));
 
   const theme = isBusinessPlan
     ? MATERIAL_THEMES.business_plan
@@ -90,13 +92,15 @@ export function MarketplaceProjectCard({
     : getMaterialTypeLabel(project.material_type);
 
   const formatLabel = project.file_path.startsWith("workspace-export:")
-    ? "PDF + Word"
-    : project.file_path.split(".").pop()?.toUpperCase() || "PDF";
+    ? "Word (.docx)"
+    : project.file_path.split(".").pop()?.toUpperCase() || "Digital";
 
   const subtitleLabel = isBusinessPlan
     ? project.category && project.category !== "Business Plan"
       ? project.category
       : "KNEC 5-Chapter Dossier"
+    : isResearchProject
+    ? "Research Project"
     : project.category || "Curriculum Resource";
 
   const cardTitle = getShortCardTitle(project.title);
