@@ -26,6 +26,7 @@ interface ResolvedIdentity {
   admissionNumber: string;
   institutionName: string;
   supervisorName: string;
+  townOrMarket: string;
   county: string;
 }
 
@@ -42,15 +43,17 @@ function resolveIdentity(specs: ResearchSpecs): ResolvedIdentity {
       admissionNumber: "{{ADMISSION_NUMBER}}",
       institutionName: "{{INSTITUTION_NAME}}",
       supervisorName: "{{SUPERVISOR_NAME}}",
+      townOrMarket: "{{TARGET_TOWN}}",
       county: "{{TARGET_COUNTY}}",
     };
   }
   return {
-    candidateName: specs.identity.candidateName.trim() || "Candidate",
-    admissionNumber: specs.identity.admissionNumber.trim() || "ADM/2026/001",
-    institutionName: specs.identity.institutionName.trim() || "Accredited TVET Institution",
-    supervisorName: specs.identity.supervisorName.trim() || "Project Supervisor",
-    county: specs.identity.county?.trim() || "Kenya",
+    candidateName: specs.identity.candidateName.trim() || "{{CANDIDATE_NAME}}",
+    admissionNumber: specs.identity.admissionNumber.trim() || "{{ADMISSION_NUMBER}}",
+    institutionName: specs.identity.institutionName.trim() || "{{INSTITUTION_NAME}}",
+    supervisorName: specs.identity.supervisorName.trim() || "{{SUPERVISOR_NAME}}",
+    townOrMarket: specs.identity.townOrMarket?.trim() || "{{TARGET_TOWN}}",
+    county: specs.identity.county?.trim() || "{{TARGET_COUNTY}}",
   };
 }
 
@@ -131,27 +134,28 @@ function buildPrelims(
     `Index / Admission Number: ${id.admissionNumber}`,
     `Course: ${levelLabel} in ${specs.course}`,
     `Institution: ${id.institutionName}`,
+    `Location: ${id.townOrMarket}, ${id.county}`,
     "Signature: ______________________________   Date: ______________________________",
     "",
     "SUPERVISOR'S DECLARATION",
     `I confirm that the work reported in this ${kind === "proposal" ? "proposal" : "project report"} is the candidate's original work and that the candidate received appropriate supervision.`,
     `Supervisor Name: ${id.supervisorName}`,
-    `Institution: ${id.institutionName}`,
+    `Institution: ${id.institutionName} (${id.townOrMarket}, ${id.county})`,
     "Signature: ______________________________   Date: ______________________________",
   ].join("\n\n");
 
   const dedicationVariants = [
-    `This work is dedicated to my family and mentors at ${id.institutionName} for their steady encouragement throughout my ${levelLabel} studies in ${specs.course}.`,
-    `I dedicate this ${kind === "proposal" ? "proposal" : "research report"} to my parents, guardians, and fellow trainees whose support sustained my academic progress.`,
-    `Dedicated to community nutrition practitioners and educators across Kenya working to improve household health through evidence-based practice.`,
+    `This work is dedicated to my family and mentors at ${id.institutionName} (${id.townOrMarket}, ${id.county}) for their steady encouragement throughout my ${levelLabel} studies in ${specs.course}.`,
+    `I dedicate this ${kind === "proposal" ? "proposal" : "research report"} to my parents, guardians, and fellow trainees in ${id.county} whose support sustained my academic progress.`,
+    `Dedicated to community nutrition practitioners and educators across ${id.county} and Kenya working to improve household health through evidence-based practice.`,
   ];
   const dedication =
     specs.dedicationText?.trim() ||
     pickVariant(`${seed}|dedication`, dedicationVariants);
 
   const ackVariants = [
-    `I express sincere gratitude to my supervisor, ${id.supervisorName}, and the faculty of ${id.institutionName} for constructive guidance during the development of this ${kind === "proposal" ? "proposal" : "study"}. I also acknowledge the Kenya National Bureau of Statistics, the Ministry of Health, and the World Bank Development Indicators repository for maintaining open public health datasets.`,
-    `My heartfelt appreciation goes to ${id.supervisorName} for scholarly mentorship and timely review, and to the administration of ${id.institutionName} for academic support. Gratitude is also extended to institutional data custodians whose published national indicators made this secondary analysis possible.`,
+    `I express sincere gratitude to my supervisor, ${id.supervisorName}, and the faculty of ${id.institutionName} (${id.townOrMarket}, ${id.county}) for constructive guidance during the development of this ${kind === "proposal" ? "proposal" : "study"}. I also acknowledge the Kenya National Bureau of Statistics, the Ministry of Health, and the World Bank Development Indicators repository for maintaining open public health datasets.`,
+    `My heartfelt appreciation goes to ${id.supervisorName} for scholarly mentorship and timely review, and to the administration of ${id.institutionName} in ${id.townOrMarket}, ${id.county} for academic support. Gratitude is also extended to institutional data custodians whose published national indicators made this secondary analysis possible.`,
   ];
   const acknowledgements =
     specs.acknowledgementsText?.trim() ||

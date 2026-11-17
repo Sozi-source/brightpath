@@ -240,16 +240,7 @@ export async function createWorkspace(formData: FormData) {
     const specs = buildResearchSpecsFromBlueprint(researchBlueprint, {
       level,
       seed: `${workspace.id}|${researchBlueprint.id}`,
-      identity: isAdminMaster
-        ? { mode: "master" }
-        : {
-            mode: "candidate",
-            candidateName: existingProfile?.full_name || user.email || "Candidate",
-            admissionNumber,
-            institutionName: "Accredited TVET Institution",
-            supervisorName: "Project Supervisor",
-            county,
-          },
+      identity: { mode: "master" },
       kind: "full",
     });
     for (const sec of buildResearchDocument(specs, "full")) {
@@ -2234,8 +2225,6 @@ export async function createAndBuildResearchWorkspace(formData: FormData) {
   const customTitle = formData.get("customTitle")?.toString().trim();
   const dedicationText = formData.get("dedicationText")?.toString().trim();
   const acknowledgementsText = formData.get("acknowledgementsText")?.toString().trim();
-  const admissionNumber = formData.get("admissionNumber")?.toString().trim() || existingProfile?.admission_number || "ADM/2026/001";
-  const supervisorName = formData.get("supervisorName")?.toString().trim() || "Project Supervisor";
 
   const blueprint = RESEARCH_TOPIC_CATALOGUE.find((t) => t.id === topicId) || RESEARCH_TOPIC_CATALOGUE[0];
   const finalTitle = customTitle || blueprint.title;
@@ -2261,23 +2250,10 @@ export async function createAndBuildResearchWorkspace(formData: FormData) {
     throw new Error(wsErr?.message || "Failed to create research workspace.");
   }
 
-  const rawInst = existingProfile?.institutions as unknown;
-  const instName =
-    (Array.isArray(rawInst) ? (rawInst[0] as { name?: string })?.name : (rawInst as { name?: string })?.name) ||
-    "Accredited TVET Institution";
-
   const specs = buildResearchSpecsFromBlueprint(blueprint, {
     level,
     seed: `${workspace.id}|${blueprint.id}`,
-    identity: isAdminMaster
-      ? { mode: "master" }
-      : {
-          mode: "candidate",
-          candidateName: existingProfile?.full_name || user.email || "Candidate",
-          admissionNumber,
-          institutionName: instName,
-          supervisorName,
-        },
+    identity: { mode: "master" },
     kind,
   });
   specs.title = finalTitle;
@@ -2336,24 +2312,10 @@ export async function buildCompleteResearchProjectAction(formData: FormData) {
     (topicId ? RESEARCH_TOPIC_CATALOGUE.find((t) => t.id === topicId) : undefined) ||
     findBestResearchBlueprint(workspace.title);
 
-  const isAdminMaster = profile?.role === "admin";
-  const rawInst = profile?.institutions as unknown;
-  const instName =
-    (Array.isArray(rawInst) ? (rawInst[0] as { name?: string })?.name : (rawInst as { name?: string })?.name) ||
-    "Accredited TVET Institution";
-
   const specs = buildResearchSpecsFromBlueprint(blueprint, {
     level: workspace.level,
     seed: `${workspace.id}|${blueprint.id}`,
-    identity: isAdminMaster
-      ? { mode: "master" }
-      : {
-          mode: "candidate",
-          candidateName: profile?.full_name || user.email || "Candidate",
-          admissionNumber: profile?.admission_number || "ADM/2026/001",
-          institutionName: instName,
-          supervisorName: "Project Supervisor",
-        },
+    identity: { mode: "master" },
     kind,
   });
   if (workspace.title) specs.title = workspace.title;

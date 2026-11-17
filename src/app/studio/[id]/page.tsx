@@ -32,6 +32,7 @@ import {
 import type { ProjectWorkspace, WorkspaceSection, SupervisorReview } from "@/types/database";
 import { resolveBusinessPlanModel, type BusinessPlanSpecs } from "@/lib/studio/businessPlanTypes";
 import { UnlockExportModal } from "./UnlockExportModal";
+import { StudioDownloadModal } from "./StudioDownloadModal";
 import { verifyWorkspaceUnlockWithPaystack } from "@/lib/paystack";
 
 interface WorkspaceOverviewPageProps {
@@ -243,13 +244,27 @@ export default async function WorkspaceOverviewPage({
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <Link
-                href={`/api/studio/${workspaceId}/export?format=docx`}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 transition-colors"
-              >
-                <FileText className="h-3.5 w-3.5" />
-                <span>Download .docx</span>
-              </Link>
+              {workspace.workspace_type === "research_secondary" ? (
+                <StudioDownloadModal
+                  workspaceId={workspaceId}
+                  projectTitle={cleanBusinessTitle}
+                  isAdmin={profile?.role === "admin"}
+                  defaultFullName={workspace.student?.full_name || ""}
+                  defaultAdmissionNumber={workspace.student?.admission_number || ""}
+                  defaultInstitution={workspace.institution?.name || ""}
+                  defaultSupervisorName={workspace.supervisor?.full_name || ""}
+                  buttonLabel="Download .docx"
+                  buttonClassName="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 transition-colors cursor-pointer"
+                />
+              ) : (
+                <Link
+                  href={`/api/studio/${workspaceId}/export?format=docx`}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 transition-colors"
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  <span>Download .docx</span>
+                </Link>
+              )}
             </div>
           </div>
         )}
@@ -307,13 +322,25 @@ export default async function WorkspaceOverviewPage({
                       <CheckCircle2 className="h-3 w-3 text-emerald-600" />
                       <span>KNEC Export Unlocked</span>
                     </span>
-                    <Link
-                      href={`/api/studio/${workspaceId}/export?format=docx`}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors"
-                    >
-                      <Download className="h-3.5 w-3.5 text-[#087f8c]" />
-                      <span>Download Word (.docx)</span>
-                    </Link>
+                    {workspace.workspace_type === "research_secondary" ? (
+                      <StudioDownloadModal
+                        workspaceId={workspaceId}
+                        projectTitle={cleanBusinessTitle}
+                        isAdmin={profile?.role === "admin"}
+                        defaultFullName={workspace.student?.full_name || ""}
+                        defaultAdmissionNumber={workspace.student?.admission_number || ""}
+                        defaultInstitution={workspace.institution?.name || ""}
+                        defaultSupervisorName={workspace.supervisor?.full_name || ""}
+                      />
+                    ) : (
+                      <Link
+                        href={`/api/studio/${workspaceId}/export?format=docx`}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition-colors"
+                      >
+                        <Download className="h-3.5 w-3.5 text-[#087f8c]" />
+                        <span>Download Word (.docx)</span>
+                      </Link>
+                    )}
                   </>
                 )}
 

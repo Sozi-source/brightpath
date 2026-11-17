@@ -120,7 +120,11 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
       .replace(/\[Candidate\]/g, "{{CANDIDATE_NAME}}")
       .replace(/\[Admission number withheld\]/g, "{{ADMISSION_NUMBER}}")
       .replace(/\[Institution\]/g, "{{INSTITUTION_NAME}}")
-      .replace(/\[Supervisor\]/g, "{{SUPERVISOR_NAME}}");
+      .replace(/\[Supervisor\]/g, "{{SUPERVISOR_NAME}}")
+      .replace(/\bAccredited TVET Institution\b/gi, "{{INSTITUTION_NAME}}")
+      .replace(/\bKenya Education Cloud TVET Institute\b/gi, "{{INSTITUTION_NAME}}")
+      .replace(/\bProject Supervisor\b/gi, "{{SUPERVISOR_NAME}}")
+      .replace(/\bInstitutional Supervisor\b/gi, "{{SUPERVISOR_NAME}}");
 
     return text;
   };
@@ -302,10 +306,14 @@ export function stampMarketplaceBusinessPlan(
     "[Institution]": buyer.institutionName,
     "[Institution name]": buyer.institutionName,
     "[Enter institution name]": buyer.institutionName,
+    "Accredited TVET Institution": buyer.institutionName,
+    "Kenya Education Cloud TVET Institute": buyer.institutionName,
     "[Supervisor]": supervisor,
     "[Supervisor Name]": supervisor,
     "[Supervisor name]": supervisor,
     "[Enter supervisor name]": supervisor,
+    "Project Supervisor": supervisor,
+    "Institutional Supervisor": supervisor,
   };
 
   const isNairobiTarget = /nairobi/i.test(buyer.townOrMarket) || /nairobi/i.test(buyer.county);

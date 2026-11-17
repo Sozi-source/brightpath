@@ -24,7 +24,6 @@ const DOMAIN_LABELS: Record<string, string> = {
 
 export function ResearchNewClient({
   isAdmin,
-  defaultAdmissionNumber,
   defaultLevel,
 }: ResearchNewClientProps) {
   const [domain, setDomain] = useState("ALL");
@@ -34,8 +33,6 @@ export function ResearchNewClient({
   const [customTitle, setCustomTitle] = useState("");
   const [dedicationText, setDedicationText] = useState("");
   const [acknowledgementsText, setAcknowledgementsText] = useState("");
-  const [admissionNumber, setAdmissionNumber] = useState(defaultAdmissionNumber);
-  const [supervisorName, setSupervisorName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -57,10 +54,6 @@ export function ResearchNewClient({
     if (customTitle.trim()) fd.set("customTitle", customTitle.trim());
     if (dedicationText.trim()) fd.set("dedicationText", dedicationText.trim());
     if (acknowledgementsText.trim()) fd.set("acknowledgementsText", acknowledgementsText.trim());
-    if (!isAdmin) {
-      fd.set("admissionNumber", admissionNumber);
-      if (supervisorName.trim()) fd.set("supervisorName", supervisorName.trim());
-    }
 
     startTransition(async () => {
       try {
@@ -200,31 +193,9 @@ export function ResearchNewClient({
             </label>
           </div>
 
-          {!isAdmin && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <label className="grid gap-1.5 text-xs font-semibold text-slate-700">
-                Admission / Index Number
-                <input
-                  type="text"
-                  required
-                  value={admissionNumber}
-                  onChange={(e) => setAdmissionNumber(e.target.value)}
-                  placeholder="e.g. HND/2026/014"
-                  className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900"
-                />
-              </label>
-              <label className="grid gap-1.5 text-xs font-semibold text-slate-700">
-                Supervisor Name (Optional)
-                <input
-                  type="text"
-                  value={supervisorName}
-                  onChange={(e) => setSupervisorName(e.target.value)}
-                  placeholder="Project Supervisor"
-                  className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900"
-                />
-              </label>
-            </div>
-          )}
+          <div className="rounded-lg border border-sky-200 bg-sky-50/70 px-3 py-2 text-xs text-sky-900">
+            Student details, supervisor details, and location are kept as placeholders and populated when downloading.
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label className="grid gap-1.5 text-xs font-semibold text-slate-700">

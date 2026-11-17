@@ -65,21 +65,33 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
   const supervisor = workspace.supervisor as unknown as { full_name?: string | null } | null;
   const institution = workspace.institution as unknown as { name?: string | null } | null;
 
-  const isAdminMaster = workspace.supervisor_id === null && !institution?.name;
+  const qCandidate = _request.nextUrl.searchParams.get("candidateName")?.trim();
+  const qAdmission = _request.nextUrl.searchParams.get("admissionNumber")?.trim();
+  const qInstitution = _request.nextUrl.searchParams.get("institutionName")?.trim();
+  const qSupervisor = _request.nextUrl.searchParams.get("supervisorName")?.trim();
+  const qTown = _request.nextUrl.searchParams.get("townOrMarket")?.trim();
+  const qCounty = _request.nextUrl.searchParams.get("county")?.trim();
+  const hasQueryOverrides = Boolean(qCandidate || qAdmission || qInstitution || qSupervisor || qTown || qCounty);
+
+  const isAdminMaster = workspace.supervisor_id === null && !institution?.name && !hasQueryOverrides && profile?.role === "admin";
   const resolvedCandidate = isAdminMaster
     ? "{{CANDIDATE_NAME}}"
-    : businessSpecs?.candidateName?.trim() || student?.full_name?.trim() || "Candidate";
+    : qCandidate || businessSpecs?.candidateName?.trim() || student?.full_name?.trim() || "Candidate";
   const resolvedAdmission = isAdminMaster
     ? "{{ADMISSION_NUMBER}}"
-    : businessSpecs?.admissionNumber?.trim() || student?.admission_number?.trim() || "ADM/2026/001";
+    : qAdmission || businessSpecs?.admissionNumber?.trim() || student?.admission_number?.trim() || "ADM/2026/001";
   const resolvedInstitution = isAdminMaster
     ? "{{INSTITUTION_NAME}}"
-    : businessSpecs?.institutionName?.trim() || institution?.name?.trim() || "Kenya Education Cloud TVET Institute";
+    : qInstitution || businessSpecs?.institutionName?.trim() || institution?.name?.trim() || "Kenya Education Cloud TVET Institute";
   const resolvedSupervisor = isAdminMaster
     ? "{{SUPERVISOR_NAME}}"
-    : businessSpecs?.supervisorName?.trim() || supervisor?.full_name?.trim() || "Project Supervisor";
-  const resolvedTown = businessSpecs?.townOrMarket?.trim() || "Nairobi";
-  const resolvedCounty = businessSpecs?.county?.trim() || "Nairobi County";
+    : qSupervisor || businessSpecs?.supervisorName?.trim() || supervisor?.full_name?.trim() || "Project Supervisor";
+  const resolvedTown = isAdminMaster
+    ? "{{TARGET_TOWN}}"
+    : qTown || businessSpecs?.townOrMarket?.trim() || "Nairobi";
+  const resolvedCounty = isAdminMaster
+    ? "{{TARGET_COUNTY}}"
+    : qCounty || businessSpecs?.county?.trim() || "Nairobi County";
   const resolvedBusinessName = businessSpecs?.businessName?.trim() || workspace.title || "Business Plan";
 
   const variedPrelims = buildVariedBusinessPlanPreliminaries({
@@ -122,6 +134,12 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
         content = variedPrelims.acknowledgements;
       } else if (content) {
         content = content
+          .replaceAll("{{CANDIDATE_NAME}}", resolvedCandidate)
+          .replaceAll("{{ADMISSION_NUMBER}}", resolvedAdmission)
+          .replaceAll("{{INSTITUTION_NAME}}", resolvedInstitution)
+          .replaceAll("{{SUPERVISOR_NAME}}", resolvedSupervisor)
+          .replaceAll("{{TARGET_TOWN}}", resolvedTown)
+          .replaceAll("{{TARGET_COUNTY}}", resolvedCounty)
           .replaceAll("[Enter candidate name]", resolvedCandidate)
           .replaceAll("[Enter index number]", resolvedAdmission)
           .replaceAll("[Enter institution name]", resolvedInstitution)

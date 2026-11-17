@@ -6,6 +6,7 @@ import Link from "next/link";
 import {
   Search,
   SlidersHorizontal,
+  BookOpen,
   FileText,
   Camera,
   ExternalLink,
@@ -178,9 +179,9 @@ export function AdminProjectsManager({
                             className="object-cover"
                           />
                         ) : (
-                          <div className="h-full w-full bg-gradient-to-br from-slate-900 to-indigo-950 flex flex-col items-center justify-center p-0.5 text-white">
-                            <FileText className="h-3 w-3 text-amber-300" />
-                            <span className="text-[6px] font-mono text-slate-300 uppercase">KNEC</span>
+                          <div className="relative h-full w-full bg-gradient-to-br from-sky-500 via-blue-600 to-cyan-800 flex items-center justify-center text-white">
+                            <div className="absolute inset-0.5 rounded-[2px] border border-white/25 pointer-events-none" />
+                            <BookOpen className="h-3.5 w-3.5 text-white/95 drop-shadow-2xs" />
                           </div>
                         )}
                         <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-opacity text-white">
