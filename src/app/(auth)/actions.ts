@@ -2,8 +2,20 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { UserRole } from "@/types/database";
+
+async function getAuthCallbackUrl(): Promise<string> {
+  const hdrs = await headers();
+  const forwardedHost = hdrs.get("x-forwarded-host");
+  const host = forwardedHost || hdrs.get("host");
+  const proto = hdrs.get("x-forwarded-proto") || (host?.includes("localhost") ? "http" : "https");
+  const baseUrl = host
+    ? `${proto}://${host}`
+    : process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://www.tvethub.co.ke";
+  return `${baseUrl.replace(/\/$/, "")}/auth/callback`;
+}
 
 function fail(path: string, message: string): never {
   const [pathname, query = ""] = path.split("?", 2);
@@ -139,10 +151,12 @@ export async function signup(formData: FormData) {
   }
 
   const supabase = await createClient();
+  const emailRedirectTo = await getAuthCallbackUrl();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
+      emailRedirectTo,
       data: {
         full_name: fullName,
       },
@@ -190,10 +204,12 @@ export async function signupFaculty(formData: FormData) {
   }
 
   const supabase = await createClient();
+  const emailRedirectTo = await getAuthCallbackUrl();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
+      emailRedirectTo,
       data: {
         full_name: fullName,
         requested_role: "supervisor",

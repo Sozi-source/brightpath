@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import type { Project } from "@/types/database";
-import { getMaterialTypeLabel, getExactBusinessTitle } from "@/lib/marketplace";
+import { getMaterialTypeLabel, getShortCardTitle } from "@/lib/marketplace";
 import { BuyButton } from "@/components/BuyButton";
 import { AmazonPrice } from "@/components/ui/AmazonPrice";
 
@@ -99,7 +99,7 @@ export function MarketplaceProjectCard({
       : "KNEC 5-Chapter Dossier"
     : project.category || "Curriculum Resource";
 
-  const exactTitle = getExactBusinessTitle(project.title);
+  const cardTitle = getShortCardTitle(project.title);
 
   const currentPrice = Number(project.price_kes) || 0;
   const origPrice = Number(project.original_price_kes) || 0;
@@ -146,7 +146,7 @@ export function MarketplaceProjectCard({
               <div className="relative mb-3 h-32 w-full overflow-hidden rounded-lg border border-slate-100 bg-slate-100">
                 <Image
                   src={`/api/projects/${project.id}/cover`}
-                  alt={`${exactTitle} cover`}
+                  alt={`${cardTitle} cover`}
                   fill
                   unoptimized
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 280px"
@@ -155,9 +155,10 @@ export function MarketplaceProjectCard({
               </div>
             )}
             <h3
-              className={`text-[15px] font-semibold leading-snug tracking-tight text-slate-900 ${theme.hoverTitle} line-clamp-2 transition-colors min-h-[42px]`}
+              title={project.title}
+              className={`text-[12.5px] sm:text-[13px] font-semibold leading-snug tracking-tight text-[#0f294a] ${theme.hoverTitle} line-clamp-2 transition-colors min-h-[36px]`}
             >
-              {exactTitle}
+              {cardTitle}
             </h3>
             <p className="mt-1.5 text-xs font-medium text-slate-600 truncate">
               {subtitleLabel}

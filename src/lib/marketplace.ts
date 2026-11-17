@@ -70,3 +70,27 @@ export function getExactBusinessTitle(rawTitle: string | null | undefined): stri
 
   return title || rawTitle.trim();
 }
+
+/**
+ * Produces a concise 2-line-friendly card title for marketplace grid cards
+ * while keeping the full title intact on the product details page.
+ */
+export function getShortCardTitle(rawTitle: string | null | undefined): string {
+  let title = getExactBusinessTitle(rawTitle);
+  if (!title || title === "Learning Resource") return title;
+
+  title = title
+    .replace(/\s*—\s*Complete\s+KNEC\s+Research\s+Project.*$/i, "")
+    .replace(/\s*:\s*A\s+(?:Descriptive\s+)?Secondary\s+Data\s+(?:Analysis|Review)\s*$/i, "")
+    .replace(/\s*:\s*Secondary\s+Data\s+(?:Analysis|Review)\s*$/i, "")
+    .replace(/\s*\(\d{4}\s*[-–]\s*\d{4}\)\s*/g, " ")
+    .replace(/\s+in\s+Kenya\b/gi, "")
+    .replace(/\s+Among\s+Children\s+Under\s+Five\b/gi, "")
+    .replace(/\bDeterminants\s+and\s+Trends\s+of\b/gi, "Determinants of")
+    .replace(/\bEarly\s+Introduction\s+of\s+Complementary\s+Feeding\b/gi, "Early Complementary Feeding")
+    .replace(/\s{2,}/g, " ")
+    .replace(/^[\s—–.:,-]+|[\s—–.:,-]+$/g, "")
+    .trim();
+
+  return title || getExactBusinessTitle(rawTitle);
+}

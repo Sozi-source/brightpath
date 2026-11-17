@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { login } from "@/app/(auth)/actions";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { ArrowRight, AlertCircle, CheckCircle2, ShieldCheck } from "lucide-react";
 
 interface LoginFormProps {
@@ -22,6 +23,12 @@ export function LoginForm({ error, message, redirectUrl }: LoginFormProps) {
         </div>
         {error && <div role="alert" className="flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-800"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" /><span>{error}</span></div>}
         {message && <div role="status" className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-800"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /><span>{message}</span></div>}
+        <GoogleSignInButton redirectUrl={redirectUrl} />
+        <div className="relative flex items-center py-0.5">
+          <div className="grow border-t border-slate-200" />
+          <span className="mx-3 shrink text-[11px] font-medium uppercase tracking-wider text-slate-400">or</span>
+          <div className="grow border-t border-slate-200" />
+        </div>
         <form action={login} className="space-y-4">
           {redirectUrl && <input type="hidden" name="redirect" value={redirectUrl} />}
           <div><label htmlFor="email" className="mb-1 block text-xs font-semibold text-slate-700">Email</label><input id="email" name="email" type="email" autoComplete="email" required className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-100" /></div>

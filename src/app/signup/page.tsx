@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { signup } from "@/app/(auth)/actions";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
 
 interface SignupPageProps {
@@ -58,6 +59,14 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
               <span>{error}</span>
             </div>
           )}
+
+          <GoogleSignInButton />
+
+          <div className="relative flex items-center py-0.5">
+            <div className="grow border-t border-slate-200" />
+            <span className="mx-3 shrink text-[11px] font-medium uppercase tracking-wider text-slate-400">or</span>
+            <div className="grow border-t border-slate-200" />
+          </div>
 
           <form action={signup} className="space-y-4">
             <div>
