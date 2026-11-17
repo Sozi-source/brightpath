@@ -98,12 +98,12 @@ export function AppShell({
   ];
 
   const adminModules = [
-    { label: "Business Plans", href: "/admin#business-plans", icon: Layers, iconColor: "text-teal-600" },
-    { label: "Institutional Plans", href: "/admin#institutional-plans", icon: Briefcase, iconColor: "text-blue-600" },
-    { label: "User Directory", href: "/admin#users", icon: Users, iconColor: "text-emerald-600" },
-    { label: "Trainer Approvals", href: "/admin#trainer-approvals", icon: ShieldCheck, iconColor: "text-amber-600" },
-    { label: "Transactions", href: "/admin#orders", icon: Coins, iconColor: "text-sky-600" },
-    { label: "Flagged Content", href: "/admin#reports", icon: AlertCircle, iconColor: "text-rose-600" },
+    { label: "Business Plans", href: "/admin#business-plans", icon: Layers, iconColor: "text-slate-500" },
+    { label: "Institutional Plans", href: "/admin#institutional-plans", icon: Briefcase, iconColor: "text-slate-500" },
+    { label: "User Directory", href: "/admin#users", icon: Users, iconColor: "text-slate-500" },
+    { label: "Trainer Approvals", href: "/admin#trainer-approvals", icon: ShieldCheck, iconColor: "text-slate-500" },
+    { label: "Transactions", href: "/admin#orders", icon: Coins, iconColor: "text-slate-500" },
+    { label: "Flagged Content", href: "/admin#reports", icon: AlertCircle, iconColor: "text-slate-500" },
   ];
 
   const roleBadgeLabel = isRoleAdmin
@@ -384,30 +384,57 @@ export function AppShell({
                   </Link>
 
                   {isRoleAdmin && (
-                    <Link
-                      href="/admin"
-                      onClick={() => setSidebarOpen(false)}
-                      aria-current={pathname === "/admin" ? "page" : undefined}
-                      className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-[13px] transition-all ${
-                        pathname === "/admin"
-                          ? "bg-[#092B68] text-white font-semibold shadow-xs"
-                          : "font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900"
-                      }`}
-                    >
-                      <div className="flex min-w-0 items-center gap-2.5">
-                        <Settings
-                          className={`h-4 w-4 shrink-0 ${
-                            pathname === "/admin" ? "text-white" : "text-slate-500"
+                    <>
+                      <Link
+                        href="/admin"
+                        onClick={() => setSidebarOpen(false)}
+                        aria-current={pathname === "/admin" ? "page" : undefined}
+                        className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-[13px] transition-all ${
+                          pathname === "/admin"
+                            ? "bg-[#092B68] text-white font-semibold shadow-xs"
+                            : "font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900"
+                        }`}
+                      >
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <Settings
+                            className={`h-4 w-4 shrink-0 ${
+                              pathname === "/admin" ? "text-white" : "text-slate-500"
+                            }`}
+                          />
+                          <span className="truncate">Admin Console</span>
+                        </div>
+                        <ChevronRight
+                          className={`h-3.5 w-3.5 shrink-0 ${
+                            pathname === "/admin" ? "text-blue-200" : "text-slate-400"
                           }`}
                         />
-                        <span className="truncate">Admin Console</span>
-                      </div>
-                      <ChevronRight
-                        className={`h-3.5 w-3.5 shrink-0 ${
-                          pathname === "/admin" ? "text-blue-200" : "text-slate-400"
+                      </Link>
+
+                      <Link
+                        href="/admin#users"
+                        onClick={() => setSidebarOpen(false)}
+                        aria-current={pathname.startsWith("/admin/users") ? "page" : undefined}
+                        className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-[13px] transition-all ${
+                          pathname.startsWith("/admin/users")
+                            ? "bg-[#092B68] text-white font-semibold shadow-xs"
+                            : "font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900"
                         }`}
-                      />
-                    </Link>
+                      >
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <Users
+                            className={`h-4 w-4 shrink-0 ${
+                              pathname.startsWith("/admin/users") ? "text-white" : "text-slate-500"
+                            }`}
+                          />
+                          <span className="truncate">Users</span>
+                        </div>
+                        <ChevronRight
+                          className={`h-3.5 w-3.5 shrink-0 ${
+                            pathname.startsWith("/admin/users") ? "text-blue-200" : "text-slate-400"
+                          }`}
+                        />
+                      </Link>
+                    </>
                   )}
                 </nav>
 
