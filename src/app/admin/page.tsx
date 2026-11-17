@@ -5,7 +5,6 @@ import {
   approveTrainer,
   purgePendingOrdersAction,
   deletePendingOrderAction,
-  updateClassStudioCode,
 } from "./actions";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
@@ -15,11 +14,9 @@ import {
   Layers,
   AlertCircle,
   Coins,
-  Users,
   ShieldCheck,
 } from "lucide-react";
 import type {
-  UserProfile,
   Project,
   Order,
   ContentReport,
@@ -50,36 +47,31 @@ export default async function AdminPage() {
 
   // Fetch admin dashboard data in parallel
   const [
-    { data: allProfiles },
+    { count: studentCountRaw },
+    { count: adminCountRaw },
     { data: allProjects },
     { data: allOrders },
     { data: allReports },
     { data: institutionalWorkspaces },
     { data: pendingTrainerProfiles },
-    { data: primaryInstitution },
   ] = await Promise.all([
-    supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "student"),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "admin"),
     supabase.from("projects").select("*, profiles:trainer_id(full_name)").order("created_at", { ascending: false }),
     supabase.from("orders").select("*").order("created_at", { ascending: false }),
     supabase.from("reports").select("*").order("created_at", { ascending: false }),
     supabase.from("project_workspaces").select("id, title, status, final_project_status, updated_at, workspace_type, business_plan_specs").eq("workspace_type", "business_plan").order("updated_at", { ascending: false }),
     supabase.from("trainer_profiles").select("user_id, status, profiles(full_name)").eq("status", "pending"),
-    supabase.from("institutions").select("id, name, code").order("created_at", { ascending: true }).limit(1).maybeSingle(),
   ]);
 
-  const classStudioCode = (primaryInstitution as { code?: string | null } | null)?.code || "ICMHS-2026";
-
-  const profilesList: UserProfile[] = (allProfiles as unknown as UserProfile[]) || [];
-  const adminCount = profilesList.filter((p) => p.role === "admin").length;
+  const adminCount = adminCountRaw || 0;
+  const studentCount = studentCountRaw || 0;
   const projectsList: Project[] = (allProjects as unknown as Project[]) || [];
   const ordersList: Order[] = (allOrders as unknown as Order[]) || [];
   const reportsList: ContentReport[] = (allReports as unknown as ContentReport[]) || [];
   const institutionalPlans: AdminInstitutionalPlanRow[] = ((institutionalWorkspaces || []) as Array<AdminInstitutionalPlanRow & { workspace_type?: string; business_plan_specs?: { isInstitutional?: boolean } | null }>)
     .filter((workspace) => workspace.business_plan_specs?.isInstitutional === true)
     .map(({ id, title, status, final_project_status, updated_at }) => ({ id, title, status, final_project_status, updated_at }));
-
-  // Compute stats
-  const studentCount = profilesList.filter((p) => p.role === "student").length;
 
   const pendingProjects = projectsList.filter((p) => p.status === "pending_review");
 
@@ -181,116 +173,6 @@ export default async function AdminPage() {
         >
           <AdminInstitutionalPlans plans={institutionalPlans} />
         </ContentCard>
-      </div>
-
-      {/* Users Section */}
-      <div id="users" className="scroll-mt-20">
-        <ContentCard
-          title="User Directory"
-          subtitle="Manage Studio class access vs. Marketplace-only buyers"
-          icon={Users}
-          compact
-          headerRight={
-            <div className="flex flex-wrap items-center gap-2">
-              <form action={updateClassStudioCode} className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50/70 px-2.5 py-1">
-                <span className="text-[10.5px] font-semibold uppercase tracking-wider text-indigo-800">Class Studio Code:</span>
-                <input
-                  type="text"
-                  name="classCode"
-                  defaultValue={classStudioCode}
-                  aria-label="Class Studio Access Code"
-                  className="h-6 w-28 rounded border border-indigo-200 bg-white px-2 text-xs font-mono font-semibold text-slate-900 focus:border-indigo-600 focus:outline-none"
-                />
-                <button
-                  type="submit"
-                  className="h-6 rounded bg-indigo-600 hover:bg-indigo-700 px-2 text-[10.5px] font-semibold text-white transition-colors cursor-pointer"
-                >
-                  Save Code
-                </button>
-              </form>
-              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                {profilesList.length} Total Users
-              </span>
-            </div>
-          }
-        >
-        <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-xs">
-          <table className="w-full text-left text-xs">
-            <thead className="border-b border-slate-200 text-[11px] font-semibold uppercase tracking-wider text-slate-500 bg-slate-50">
-              <tr>
-                <th className="py-2 px-3">Name</th>
-                <th className="py-2 px-3">Role</th>
-                <th className="py-2 px-3">Studio Access</th>
-                <th className="py-2 px-3">Course / Institution</th>
-                <th className="py-2 px-3">Joined</th>
-                <th className="py-2 px-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {profilesList.map((p) => {
-                const studioAllowed = p.role === "admin" || p.role === "supervisor" || Boolean(p.institution_id);
-                return (
-                <tr key={p.id} className={`hover:bg-slate-50/60 transition-colors ${p.archived_at ? "opacity-65 bg-slate-50/40" : ""}`}>
-                  <td className="py-2 px-3 font-semibold text-slate-900 whitespace-nowrap">
-                    <div className="inline-flex items-center gap-1.5">
-                      <Link
-                        href={`/admin/users/${p.id}`}
-                        className="hover:text-[#087f8c] hover:underline transition-colors"
-                      >
-                        {p.full_name || "Unnamed"}
-                      </Link>
-                      {p.archived_at && (
-                        <span className="rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
-                          Archived
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="py-2 px-3 whitespace-nowrap">
-                    <span
-                      className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${
-                        p.role === "admin"
-                          ? "bg-purple-50 text-purple-800 border border-purple-200"
-                          : p.role === "supervisor"
-                          ? "bg-blue-50 text-blue-800 border border-blue-200"
-                          : "bg-slate-100 text-slate-700 border border-slate-200"
-                      }`}
-                    >
-                      {p.role}
-                    </span>
-                  </td>
-                  <td className="py-2 px-3 whitespace-nowrap">
-                    <span
-                      className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${
-                        studioAllowed
-                          ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                          : "bg-slate-100 text-slate-600 border border-slate-200"
-                      }`}
-                    >
-                      {studioAllowed ? "Studio Class" : "Marketplace Only"}
-                    </span>
-                  </td>
-                  <td className="py-2 px-3 text-slate-600">
-                    {p.institution || p.course || "-"}
-                  </td>
-                  <td className="py-2 px-3 text-slate-500 font-mono text-[11px] whitespace-nowrap">
-                    {p.created_at ? new Date(p.created_at).toLocaleDateString() : "-"}
-                  </td>
-                  <td className="py-2 px-3 text-right whitespace-nowrap">
-                    <Link
-                      href={`/admin/users/${p.id}`}
-                      className="inline-flex items-center rounded-md border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 hover:border-[#087f8c]/50 hover:text-[#087f8c] transition-colors whitespace-nowrap"
-                    >
-                      Manage
-                    </Link>
-                  </td>
-                </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </ContentCard>
       </div>
 
       <div id="trainer-approvals" className="scroll-mt-20">

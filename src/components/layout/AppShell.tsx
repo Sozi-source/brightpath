@@ -100,7 +100,7 @@ export function AppShell({
   const adminModules = [
     { label: "Business Plans", href: "/admin#business-plans", icon: Layers, iconColor: "text-slate-500" },
     { label: "Institutional Plans", href: "/admin#institutional-plans", icon: Briefcase, iconColor: "text-slate-500" },
-    { label: "User Directory", href: "/admin#users", icon: Users, iconColor: "text-slate-500" },
+    { label: "User Directory", href: "/admin/users", icon: Users, iconColor: "text-slate-500" },
     { label: "Trainer Approvals", href: "/admin#trainer-approvals", icon: ShieldCheck, iconColor: "text-slate-500" },
     { label: "Transactions", href: "/admin#orders", icon: Coins, iconColor: "text-slate-500" },
     { label: "Flagged Content", href: "/admin#reports", icon: AlertCircle, iconColor: "text-slate-500" },
@@ -411,7 +411,7 @@ export function AppShell({
                       </Link>
 
                       <Link
-                        href="/admin#users"
+                        href="/admin/users"
                         onClick={() => setSidebarOpen(false)}
                         aria-current={pathname.startsWith("/admin/users") ? "page" : undefined}
                         className={`flex items-center justify-between rounded-lg px-2.5 py-2 text-[13px] transition-all ${
