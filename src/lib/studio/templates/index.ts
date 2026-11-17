@@ -53,6 +53,10 @@ export function getWorkspaceSections(
             type === "research_secondary" ? 30 : 40,
             Math.round((baseWords * (isDiploma ? diplomaScale : craftScale)) / 10) * 10
           )
+        : type === "research_secondary" && sec.key === "prelim.dedication"
+        ? 15
+        : type === "research_secondary" && sec.key === "prelim.acknowledgements"
+        ? 30
         : type !== "business_plan" && isDiploma && sec.phase === "proposal"
         ? Math.round((baseWords * 1.5) / 10) * 10
         : baseWords;

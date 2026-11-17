@@ -159,7 +159,8 @@ export default async function WorkspaceOverviewPage({
   }
 
   const isBusiness = workspace.workspace_type === "business_plan";
-  const hasPlanContent = isBusiness && sections.some((section) => section.current_text.trim());
+  const isResearch = workspace.workspace_type === "research_secondary";
+  const hasPlanContent = (isBusiness || isResearch) && sections.some((section) => section.current_text.trim());
   const isUnlocked = Boolean(
     profile?.role === "admin" ||
     (workspace.business_plan_specs as Record<string, unknown> | null)?.export_unlocked === true
@@ -175,7 +176,7 @@ export default async function WorkspaceOverviewPage({
   const isProjectComplete = completedDefinedSections === totalDefinedSections;
   const incompleteProjectSections = totalDefinedSections - completedDefinedSections;
 
-  const { data: marketplaceListing } = isBusiness && workspace.student_id === user.id
+  const { data: marketplaceListing } = (isBusiness || isResearch) && (workspace.student_id === user.id || profile?.role === "admin")
     ? await db.from("projects").select("id, status, price_kes").eq("file_path", `workspace-export:${workspaceId}`).maybeSingle()
     : { data: null };
   const isTopicReady = Boolean(workspace.title && workspace.title.trim().length >= 5);
@@ -434,8 +435,8 @@ export default async function WorkspaceOverviewPage({
                 <Clock className="h-3.5 w-3.5 text-amber-600" />
                 <span>Under Review</span>
               </span>
-            ) : isProjectComplete && workspace.student_id === user.id ? (
-              <FinalProjectSubmissionForm workspaceId={workspaceId} />
+            ) : isProjectComplete && (workspace.student_id === user.id || profile?.role === "admin") ? (
+              <FinalProjectSubmissionForm workspaceId={workspaceId} isBusinessPlan={isBusiness || isResearch} defaultPrice={workspace.marketplace_price_kes} />
             ) : (
               <span className="text-xs font-medium text-slate-500">
                 {totalDefinedSections - completedDefinedSections} section(s) remaining
@@ -456,7 +457,7 @@ export default async function WorkspaceOverviewPage({
                 return (
                   <details
                     key={group.chapterKey}
-                    open={group.chapterKey === firstIncompleteChapterKey}
+                    open={group.chapterKey === firstIncompleteChapterKey || (isResearch && group.chapterKey === "ch1")}
                     className="group rounded-xl border border-slate-200 bg-white overflow-hidden"
                   >
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-3 bg-slate-50/70 px-4 py-3 hover:bg-slate-50 transition-colors">
