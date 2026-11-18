@@ -344,13 +344,13 @@ async function tryLlmTopicNarrowing(
   const levelSpec = getAcademicLevelSpec(context.level);
 
   if (isBusiness) {
-    const businessPrompt = `You are a practical TVET Business Plan Advisor for Kenyan Certificate and Diploma students studying ${context.course} (${levelSpec.levelLabel.toUpperCase()} level).
-The student wants to develop a viable KNEC Business Plan for a micro- or small-scale enterprise in nutrition, dietetics, or food processing.
+    const businessPrompt = `You are a practical TVET & KMTC Business Plan Advisor for Kenyan Certificate and Diploma students studying ${context.course} (${levelSpec.levelLabel.toUpperCase()} level).
+The student wants to develop a viable TVET & KMTC Business Plan for a micro- or small-scale enterprise in nutrition, dietetics, or food processing.
 
-CRITICAL KNEC BUSINESS PLAN RULES:
+CRITICAL BUSINESS PLAN RULES:
 1. This is a COMMERCIAL BUSINESS PLAN, NOT an academic research thesis.
 2. DO NOT format this as a research problem with hypotheses, research questions, or secondary data extraction.
-3. Every proposal must follow the official KNEC 5-Chapter Business Plan format:
+3. Every proposal must follow the official 5-Chapter Business Plan format:
    - Chapter 1: Business Description (name, location, form of ownership, products/services, SWOT)
    - Chapter 2: Marketing Plan (customers, market share, competitor analysis, pricing, promotion, distribution)
    - Chapter 3: Organization and Management Plan (organogram, management team, staff, licenses/permits)
@@ -1092,7 +1092,7 @@ function generateDeterministicTopics(
               `2. To establish clinical consultation workflows, service fees, and professional licensing compliance.`,
               `3. To develop comprehensive 3-year financial statements demonstrating profitability and capital recovery.`,
             ],
-            methodologyHint: `Client willingness-to-pay survey, clinic referral interviews, and 3-year pro-forma financial statements for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+            methodologyHint: `Client willingness-to-pay survey, clinic referral interviews, and 3-year pro-forma financial statements for a ${levelSpec.targetPages}+ page TVET & KMTC Business Plan.`,
           },
           {
             id: "bp-c2",
@@ -1113,7 +1113,7 @@ function generateDeterministicTopics(
               `2. To outline clinical service protocols, staff requirements, and operational safety.`,
               `3. To calculate startup capital, pricing tiers, and projected 1-year profit and loss.`,
             ],
-            methodologyHint: `Target mother interviews, local health facility consultations, and cash flow projections for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+            methodologyHint: `Target mother interviews, local health facility consultations, and cash flow projections for a ${levelSpec.targetPages}+ page TVET & KMTC Business Plan.`,
           },
           {
             id: "bp-c3",
@@ -1134,7 +1134,7 @@ function generateDeterministicTopics(
               `2. To define sourcing channels for certified organic grains, equipment layout, and store operations.`,
               `3. To project 3-year cash flow, break-even sales volume, and return on investment.`,
             ],
-            methodologyHint: `Market demand questionnaires, distributor price quotes, and 3-year pro-forma balance sheet for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+            methodologyHint: `Market demand questionnaires, distributor price quotes, and 3-year pro-forma balance sheet for a ${levelSpec.targetPages}+ page TVET & KMTC Business Plan.`,
           },
         ],
         followUpQuestion: `Would you prefer to focus on a general clinical nutrition practice, maternal-child nutrition advisory, or a lifestyle disease wellness hub?`,
@@ -1164,7 +1164,7 @@ function generateDeterministicTopics(
               `2. To design the grain cleaning, roasting, milling, packaging workflow, and equipment sourcing.`,
               `3. To compute total start-up costs, unit break-even volume, and 3-year pro-forma financial statements.`,
             ],
-            methodologyHint: `Household purchasing survey, supplier quotes for grain and hammer mills, and 3-year financial models for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+            methodologyHint: `Household purchasing survey, supplier quotes for grain and hammer mills, and 3-year financial models for a ${levelSpec.targetPages}+ page TVET & KMTC Business Plan.`,
           },
           {
             id: "bp-m2",
@@ -1185,7 +1185,7 @@ function generateDeterministicTopics(
               `2. To detail factory layout, KEBS hygiene protocols, and raw material procurement contracts.`,
               `3. To formulate 3-year income statements, cash flow budgets, and balance sheet projections.`,
             ],
-            methodologyHint: `Maternal consumer survey, machinery quotations, and pro-forma financial schedules for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+            methodologyHint: `Maternal consumer survey, machinery quotations, and pro-forma financial schedules for a ${levelSpec.targetPages}+ page TVET & KMTC Business Plan.`,
           },
           {
             id: "bp-m3",
@@ -1206,7 +1206,7 @@ function generateDeterministicTopics(
               `2. To outline equipment specifications, electricity load requirements, and workshop layout.`,
               `3. To calculate monthly break-even milling volumes, operational overheads, and annual returns.`,
             ],
-            methodologyHint: `Market trade survey, equipment energy consumption audit, and 3-year cash flow forecast for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+            methodologyHint: `Market trade survey, equipment energy consumption audit, and 3-year cash flow forecast for a ${levelSpec.targetPages}+ page TVET & KMTC Business Plan.`,
           },
         ],
         followUpQuestion: `Which milling enterprise model do you prefer: fortified composite porridge flours, infant weaning foods, or a modern custom milling depot?`,
@@ -1236,7 +1236,7 @@ function generateDeterministicTopics(
               `2. To design cold-chain storage, pasteurization workflow, and public health food handling protocols.`,
               `3. To compute unit production costs, wholesale/retail margins, and 3-year financial statements.`,
             ],
-            methodologyHint: `Consumer taste test survey, packaging supplier quotes, and 3-year financial schedules for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+            methodologyHint: `Consumer taste test survey, packaging supplier quotes, and 3-year financial schedules for a ${levelSpec.targetPages}+ page TVET & KMTC Business Plan.`,
           },
           {
             id: "bp-b2",
@@ -1257,7 +1257,7 @@ function generateDeterministicTopics(
               `2. To specify kitchen bakery workflow, equipment layout, and food safety standards.`,
               `3. To prepare 3-year pro-forma income statement, cash flow budget, and balance sheet.`,
             ],
-            methodologyHint: `Retail vendor survey, baking equipment quotes, and pro-forma financial models for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+            methodologyHint: `Retail vendor survey, baking equipment quotes, and pro-forma financial models for a ${levelSpec.targetPages}+ page TVET & KMTC Business Plan.`,
           },
           {
             id: "bp-b3",
@@ -1278,7 +1278,7 @@ function generateDeterministicTopics(
               `2. To establish solar drying parameters, packaging moisture barrier specifications, and hygiene protocols.`,
               `3. To formulate 3-year cash flow projections, break-even unit sales, and return on investment.`,
             ],
-            methodologyHint: `Supermarket buyer interviews, dryer construction material quotes, and financial forecast models for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+            methodologyHint: `Supermarket buyer interviews, dryer construction material quotes, and financial forecast models for a ${levelSpec.targetPages}+ page TVET & KMTC Business Plan.`,
           },
         ],
         followUpQuestion: `Would you prefer to launch fresh natural juices, a high-fiber composite bakery, or a solar-dried fruit and vegetable venture?`,
@@ -1308,7 +1308,7 @@ function generateDeterministicTopics(
             `2. To establish consultation workflows, service fees, and professional licensing compliance.`,
             `3. To develop comprehensive 3-year financial statements demonstrating profitability and capital recovery.`,
           ],
-          methodologyHint: `Client willingness-to-pay survey, clinic referral interviews, and 3-year pro-forma financial statements for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+          methodologyHint: `Client willingness-to-pay survey, clinic referral interviews, and 3-year pro-forma financial statements for a ${levelSpec.targetPages}+ page TVET & KMTC Business Plan.`,
         },
         {
           id: "bp-g2",
@@ -1329,7 +1329,7 @@ function generateDeterministicTopics(
             `2. To design the grain cleaning, roasting, milling, packaging workflow, and equipment sourcing.`,
             `3. To compute total start-up costs, unit break-even volume, and 3-year pro-forma financial statements.`,
           ],
-          methodologyHint: `Household purchasing survey, supplier quotes for grain and hammer mills, and 3-year financial models for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+          methodologyHint: `Household purchasing survey, supplier quotes for grain and hammer mills, and 3-year financial models for a ${levelSpec.targetPages}+ page TVET & KMTC Business Plan.`,
         },
         {
           id: "bp-g3",
@@ -1350,7 +1350,7 @@ function generateDeterministicTopics(
             `2. To design cold-chain storage, pasteurization workflow, and public health food handling protocols.`,
             `3. To compute unit production costs, wholesale/retail margins, and 3-year financial statements.`,
           ],
-          methodologyHint: `Consumer taste test survey, packaging supplier quotes, and 3-year financial schedules for a ${levelSpec.targetPages}+ page KNEC Business Plan.`,
+          methodologyHint: `Consumer taste test survey, packaging supplier quotes, and 3-year financial schedules for a ${levelSpec.targetPages}+ page TVET & KMTC Business Plan.`,
         },
       ],
       followUpQuestion: `Which commercial enterprise matches your career path: nutrition consultancy practice, composite flour milling, or natural fruit juice processing?`,

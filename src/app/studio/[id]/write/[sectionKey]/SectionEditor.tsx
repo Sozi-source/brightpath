@@ -510,10 +510,10 @@ export function SectionEditor({
                 </div>
               )}
 
-              {/* KNEC Syllabus Target Line */}
+              {/* Academic Syllabus Target Line */}
               <div className="pl-11 pt-1 border-t border-indigo-100/80 flex items-center gap-1.5 text-[11px] text-slate-500">
                 <Lightbulb className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                <span className="font-medium text-slate-700">KNEC Examination Target:</span>
+                <span className="font-medium text-slate-700">Academic Target:</span>
                 <span className="truncate">{guidance}</span>
               </div>
             </div>

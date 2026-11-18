@@ -42,7 +42,7 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
   }) | null;
 
   // Enforce Pay-to-Export Gate:
-  // Admin role is exempt. Students must unlock KNEC Word (.docx) export for KES 350.
+  // Admin role is exempt. Students must unlock Word (.docx) export for KES 350.
   const isUnlocked = Boolean(
     profile?.role === "admin" ||
     businessSpecs?.export_unlocked === true ||
@@ -52,7 +52,7 @@ export async function GET(_request: NextRequest, context: RouteContext<"/api/stu
   if (!isUnlocked) {
     return NextResponse.json(
       {
-        error: "Export locked. Please unlock the official KNEC Word (.docx) export (KES 350) to download this business plan.",
+        error: "Export locked. Please unlock the official Word (.docx) export (KES 350) to download this business plan.",
         locked: true,
         price_kes: 350,
       },

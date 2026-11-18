@@ -70,7 +70,7 @@ export function getNotebookLmPromptsForSection(params: {
         id: "verify-citations",
         label: "Verify In-Text Citations",
         shortHint: "Match (Author, Year) to full sources",
-        prompt: `For a KNEC project on "${topic}", list the exact (Author, Year) in-text citation and corresponding full APA 7th reference for each official report or standard in this notebook.`,
+        prompt: `For a TVET & KMTC project on "${topic}", list the exact (Author, Year) in-text citation and corresponding full APA 7th reference for each official report or standard in this notebook.`,
       },
       {
         id: "kenya-reports",

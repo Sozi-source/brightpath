@@ -125,7 +125,7 @@ export async function createWorkspace(formData: FormData) {
   }
 
   if (!admissionNumber) {
-    throw new Error("Student admission / registration number is required by KNEC.");
+    throw new Error("Student admission / registration number is required by your TVET College or KMTC.");
   }
 
   if (privacyConsent !== "on") {
@@ -612,7 +612,7 @@ export async function saveSectionText(formData: FormData) {
     Boolean(section.current_text?.trim()) &&
     (workspace.business_plan_specs as Record<string, unknown> | null)?.export_unlocked !== true
   ) {
-    throw new Error("Unlock the KNEC Export (KES 350) to edit generated business plan sections.");
+    throw new Error("Unlock the Word Export (KES 350) to edit generated business plan sections.");
   }
 
   // Enforce KNEC Rule 6: project chapters locked before proposal approval
@@ -768,7 +768,7 @@ export async function aiNarrowTopicAction(formData: FormData): Promise<TopicNarr
     student_input: studentInput,
     response: result as unknown as Record<string, unknown>,
     suggestions_total: result.options.length,
-    model: process.env.GEMINI_API_KEY ? "gemini-2.0-flash" : "knec-academic-engine-v1",
+    model: process.env.GEMINI_API_KEY ? "gemini-2.0-flash" : "tvet-kmtc-academic-engine-v1",
   });
 
   return result;
@@ -799,7 +799,7 @@ export async function polishBusinessPlanSectionAction(formData: FormData) {
     throw new Error("This writing polish is for business plan sections.");
   }
   if ((workspace.business_plan_specs as Record<string, unknown> | null)?.export_unlocked !== true) {
-    throw new Error("Unlock the KNEC Export (KES 350) to polish and edit business plan sections.");
+    throw new Error("Unlock the Word Export (KES 350) to polish and edit business plan sections.");
   }
   if (workspace.status !== "approved" && workspace.status !== "submitted") {
     throw new Error("The business plan must be approved before drafting chapters.");
@@ -2019,7 +2019,7 @@ async function getBusinessPlanCorrectionActor(workspaceId: string) {
     role === "student" &&
     (workspace.business_plan_specs as Record<string, unknown> | null)?.export_unlocked !== true
   ) {
-    throw new Error("Unlock the KNEC Export (KES 350) to view and edit raw section manuscripts.");
+    throw new Error("Unlock the Word Export (KES 350) to view and edit raw section manuscripts.");
   }
   if (workspace.status === "closed") {
     throw new Error("This project is closed.");

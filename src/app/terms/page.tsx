@@ -171,11 +171,10 @@ export default function TermsOfServicePage() {
         </h2>
         <p>
           Study materials are provided &ldquo;as is&rdquo; for educational assistance. TVET Hub
-          does not guarantee specific examination grades, assessment scores, or KNEC outcomes, and is{" "}
+          does not guarantee specific examination grades or assessment outcomes, and is{" "}
           <strong>
-            not affiliated with or endorsed by the Kenya National Examinations Council (KNEC)
-          </strong>{" "}
-          established under the Kenya National Examinations Council Act, 2012.
+            not affiliated with or endorsed by any TVET college, KMTC, or examining body
+          </strong>.
         </p>
         <p>
           To the maximum extent permitted by Kenyan law, Clarix Innovators is not liable for

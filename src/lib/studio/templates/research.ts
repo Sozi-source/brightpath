@@ -289,7 +289,7 @@ export const RESEARCH_SECONDARY_SECTIONS: SectionDef[] = [
     chapter: "preliminary",
     chapterTitle: "Preliminary Pages & Abstract",
     guidance:
-      "Mandatory KNEC declaration of original candidate analytical work and formal supervisor recommendation for submission.",
+      "Mandatory declaration of original candidate analytical work and formal supervisor recommendation for submission.",
     minWords: 60,
     starterTemplate:
       "DECLARATION BY CANDIDATE\nI declare that this research project report is my original work and has not been presented for an examination or award in any other institution.\n\nCandidate Signature: __________________ Date: ______________\n[Candidate Full Name]\n\nAPPROVAL BY SUPERVISOR\nThis research project report has been submitted for examination with my approval as the institutional supervisor.\n\nSupervisor Signature: _________________ Date: ______________\n[Supervisor Full Name]",

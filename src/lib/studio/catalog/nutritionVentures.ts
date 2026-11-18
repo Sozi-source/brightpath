@@ -164,7 +164,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 8000,
         "stationeryMisc": 3500
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with clinical practicum experience in medical nutrition therapy and patient counseling.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with clinical practicum experience in medical nutrition therapy and patient counseling.",
       "streetOrBuilding": "Commercial Medical & Professional Plaza, Ground Floor Suite",
       "locationRationale": "Strategically positioned near outpatient health facilities, diagnostic laboratories, and public transport stages, ensuring convenient client referrals, pedestrian accessibility, reliable utilities, and confidential consultation space."
     }
@@ -297,7 +297,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 12000,
         "stationeryMisc": 2000
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with clinical practicum experience in medical nutrition therapy and patient counseling.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with clinical practicum experience in medical nutrition therapy and patient counseling.",
       "productDescription": "Remote virtual nutrition counseling, habit coaching, and dietary follow-up delivered over encrypted video and WhatsApp for busy urban clients. Delivered as Virtual 1-on-1 Nutrition Counseling & Habit Coaching packaged in 30-day digital coaching cycle including 3 video consultations and weekly WhatsApp progress check-ins to serve working professionals, corporate desk workers, diaspora Kenyans managing elderly parents' health, and remote post-pregnancy mothers..",
       "streetOrBuilding": "Commercial Medical & Professional Plaza, Ground Floor Suite",
       "locationRationale": "Strategically positioned near outpatient health facilities, diagnostic laboratories, and public transport stages, ensuring convenient client referrals, pedestrian accessibility, reliable utilities, and confidential consultation space."
@@ -443,7 +443,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 10000,
         "stationeryMisc": 4000
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with clinical practicum experience in medical nutrition therapy and patient counseling.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with clinical practicum experience in medical nutrition therapy and patient counseling.",
       "productDescription": "Doctor-referred clinical practice specializing in therapeutic diet formulation, glycemic management, and renal meal regimens to reduce complications. Delivered as Comprehensive Chronic Condition Dietary Protocol packaged in initial clinical diagnostic intake, 8-week structured therapeutic diet chart, and bi-weekly glucose/BP tracking to serve patients diagnosed with Type 2 Diabetes, Hypertension, Chronic Kidney Disease (Stages 1-3), and Hyperuricemia (Gout)..",
       "streetOrBuilding": "Commercial Medical & Professional Plaza, Ground Floor Suite",
       "locationRationale": "Strategically positioned near outpatient health facilities, diagnostic laboratories, and public transport stages, ensuring convenient client referrals, pedestrian accessibility, reliable utilities, and confidential consultation space."
@@ -578,7 +578,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 7000,
         "stationeryMisc": 2500
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with clinical practicum experience in medical nutrition therapy and patient counseling.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with clinical practicum experience in medical nutrition therapy and patient counseling.",
       "productDescription": "Dedicated clinic focusing on antenatal diet balance, breastfeeding coaching, infant weaning milestones, and early child growth monitoring. Delivered as First 1000 Days Maternal & Complementary Feeding Guidance packaged in individualized mother-baby consultation package including growth monitoring chart and recipe booklet to serve first-time pregnant mothers, breastfeeding mothers struggling with milk supply, and parents starting infant complementary feeding at 6 months..",
       "streetOrBuilding": "Commercial Medical & Professional Plaza, Ground Floor Suite",
       "locationRationale": "Strategically positioned near outpatient health facilities, diagnostic laboratories, and public transport stages, ensuring convenient client referrals, pedestrian accessibility, reliable utilities, and confidential consultation space."
@@ -720,7 +720,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 8000,
         "stationeryMisc": 2500
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with clinical practicum experience in medical nutrition therapy and patient counseling.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with clinical practicum experience in medical nutrition therapy and patient counseling.",
       "productDescription": "Mobile in-home nutrition therapy, enteral tube feeding support, and caregiver training for bedridden, post-stroke, and geriatric patients. Delivered as Bedside Clinical Nutrition Assessment & Enteral Diet Plan packaged in 90-minute in-home clinical visit with bedside assessment, caregiver coaching, and customized blenderized feeding formula to serve bedridden stroke survivors, post-surgery patients discharged with feeding tubes, and elderly individuals suffering from age-related dysphagia and muscle wasting..",
       "streetOrBuilding": "Commercial Medical & Professional Plaza, Ground Floor Suite",
       "locationRationale": "Strategically positioned near outpatient health facilities, diagnostic laboratories, and public transport stages, ensuring convenient client referrals, pedestrian accessibility, reliable utilities, and confidential consultation space."
@@ -856,7 +856,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 12000,
         "stationeryMisc": 3000
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with clinical practicum experience in medical nutrition therapy and patient counseling.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with clinical practicum experience in medical nutrition therapy and patient counseling.",
       "productDescription": "Body composition analysis, bioelectrical impedance scanning, and 12-week structured weight transformation programs. Delivered as 12-Week Body Composition Transformation Program packaged in cohort enrollment including baseline BIA scan, weekly caloric meal guides, and WhatsApp accountability check-ins to serve overweight and obese individuals, postpartum mothers, corporate desk employees with visceral fat buildup, and pre-diabetic clients..",
       "streetOrBuilding": "Commercial Medical & Professional Plaza, Ground Floor Suite",
       "locationRationale": "Strategically positioned near outpatient health facilities, diagnostic laboratories, and public transport stages, ensuring convenient client referrals, pedestrian accessibility, reliable utilities, and confidential consultation space."
@@ -991,7 +991,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 9000,
         "stationeryMisc": 2500
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with clinical practicum experience in medical nutrition therapy and patient counseling.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with clinical practicum experience in medical nutrition therapy and patient counseling.",
       "productDescription": "Specialized dietary planning for athletes, sports academies, marathoners, and gym enthusiasts focusing on hydration, nutrient timing, and lean muscle synthesis. Delivered as Athlete Periodized Nutritional & Hydration Plan packaged in comprehensive 8-week sports nutrition plan matching training phases (macro-cycles) with pre-, intra-, and post-workout guidelines to serve track and field athletes, football academy players, competitive cyclists, bodybuilders, and fitness gym members..",
       "streetOrBuilding": "Commercial Medical & Professional Plaza, Ground Floor Suite",
       "locationRationale": "Strategically positioned near outpatient health facilities, diagnostic laboratories, and public transport stages, ensuring convenient client referrals, pedestrian accessibility, reliable utilities, and confidential consultation space."
@@ -1168,7 +1168,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 18000,
         "stationeryMisc": 6000
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (KNEC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (TVET / KMTC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
       "productDescription": "Hygienic processing and blending of sorghum, finger millet, amaranth, and soya flours fortified with essential micronutrients for family porridge. Delivered as Fortified Composite Flour (Millet, Sorghum, Soya & Amaranth) packaged in 1kg high-barrier laminated moisture-proof stand-up pouches with zip lock to serve health-conscious families, mothers preparing infant porridge, elderly consumers requiring easily digestible nutrition, and school feeding programs..",
       "streetOrBuilding": "Light Industrial & Agro-Processing Commercial Zone, Ground Floor Unit",
       "locationRationale": "Situated in a well-connected commercial zone with reliable three-phase electricity, municipal potable water, all-weather road access for raw material deliveries from agricultural suppliers, and direct distribution routes to wholesale and retail stockists."
@@ -1328,7 +1328,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 15000,
         "stationeryMisc": 5000
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (KNEC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (TVET / KMTC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
       "productDescription": "Production of scientifically formulated, aflatoxin-tested baby cereals, ready-to-mix vegetable purees, and toddler finger snacks. Delivered as Fortified Pre-Cooked Infant Weaning Cereal (500g) packaged in 500g food-grade aluminum barrier pouch with scoop and airtight zipper to serve working mothers, parents transitioning infants from exclusive breastfeeding at 6 months, daycares, and pediatrician clinics..",
       "streetOrBuilding": "Light Industrial & Agro-Processing Commercial Zone, Ground Floor Unit",
       "locationRationale": "Situated in a well-connected commercial zone with reliable three-phase electricity, municipal potable water, all-weather road access for raw material deliveries from agricultural suppliers, and direct distribution routes to wholesale and retail stockists."
@@ -1475,7 +1475,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 12000,
         "stationeryMisc": 3500
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (KNEC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (TVET / KMTC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
       "productDescription": "Production and packaging of roasted sesame, peanut, chia seed, and honey energy bars; baked arrowroot and sweet potato chips. Delivered as NutriCrunch Sesame & Peanut Honey Energy Bar (45g) packaged in individually wrapped 45g metalized BOPP pouches displayed in 12-bar retail counter display boxes to serve school children, college students, gym enthusiasts, corporate staff seeking healthy tea-time snacks, and long-distance travelers..",
       "streetOrBuilding": "Light Industrial & Agro-Processing Commercial Zone, Ground Floor Unit",
       "locationRationale": "Situated in a well-connected commercial zone with reliable three-phase electricity, municipal potable water, all-weather road access for raw material deliveries from agricultural suppliers, and direct distribution routes to wholesale and retail stockists."
@@ -1622,7 +1622,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 10000,
         "stationeryMisc": 4000
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (KNEC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (TVET / KMTC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
       "productDescription": "Solar-drying of seasonal mangoes, bananas, and African leafy vegetables; cold-press extraction and bottling of 100% natural vegetable-fruit juices. Delivered as Solar-Dehydrated Chewy Mango & Papaya Strips (100g) packaged in 100g clear kraft stand-up zip pouch with transparent display window to serve health-conscious urban consumers, supermarket shoppers, school lunchboxes, and tourists seeking natural dried snacks..",
       "streetOrBuilding": "Light Industrial & Agro-Processing Commercial Zone, Ground Floor Unit",
       "locationRationale": "Situated in a well-connected commercial zone with reliable three-phase electricity, municipal potable water, all-weather road access for raw material deliveries from agricultural suppliers, and direct distribution routes to wholesale and retail stockists."
@@ -1776,7 +1776,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 14000,
         "stationeryMisc": 4500
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (KNEC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (TVET / KMTC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
       "productDescription": "Formulation and pasteurization of fortified soy milk, oat milk, coconut yoghurt, and peanut-milk drinks for lactose-intolerant and vegan consumers. Delivered as Pasteurized Fortified Soy Milk (500ml Glass Bottle) packaged in 500ml returnable / recyclable glass bottles with tamper-evident induction seal cap to serve lactose-intolerant adults and children, vegans, health-conscious consumers looking for low-cholesterol milk alternatives, and baristas in specialty coffee shops..",
       "streetOrBuilding": "Light Industrial & Agro-Processing Commercial Zone, Ground Floor Unit",
       "locationRationale": "Situated in a well-connected commercial zone with reliable three-phase electricity, municipal potable water, all-weather road access for raw material deliveries from agricultural suppliers, and direct distribution routes to wholesale and retail stockists."
@@ -1923,7 +1923,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 10000,
         "stationeryMisc": 3000
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (KNEC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (TVET / KMTC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
       "productDescription": "Production of standardized, hygienic milk kefir, water kefir, and traditional probiotic fermented porridge using defined starter cultures. Delivered as Probiotic Milk Kefir Drink (500ml Bottle) packaged in 500ml food-grade recyclable HDPE bottles with tamper-evident seal to serve individuals suffering from gut dysbiosis, IBS, or antibiotic recovery; health-conscious urban professionals seeking active probiotic cultures..",
       "streetOrBuilding": "Light Industrial & Agro-Processing Commercial Zone, Ground Floor Unit",
       "locationRationale": "Situated in a well-connected commercial zone with reliable three-phase electricity, municipal potable water, all-weather road access for raw material deliveries from agricultural suppliers, and direct distribution routes to wholesale and retail stockists."
@@ -2070,7 +2070,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 12000,
         "stationeryMisc": 3500
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (KNEC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (TVET / KMTC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
       "productDescription": "Sustainable rearing, solar drying, and fine milling of crickets (Acheta domesticus) into protein-rich flour for baked goods, porridge, and pasta enrichment. Delivered as Cricket Protein Baking Flour Blend (250g Pouch) packaged in 250g nitrogen-flushed stand-up zip pouch with full nutritional profile panel to serve fitness athletes requiring high digestible protein (65%+), environmentally conscious consumers, and pediatric malnutrition recovery programs..",
       "streetOrBuilding": "Light Industrial & Agro-Processing Commercial Zone, Ground Floor Unit",
       "locationRationale": "Situated in a well-connected commercial zone with reliable three-phase electricity, municipal potable water, all-weather road access for raw material deliveries from agricultural suppliers, and direct distribution routes to wholesale and retail stockists."
@@ -2217,7 +2217,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 10000,
         "stationeryMisc": 3500
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (KNEC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (TVET / KMTC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
       "productDescription": "Production of natural peanut butter, almond butter, and cold-pressed avocado/sunflower oils with zero hydrogenated fats, zero preservatives, and low sodium. Delivered as 100% Pure Creamy Peanut Butter (400g Glass Jar) packaged in 400g hexagonal food-grade glass jar with aluminum induction heat seal and safety tamper band to serve health-conscious households, mothers seeking nutritious bread spreads for school lunches, bodybuilders wanting healthy fats, and hotel breakfast buffets..",
       "streetOrBuilding": "Light Industrial & Agro-Processing Commercial Zone, Ground Floor Unit",
       "locationRationale": "Situated in a well-connected commercial zone with reliable three-phase electricity, municipal potable water, all-weather road access for raw material deliveries from agricultural suppliers, and direct distribution routes to wholesale and retail stockists."
@@ -2345,7 +2345,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 8000,
         "stationeryMisc": 2500
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (KNEC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (TVET / KMTC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
       "productDescription": "Refractometer moisture testing, settling, hygienic filtration, and bottling of raw multi-flora honey, ginger-infused honey, and propolis tinctures. Delivered as 100% Pure Raw Traceable Multi-Flora Honey (500g Jar) packaged in 500g food-grade glass jar with wax dip seal and traceable hive origin badge to serve health-conscious households replacing refined white sugar, herbal tea drinkers, singers/speakers, and consumers treating colds and respiratory symptoms..",
       "streetOrBuilding": "Light Industrial & Agro-Processing Commercial Zone, Ground Floor Unit",
       "locationRationale": "Situated in a well-connected commercial zone with reliable three-phase electricity, municipal potable water, all-weather road access for raw material deliveries from agricultural suppliers, and direct distribution routes to wholesale and retail stockists."
@@ -2479,7 +2479,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 8000,
         "stationeryMisc": 2500
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (KNEC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (TVET / KMTC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
       "productDescription": "Drying, blending, and tea-bagging of indigenous functional herbs: Moringa oleifera, Hibiscus sabdariffa, lemongrass, and ginger for daily immunity and detox. Delivered as Immunity Hibiscus & Moringa Herbal Tea (25 Tagged Bags Box) packaged in box of 25 unbleached paper tea bags enclosed in sealed foil pouch to serve health-conscious urban consumers, individuals managing blood pressure and oxidative stress, tea enthusiasts seeking caffeine-free alternatives..",
       "streetOrBuilding": "Light Industrial & Agro-Processing Commercial Zone, Ground Floor Unit",
       "locationRationale": "Situated in a well-connected commercial zone with reliable three-phase electricity, municipal potable water, all-weather road access for raw material deliveries from agricultural suppliers, and direct distribution routes to wholesale and retail stockists."
@@ -2651,7 +2651,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 15000,
         "stationeryMisc": 4000
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC) with practical competency in therapeutic menu engineering, institutional food service management, and County Public Health food safety compliance.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC) with practical competency in therapeutic menu engineering, institutional food service management, and County Public Health food safety compliance.",
       "productDescription": "Weekly subscription cloud kitchen preparing and delivering portion-controlled, macronutrient-balanced lunches and dinners for weight loss, keto, and diabetics. Delivered as Weekly 5-Day Calorie-Controlled Office Lunch Box Subscription packaged in microwave-safe, leak-proof, biodegradable sugarcane pulp meal containers labeled with calorie and macro breakdown to serve corporate office executives, bankers, IT professionals, weight watchers, and busy postpartum mothers in urban centers..",
       "streetOrBuilding": "Town Commercial Center, High-Visibility Ground Floor Food Unit",
       "locationRationale": "Located within a busy commercial and institutional catchment with high daytime pedestrian traffic, reliable municipal water and power supply, hygienic waste disposal, and fast rider dispatch routes for meal deliveries."
@@ -2800,7 +2800,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 12000,
         "stationeryMisc": 5000
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC) with practical competency in therapeutic menu engineering, institutional food service management, and County Public Health food safety compliance.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC) with practical competency in therapeutic menu engineering, institutional food service management, and County Public Health food safety compliance.",
       "productDescription": "Outsourced inpatient therapeutic diet management for private nursing homes, hospices, rehabilitation clinics, and boarding schools. Delivered as Full-Day Inpatient Therapeutic Diet Service (B/L/D) packaged in individually plated insulated thermal trays with labeled patient bed and diet restriction cards to serve private hospital inpatients, elderly nursing homes, post-operative recovery homes, and specialized boarding schools..",
       "streetOrBuilding": "Town Commercial Center, High-Visibility Ground Floor Food Unit",
       "locationRationale": "Located within a busy commercial and institutional catchment with high daytime pedestrian traffic, reliable municipal water and power supply, hygienic waste disposal, and fast rider dispatch routes for meal deliveries."
@@ -2943,7 +2943,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 12000,
         "stationeryMisc": 4000
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC) with practical competency in therapeutic menu engineering, institutional food service management, and County Public Health food safety compliance.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC) with practical competency in therapeutic menu engineering, institutional food service management, and County Public Health food safety compliance.",
       "productDescription": "Catering for boardrooms, wellness retreats, NGO seminars, and conferences with guilt-free, low-glycemic, energizing meals and mocktails. Delivered as Full-Day Corporate Wellness Conference Buffet Package packaged in elegant buffet chafing stations with allergen, calorie, and macro display plaques beside every dish to serve corporate HR departments, banks, insurance companies, NGOs, United Nations agencies, and executive wellness retreat organizers..",
       "streetOrBuilding": "Town Commercial Center, High-Visibility Ground Floor Food Unit",
       "locationRationale": "Located within a busy commercial and institutional catchment with high daytime pedestrian traffic, reliable municipal water and power supply, hygienic waste disposal, and fast rider dispatch routes for meal deliveries."
@@ -3090,7 +3090,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 14000,
         "stationeryMisc": 4000
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC) with practical competency in therapeutic menu engineering, institutional food service management, and County Public Health food safety compliance.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC) with practical competency in therapeutic menu engineering, institutional food service management, and County Public Health food safety compliance.",
       "productDescription": "Grab-and-go kiosk inside shopping malls, gym lobbies, or campus centers serving customized toss-your-own salads, green smoothies, and fruit parfaits. Delivered as Custom Tossed Protein Salad Bowl & Cold-Pressed Green Juice packaged in clear compostable PLA salad bowls with dressing cups and sealed RPET juice bottles to serve health-conscious shoppers, gym-goers, university students, medical staff, and working professionals seeking quick, guilt-free lunches..",
       "streetOrBuilding": "Town Commercial Center, High-Visibility Ground Floor Food Unit",
       "locationRationale": "Located within a busy commercial and institutional catchment with high daytime pedestrian traffic, reliable municipal water and power supply, hygienic waste disposal, and fast rider dispatch routes for meal deliveries."
@@ -3232,7 +3232,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 6000,
         "stationeryMisc": 2000
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Nutrition-Sensitive Agriculture (KNEC), experienced in biofortified crop value chains, post-harvest nutrient preservation, and smallholder farmer aggregation.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Nutrition-Sensitive Agriculture (TVET / KMTC), experienced in biofortified crop value chains, post-harvest nutrient preservation, and smallholder farmer aggregation.",
       "productDescription": "Multiplication and commercial farming of Vitamin A-rich Orange-Fleshed Sweet Potato (OFSP) vines and Iron-Rich Nyota beans for seed and tuber supply. Delivered as Clean Certified OFSP Vines & Harvested Biofortified Tubers packaged in bundles of 100 clean vines and 50kg aerated mesh bags of sorted tubers to serve smallholder farmers, flour millers, school feeding initiatives, and county agriculture projects..",
       "streetOrBuilding": "Peri-Urban Agricultural Aggregation & Production Plot",
       "locationRationale": "Positioned in a peri-urban agricultural belt with fertile plot space, reliable water access for irrigation and washing, low lease overhead, and direct road connectivity to urban retail markets and institutional buyers."
@@ -3367,7 +3367,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 6000,
         "stationeryMisc": 2000
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Nutrition-Sensitive Agriculture (KNEC), experienced in biofortified crop value chains, post-harvest nutrient preservation, and smallholder farmer aggregation.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Nutrition-Sensitive Agriculture (TVET / KMTC), experienced in biofortified crop value chains, post-harvest nutrient preservation, and smallholder farmer aggregation.",
       "productDescription": "Indoor high-density vertical rack production of living microgreens (sunflower, radish, broccoli, peas) delivering 4x–40x higher nutrient density than mature plants. Delivered as Fresh Living Sunflower & Radish Microgreen Punnets (100g) packaged in 100g clear ventilated clamshell punnets with moisture absorption pads to serve high-end restaurants, boutique salad bars, health-conscious urban households, and consumers fighting chronic inflammation..",
       "streetOrBuilding": "Peri-Urban Agricultural Aggregation & Production Plot",
       "locationRationale": "Positioned in a peri-urban agricultural belt with fertile plot space, reliable water access for irrigation and washing, low lease overhead, and direct road connectivity to urban retail markets and institutional buyers."
@@ -3509,7 +3509,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 8000,
         "stationeryMisc": 2500
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Nutrition-Sensitive Agriculture (KNEC), experienced in biofortified crop value chains, post-harvest nutrient preservation, and smallholder farmer aggregation.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Nutrition-Sensitive Agriculture (TVET / KMTC), experienced in biofortified crop value chains, post-harvest nutrient preservation, and smallholder farmer aggregation.",
       "productDescription": "Pastured poultry farming using specialized diets supplemented with flaxseed, moringa, and alfalfa to produce verified Omega-3 and Lutein-enriched table eggs. Delivered as Omega-3 Enriched Free-Range Table Eggs (Tray of 30) packaged in biodegradable molded paper egg trays of 30 with branded certification seal to serve parents prioritizing brain development in young children, cardiovascular patients seeking healthy fats, and health-focused bakers..",
       "streetOrBuilding": "Peri-Urban Agricultural Aggregation & Production Plot",
       "locationRationale": "Positioned in a peri-urban agricultural belt with fertile plot space, reliable water access for irrigation and washing, low lease overhead, and direct road connectivity to urban retail markets and institutional buyers."
@@ -3645,7 +3645,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 8000,
         "stationeryMisc": 2500
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Nutrition-Sensitive Agriculture (KNEC), experienced in biofortified crop value chains, post-harvest nutrient preservation, and smallholder farmer aggregation.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Nutrition-Sensitive Agriculture (TVET / KMTC), experienced in biofortified crop value chains, post-harvest nutrient preservation, and smallholder farmer aggregation.",
       "productDescription": "Community aggregation, solar drying, and hermetic packaging of indigenous vegetables (managu, terere, saga) to reduce 40% post-harvest farm losses. Delivered as Dehydrated African Leafy Vegetables (Terere/Managu 100g) packaged in 100g airtight moisture-barrier foil pouches preserving color and nutrients for 12 months to serve supermarket chains, urban households wanting traditional greens without tedious sorting, boarding institutions, and export diaspora..",
       "streetOrBuilding": "Peri-Urban Agricultural Aggregation & Production Plot",
       "locationRationale": "Positioned in a peri-urban agricultural belt with fertile plot space, reliable water access for irrigation and washing, low lease overhead, and direct road connectivity to urban retail markets and institutional buyers."
@@ -3795,7 +3795,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
           "count": 1,
           "monthlySalary": 45000,
           "duties": "In-store nutrition & supplement counselling, body composition screening, PPB/KEBS supplier vetting, FEFO stock audits, and financial management",
-          "qualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with KNDI"
+          "qualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC), registered with KNDI"
         },
         {
           "position": "Retail Wellness Advisor & POS Cashier",
@@ -3819,7 +3819,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 15000,
         "stationeryMisc": 4000
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), trained in clinical nutraceutical counselling, dietary supplement safety, KEBS/PPB label verification, and specialty retail inventory management.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), trained in clinical nutraceutical counselling, dietary supplement safety, KEBS/PPB label verification, and specialty retail inventory management.",
       "productDescription": "An integrated specialty health food store and nutraceutical dispensary modeled on established Kenyan wellness retailers such as Healthy U, combining (1) KEBS-certified whole and therapeutic foods (diabetic low-GI flours, gluten-free rolled oats, chia/flax/pumpkin seeds, raw nuts, organic honey, cold-pressed coconut/flaxseed oils, and herbal infusions), (2) Pharmacy and Poisons Board (PPB)-listed dietary supplements and nutraceuticals (Vitamin D3, Omega-3 fish oil, chelated iron-folic acid, magnesium glycinate, probiotics, botanical adaptogens, and clean sports proteins), and (3) point-of-sale KNDI-registered nutritionist guidance and non-invasive body composition screening.",
       "streetOrBuilding": "Ground Floor Retail Unit, Commercial Shopping Arcade [Confirm exact plot/street locally]",
       "locationRationale": "Positioned along a high-footfall urban commercial and residential corridor in Nairobi with convenient matatu and private vehicle access, proximity to outpatient clinics, fitness centres, and middle-income estates, and stable Kenya Power (KPLC) supply for chilled probiotic/beverage displays and climate-controlled nutraceutical shelving [Confirm lease terms and exact shop unit locally].",
@@ -3976,7 +3976,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
           "count": 1,
           "monthlySalary": 45000,
           "duties": "Maternal/infant supplement counselling, breastfeeding & weaning guidance, PPB/KEBS stock verification, and regulatory compliance",
-          "qualifications": "Diploma in Human Nutrition & Dietetics (KNEC), KNDI Registered"
+          "qualifications": "Diploma in Human Nutrition & Dietetics (TVET / KMTC), KNDI Registered"
         },
         {
           "position": "Retail Wellness & Stock Assistant",
@@ -4000,7 +4000,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 12000,
         "stationeryMisc": 3500
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), skilled in maternal and infant nutrition (MIYCN), nutraceutical safety, Breast Milk Substitutes (Regulation and Control) Act compliance, and retail inventory management.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), skilled in maternal and infant nutrition (MIYCN), nutraceutical safety, Breast Milk Substitutes (Regulation and Control) Act compliance, and retail inventory management.",
       "productDescription": "Compliant nutraceutical and maternal nutrition retail outlet stocking PPB-cleared micronutrient supplements (Iron-folic acid, prenatal Omega-3 DHA, calcium, Vitamin D3, pediatric probiotics), KEBS-certified complementary weaning foods, and nursing support tools, paired with KNDI-registered maternal and infant nutrition counselling.",
       "streetOrBuilding": "Ground Floor Commercial Arcade near Maternal & Child Health Clinics [Confirm exact plot/street locally]",
       "locationRationale": "Located along a busy urban medical and commercial corridor near antenatal clinics, maternity hospitals, and residential commuter stages, providing walk-in convenience and reliable power for climate-controlled nutraceutical storage [Confirm site specifics locally].",
@@ -4154,7 +4154,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 8000,
         "stationeryMisc": 3000
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with KNDI, with proven competency in community nutrition education, culinary demonstration, and behavior-change communication.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC), registered with KNDI, with proven competency in community nutrition education, culinary demonstration, and behavior-change communication.",
       "productDescription": "Interactive health workshops and seminars for churches, women groups (chamas), SACCOs, and community health promoters (CHPs). Delivered as Full-Day Interactive Nutrition & Wellness Workshop packaged in turnkey workshop package including customized workbook, food demo session, and certificate of completion to serve women investment groups (chamas), church welfare committees, SACCOs holding member education days, and local NGOs..",
       "streetOrBuilding": "Town Commercial & Training Center, First Floor Suite",
       "locationRationale": "Situated in an accessible town center building served by public transport, offering a quiet, well-ventilated demonstration and training space with reliable power, water, and proximity to target institutions and community groups."
@@ -4283,7 +4283,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 10000,
         "stationeryMisc": 3000
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with KNDI, with proven competency in community nutrition education, culinary demonstration, and behavior-change communication.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC), registered with KNDI, with proven competency in community nutrition education, culinary demonstration, and behavior-change communication.",
       "productDescription": "Hands-on weekend culinary masterclasses for domestic house managers, newly diagnosed diabetics, and parents wanting healthy meal prep skills. Delivered as 4-Week Hands-On Culinary Nutrition Course packaged in 4 practical weekend modules with recipe handbook, chef apron, and tasting banquet to serve domestic cooks / house managers whose employers want healthy family cooking, newly diagnosed chronic disease patients, and food lovers..",
       "streetOrBuilding": "Town Commercial & Training Center, First Floor Suite",
       "locationRationale": "Situated in an accessible town center building served by public transport, offering a quiet, well-ventilated demonstration and training space with reliable power, water, and proximity to target institutions and community groups."
@@ -4419,7 +4419,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 8000,
         "stationeryMisc": 2500
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with KNDI, with proven competency in community nutrition education, culinary demonstration, and behavior-change communication.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC), registered with KNDI, with proven competency in community nutrition education, culinary demonstration, and behavior-change communication.",
       "productDescription": "Termly school feeding menu formulation, kitchen matron hygiene and portion training, and bi-annual child anthropometric growth monitoring for ECDE centers and primary schools. Delivered as Termly School Feeding Menu Audit, Kitchen Matron Training & Child Growth Screening Package packaged in comprehensive termly school nutrition package including 12-week nutrient-analyzed cycle menus, kitchen staff food-safety training, and parent growth-chart reports to serve private and public ECDE centers, daycares, primary boarding schools, and faith-based child development centers seeking balanced school menus and growth monitoring..",
       "streetOrBuilding": "Town Commercial & Training Center, First Floor Suite",
       "locationRationale": "Situated in an accessible town center building served by public transport, offering a quiet, well-ventilated demonstration and training space with reliable power, water, and proximity to target institutions and community groups."
@@ -4555,7 +4555,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 8000,
         "stationeryMisc": 2500
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with KNDI, with proven competency in community nutrition education, culinary demonstration, and behavior-change communication.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC), registered with KNDI, with proven competency in community nutrition education, culinary demonstration, and behavior-change communication.",
       "productDescription": "Practical caregiver training center offering hands-on infant and young child feeding (IYCF) classes, nutrient-dense weaning food demonstrations, and nanny nutrition workshops. Delivered as Practical Infant Weaning & Caregiver Nutrition Workshop Package packaged in 4-session practical workshop for mothers and house managers with live baby-food preparation, texture progression guide, and laminated weaning chart to serve first-time mothers, parents transitioning infants to complementary feeding at 6 months, domestic caregivers/nannies, and pediatric clinic referrals..",
       "streetOrBuilding": "Town Commercial & Training Center, First Floor Suite",
       "locationRationale": "Situated in an accessible town center building served by public transport, offering a quiet, well-ventilated demonstration and training space with reliable power, water, and proximity to target institutions and community groups."
@@ -4691,7 +4691,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 10000,
         "stationeryMisc": 3500
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with experience in workplace wellness audits, food safety systems, and public health nutrition.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with experience in workplace wellness audits, food safety systems, and public health nutrition.",
       "productDescription": "Corporate health screenings (BIA, BP, random blood sugar), staff nutrition wellness days, cafeteria menu audits, and desk-worker ergonomic dietary plans. Delivered as Full Corporate Staff Health Screening & Wellness Day packaged in comprehensive on-site screening event for 50 staff with individualized biometric reports and an executive health index summary to serve banks, SACCOs, microfinance institutions, manufacturing plants, schools, and county government departments..",
       "streetOrBuilding": "Commercial Medical & Professional Plaza, Ground Floor Suite",
       "locationRationale": "Strategically positioned near outpatient health facilities, diagnostic laboratories, and public transport stages, ensuring convenient client referrals, pedestrian accessibility, reliable utilities, and confidential consultation space."
@@ -4819,7 +4819,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 8000,
         "stationeryMisc": 3000
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with experience in workplace wellness audits, food safety systems, and public health nutrition.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with experience in workplace wellness audits, food safety systems, and public health nutrition.",
       "productDescription": "Consultancy assisting small food processors, cloud kitchens, and restaurants with food hygiene training, HACCP implementation, and KEBS certification. Delivered as KEBS Standardization Mark Audit & Application Package packaged in complete advisory package including factory layout review, SOP documentation, staff hygiene training, and audit accompaniment to serve emerging cottage food millers, bakeries, juice bottlers, restaurants, and school catering managers seeking food hygiene compliance..",
       "streetOrBuilding": "Commercial Medical & Professional Plaza, Ground Floor Suite",
       "locationRationale": "Strategically positioned near outpatient health facilities, diagnostic laboratories, and public transport stages, ensuring convenient client referrals, pedestrian accessibility, reliable utilities, and confidential consultation space."
@@ -4947,7 +4947,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 8000,
         "stationeryMisc": 3000
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (KNEC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with experience in workplace wellness audits, food safety systems, and public health nutrition.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics (TVET / KMTC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), with experience in workplace wellness audits, food safety systems, and public health nutrition.",
       "productDescription": "Consultancy delivering baseline surveys, SMART nutrition assessments, project M&E, and grant proposal development for local NGOs and county agencies. Delivered as Community Nutrition SMART Baseline Survey & Evaluation packaged in complete research project execution including digital data collection (ODK/Kobo), statistical analysis, and comprehensive donor report to serve community-based organizations (CBOs), humanitarian NGOs, county departments of health, and philanthropic foundations..",
       "streetOrBuilding": "Commercial Medical & Professional Plaza, Ground Floor Suite",
       "locationRationale": "Strategically positioned near outpatient health facilities, diagnostic laboratories, and public transport stages, ensuring convenient client referrals, pedestrian accessibility, reliable utilities, and confidential consultation space."
@@ -5100,7 +5100,7 @@ export const NUTRITION_VENTURES: NutritionVentureDefinition[] = [
         "marketing": 12000,
         "stationeryMisc": 3500
       },
-      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (KNEC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
+      "ownerQualifications": "Diploma in Human Nutrition and Dietetics / Food Science and Technology (TVET / KMTC), trained in food formulation, Good Manufacturing Practices (GMP), HACCP hygiene standards, and KEBS quality compliance.",
       "productDescription": "Hygienic formulation and packaging of fortified therapeutic porridge blends, high-protein convalescent shakes, and pasteurized blenderized tube feeds for hospitals and home-care patients. Delivered as High-Energy Protein Therapeutic Convalescent Blend (500g Sealed Tin/Pouch) packaged in 500g medical-grade moisture-barrier foil pouch with scoop, osmolarity/calorie table, and reconstitution instructions to serve hospital nutrition departments, convalescent and post-surgical patients, oncology and renal recovery patients, geriatric care homes, and malnutrition rehabilitation clinics..",
       "streetOrBuilding": "Light Industrial & Agro-Processing Commercial Zone, Ground Floor Unit",
       "locationRationale": "Situated in a well-connected commercial zone with reliable three-phase electricity, municipal potable water, all-weather road access for raw material deliveries from agricultural suppliers, and direct distribution routes to wholesale and retail stockists."

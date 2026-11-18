@@ -99,7 +99,7 @@ export function ResearchNewClient({
                   Research Project Builder
                 </h1>
                 <p className="text-xs text-slate-500">
-                  KNEC secondary-data research using verified Kenya survey indicators.
+                  TVET &amp; KMTC secondary-data research using verified Kenya survey indicators.
                 </p>
               </div>
             </div>

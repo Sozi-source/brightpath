@@ -72,14 +72,14 @@ export function buildVariedDeclaration(ctx: PreliminaryVariantContext): string {
   switch (variant) {
     case 0:
       return `### DECLARATION BY CANDIDATE
-I hereby declare that this business plan for **${enterprise}** is my original work and that I personally undertook its research, operational design, and financial formulation in accordance with Kenya National Examinations Council (KNEC) assessment guidelines. It has not been presented to any other examination body or training institution for the award of any certificate, diploma, or degree.
+I hereby declare that this business plan for **${enterprise}** is my original work and that I personally undertook its research, operational design, and financial formulation in accordance with **${institution}** assessment guidelines. It has not been presented to any other examination body or training institution for the award of any certificate, diploma, or degree.
 
 Candidate Name: **${candidate}**<br>Index / Admission Number: **${admission}**<br>Institution: **${institution}**<br>Signature: ______________________________<br>Date: ______________________________
 
 ---
 
 ### APPROVAL BY SUPERVISOR
-This business plan has been submitted for Kenya National Examinations Council (KNEC) examination with my approval as the appointed institutional project supervisor.
+This business plan has been submitted for **${institution}** academic assessment with my approval as the appointed institutional project supervisor.
 
 Supervisor Name: **${supervisor}**<br>Designation: **Project Supervisor**<br>Institution: **${institution}**<br>Signature: ______________________________<br>Date: ______________________________`;
 
@@ -90,25 +90,25 @@ I confirm that the business plan titled **${enterprise}** is my independent acad
 | Verification Particular | Candidate Record |
 | :--- | :--- |
 | **Full Name of Candidate** | **${candidate}** |
-| **KNEC Index / Admission No.** | **${admission}** |
+| **Admission / Reg. No.** | **${admission}** |
 | **Training Institution** | **${institution}** |
 | **Candidate Signature** | ______________________________ |
 | **Date of Submission** | ______________________________ |
 
 ### SUPERVISOR'S ENDORSEMENT
-I certify that I have supervised the preparation of this business plan by the candidate named above and confirm that it meets the required academic and structural standards for presentation to the Kenya National Examinations Council (KNEC).
+I certify that I have supervised the preparation of this business plan by the candidate named above and confirm that it meets the required academic and structural standards for presentation at **${institution}**.
 
 | Verification Particular | Supervisor Record |
 | :--- | :--- |
 | **Name of Project Supervisor** | **${supervisor}** |
-| **Departmental Role** | **Appointed KNEC Project Supervisor** |
+| **Departmental Role** | **Appointed Project Supervisor** |
 | **Institution** | **${institution}** |
 | **Supervisor Signature** | ______________________________ |
 | **Date of Approval** | ______________________________ |`;
 
     case 2:
       return `### STATEMENT OF ORIGINALITY AND ACADEMIC INTEGRITY
-In submitting this business plan for **${enterprise}**, I make the following formal undertakings under the examination regulations of the Kenya National Examinations Council (KNEC):
+In submitting this business plan for **${enterprise}**, I make the following formal undertakings under the academic assessment regulations of **${institution}**:
 
 1. **Original Authorship:** This business plan is the product of my own field inquiry, operational planning, and financial computation carried out during my training at **${institution}**.
 2. **Non-Duplication:** This manuscript has not been previously presented in whole or in part to any examination council, polytechnic, college, or university for an academic award.
@@ -119,7 +119,7 @@ In submitting this business plan for **${enterprise}**, I make the following for
 ---
 
 ### INSTITUTIONAL SUPERVISOR CERTIFICATION
-I have guided the candidate throughout the formulation of this business plan and reviewed the final manuscript. I am satisfied that it conforms to KNEC business plan guidelines for **${award}** and recommend it for examination.
+I have guided the candidate throughout the formulation of this business plan and reviewed the final manuscript. I am satisfied that it conforms to institutional business plan guidelines for **${award}** and recommend it for assessment.
 
 **Supervisor Name:** ${supervisor}<br>**Institution:** ${institution}<br>**Signature:** ______________________________ **Date:** ______________________________`;
 
@@ -129,7 +129,7 @@ I have guided the candidate throughout the formulation of this business plan and
 I, **${candidate}** (Index / Admission No.: **${admission}**), solemnly declare that this business plan for **${enterprise}** represents my own unaided work developed during my course of study for **${award}** at **${institution}**. It has never been submitted to any other institution or examination body for academic credit.
 
 #### 2. Certification by the Project Supervisor
-I, **${supervisor}**, confirm that the candidate developed this business plan under my academic supervision at **${institution}** and that the completed manuscript is hereby approved for submission to the Kenya National Examinations Council (KNEC).
+I, **${supervisor}**, confirm that the candidate developed this business plan under my academic supervision at **${institution}** and that the completed manuscript is hereby approved for submission to **${institution}**.
 
 | Capacity | Full Name & Identification | Official Signature | Date |
 | :--- | :--- | :--- | :--- |
@@ -138,7 +138,7 @@ I, **${supervisor}**, confirm that the candidate developed this business plan un
 
     case 4:
       return `### STUDENT DECLARATION
-This business plan for **${enterprise}** is my own original compilation prepared in partial fulfilment of the requirements of the Kenya National Examinations Council (KNEC) for the award of **${award}**. All market assumptions, operational workflows, and financial schedules were formulated by me and have not been submitted for any other award at **${institution}** or elsewhere.
+This business plan for **${enterprise}** is my own original compilation prepared in partial fulfilment of the requirements of **${institution}** for the award of **${award}**. All market assumptions, operational workflows, and financial schedules were formulated by me and have not been submitted for any other award at **${institution}** or elsewhere.
 
 * **Candidate Full Name:** **${candidate}**
 * **Admission / Index Number:** **${admission}**
@@ -149,7 +149,7 @@ This business plan for **${enterprise}** is my own original compilation prepared
 ---
 
 ### OFFICIAL SUPERVISOR RECOMMENDATION
-I have examined this business plan prepared by **${candidate}** and confirm that the work was carried out under my direct supervision in accordance with the syllabus requirements of the Kenya National Examinations Council (KNEC).
+I have examined this business plan prepared by **${candidate}** and confirm that the work was carried out under my direct supervision in accordance with the syllabus requirements of **${institution}**.
 
 * **Supervisor Name:** **${supervisor}**
 * **Training Institution:** **${institution}**
@@ -164,17 +164,17 @@ Candidate: **${candidate}**<br>Admission / Index No.: **${admission}**<br>Course
 
 ---
 
-### SUPERVISORY RELEASE FOR KNEC ASSESSMENT
-Having reviewed the chapters, operational schedules, and financial projections contained in this business plan for **${enterprise}**, I hereby release and approve the manuscript for formal assessment by the Kenya National Examinations Council (KNEC).
+### SUPERVISORY RELEASE FOR ASSESSMENT
+Having reviewed the chapters, operational schedules, and financial projections contained in this business plan for **${enterprise}**, I hereby release and approve the manuscript for formal assessment at **${institution}**.
 
 Approved by: **${supervisor}** (Project Supervisor)<br>Institution: **${institution}**<br>Supervisor Signature: ______________________________<br>Date: ______________________________`;
 
     case 6:
       return `### DECLARATION OF INDEPENDENT WORK
-I declare that this business plan for **${enterprise}**, prepared for operations in **${ctx.townOrMarket}, ${ctx.county}**, is my original academic project submitted to the Kenya National Examinations Council (KNEC). It has not been presented to any other examining authority or tertiary institution for the conferment of a certificate or diploma.
+I declare that this business plan for **${enterprise}**, prepared for operations in **${ctx.townOrMarket}, ${ctx.county}**, is my original academic project submitted to **${institution}**. It has not been presented to any other examining authority or tertiary institution for the conferment of a certificate or diploma.
 
 ### SUPERVISOR'S APPROVAL FOR EXAMINATION
-This business plan has been prepared under my guidance and is submitted to the Kenya National Examinations Council (KNEC) with my approval as the institutional supervisor at **${institution}**.
+This business plan has been prepared under my guidance and is submitted for assessment with my approval as the institutional supervisor at **${institution}**.
 
 | Signatory Role | Full Name | Reference / Designation | Signature & Date |
 | :--- | :--- | :--- | :--- |
@@ -300,7 +300,7 @@ Finally, I thank the business operators and suppliers consulted in **${town} (${
       return `### ACKNOWLEDGEMENTS
 Preparing this business plan for **${enterprise}** required technical input and encouragement from many quarters. I wish to acknowledge the following contributions:
 
-1. **${supervisor} (Project Supervisor):** For dedicated supervision, detailed review of the financial schedules and operational plans, and unwavering commitment to KNEC quality standards.
+1. **${supervisor} (Project Supervisor):** For dedicated supervision, detailed review of the financial schedules and operational plans, and unwavering commitment to academic quality standards.
 2. **Management and Trainers of ${institution}:** For providing a conducive learning environment, reference materials, and practical training throughout my course.
 3. **Commercial Contacts in ${town}, ${county}:** Including local retail operators, raw material suppliers, and county licensing personnel who provided benchmark operational information.
 4. **My Family and Study Colleagues:** For their prayers, constructive discussions, and financial support during the compilation of this work.`;
@@ -319,7 +319,7 @@ I wish to convey my sincere appreciation to everyone whose technical input, ment
 
 | Stakeholder / Contributor | Nature of Support and Contribution |
 | :--- | :--- |
-| **${supervisor}** | Direct academic supervision, chapter-by-chapter review, and verification of KNEC structure. |
+| **${supervisor}** | Direct academic supervision, chapter-by-chapter review, and verification of report structure. |
 | **Faculty of ${institution}** | Classroom instruction, technical mentorship in **${sector}**, and entrepreneurship training. |
 | **Market Respondents in ${town}** | Practical feedback on customer preferences, local distribution channels, and supplier pricing in **${county}**. |
 | **Family & Fellow Candidates** | Continuous moral encouragement, peer review, and financial support throughout the project period. |

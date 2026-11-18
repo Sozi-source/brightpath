@@ -230,7 +230,7 @@ export default async function WorkspaceOverviewPage({
       user={user}
       profile={profile}
       institutionName={institutionName}
-      activeContextTitle={workspace.course || "KNEC Project Studio"}
+      activeContextTitle={workspace.course || "TVET & KMTC Project Studio"}
       studioWorkspaces={sidebarWorkspaces}
     >
       <div className="space-y-4">
@@ -240,7 +240,7 @@ export default async function WorkspaceOverviewPage({
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
               <span>
-                <strong>Payment confirmed!</strong> Official KNEC Word (.docx) export has been unlocked for this workspace.
+                <strong>Payment confirmed!</strong> Official Word (.docx) export has been unlocked for this workspace.
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -320,7 +320,7 @@ export default async function WorkspaceOverviewPage({
                   <>
                     <span className="hidden sm:inline-flex items-center gap-1 rounded-md bg-emerald-50 border border-emerald-200 px-2 py-1 text-[11px] font-semibold text-emerald-800">
                       <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                      <span>KNEC Export Unlocked</span>
+                      <span>Word Export Unlocked</span>
                     </span>
                     {workspace.workspace_type === "research_secondary" ? (
                       <StudioDownloadModal
@@ -447,7 +447,7 @@ export default async function WorkspaceOverviewPage({
           </div>
         )}
 
-        {/* 3. KNEC Chapters & Sections (Immediately Visible) */}
+        {/* 3. Chapters & Sections (Immediately Visible) */}
         <ContentCard
           title="Chapters & Sections"
           subtitle="Select any section to review, edit, or refine its manuscript content."

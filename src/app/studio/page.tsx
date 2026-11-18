@@ -104,7 +104,7 @@ export default async function StudioDashboardPage() {
       user={user}
       profile={profile}
       institutionName={institutionName}
-      activeContextTitle={profile?.course || "KNEC Project Studio"}
+      activeContextTitle={profile?.course || "TVET & KMTC Project Studio"}
       studioWorkspaces={canUseStudio ? sidebarWorkspaces : undefined}
     >
       {canUseStudio ? (
@@ -116,7 +116,7 @@ export default async function StudioDashboardPage() {
               </div>
               <div>
                 <div className="text-xs font-semibold text-slate-900">
-                  KNEC Secondary-Data Research Projects
+                  TVET &amp; KMTC Secondary-Data Research Projects
                 </div>
                 <div className="text-[11px] text-slate-500">
                   Separate builder for proposals and 5-chapter research reports.

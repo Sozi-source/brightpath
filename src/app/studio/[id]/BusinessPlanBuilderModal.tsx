@@ -1207,7 +1207,7 @@ export function BusinessPlanBuilderModal({
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-semibold text-slate-800">
-                        {modelGuidance.equipment} (KNEC Chapter 4.3)
+                        {modelGuidance.equipment} (Chapter 4.3)
                       </label>
                       <button type="button" onClick={addEquipment} className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-[11px] font-semibold text-indigo-700">
                         <Plus className="h-3 w-3" /> Add item
@@ -1259,7 +1259,7 @@ export function BusinessPlanBuilderModal({
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-semibold text-slate-800">
-                        Personnel & Payroll (KNEC Chapter 3.3 - 3.4)
+                        Personnel & Payroll (Chapter 3.3 - 3.4)
                       </label>
                       <button type="button" onClick={addStaff} className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-[11px] font-semibold text-indigo-700">
                         <Plus className="h-3 w-3" /> Add role
@@ -1462,7 +1462,7 @@ export function BusinessPlanBuilderModal({
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
                       <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                      <span>KNEC Chapter 5 Mathematically Balanced Preview</span>
+                      <span>Chapter 5 Mathematically Balanced Preview</span>
                     </span>
                     <span className="text-[10px] font-mono text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded">
                       Assets ≡ Liabilities + Equity

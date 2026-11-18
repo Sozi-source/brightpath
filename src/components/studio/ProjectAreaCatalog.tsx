@@ -109,7 +109,7 @@ function getVentureProblemAndGap(venture: NutritionVentureDefinition) {
 
     case "F": // Nutrition Education & School Feeding
       problemSolved = `Widespread dietary misinformation, low adherence to infant and young child feeding (IYCF) guidelines, and uncalibrated school meal programs that trigger stunting and reduced cognitive performance in developing children.`;
-      justificationGap = `Public school administrations and community daycare facilities lack in-house nutritionists to formulate balanced nutrient-dense menus within limited per-pupil capitation budgets. This enterprise provides structured menu audits, teacher/cook training, and institutional catering designs aligned with MOH and KNEC guidelines.`;
+      justificationGap = `Public school administrations and community daycare facilities lack in-house nutritionists to formulate balanced nutrient-dense menus within limited per-pupil capitation budgets. This enterprise provides structured menu audits, teacher/cook training, and institutional catering designs aligned with MOH, TVET, and KMTC guidelines.`;
       break;
 
     case "G": // Advisory & Auditing
@@ -124,7 +124,7 @@ function getVentureProblemAndGap(venture: NutritionVentureDefinition) {
 
     default:
       problemSolved = `Unmet community and commercial demand for specialized nutritional solutions, value-added food processing, and accessible health consultation in the local sub-county catchment area.`;
-      justificationGap = `Existing regional market options are either overpriced or lack accredited TVET technical standards. This enterprise provides a viable, scalable, and KNEC-compliant business model with audited financial viability.`;
+      justificationGap = `Existing regional market options are either overpriced or lack accredited TVET and KMTC standards. This enterprise provides a viable, scalable, and compliant business model with audited financial viability.`;
       break;
   }
 
@@ -361,7 +361,7 @@ export function ProjectAreaCatalog({
                             {shortName}
                           </h4>
                           <p className="mt-1.5 text-xs font-medium text-slate-600 truncate">
-                            {venture.capitalTier} Capital · 5 KNEC Chapters
+                            {venture.capitalTier} Capital · 5 Chapters
                           </p>
                         </button>
                       </div>
@@ -451,12 +451,12 @@ export function ProjectAreaCatalog({
                             {detailBusinessName}
                           </p>
                           <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-[8.5px] font-semibold tracking-wider uppercase !text-white border border-white/30 shadow-2xs">
-                            KNEC Standard
+                            TVET &amp; KMTC Standard
                           </span>
                         </div>
 
                         <div className="relative z-10 flex items-center justify-between text-[8px] font-mono !text-teal-100 px-1 border-t border-white/20 pt-1 font-semibold">
-                          <span className="tracking-wider uppercase">KNEC Series</span>
+                          <span className="tracking-wider uppercase">TVET &amp; KMTC Series</span>
                           <span className="tracking-widest uppercase">Area #{detailVenture.number}</span>
                         </div>
                       </div>
@@ -527,7 +527,7 @@ export function ProjectAreaCatalog({
                   <div className="flex min-w-0 flex-col font-sans">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="rounded border border-sky-100 bg-sky-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#007185]">
-                        KNEC Business Plan
+                        TVET &amp; KMTC Business Plan
                       </span>
                       <span className="rounded border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-[#565959]">
                         {detailVenture.groupName}
@@ -547,7 +547,7 @@ export function ProjectAreaCatalog({
 
                     <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs text-[#565959]">
                       <span className="inline-flex items-center gap-1 text-[#565959]">
-                        <FileText className="h-3.5 w-3.5 text-slate-400" /> 5 KNEC Chapters
+                        <FileText className="h-3.5 w-3.5 text-slate-400" /> 5 Chapters
                       </span>
                       <span className="inline-flex items-center gap-1 text-[#565959]">
                         <Calculator className="h-3.5 w-3.5 text-slate-400" /> 3-Year Financial Schedule
@@ -617,7 +617,7 @@ export function ProjectAreaCatalog({
                   <div className="flex justify-between gap-3 py-2">
                     <dt className="text-slate-600">Examination</dt>
                     <dd className="text-right font-medium text-slate-900">
-                      KNEC Universal
+                      TVET &amp; KMTC Universal
                     </dd>
                   </div>
                   <div className="flex justify-between gap-3 py-2">
@@ -839,7 +839,7 @@ export function ProjectAreaCatalog({
                     className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
                   />
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                  <span>I confirm these parameters for KNEC examination compliance.</span>
+                  <span>I confirm these parameters for college assessment compliance.</span>
                 </label>
               </div>
 

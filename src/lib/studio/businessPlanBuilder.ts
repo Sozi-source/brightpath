@@ -89,7 +89,7 @@ This sector opportunity remains strictly conditional on pre-launch verification.
 ${courses.map((course) => `| ${course.courseName} | ${course.rationale || "Competency-based health and applied science training"} | ${course.proposedLevel || "Certificate / Diploma"} | ${course.deliveryModel || "Blended campus theory, skills laboratory and supervised placement"} | ${course.regulatoryStatus || "Subject to TVETA and relevant professional body approval"} |`).join("\n")}
 
 #### 1.5.1 Academic Structure and Programme Standards
-Each proposed course offering will be structured into modular learning units combining classroom instruction, supervised laboratory and simulation practice, continuous competency assessments and mandatory external clinical or industry practicum attachments. The final course titles, award classifications, minimum KCSE entry grades, semester durations, credit hours, syllabus learning outcomes and graduate scope of practice must be verified against current TVETA, KNEC or relevant health regulatory body documentation before public prospectus publication or student admission. Each programme file must also specify graduate employability pathways, progression routes from certificate to diploma level, required practical assessment logbooks and external examination moderation protocols. Academic leadership must review every course syllabus annually against employer competency feedback, clinical attachment evaluations, regulatory audit reports and national health workforce priorities across Kenya.` },
+Each proposed course offering will be structured into modular learning units combining classroom instruction, supervised laboratory and simulation practice, continuous competency assessments and mandatory external clinical or industry practicum attachments. The final course titles, award classifications, minimum KCSE entry grades, semester durations, credit hours, syllabus learning outcomes and graduate scope of practice must be verified against current TVETA, KMTC or relevant health regulatory body documentation before public prospectus publication or student admission. Each programme file must also specify graduate employability pathways, progression routes from certificate to diploma level, required practical assessment logbooks and external examination moderation protocols. Academic leadership must review every course syllabus annually against employer competency feedback, clinical attachment evaluations, regulatory audit reports and national health workforce priorities across Kenya.` },
     "ch1.mission": { title: "1.6 Strategic Alignment", content: `### 1.6 STRATEGIC ALIGNMENT
 **Motto:** *Committed to Professional Excellence*
 
@@ -340,7 +340,7 @@ function buildCompleteBusinessPlanRaw(rawSpecs: Partial<BusinessPlanSpecs>): Gen
 
   const safeQualifications =
     specs.ownerQualifications?.trim() ||
-    `Diploma in Human Nutrition and Dietetics (${specs.course || "KNEC"}), registered with the Kenya Nutritionists and Dietitians Institute (KNDI)`;
+    `Diploma in Human Nutrition and Dietetics (${specs.course || "TVET / KMTC"}), registered with the Kenya Nutritionists and Dietitians Institute (KNDI)`;
   const safeStreet =
     specs.streetOrBuilding?.trim() ||
     "Commercial Center Ground Floor Premises [Confirm exact plot/street locally]";

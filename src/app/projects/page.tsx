@@ -26,10 +26,10 @@ export async function generateMetadata({ searchParams }: ProjectsPageProps): Pro
     ? `${typeLabel} — Learning Catalog`
     : category
     ? `${category} — Learning Catalog`
-    : "Learning Catalog — KNEC Business Plans, Notes & Past Papers";
+    : "Learning Catalog — TVET & KMTC Business Plans, Notes & Past Papers";
 
   const description =
-    "Browse verified Kenya TVET learning materials, KNEC 5-chapter business plans, lecture notes, and past papers with instant Word & PDF downloads.";
+    "Browse verified Kenya TVET Colleges and KMTC learning materials, 5-chapter business plans, lecture notes, and past papers with instant Word & PDF downloads.";
 
   return {
     title,

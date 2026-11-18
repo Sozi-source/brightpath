@@ -594,7 +594,7 @@ export const BUSINESS_PLAN_PRESETS: Record<string, Partial<BusinessPlanSpecs>> =
     formOfOwnership: "Sole Proprietorship",
     registrationType: "Business Names Registration Act (Cap 499, Laws of Kenya)",
     ownerQualifications:
-      "Diploma in Human Nutrition and Dietetics (KNEC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), trained in clinical nutraceutical counselling, dietary supplement safety, KEBS/PPB label verification, and specialty retail inventory management.",
+      "Diploma in Human Nutrition and Dietetics (TVET / KMTC), registered with the Kenya Nutritionists and Dietitians Institute (KNDI), trained in clinical nutraceutical counselling, dietary supplement safety, KEBS/PPB label verification, and specialty retail inventory management.",
     county: "Nairobi County",
     townOrMarket: "Westlands / Kilimani Commercial Corridor, Nairobi",
     streetOrBuilding: "Ground Floor Retail Unit, Commercial Shopping Arcade [Confirm exact plot/street locally]",
@@ -713,7 +713,7 @@ export const BUSINESS_PLAN_PRESETS: Record<string, Partial<BusinessPlanSpecs>> =
         monthlySalary: 45000,
         duties:
           "In-store nutrition & supplement counselling, body composition screening, PPB/KEBS supplier vetting, FEFO stock audits, and financial management.",
-        qualifications: "Diploma in Human Nutrition and Dietetics (KNEC), registered with KNDI.",
+        qualifications: "Diploma in Human Nutrition and Dietetics (TVET / KMTC), registered with KNDI.",
       },
       {
         position: "Retail Wellness Advisor & POS Cashier",

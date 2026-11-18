@@ -283,7 +283,7 @@ export function AdminProductEditModal({
                       </span>
                     </div>
                   ) : (
-                    /* Default Authentic KNEC Dossier Cover - Vibrant Teal Blue Theme */
+                    /* Default Authentic Dossier Cover - Vibrant Teal Blue Theme */
                     <div className="relative h-full w-full bg-gradient-to-br from-[#0c8ea0] via-[#087f8c] to-[#045963] p-3 text-white flex flex-col justify-between select-none shadow-inner">
                       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-200/30 via-transparent to-transparent pointer-events-none" />
                       <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:8px_8px] pointer-events-none" />
@@ -299,7 +299,7 @@ export function AdminProductEditModal({
                         </p>
                       </div>
                       <div className="relative z-10 border-t border-white/20 pt-1 flex items-center justify-between text-[7.5px] !text-teal-100 font-mono px-0.5 font-semibold">
-                        <span>KNEC SERIES</span>
+                        <span>TVET &amp; KMTC</span>
                         <span>VERIFIED</span>
                       </div>
                     </div>
@@ -342,7 +342,7 @@ export function AdminProductEditModal({
                       • Recommended size: <strong>900 × 1200 px</strong> (3:4 portrait aspect ratio).
                     </p>
                     <p>
-                      • If no custom image is uploaded, the system renders the official KNEC manuscript dossier presentation automatically.
+                      • If no custom image is uploaded, the system renders the official TVET &amp; KMTC manuscript dossier presentation automatically.
                     </p>
                   </div>
                 </div>

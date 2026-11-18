@@ -300,7 +300,7 @@ export const TRADE_FABRICATION_SECTIONS: SectionDef[] = [
     chapter: "preliminary",
     chapterTitle: "Preliminary Pages & Abstract",
     guidance:
-      "Formal KNEC declaration of personal candidate authorship and signed recommendation by institutional supervisor.",
+      "Formal declaration of personal candidate authorship and signed recommendation by institutional supervisor.",
     minWords: 60,
     starterTemplate:
       "DECLARATION BY CANDIDATE\nI declare that this project report is my original work and has not been presented for any examination or award in any other institution.\n\nCandidate Signature: __________________ Date: ______________\n[Candidate Full Name]\n\nAPPROVAL BY SUPERVISOR\nThis project report has been submitted for examination with my approval as the designated institutional supervisor.\n\nSupervisor Signature: _________________ Date: ______________\n[Supervisor Full Name]",

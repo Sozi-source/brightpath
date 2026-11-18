@@ -209,7 +209,7 @@ export default async function MarketplaceProductPage({ params }: MarketplaceProd
                       </div>
 
                       <div className="relative z-10 flex items-center justify-between text-[8px] font-mono !text-teal-100 px-1 border-t border-white/20 pt-1 font-semibold">
-                        <span className="tracking-wider uppercase">KNEC Series</span>
+                        <span className="tracking-wider uppercase">TVET &amp; KMTC Series</span>
                         <span className="tracking-widest uppercase">Verified</span>
                       </div>
                     </div>

@@ -162,7 +162,7 @@ export function PersonalizeDocumentModal({
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 leading-tight">
-                    Personalize for KNEC Examination
+                    Personalize for College Submission
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">
                     {projectTitle}

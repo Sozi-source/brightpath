@@ -1019,8 +1019,8 @@ export function createBusinessPlanDocx(params: {
       ? [
           centeredParagraph(
             documentKind === "research"
-              ? `A Research Project Report Submitted to the Kenya National Examinations Council (KNEC) in Partial Fulfilment of the Requirements for the Award of ${awardCourse}.`
-              : `A Business Plan Submitted to the Kenya National Examinations Council (KNEC) in Partial Fulfilment of the Requirements for the Award of ${awardCourse}.`,
+              ? `A Research Project Report Submitted in Partial Fulfilment of the Requirements for the Award of ${awardCourse}.`
+              : `A Business Plan Submitted in Partial Fulfilment of the Requirements for the Award of ${awardCourse}.`,
             "Normal",
             { bold: true, sizeHalfPt: 22, color: "0F172A" },
             '<w:spacing w:before="280" w:after="280" w:line="360" w:lineRule="auto"/>'

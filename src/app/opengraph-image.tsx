@@ -46,7 +46,7 @@ export default function OpengraphImage() {
             </div>
           </div>
           <div style={{ fontSize: 40, color: "#334155", marginTop: 40 }}>
-            KNEC business plans, notes &amp; past papers
+            TVET &amp; KMTC business plans, notes &amp; past papers
           </div>
         </div>
         <div style={{ display: "flex", padding: "0 80px 56px", fontSize: 28, color: "#087f8c" }}>

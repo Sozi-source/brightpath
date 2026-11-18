@@ -136,11 +136,11 @@ export async function queueApprovedBusinessPlanListing(workspaceId: string) {
     .replace(/\{\{TARGET_COUNTY\}\}/g, "")
     .replace(/\{\{INSTITUTION_NAME\}\}/g, "")
     .replace(/\{\{CANDIDATE_NAME\}\}/g, "")
-    .replace(/\s*—\s*Complete KNEC (?:Business Plan|Research Project).*/i, "")
+    .replace(/\s*—\s*Complete (?:KNEC|TVET & KMTC) (?:Business Plan|Research Project).*/i, "")
     .trim();
   const listingTitle = isResearch
-    ? `${baseTitle} — Complete KNEC Research Project`
-    : `${baseTitle} — Complete KNEC Business Plan`;
+    ? `${baseTitle} — Complete TVET & KMTC Research Project`
+    : `${baseTitle} — Complete TVET & KMTC Business Plan`;
 
   const listingDescription = redactPrivateDetails(
     workspace.problem_area ||

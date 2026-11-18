@@ -228,7 +228,7 @@ export function buildSectionQuestionGuide(
             "What monthly salary or drawings will the manager receive?",
           ],
           placeholderExample:
-            'e.g. "The General Manager holds a KNEC qualification in Nutrition and Dietetics / Food Science with hands-on industrial attachment experience in food processing and quality assurance..."',
+            'e.g. "The General Manager holds a TVET / KMTC qualification in Nutrition and Dietetics / Food Science with hands-on industrial attachment experience in food processing and quality assurance..."',
         };
       case "ch3.staffing":
         return {
@@ -977,12 +977,12 @@ export function buildSectionQuestionGuide(
 
     case "prelim.declaration":
       return {
-        mainQuestion: "Complete your official KNEC Candidate Declaration and Supervisor Approval page.",
+        mainQuestion: "Complete your official Candidate Declaration and Supervisor Approval page.",
         subQuestions: [
           "Replace the bracketed placeholders with your Full Name, Admission Number, and Supervisor's Name.",
         ],
         placeholderExample:
-          "Fill in your full name, admission number, date, and your supervisor's name in the standard KNEC declaration template.",
+          "Fill in your full name, admission number, date, and your supervisor's name in the standard declaration template.",
       };
 
     case "prelim.dedication":
@@ -1010,7 +1010,7 @@ export function buildSectionQuestionGuide(
       return {
         mainQuestion: "List all technical abbreviations and acronyms used in your report in alphabetical order.",
         subQuestions: [
-          "Include every acronym used in your chapters (e.g. AOAC, FAO, HAZ, IYCF, KDHS, KEBS, KNBS,KNEC, MDD, MOH, UNICEF, WAZ, WHO, WHZ).",
+          "Include every acronym used in your chapters (e.g. AOAC, FAO, HAZ, IYCF, KDHS, KEBS, KMTC, KNBS, MDD, MOH, TVET, UNICEF, WAZ, WHO, WHZ).",
         ],
         placeholderExample:
           'e.g. "AOAC - Association of Official Analytical Chemists\nHAZ - Height-for-Age Z-Score\nIYCF - Infant and Young Child Feeding\nKDHS - Kenya Demographic and Health Survey\nKEBS - Kenya Bureau of Standards\nKNBS - Kenya National Bureau of Statistics\nMOH - Ministry of Health\nWHO - World Health Organization"',
@@ -1073,7 +1073,7 @@ export function buildSectionQuestionGuide(
       return {
         mainQuestion: `What are your key points and evidence for ${sectionKey}?`,
         subQuestions: [
-          "Write clear, well-structured paragraphs addressing the KNEC examination target shown below.",
+          "Write clear, well-structured paragraphs addressing the academic target shown below.",
           "Support your points with verified Kenyan figures or technical standards where applicable.",
         ],
         placeholderExample:

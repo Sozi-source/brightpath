@@ -223,7 +223,7 @@ function HeroSection({ resourceCount }: { resourceCount: number }) {
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 py-3 text-[11px] sm:text-xs font-semibold text-slate-700 sm:px-6 lg:px-8">
           <span className="inline-flex items-center gap-1.5">
             <ShieldCheck className="h-3.5 w-3.5 text-[#092B68]" />
-            KNEC-aligned
+            TVET &amp; KMTC aligned
           </span>
           <span className="inline-flex items-center gap-1.5">
             <ClipboardCheck className="h-3.5 w-3.5 text-[#092B68]" />

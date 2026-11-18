@@ -242,7 +242,7 @@ export function AppShell({
           <CartNavButton />
           <div className="hidden lg:flex items-center gap-2 bg-amber-50/90 px-3 py-1 rounded-md border border-amber-200/80 text-xs font-semibold text-[#092B68]">
             <Calendar className="h-3.5 w-3.5 text-[#F5A000]" />
-            <span>KNEC 2026 Academic Series</span>
+            <span>TVET &amp; KMTC 2026 Series</span>
           </div>
 
           {user ? (
@@ -653,7 +653,7 @@ export function AppShell({
                   <span className="truncate">TVET Hub Portal</span>
                 </div>
                 <div className="truncate text-[11px] text-slate-600">
-                  KNEC 2026 Series · Verified
+                  TVET &amp; KMTC 2026 · Verified
                 </div>
               </div>
               {user && (

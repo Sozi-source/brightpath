@@ -69,7 +69,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
                 name="fullName"
                 type="text"
                 required
-                placeholder="Official name as per KNEC records"
+                placeholder="Official name as per college records"
                 className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 transition-all"
               />
             </div>

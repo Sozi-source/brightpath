@@ -85,10 +85,10 @@ export default async function LearningHubPage() {
         ) : (
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between gap-4">
             <div>
-              <p className="bp-eyebrow">Ready-Made KNEC Projects</p>
+              <p className="bp-eyebrow">Ready-Made TVET &amp; KMTC Projects</p>
               <h2 className="bp-title mt-1 text-xl">Download & Personalize Completed Plans</h2>
               <p className="mt-1 text-xs sm:text-sm text-slate-600">
-                Browse verified KNEC business plans and trade projects in the Marketplace, then personalize your name, admission number, college, and target location in your Digital Library.
+                Browse verified TVET Colleges and KMTC business plans and trade projects in the Marketplace, then personalize your name, admission number, college, and target location in your Digital Library.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2.5 pt-2 border-t border-slate-100">

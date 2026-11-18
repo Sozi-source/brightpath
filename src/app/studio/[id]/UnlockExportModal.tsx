@@ -81,7 +81,7 @@ export function UnlockExportModal({ workspaceId, businessTitle }: UnlockExportMo
         className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold px-3.5 py-1.5 text-xs shadow-xs transition-colors cursor-pointer"
       >
         <Lock className="h-3.5 w-3.5" />
-        <span>Unlock KNEC Export (KES 350)</span>
+        <span>Unlock Word Export (KES 350)</span>
       </button>
 
       {isOpen && (
@@ -109,10 +109,10 @@ export function UnlockExportModal({ workspaceId, businessTitle }: UnlockExportMo
             <div className="space-y-2">
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-[#e8f5f5] text-[#087f8c] border border-[#d8ebec] uppercase tracking-wider">
                 <Sparkles className="h-3 w-3" />
-                <span>Official KNEC Export License</span>
+                <span>Official Word Export License</span>
               </span>
               <h2 className="text-xl font-semibold text-slate-900 tracking-tight leading-snug">
-                Unlock Official KNEC Word (.docx)
+                Unlock Official Word (.docx)
               </h2>
               <p className="text-xs text-slate-600 leading-relaxed">
                 Download your complete Microsoft Word (.docx) copy of{" "}
@@ -129,7 +129,7 @@ export function UnlockExportModal({ workspaceId, businessTitle }: UnlockExportMo
                 <li className="flex items-start gap-2.5">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                   <span>
-                    <strong className="text-slate-900">Editable Microsoft Word (.docx) Copy:</strong> Standard KNEC headings, margins, formal cover page, declaration, and financial tables.
+                    <strong className="text-slate-900">Editable Microsoft Word (.docx) Copy:</strong> Standard TVET &amp; KMTC headings, margins, formal cover page, declaration, and financial tables.
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
@@ -147,7 +147,7 @@ export function UnlockExportModal({ workspaceId, businessTitle }: UnlockExportMo
                 <li className="flex items-start gap-2.5">
                   <ShieldCheck className="h-4 w-4 text-[#087f8c] shrink-0 mt-0.5" />
                   <span>
-                    <strong className="text-slate-900">KNEC Examination Ready:</strong> Formatted specifically for Kenyan TVET KNEC guidelines.
+                    <strong className="text-slate-900">TVET &amp; KMTC Ready:</strong> Formatted specifically for Kenyan TVET Colleges and KMTC guidelines.
                   </span>
                 </li>
               </ul>

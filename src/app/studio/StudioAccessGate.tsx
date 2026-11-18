@@ -54,7 +54,7 @@ export function StudioAccessGate() {
                 Class Studio Access Required
               </h1>
               <p className="mt-1 text-xs sm:text-sm text-slate-600 leading-relaxed">
-                Project Studio is reserved for enrolled class students under instructor supervision. Looking for a completed, ready-to-download KNEC project? Visit the Marketplace.
+                Project Studio is reserved for enrolled class students under instructor supervision. Looking for a completed, ready-to-download TVET &amp; KMTC project? Visit the Marketplace.
               </p>
             </div>
           </div>
@@ -63,10 +63,10 @@ export function StudioAccessGate() {
           <div className="rounded-xl border border-teal-200/80 bg-teal-50/50 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 className="text-xs font-semibold uppercase tracking-wider text-teal-900">
-                Need a Ready-Made KNEC Project?
+                Need a Ready-Made TVET &amp; KMTC Project?
               </h2>
               <p className="mt-0.5 text-xs text-slate-600">
-                Download complete, personalized KNEC business plans and projects immediately.
+                Download complete, personalized TVET Colleges and KMTC business plans and projects immediately.
               </p>
             </div>
             <div className="flex flex-wrap gap-2 shrink-0">

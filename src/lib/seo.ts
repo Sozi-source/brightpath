@@ -4,4 +4,4 @@ export const SITE_URL = (
 
 export const SITE_NAME = "TVET Hub";
 export const SITE_DESCRIPTION =
-  "Kenya TVET examination projects, KNEC-aligned business plans, lecture notes, past papers, and guided project studio.";
+  "Kenya TVET Colleges & KMTC examination projects, business plans, lecture notes, past papers, and guided project studio.";
